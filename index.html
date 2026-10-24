@@ -281,8 +281,13 @@ function normalize0131(){
  if(!Number.isFinite(state.lossesThisVoyage))state.lossesThisVoyage=0;
  if(!state.nav||typeof state.nav!=='object')state.nav=null;
  if(!Number.isFinite(state.fishTries))state.fishTries=0;
- if(!Number.isFinite(state.routeChoiceCount))state.routeChoiceCount=0;
+ if(!Number.isFinite(state.routeChoiceCount))state.routeChoiceCount=(state.voyage>0&&state.visited?.length>0)?1:0;
  if(!state.scene)state.scene='start';
+ if(state.scene==='event'&&state.current!=null&&state.nav===null){
+  const old=LAKES[state.current-1];
+  state.nav={stage:state.ruleResolved?'sail':'law',sight:false,helm:false,distance:0,
+   target:2+(old&&old.risk>=3?1:0),turns:0,lawOk:!!state.ruleResolved,fished:false,transition:false};
+ }
 }
 normalize0131();
 const oldTrophies0131=trophies;
@@ -302,9 +307,9 @@ trophies=function(){
  }
 };
 const oldPrepare0131=prepareVoyage;
-prepareVoyage=function(){oldPrepare0131();normalize0131();state.routeChoiceCount=0;state.lossesThisVoyage=0;state.fishTries=0;state.nav=null;state.lastTransition='';sync();};
+prepareVoyage=function(){oldPrepare0131();normalize0131();state.routeChoiceCount=state.voyage>0?1:0;state.lossesThisVoyage=0;state.fishTries=0;state.nav=null;state.lastTransition='';sync();};
 const oldLaunch0131=launch;
-launch=function(){if(state.scene!=='prep')return;oldLaunch0131();normalize0131();state.prog.voyage=state.voyage;sync();};
+launch=function(){if(state.scene!=='prep')return;oldLaunch0131();normalize0131();state.prog.voyage=state.voyage;sync();if(state.routeChoiceCount>0)autoLake0131();};
 const oldSelect0131=selectLake;
 selectLake=function(id){
  if(state.scene!=='route'||!state.sea)return;
@@ -526,7 +531,7 @@ document.addEventListener('click',ev=>{
  if(b.dataset.act==='autoNext')autoLake0131();
 });
 
-render();
+if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
 </script>
 </body>
