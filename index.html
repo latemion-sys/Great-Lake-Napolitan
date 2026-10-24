@@ -290,6 +290,10 @@ function normalize0131(){
  }
 }
 normalize0131();
+const originalTakeDamage0131=takeDamage;
+takeDamage=function(h,m){normalize0131();if(state.sea&&(h>0||m>0))state.lossesThisVoyage++;return originalTakeDamage0131(h,m);};
+const originalApplyWhale0131=applyWhale;
+applyWhale=function(k){const hull=state.hull,mind=state.mind,conditions=state.crew.map(c=>c.condition),size=state.crew.length;originalApplyWhale0131(k);if(state.sea&&(state.hull<hull||state.mind<mind||state.crew.length<size||state.crew.some((c,i)=>c.condition>(conditions[i]??0))))state.lossesThisVoyage++;};
 const oldTrophies0131=trophies;
 trophies=function(){
  normalize0131();
