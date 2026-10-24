@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Great Lake - Napolitan</title>
+  <style>
+    :root{
+      --bg:#0d1117;
+      --panel:#161b22;
+      --panel-2:#1f2630;
+      --line:#30363d;
+      --text:#e6edf3;
+      --sub:#9da7b3;
+      --accent:#9cc7ff;
+      --accent-2:#7ac7b4;
+      --warn:#e0b35a;
+      --danger:#d96c6c;
+      --ok:#7fc98b;
+      --btn:#222b36;
+      --btn-hover:#2b3644;
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at top, #1a2330 0%, #0d1117 48%),
+        #0d1117;
+      color:var(--text);
+      font-family:"Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      min-height:100vh;
+    }
+
+    .container{
+      width:min(920px, calc(100% - 32px));
+      margin:0 auto;
+      padding:28px 0 60px;
+    }
+
+    .title-box{
+      background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:26px 24px;
+      box-shadow:0 12px 28px rgba(0,0,0,0.28);
+      margin-bottom:18px;
+    }
+
+    .eyebrow{
+      color:var(--accent);
+      font-size:13px;
+      letter-spacing:0.08em;
+      margin-bottom:10px;
+    }
+
+    h1{
+      margin:0 0 10px;
+      font-size:34px;
+      line-height:1.15;
+    }
+
+    .desc{
+      color:var(--sub);
+      line-height:1.7;
+      margin:0;
+    }
+
+    .notice{
+      margin-top:16px;
+      padding:14px 16px;
+      background:rgba(224,179,90,0.08);
+      border:1px solid rgba(224,179,90,0.28);
+      border-radius:12px;
+      color:#f1dba4;
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 290px 1fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:0 10px 24px rgba(0,0,0,0.2);
+    }
+
+    .side-panel{
+      padding:18px;
+      position:sticky;
+      top:18px;
+    }
+
+    .main-panel{
+      padding:18px;
+      min-height:520px;
+    }
+
+    .section-title{
+      margin:0 0 12px;
+      font-size:15px;
+      color:var(--accent);
+      font-weight:700;
+    }
+
+    .stat-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-bottom:18px;
+    }
+
+    .stat{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+    }
+
+    .stat-label{
+      font-size:12px;
+      color:var(--sub);
+      margin-bottom:6px;
+    }
+
+    .stat-value{
+      font-size:18px;
+      font-weight:700;
+    }
+
+    .bar-wrap{
+      margin:10px 0 14px;
+    }
+
+    .bar-label{
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      color:var(--sub);
+      margin-bottom:6px;
+    }
+
+    .bar{
+      width:100%;
+      height:10px;
+      background:#0f141b;
+      border:1px solid var(--line);
+      border-radius:999px;
+      overflow:hidden;
+    }
+
+    .bar > span{
+      display:block;
+      height:100%;
+      background:linear-gradient(90deg, #5ea2ff, #89d0ff);
+      border-radius:999px;
+    }
+
+    .small-list{
+      list-style:none;
+      padding:0;
+      margin:0;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .small-list li{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      color:var(--sub);
+      line-height:1.5;
+      font-size:14px;
+    }
+
+    .screen{
+      display:none;
+      animation:fadeIn .25s ease;
+    }
+
+    .screen.active{
+      display:block;
+    }
+
+    @keyframes fadeIn{
+      from{opacity:0; transform:translateY(6px);}
+      to{opacity:1; transform:translateY(0);}
+    }
+
+    .card{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      margin-bottom:14px;
+    }
+
+    .card h2{
+      margin:0 0 10px;
+      font-size:24px;
+    }
+
+    .muted{
+      color:var(--sub);
+      line-height:1.7;
+    }
+
+    .info-box{
+      background:#121821;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      margin-top:12px;
+    }
+
+    .label{
+      display:inline-block;
+      font-size:12px;
+      color:#d6e9ff;
+      background:rgba(92, 148, 255, 0.14);
+      border:1px solid rgba(92, 148, 255, 0.24);
+      border-radius:999px;
+      padding:5px 10px;
+      margin-bottom:10px;
+    }
+
+    .btn-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      color:var(--text);
+      background:var(--btn);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px 14px;
+      font-size:14px;
+      font-weight:600;
+      transition:.15s ease;
+    }
+
+    button:hover{
+      background:var(--btn-hover);
+      transform:translateY(-1px);
+    }
+
+    button.primary{
+      background:linear-gradient(180deg, #29558f, #234978);
+      border-color:#3f6caa;
+    }
+
+    button.primary:hover{
+      background:linear-gradient(180deg, #2d609f, #275385);
+    }
+
+    button.warn{
+      background:linear-gradient(180deg, #7a5d22, #654c1b);
+      border-color:#8f7130;
+    }
+
+    button.danger{
+      background:linear-gradient(180deg, #7c3333, #662727);
+      border-color:#924646;
+    }
+
+    button:disabled{
+      opacity:0.45;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .choice-list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .choice-list button{
+      width:100%;
+      text-align:left;
+      padding:14px 16px;
+    }
+
+    .rumor-list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .rumor-item{
+      background:#121821;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      line-height:1.7;
+    }
+
+    .rumor-item .meta{
+      display:block;
+      color:var(--accent-2);
+      font-size:12px;
+      margin-bottom:6px;
+    }
+
+    .lake-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .lake-card{
+      background:#121821;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+
+    .lake-card h3{
+      margin:0 0 8px;
+      font-size:18px;
+    }
+
+    .lake-card p{
+      margin:0 0 8px;
+      color:var(--sub);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .lake-tags{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin:10px 0 12px;
+    }
+
+    .tag{
+      font-size:12px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,0.03);
+      color:#cbd5df;
+    }
+
+    .result-box{
+      margin-top:14px;
+      padding:14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#121821;
+      line-height:1.7;
+    }
+
+    .battle-box{
+      margin-top:12px;
+      padding:14px;
+      background:#15131a;
+      border:1px solid #3e2c38;
+      border-radius:14px;
+    }
+
+    .footer-note{
+      margin-top:22px;
+      color:#7f8a95;
+      font-size:13px;
+      line-height:1.6;
+      text-align:center;
+    }
+
+    .divider{
+      height:1px;
+      background:var(--line);
+      margin:14px 0;
+    }
+
+    .mono{
+      font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    @media (max-width: 860px){
+      .layout{
+        grid-template-columns:1fr;
+      }
+
+      .side-panel{
+        position:static;
+      }
+
+      .lake-grid{
+        grid-template-columns:1fr;
+      }
+
+      h1{
+        font-size:28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title-box">
+      <div class="eyebrow">FAN GAME / GREAT LAKE PROTOTYPE</div>
+      <h1>대호수 - 항해의 나폴리탄</h1>
+      <p class="desc">
+        Project Moon 세계관의 대호수 설정을 바탕으로 한 비공식 팬게임 프로토타입입니다.
+        호수의 규칙을 구전으로 수집하고, 출항 전에 정보를 가려 들은 뒤, 항해 중 사건을 선택하며 생존하십시오.
+      </p>
+      <div class="notice">
+        이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다.
+        단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="panel side-panel">
+        <h2 class="section-title">항해 현황</h2>
+        <div class="stat-grid">
+          <div class="stat">
+            <div class="stat-label">선장 등급</div>
+            <div class="stat-value" id="captainGrade">1등급</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">소지 자금</div>
+            <div class="stat-value" id="goldValue">80</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">선원 수</div>
+            <div class="stat-value"><span id="crewCount">1</span> / <span id="crewCap">1</span></div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">탐색 가능 호수</div>
+            <div class="stat-value" id="lakeLimit">4</div>
+          </div>
+        </div>
+
+        <div class="bar-wrap">
+          <div class="bar-label">
+            <span>선체 내구도</span>
+            <span id="hullText">100 / 100</span>
+          </div>
+          <div class="bar"><span id="hullBar" style="width:100%"></span></div>
+        </div>
+
+        <div class="bar-wrap">
+          <div class="bar-label">
+            <span>정신 상태</span>
+            <span id="mindText">100 / 100</span>
+          </div>
+          <div class="bar"><span id="mindBar" style="width:100%"></span></div>
+        </div>
+
+        <div class="bar-wrap">
+          <div class="bar-label">
+            <span>현재 체류</span>
+            <span id="stayText">출항 전</span>
+          </div>
+          <div class="bar"><span id="stayBar" style="width:0%"></span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2 class="section-title">승선 인원</h2>
+        <ul class="small-list" id="crewList">
+          <li>하급 선원 × 1</li>
+        </ul>
+
+        <div class="divider"></div>
+
+        <h2 class="section-title">기본 규칙</h2>
+        <ul class="small-list">
+          <li>처음 시작 시 플레이어는 <strong>홀로 움직이는 1등급 선장</strong>입니다.</li>
+          <li>시작 동료는 <strong>하급 선원 1명</strong>입니다.</li>
+          <li>죽으면 모든 진행이 초기화됩니다.</li>
+          <li>대호수의 규칙은 기록물로 남길 수 없어 <strong>구전 정보</strong>로만 얻습니다.</li>
+        </ul>
+      </aside>
+
+      <main class="panel main-panel">
+        <!-- START SCREEN -->
+        <section class="screen active" id="screen-start">
+          <div class="card">
+            <span class="label">출항 준비</span>
+            <h2>항구에 선 당신</h2>
+            <p class="muted">
+              당신은 이제 막 항해를 시작한 1등급 선장입니다.
+              가진 것은 소형 선박 한 척, 약간의 자금, 그리고 하급 선원 1명뿐입니다.
+              대호수로 나가기 전, 사람들에게 돈을 쥐여 주고 소문을 들을 수 있습니다.
+              그중 무엇이 사실인지, 무엇이 거짓인지는 아무도 확신하지 못합니다.
+            </p>
+            <div class="info-box">
+              <strong>현재 시작 설정</strong><br />
+              선장 등급: 1등급 / 최대 승선 인원: 1명 / 탐색 가능 호수 수: 4개
+            </div>
+            <div class="btn-row">
+              <button class="primary" onclick="goScreen('prep')">출항 준비 시작</button>
+              <button onclick="showHelp()">게임 설명</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <span class="label">등급 규칙</span>
+            <p class="muted">
+              선장 등급에 따라 배에 태울 수 있는 인원과 갈 수 있는 호수 수가 달라집니다.
+            </p>
+            <div class="info-box mono">
+              1등급: 1명 / 4개 호수<br />
+              2등급: 3명 / 6개 호수<br />
+              3등급: 5명 / 10개 호수<br />
+              4등급: 7명 / 20개 호수<br />
+              5등급: 10명 / 30개 호수
+            </div>
+          </div>
+        </section>
+
+        <!-- PREP SCREEN -->
+        <section class="screen" id="screen-prep">
+          <div class="card">
+            <span class="label">정보 수집</span>
+            <h2>선원이 전하는 이야기</h2>
+            <p class="muted">
+              U사에서는 대호수의 규칙을 기록물로 남길 수 없습니다.
+              따라서 당신은 출항 전에 구전으로만 3개의 이야기를 들을 수 있습니다.
+              참과 거짓은 구별되지 않지만, <strong>최소 1개는 사실</strong>입니다.
+              더 많은 돈을 지불하면 정보의 신뢰도가 올라갑니다.
+            </p>
+
+            <div class="btn-row">
+              <button onclick="buyRumors(0)">기본 정보 듣기 (무료)</button>
+              <button class="warn" onclick="buyRumors(15)">15 크레딧 지불</button>
+              <button class="primary" onclick="buyRumors(35)">35 크레딧 지불</button>
+            </div>
+
+            <div id="rumorArea" class="rumor-list"></div>
+          </div>
+
+          <div class="card">
+            <span class="label">선원 모집</span>
+            <h2>현재 등급에서 가능한 모집</h2>
+            <p class="muted">
+              선원 모집은 선장 등급에 따라 가능한 인력이 달라집니다.
+              다만 현재 당신은 1등급 선장이라 최대 인원이 이미 가득 찬 상태입니다.
+            </p>
+            <div class="info-box">
+              <strong>현재 모집 가능군</strong><br />
+              하급 선원<br />
+              <br />
+              <strong>추후 등급 상승 시 추가 해금</strong><br />
+              중급 선원 / 상급 선원 / 작살잡이 / 1등 항해사
+            </div>
+          </div>
+
+          <div class="card">
+            <span class="label">출항 선택</span>
+            <h2>향할 수 있는 호수</h2>
+            <p class="muted">
+              현재 등급에서는 최대 4개의 호수에 대한 항해 정보만 접근할 수 있습니다.
+              일부 호수에서는 인어와의 전투가 발생할 수 있습니다.
+            </p>
+            <div class="lake-grid" id="lakeGrid"></div>
+          </div>
+        </section>
+
+        <!-- EVENT SCREEN -->
+        <section class="screen" id="screen-event">
+          <div class="card">
+            <span class="label" id="eventLakeLabel">창작 구역</span>
+            <h2 id="eventLakeName">호수 이름</h2>
+
+            <div class="info-box">
+              <strong>호수 상태</strong><br />
+              체류 <span id="eventStayCurrent">1</span> / <span id="eventStayMax">3</span>
+            </div>
+
+            <div class="info-box">
+              <strong>선원이 전하는 이야기</strong><br />
+              <span id="eventStory" class="muted"></span>
+            </div>
+
+            <div class="info-box">
+              <strong>발생 사건</strong><br />
+              <span id="eventText" class="muted"></span>
+            </div>
+
+            <div class="choice-list" id="eventChoices"></div>
+
+            <div class="result-box" id="eventResult" style="display:none;"></div>
+            <div class="btn-row" id="eventNextRow" style="display:none;">
+              <button class="primary" onclick="advanceAfterEvent()">다음으로</button>
+              <button onclick="returnToPort()">항구로 귀환</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- BATTLE SCREEN -->
+        <section class="screen" id="screen-battle">
+          <div class="card">
+            <span class="label">전투 발생</span>
+            <h2>인어와 조우했습니다</h2>
+            <p class="muted">
+              이 호수는 인어의 활동이 보고된 구역입니다.
+              현재 단계에서는 간단한 선택형 전투로 처리됩니다.
+            </p>
+            <div class="battle-box" id="battleStatus"></div>
+            <div class="choice-list" id="battleChoices"></div>
+          </div>
+        </section>
+
+        <!-- END SCREEN -->
+        <section class="screen" id="screen-end">
+          <div class="card">
+            <span class="label">항해 종료</span>
+            <h2 id="endTitle">항해 종료</h2>
+            <p class="muted" id="endText"></p>
+            <div class="result-box" id="endSummary"></div>
+            <div class="btn-row">
+              <button class="primary" onclick="resetGame()">처음부터 다시 시작</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="footer-note">
+      비공식 팬게임 프로토타입 · 단일 파일 버전 · 이후 대호수 세부 규칙과 호수 데이터 확장 예정
+    </div>
+  </div>
+
+  <script>
+    const GRADE_CAPACITY = {
+      1: 1,
+      2: 3,
+      3: 5,
+      4: 7,
+      5: 10
+    };
+
+    const GRADE_LAKES = {
+      1: 4,
+      2: 6,
+      3: 10,
+      4: 20,
+      5: 30
+    };
+
+    const LAKES = [
+      {
+        id: "brass",
+        name: "가라앉는 황동빛 호수",
+        risk: "중간",
+        mermaid: false,
+        description: "쇠붙이와 무거운 물건이 이상하게 반응하는 탁한 호수.",
+        truthRule: "쇠로 된 물건을 물에 함부로 던지면 호수가 반응한다.",
+        story: "이곳에서는 쇠로 만든 물건을 물에 떨어뜨리지 말라는 소문이 있습니다.",
+        stayMax: 3,
+        event: {
+          text: "선체를 수리하던 하급 선원이 망가진 쇠 부품을 물속에 버리려 합니다.",
+          choices: [
+            { text: "버리지 못하게 한다", effect: "safe" },
+            { text: "그냥 버리도록 둔다", effect: "fail" },
+            { text: "다른 처리 방법을 찾게 한다", effect: "good" }
+          ]
+        }
+      },
+      {
+        id: "choir",
+        name: "메아리치는 푸른 합창의 호수",
+        risk: "낮음",
+        mermaid: true,
+        description: "물결이 소리를 따라 움직이며, 멀리서 노랫소리가 들려오는 호수.",
+        truthRule: "정체를 알 수 없는 노랫소리에 함부로 화답하면 유인된다.",
+        story: "멀리서 들리는 노래에 응답하면 안 된다는 구전이 떠돕니다.",
+        stayMax: 3,
+        event: {
+          text: "안개 너머에서 사람의 목소리 같은 노랫소리가 들려옵니다. 선원은 답가를 부르자고 합니다.",
+          choices: [
+            { text: "노래에 응답한다", effect: "fail" },
+            { text: "전원 침묵을 지시한다", effect: "good" },
+            { text: "소리의 방향만 확인하고 지나친다", effect: "safe" }
+          ]
+        }
+      },
+      {
+        id: "glass",
+        name: "유리조각이 떠다니는 회청의 호수",
+        risk: "중간",
+        mermaid: false,
+        description: "얇은 파편이 수면 위를 미끄러지듯 움직이는 위험한 호수.",
+        truthRule: "급선회할수록 선체가 파편을 크게 뒤집어쓴다.",
+        story: "이 호수에서는 방향을 급히 틀수록 더 위험하다는 이야기가 있습니다.",
+        stayMax: 4,
+        event: {
+          text: "전방의 파편 흐름이 바뀌고 있습니다. 지금 선회를 시도하면 빠져나갈 수 있을지도 모릅니다.",
+          choices: [
+            { text: "급선회하여 빠져나간다", effect: "fail" },
+            { text: "속도를 줄이고 완만히 돈다", effect: "good" },
+            { text: "정면으로 밀고 나간다", effect: "safe" }
+          ]
+        }
+      },
+      {
+        id: "redweed",
+        name: "붉은 해초가 잠든 진흙빛 호수",
+        risk: "높음",
+        mermaid: true,
+        description: "붉은 해초가 배 밑을 휘감고, 정체를 알 수 없는 그림자가 드나드는 호수.",
+        truthRule: "정박한 채 오래 머물수록 뭔가가 배 아래로 모여든다.",
+        story: "멈춘 배 밑에는 오래 머물면 안 된다는 말이 떠돕니다.",
+        stayMax: 2,
+        event: {
+          text: "배 밑에서 무언가가 선체를 긁는 소리가 납니다. 선원은 잠시 닻을 내려 확인하자고 제안합니다.",
+          choices: [
+            { text: "닻을 내려 정박한다", effect: "fail" },
+            { text: "속도를 올려 벗어난다", effect: "good" },
+            { text: "작살을 준비한 채 천천히 전진한다", effect: "safe" }
+          ]
+        }
+      }
+    ];
+
+    const RUMOR_POOL = [
+      { text: "푸른 노랫소리가 들리는 호수에서는 함부로 화답하지 말라.", lakeId: "choir", truth: true },
+      { text: "붉은 해초 호수에서는 배를 오래 멈춰 세울수록 안전해진다.", lakeId: "redweed", truth: false },
+      { text: "황동빛 호수에 쇠붙이를 버리면 물밑이 반응한다.", lakeId: "brass", truth: true },
+      { text: "유리조각 호수는 급하게 방향을 틀수록 오히려 빠져나가기 쉽다.", lakeId: "glass", truth: false },
+      { text: "붉은 해초가 보이는 호수에서는 오래 정박하지 않는 편이 좋다.", lakeId: "redweed", truth: true },
+      { text: "유리조각 호수에선 천천히 방향을 돌리는 편이 낫다.", lakeId: "glass", truth: true },
+      { text: "노랫소리에 가장 먼저 대답한 사람이 축복을 받는다.", lakeId: "choir", truth: false },
+      { text: "황동빛 호수는 쇠붙이와 전혀 상관없는 평범한 수역이다.", lakeId: "brass", truth: false }
+    ];
+
+    const state = {
+      gold: 80,
+      grade: 1,
+      hull: 100,
+      hullMax: 100,
+      mind: 100,
+      mindMax: 100,
+      crew: [{ type: "하급 선원" }],
+      currentLake: null,
+      rumors: [],
+      day: 1,
+      stay: 0,
+      battle: null,
+      clearedLakes: 0,
+      alive: true
+    };
+
+    function $(id){
+      return document.getElementById(id);
+    }
+
+    function goScreen(name){
+      document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+      $("screen-" + name).classList.add("active");
+      if(name === "prep"){
+        renderLakes();
+      }
+      updateUI();
+    }
+
+    function showHelp(){
+      alert(
+`게임 설명
+
+- 출항 전 3개의 구전 정보를 들을 수 있습니다.
+- 정보는 참/거짓이 섞여 있으며 최소 1개는 사실입니다.
+- 현재는 1등급 선장으로 시작하며 하급 선원 1명이 동행합니다.
+- 호수를 선택하면 사건 카드 형식으로 항해가 진행됩니다.
+- 일부 호수에서는 인어 전투가 발생합니다.
+- 선체 내구도나 정신 상태가 0 이하가 되면 사망하며 처음부터 초기화됩니다.
+- 이 버전은 시작용 프로토타입입니다.`
+      );
+    }
+
+    function updateUI(){
+      $("captainGrade").textContent = `${state.grade}등급`;
+      $("goldValue").textContent = state.gold;
+      $("crewCount").textContent = state.crew.length;
+      $("crewCap").textContent = GRADE_CAPACITY[state.grade];
+      $("lakeLimit").textContent = GRADE_LAKES[state.grade];
+      $("hullText").textContent = `${Math.max(0, state.hull)} / ${state.hullMax}`;
+      $("mindText").textContent = `${Math.max(0, state.mind)} / ${state.mindMax}`;
+      $("hullBar").style.width = Math.max(0, (state.hull / state.hullMax) * 100) + "%";
+      $("mindBar").style.width = Math.max(0, (state.mind / state.mindMax) * 100) + "%";
+
+      if(state.currentLake){
+        $("stayText").textContent = `${state.currentLake.name} (${state.stay}/${state.currentLake.stayMax})`;
+        $("stayBar").style.width = `${(state.stay / state.currentLake.stayMax) * 100}%`;
+      }else{
+        $("stayText").textContent = "출항 전";
+        $("stayBar").style.width = "0%";
+      }
+
+      $("crewList").innerHTML = "";
+      state.crew.forEach(member => {
+        const li = document.createElement("li");
+        li.textContent = member.type;
+        $("crewList").appendChild(li);
+      });
+    }
+
+    function shuffle(arr){
+      const copy = [...arr];
+      for(let i = copy.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function buyRumors(cost){
+      if(state.gold < cost){
+        alert("자금이 부족합니다.");
+        return;
+      }
+
+      state.gold -= cost;
+
+      const truths = RUMOR_POOL.filter(r => r.truth);
+      const lies = RUMOR_POOL.filter(r => !r.truth);
+
+      const guaranteedTruth = truths[Math.floor(Math.random() * truths.length)];
+
+      let lieCount = 2;
+      let extraTruthChance = 0.15;
+
+      if(cost >= 15){
+        lieCount = 1;
+        extraTruthChance = 0.45;
+      }
+      if(cost >= 35){
+        lieCount = 0;
+        extraTruthChance = 0.7;
+      }
+
+      let selected = [guaranteedTruth];
+      const truthPool = truths.filter(r => r !== guaranteedTruth);
+      const liePool = lies.filter(r => r.lakeId !== guaranteedTruth.lakeId || !r.truth);
+
+      while(selected.length < 3){
+        const useTruth = Math.random() < extraTruthChance;
+        if(useTruth && truthPool.length > 0){
+          selected.push(truthPool.splice(Math.floor(Math.random() * truthPool.length), 1)[0]);
+        }else if(lieCount > 0 && liePool.length > 0){
+          selected.push(liePool.splice(Math.floor(Math.random() * liePool.length), 1)[0]);
+          lieCount--;
+        }else if(truthPool.length > 0){
+          selected.push(truthPool.splice(Math.floor(Math.random() * truthPool.length), 1)[0]);
+        }else if(liePool.length > 0){
+          selected.push(liePool.splice(Math.floor(Math.random() * liePool.length), 1)[0]);
+        }else{
+          break;
+        }
+      }
+
+      state.rumors = shuffle(selected).slice(0,3);
+      renderRumors(cost);
+      updateUI();
+    }
+
+    function renderRumors(cost){
+      const area = $("rumorArea");
+      area.innerHTML = "";
+
+      const reliability =
+        cost >= 35 ? "높음" :
+        cost >= 15 ? "중간" :
+        "낮음";
+
+      state.rumors.forEach((rumor, idx) => {
+        const div = document.createElement("div");
+        div.className = "rumor-item";
+        div.innerHTML = `
+          <span class="meta">이야기 ${idx + 1} · 신뢰도 추정 ${reliability}</span>
+          ${rumor.text}
+        `;
+        area.appendChild(div);
+      });
+    }
+
+    function renderLakes(){
+      const grid = $("lakeGrid");
+      grid.innerHTML = "";
+      const available = LAKES.slice(0, GRADE_LAKES[state.grade]);
+
+      available.forEach(lake => {
+        const card = document.createElement("div");
+        card.className = "lake-card";
+        card.innerHTML = `
+          <h3>${lake.name}</h3>
+          <p>${lake.description}</p>
+          <div class="lake-tags">
+            <span class="tag">위험도 ${lake.risk}</span>
+            <span class="tag">체류 한도 ${lake.stayMax}</span>
+            <span class="tag">${lake.mermaid ? "인어 출몰 가능" : "인어 출몰 낮음"}</span>
+          </div>
+        `;
+        const btn = document.createElement("button");
+        btn.className = "primary";
+        btn.textContent = "이 호수로 출항";
+        btn.onclick = () => startLake(lake.id);
+        card.appendChild(btn);
+        grid.appendChild(card);
+      });
+    }
+
+    function startLake(lakeId){
+      const lake = LAKES.find(l => l.id === lakeId);
+      state.currentLake = JSON.parse(JSON.stringify(lake));
+      state.stay = 1;
+      renderLakeEvent();
+      goScreen("event");
+    }
+
+    function renderLakeEvent(){
+      const lake = state.currentLake;
+      $("eventLakeLabel").textContent = lake.mermaid ? "창작 구역 / 인어 출몰 보고" : "창작 구역";
+      $("eventLakeName").textContent = lake.name;
+      $("eventStayCurrent").textContent = state.stay;
+      $("eventStayMax").textContent = lake.stayMax;
+      $("eventStory").textContent = lake.story;
+      $("eventText").textContent = lake.event.text;
+      $("eventResult").style.display = "none";
+      $("eventNextRow").style.display = "none";
+
+      const choiceBox = $("eventChoices");
+      choiceBox.innerHTML = "";
+
+      lake.event.choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.textContent = choice.text;
+        btn.onclick = () => resolveEventChoice(choice.effect);
+        choiceBox.appendChild(btn);
+      });
+
+      updateUI();
+    }
+
+    function resolveEventChoice(effect){
+      const lake = state.currentLake;
+      let resultText = "";
+
+      if(effect === "good"){
+        state.gold += 12;
+        resultText = "선택이 적절했습니다. 큰 피해 없이 상황을 넘겼고, 항해의 성과로 12 크레딧을 얻었습니다.";
+      } else if(effect === "safe"){
+        state.hull -= 8;
+        state.mind -= 4;
+        resultText = "완전히 올바른 선택은 아니었지만 치명적이진 않았습니다. 선체와 정신에 약간의 부담이 갔습니다.";
+      } else if(effect === "fail"){
+        state.hull -= 24;
+        state.mind -= 12;
+        resultText = "호수의 규칙을 건드린 듯합니다. 파도와 수면 아래의 반응이 배를 크게 흔들었습니다.";
+      }
+
+      if(lake.mermaid && Math.random() < 0.55){
+        resultText += " 또한 수면 아래에서 인어의 그림자가 포착되었습니다.";
+      }
+
+      $("eventResult").style.display = "block";
+      $("eventResult").innerHTML = resultText;
+      $("eventNextRow").style.display = "flex";
+      $("eventChoices").innerHTML = "";
+
+      updateUI();
+      checkDeath();
+    }
+
+    function advanceAfterEvent(){
+      if(!state.alive) return;
+
+      if(state.currentLake.mermaid && Math.random() < 0.45){
+        startBattle();
+        return;
+      }
+
+      if(state.stay >= state.currentLake.stayMax){
+        state.gold += 18;
+        state.clearedLakes += 1;
+        const lakeName = state.currentLake.name;
+        state.currentLake = null;
+        updateUI();
+
+        $("endTitle").textContent = "항해 성공";
+        $("endText").textContent = `${lakeName}에서의 항해를 마치고 항구로 귀환했습니다. 이후 더 많은 호수와 규칙을 추가해 확장할 수 있습니다.`;
+        $("endSummary").innerHTML = `
+          성공적으로 살아 돌아왔습니다.<br>
+          획득 자금 보너스: 18 크레딧<br>
+          누적 돌파 호수 수: ${state.clearedLakes}
+        `;
+        goScreen("end");
+        return;
+      }
+
+      state.stay += 1;
+      renderLakeEvent();
+    }
+
+    function startBattle(){
+      state.battle = {
+        enemy: "인어",
+        enemyHp: 24,
+        playerAdvantage: calcCombatPower()
+      };
+      renderBattle();
+      goScreen("battle");
+    }
+
+    function calcCombatPower(){
+      let power = 8;
+      for(const member of state.crew){
+        if(member.type === "하급 선원") power += 3;
+        if(member.type === "중급 선원") power += 5;
+        if(member.type === "상급 선원") power += 7;
+        if(member.type === "작살잡이") power += 9;
+        if(member.type === "1등 항해사") power += 6;
+      }
+      return power;
+    }
+
+    function renderBattle(){
+      $("battleStatus").innerHTML = `
+        적: ${state.battle.enemy}<br>
+        적 체력: ${state.battle.enemyHp}<br>
+        현재 전투 역량: ${state.battle.playerAdvantage}
+      `;
+
+      const box = $("battleChoices");
+      box.innerHTML = "";
+
+      const actions = [
+        { text: "작살과 도구를 총동원해 맞선다", type: "fight" },
+        { text: "방향을 틀어 도주를 시도한다", type: "escape" },
+        { text: "전열을 가다듬고 신중하게 방어한다", type: "guard" }
+      ];
+
+      actions.forEach(action => {
+        const btn = document.createElement("button");
+        btn.textContent = action.text;
+        btn.onclick = () => resolveBattle(action.type);
+        box.appendChild(btn);
+      });
+    }
+
+    function resolveBattle(type){
+      let text = "";
+
+      if(type === "fight"){
+        const damage = Math.floor(Math.random() * 8) + Math.floor(state.battle.playerAdvantage / 3);
+        state.battle.enemyHp -= damage;
+        state.hull -= Math.floor(Math.random() * 10) + 6;
+        text = `당신은 강하게 맞섰습니다. 인어에게 ${damage}의 피해를 주었지만 배도 크게 흔들렸습니다.`;
+      }
+
+      if(type === "escape"){
+        const success = Math.random() < 0.48;
+        if(success){
+          alert("간신히 인어를 따돌렸습니다.");
+          state.mind -= 8;
+          state.battle = null;
+          updateUI();
+          goScreen("event");
+          return;
+        }else{
+          state.hull -= 14;
+          state.mind -= 8;
+          text = "도주에 실패했습니다. 인어가 선체를 파고들며 집요하게 따라붙습니다.";
+        }
+      }
+
+      if(type === "guard"){
+        state.hull -= 6;
+        state.mind -= 4;
+        state.battle.enemyHp -= Math.floor(Math.random() * 6) + 3;
+        text = "방어 태세를 유지하며 빈틈을 노렸습니다. 피해를 줄였지만 완전히 막지는 못했습니다.";
+      }
+
+      if(state.battle.enemyHp <= 0){
+        state.gold += 22;
+        alert("인어를 물리쳤습니다. 항해를 이어갑니다.");
+        state.battle = null;
+        updateUI();
+        goScreen("event");
+        return;
+      }
+
+      $("battleStatus").innerHTML = `
+        ${text}<br><br>
+        적 체력: ${Math.max(0, state.battle.enemyHp)}<br>
+        선체 내구도: ${Math.max(0, state.hull)}<br>
+        정신 상태: ${Math.max(0, state.mind)}
+      `;
+
+      updateUI();
+      checkDeath();
+    }
+
+    function checkDeath(){
+      if(state.hull <= 0 || state.mind <= 0){
+        state.alive = false;
+        state.hull = Math.max(0, state.hull);
+        state.mind = Math.max(0, state.mind);
+        updateUI();
+
+        $("endTitle").textContent = "침몰 혹은 항해 불능";
+        $("endText").textContent = "당신의 항해는 여기서 끝났습니다. 대호수에서의 죽음은 곧 모든 진행의 초기화를 의미합니다.";
+        $("endSummary").innerHTML = `
+          선체 내구도: ${state.hull}<br>
+          정신 상태: ${state.mind}<br>
+          규칙을 제대로 파악하지 못했거나, 인어와의 조우를 넘기지 못했습니다.<br>
+          이 게임에서는 죽으면 처음부터 다시 시작합니다.
+        `;
+        goScreen("end");
+      }
+    }
+
+    function returnToPort(){
+      if(!state.currentLake){
+        goScreen("prep");
+        return;
+      }
+
+      state.gold += 5;
+      const lakeName = state.currentLake.name;
+      state.currentLake = null;
+      updateUI();
+
+      $("endTitle").textContent = "중도 귀환";
+      $("endText").textContent = `${lakeName}에서 더 깊이 들어가지 않고 항구로 돌아왔습니다. 살아남는 것도 항해사의 실력입니다.`;
+      $("endSummary").innerHTML = `
+        귀환 보수: 5 크레딧<br>
+        선체 내구도: ${state.hull}<br>
+        정신 상태: ${state.mind}
+      `;
+      goScreen("end");
+    }
+
+    function resetGame(){
+      state.gold = 80;
+      state.grade = 1;
+      state.hull = 100;
+      state.hullMax = 100;
+      state.mind = 100;
+      state.mindMax = 100;
+      state.crew = [{ type: "하급 선원" }];
+      state.currentLake = null;
+      state.rumors = [];
+      state.day = 1;
+      state.stay = 0;
+      state.battle = null;
+      state.clearedLakes = 0;
+      state.alive = true;
+
+      $("rumorArea").innerHTML = "";
+      updateUI();
+      goScreen("start");
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
