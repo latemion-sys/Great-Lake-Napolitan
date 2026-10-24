@@ -277,8 +277,8 @@ function normalize0131(){
  if(!Number.isFinite(state.fish))state.fish=0;
  if(!Number.isFinite(state.oil))state.oil=0;
  if(!Array.isArray(state.clearedIds))state.clearedIds=[];
- if(!Number.isFinite(state.lossesThisVoyage))state.lossesThisVoyage=0;
  if(!Array.isArray(state.achievements))state.achievements=[];
+ if(!Number.isFinite(state.lossesThisVoyage))state.lossesThisVoyage=0;
  if(!state.nav||typeof state.nav!=='object')state.nav=null;
  if(!Number.isFinite(state.fishTries))state.fishTries=0;
  if(!Number.isFinite(state.routeChoiceCount))state.routeChoiceCount=0;
@@ -289,6 +289,7 @@ const oldTrophies0131=trophies;
 trophies=function(){
  normalize0131();
  oldTrophies0131();
+ state.prog.goldPeak=Math.max(state.prog.goldPeak||0,state.gold);
  const checks={
  voyage:state.voyage,lake:state.count.lake,fishSold:state.prog.fishSold,
  oilCollected:state.prog.oilCollected,coinHeads:state.prog.coinHeads,goldPeak:state.prog.goldPeak,
@@ -337,6 +338,13 @@ nextEvent=function(){
  normalize0131();
  if(!state.nav)return;
  if(!state.nav.lawOk){
+  if(state.forceMermaid&&!state.mermaidResolved){
+   state.forceMermaid=false;state.mermaidResolved=true;
+   state.ruleResolved=false;
+   const lake=activeLake();
+   beginBattle({type:'normal',name:'붉은 가루 호수의 인어',power:56+lake.risk*18,need:1,won:0,history:[],after:'navigation'});
+   return;
+  }
   state.ruleResolved=false;
   state.nav.turns++;
   log('호수가 아직 잠잠해지지 않았습니다. 구역의 사건에 다시 대응해야 합니다.');
@@ -398,7 +406,7 @@ completeLake=function(success,msg){
   if(state.battle)state.battle=null;
   if(state.nav.stage==='law')state.nav.stage='sail';
   state.scene='event';
-  log('급한 상황은 벗어났지만 호수의 경계는 아직 건너지 못했습니다.');
+  log('급한 상황은 벗어났지만 아직 이 수역의 항해를 마치지 못했습니다.');
   sync();return;
  }
  const id=state.current;
