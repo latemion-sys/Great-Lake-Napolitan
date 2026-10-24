@@ -355,7 +355,7 @@ nextEvent=function(){
  sync();
 };
 function sailAction0131(action){
- if(state.scene!=='event'||!state.nav||state.nav.stage!=='sail')return;
+ if(state.scene!=='event'||!state.nav||!(state.nav.stage==='sail'||(action==='cross'&&state.nav.stage==='boundary')))return;
  const nav=state.nav,l=activeLake();
  if(!l)return;
  nav.turns++;
