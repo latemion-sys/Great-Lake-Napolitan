@@ -1153,7 +1153,7 @@ resolveCoin=function(win){
  if(finished&&battle?.type==='whale'&&state.scene!=='dead'){
   if(!Array.isArray(state.whaleKilledThisVoyage))state.whaleKilledThisVoyage=[];
   if(!state.whaleKilledThisVoyage.includes(battle.index))state.whaleKilledThisVoyage.push(battle.index);
-  if(state.whaleKilledThisVoyage.length>=3)award('whale3');
+  if(state.whaleKilledThisVoyage.length>=3&&!state.achievements.includes('whale3')){award('whale3');save();render();}
  }
  if(finished&&state.scene!=='dead')
   dispatchAchievement142('battleWin',{type:battle.type,index:battle.index});
