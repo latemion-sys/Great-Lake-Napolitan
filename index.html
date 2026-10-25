@@ -635,6 +635,111 @@ document.addEventListener('click',event=>{
  if(b&&!b.disabled&&!busy&&b.dataset.act==='equipTitle')equipTitle132(b.dataset.value);
 });
 
+
+/* 항구 상점. 장비는 1회 구매 후 자동 장착됩니다. */
+const SHOP_GEAR_132=[
+ {id:'captainCharm',name:'선장용 정신 방호 부적',cost:58,group:'선장용',atk:0,mind:.20,hull:0},
+ {id:'captainHarpoon',name:'선장용 강철 작살',cost:88,group:'선장용',atk:12,mind:0,hull:0},
+ {id:'captainCoat',name:'선장용 방수 전투복',cost:100,group:'선장용',atk:6,mind:.10,hull:0},
+ {id:'crewHelmet',name:'선원용 정신 방호모',cost:65,group:'선원용',atk:0,mind:.15,hull:0},
+ {id:'crewHarpoon',name:'선원용 표준 작살',cost:95,group:'선원용',atk:5,mind:0,hull:0},
+ {id:'crewTether',name:'선원용 안전 고정구',cost:70,group:'선원용',atk:0,mind:0,hull:.12},
+ {id:'crewPouch',name:'선원용 응급 약주머니',cost:52,group:'선원용',atk:0,mind:.08,hull:0}
+];
+const SHOP_REPAIRS_132=[
+ {id:'minor',name:'하급 선박 수리',cost:20,amount:15},
+ {id:'medium',name:'중급 선박 수리',cost:48,amount:40},
+ {id:'major',name:'상급 선박 수리',cost:100,amount:100}
+];
+const SHOP_RECOVERY_132=[
+ {id:'mind25',name:'정신 안정 치료',cost:25,amount:25,kind:'mind'},
+ {id:'mind100',name:'정신 집중 치료',cost:70,amount:100,kind:'mind'},
+ {id:'crew1',name:'승선 인원 휴식',cost:35,amount:1,kind:'crew'},
+ {id:'crew3',name:'선원 집중 회복',cost:95,amount:3,kind:'crew'}
+];
+function inShop132(){return !busy&&!state.sea&&state.scene==='port';}
+function buyRepair132(id){
+ const x=SHOP_REPAIRS_132.find(x=>x.id===id);
+ if(!inShop132()||!x||state.hull>=100||state.gold<x.cost)return;
+ const amount=Math.min(x.amount,100-state.hull);
+ state.gold-=x.cost;state.hull+=amount;
+ log(x.name+' 완료: 내구도 +'+amount+', '+unitMoney(x.cost)+' 사용.');sync();
+}
+function buyGear132(id){
+ migrate132();const item=SHOP_GEAR_132.find(x=>x.id===id);
+ if(!inShop132()||!item||state.equipment.includes(id)||state.gold<item.cost)return;
+ state.gold-=item.cost;state.equipment.push(id);
+ log(item.name+' 구입 및 장착. '+unitMoney(item.cost)+' 사용.');sync();
+}
+function recover132(id){
+ const x=SHOP_RECOVERY_132.find(x=>x.id===id);
+ if(!inShop132()||!x||state.gold<x.cost)return;
+ if(x.kind==='mind'){
+  if(state.mind>=100)return;
+  state.gold-=x.cost;state.mind=Math.min(100,state.mind+x.amount);
+ }else{
+  if(!state.crew.some(c=>c.condition>0))return;
+  state.gold-=x.cost;
+  state.crew.forEach(c=>c.condition=Math.max(0,c.condition-x.amount));
+ }
+ log(x.name+' 이용. '+unitMoney(x.cost)+' 사용.');sync();
+}
+const beforePowerShop132=crewPower;
+crewPower=function(){
+ migrate132();let result=beforePowerShop132();
+ for(const x of SHOP_GEAR_132){
+  if(state.equipment.includes(x.id)){
+   result+=x.id==='crewHarpoon'?x.atk*state.crew.length:x.atk;
+  }
+ }
+ return result;
+};
+const beforeDamageShop132=takeDamage;
+takeDamage=function(h,m){
+ migrate132();
+ let mindReduce=0,hullReduce=0;
+ for(const x of SHOP_GEAR_132){
+  if(state.equipment.includes(x.id)){mindReduce+=x.mind;hullReduce+=x.hull;}
+ }
+ const hh=h>0?Math.max(1,Math.ceil(h*(1-hullReduce))):h;
+ const mm=m>0?Math.max(1,Math.ceil(m*(1-Math.min(mindReduce,.65)))):m;
+ return beforeDamageShop132(hh,mm);
+};
+repair=function(){};rest=function(){};
+function renderShop132(){
+ migrate132();const available=inShop132();
+ let h='<div class="inset"><h2>항구 상점</h2><p class="muted">선체는 자연 회복되지 않습니다. 수리·구매·회복은 항구에서만 가능합니다.</p>'+tag('보유 '+unitMoney(state.gold))+tag('선체 '+state.hull+'/100')+'</div>';
+ h+='<div class="inset"><h3>1. 선박 수리</h3><div class="stack">';
+ for(const x of SHOP_REPAIRS_132){
+  h+=button(x.name+' · 내구도 +'+x.amount+' · '+unitMoney(x.cost),'shopRepair',x.id,'primary',!available||state.gold<x.cost||state.hull>=100);
+ }
+ h+='</div></div><div class="inset"><h3>2. 장비 구매</h3><p class="muted">구매 즉시 장착되어 효과가 적용됩니다.</p>';
+ for(const group of ['선장용','선원용']){
+  h+='<h3>'+group+'</h3><div class="stack">';
+  for(const item of SHOP_GEAR_132.filter(x=>x.group===group)){
+   const owned=state.equipment.includes(item.id);
+   const desc=(item.atk?'전투력 +'+item.atk+(item.id==='crewHarpoon'?' × 승선 선원':'')+' / ':'')+(item.mind?'정신 피해 경감 '+Math.round(item.mind*100)+'% / ':'')+(item.hull?'선체 피해 경감 '+Math.round(item.hull*100)+'% / ':'');
+   h+=button(item.name+' · '+unitMoney(item.cost)+' · '+desc+(owned?'[구매 완료]':''),'shopGear',item.id,'',!available||owned||state.gold<item.cost);
+  }
+  h+='</div>';
+ }
+ h+='</div><div class="inset"><h3>3. 회복</h3><div class="stack">';
+ for(const x of SHOP_RECOVERY_132){
+  const noNeed=x.kind==='mind'?state.mind>=100:!state.crew.some(c=>c.condition>0);
+  h+=button(x.name+' · '+unitMoney(x.cost)+' · '+(x.kind==='mind'?'정신 상태 +'+x.amount:'컨디션 '+x.amount+'단계 개선'),'shopRecover',x.id,'',!available||noNeed||state.gold<x.cost);
+ }
+ h+='</div></div><div class="inset"><h3>특수 전리품 보관함</h3>';
+ const loot=[...WHALE_LOOT.map((x,k)=>[x[0],state.relics['whale_'+k]||0]),...SPECIAL_LOOT.map((x,k)=>[x,state.relics['special_'+k]||0])].filter(x=>x[1]>0);
+ h+=loot.length?loot.map(x=>'<p>'+esc(x[0])+' × '+x[1]+'</p>').join(''):'<p class="muted">아직 보관한 특수 전리품이 없습니다.</p>';
+ return h+'</div>';
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button[data-act]');if(!b||b.disabled||busy)return;
+ if(b.dataset.act==='shopRepair')buyRepair132(b.dataset.value);
+ if(b.dataset.act==='shopGear')buyGear132(b.dataset.value);
+ if(b.dataset.act==='shopRecover')recover132(b.dataset.value);
+});
+
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
 </script>
