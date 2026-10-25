@@ -887,16 +887,12 @@ enterNextLake0131=function(id){
 };
 function storyChoice014(i){
  if(state.scene!=='event'||!state.current||!state.lakeStory)return;
- const st=state.lakeStory,d=STORY_DEFS[state.current-1],node=d.nodes[st.step],option=node?.choices[i];
+ const st=state.lakeStory,d=STORY_DEFS[state.current-1],node=st.step==='afterMermaid'?{
+  text:'인어의 소란을 넘기자 열렸던 물길이 다시 나타난다.',
+  choices:[{text:'물빛이 갈린 곳을 따라 끝까지 통과한다.',pass:true}]
+ }:d.nodes[st.step],option=node?.choices[i];
  if(!option)return;
  st.turns++;state.nav.turns=st.turns;
- if(option.death){
-  const msg=option.death;log(d.name+': '+msg);die();state.storyDeath=msg;save();render();return;
- }
- if(option.harm){
-  takeDamage(option.harm,Math.max(2,Math.floor(option.harm/3)));
-  if(!safeCheck())return;
- }
  if(state.current===39&&st.step==='first'&&i===1){
   // 21-39: 피를 바치는 것은 금기. 선원 인어화 또는 인어 출현.
   if(state.crew.length&&Math.random()<.5){
@@ -910,6 +906,19 @@ function storyChoice014(i){
   }
   st.result='승선 인원 한 명이 수면 아래로 사라졌다.';
   st.step='first';sync();return;
+ }
+ if(option.death){
+  const msg=option.death;log(d.name+': '+msg);die();state.storyDeath=msg;save();render();return;
+ }
+ if(option.harm){
+  takeDamage(option.harm,Math.max(2,Math.floor(option.harm/3)));
+  if(!safeCheck())return;
+ }
+ if(option.pass&&state.normalMermaidDraw&&!state.mermaidResolved){
+  state.mermaidResolved=true;
+  st.step='afterMermaid';st.result='떠나려는 순간 물밑에서 인어가 길을 막아섰다.';
+  beginBattle({type:'normal',name:'대호수의 인어',power:35+activeLake().risk*18,need:1,won:0,history:[],after:'navigation'});
+  return;
  }
  if(option.pass){
   if(!state.nav){state.nav={stage:'boundary',transition:true,turns:st.turns};}
@@ -935,7 +944,10 @@ function storyChoice014(i){
 function renderStory014(){
  const l=activeLake(),s=state.lakeStory,d=l&&STORY_DEFS[l.id-1];
  if(!s||!d)return '<div class="inset">호수의 장면이 연결되지 않았습니다.</div>';
- const node=d.nodes[s.step];
+ const node=s.step==='afterMermaid'?{
+  text:'◈ 인어가 있던 자리의 물결이 다시 잠잠해졌다. 열렸던 경계가 아직 보인다.',
+  choices:[{text:'물빛이 갈린 곳을 따라 끝까지 통과한다.',pass:true}]
+ }:d.nodes[s.step];
  if(!node)return '<div class="inset">호수의 다음 장면을 찾을 수 없습니다.</div>';
  const r=RULES[l.rule],seen=state.lakeRumorTruth?r.truth():r.false();
  return '<div class="inset" style="border-top:4px solid '+l.hex+'">'+
@@ -990,6 +1002,7 @@ if(state.sea&&(state.offered.some(x=>x>50)||state.current>50)){
 }
 if(state.scene==='event'&&state.current>0&&state.current<=50&&(!state.lakeStory||state.lakeStory.id!==state.current)){
  state.lakeStory=makeStory014(LAKES[state.current-1]);
+ if(typeof state.normalMermaidDraw!=='boolean')state.normalMermaidDraw=Math.random()<.20;
  save();
 }
 
