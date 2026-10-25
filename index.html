@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수 - 항해의 나폴리탄 | v0.1.4</title>
+<title>대호수 - 항해의 나폴리탄 | v0.1.4.1</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -117,7 +117,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <body>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.4</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.4.1</div>
  <h1>대호수 - 항해의 나폴리탄</h1>
  <p class="muted">규칙을 듣고, 선원을 지키며, 50개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
@@ -885,14 +885,40 @@ enterNextLake0131=function(id){
  state.lakeStory=makeStory014(LAKES[id-1]);
  prevEnter014(id);
 };
+
+/* 모든 호수 사건의 이동 선택. 실제로 길이 열린 장면에서만 통과합니다. */
+function storyChoicesVisible014(st,node){
+ const originals=node.choices||[];
+ const hasAdvance=originals.some(x=>x.advance);
+ return hasAdvance?originals:[...originals,{text:'노를 저어 나아간다',advance:true}];
+}
+function storyStageReady014(node){
+ return !!(node?.choices||[]).some(x=>x.pass===true);
+}
+function storyFailToAdvance014(lakeName){
+ const ending=lakeName+'에서 아직 길이 열리지 않았다. 노를 젓자 배 밑의 물이 벌어졌고, 선장과 선원들이 그 아래로 떨어졌다. 항해는 그 자리에서 끝났다.';
+ log(ending);die();state.storyDeath=ending;save();render();
+}
 function storyChoice014(i){
  if(state.scene!=='event'||!state.current||!state.lakeStory)return;
  const st=state.lakeStory,d=STORY_DEFS[state.current-1],node=st.step==='afterMermaid'?{
   text:'인어의 소란을 넘기자 열렸던 물길이 다시 나타난다.',
   choices:[{text:'물빛이 갈린 곳을 따라 끝까지 통과한다.',pass:true}]
- }:d.nodes[st.step],option=node?.choices[i];
+ }:d.nodes[st.step],options=storyChoicesVisible014(st,node),option=options[i];
  if(!option)return;
- st.turns++;state.nav.turns=st.turns;
+ // 조건이 없는 출발은 선택 즉시 사망하며 다른 규칙 처리를 거치지 않습니다.
+ if(option.advance&&!storyStageReady014(node)){
+  storyFailToAdvance014(d.name);return;
+ }
+ st.turns++;
+ if(!state.nav)state.nav={stage:'law',turns:0,transition:false};
+ state.nav.turns=st.turns;
+ // 조건 충족 장면의 이동 선택은 해당 장면의 원래 통과 처리와 같습니다.
+ if(option.advance){
+  const pass=node.choices.find(x=>x.pass);
+  if(!pass)return;
+  option={...pass,text:option.text};
+ }
  if(state.current===39&&st.step==='first'&&i===1){
   // 21-39: 피를 바치는 것은 금기. 선원 인어화 또는 인어 출현.
   if(state.crew.length&&Math.random()<.5){
@@ -943,12 +969,19 @@ function storyChoice014(i){
 }
 function renderStory014(){
  const l=activeLake(),s=state.lakeStory,d=l&&STORY_DEFS[l.id-1];
- if(!s||!d)return '<div class="inset">호수의 장면이 연결되지 않았습니다.</div>';
+ if(!s||!d){
+  return '<div class="inset"><h2>호수 사건을 준비하고 있습니다</h2><p>항구로 돌아간 뒤 다시 출항하십시오.</p>'+button('항구로 돌아간다','return','','primary')+'</div>';
+ }
  const node=s.step==='afterMermaid'?{
   text:'◈ 인어가 있던 자리의 물결이 다시 잠잠해졌다. 열렸던 경계가 아직 보인다.',
   choices:[{text:'물빛이 갈린 곳을 따라 끝까지 통과한다.',pass:true}]
  }:d.nodes[s.step];
- if(!node)return '<div class="inset">호수의 다음 장면을 찾을 수 없습니다.</div>';
+ if(!node){
+  // 구형 저장 데이터에 남은 삭제된 장면을 노출하지 않고 현재 호수의 첫 사건으로 복귀합니다.
+  const initial=Array.isArray(d.start)?d.start[0]:d.start;
+  s.step=initial;s.result='눈앞의 현상이 달라졌다. 선원들과 다시 살펴보아야 한다.';
+  save();return renderStory014();
+ }
  const r=RULES[l.rule],seen=state.lakeRumorTruth?r.truth():r.false();
  return '<div class="inset" style="border-top:4px solid '+l.hex+'">'+
   '<div class="between"><h2>'+esc(l.storyNo+' · '+l.name)+'</h2>'+tag('창작 구역')+'</div>'+
@@ -958,7 +991,7 @@ function renderStory014(){
   '<div class="small">선원이 전하는 이야기 · 진위 불명</div><p>“'+esc(seen)+'”</p></div>'+
   (s.result?'<div class="result">'+esc(s.result)+'</div>':'')+
   '<h3>발생 사건</h3><p>'+esc(node.text)+'</p>'+
-  '<div class="stack">'+node.choices.map((o,i)=>button('▸ '+o.text,'storyChoice',String(i),o.pass?'primary':'')).join('')+'</div></div>';
+  '<div class="stack">'+storyChoicesVisible014(s,node).map((o,i)=>button('▸ '+o.text,'storyChoice',String(i),o.pass||o.advance&&storyStageReady014(node)?'primary':'')).join('')+'</div></div>';
 }
 const prevRender014=renderPlay;
 renderPlay=function(){
@@ -975,7 +1008,7 @@ renderAch=function(){
 };
 const prevHelp014=renderHelp;
 renderHelp=function(){
- return prevHelp014().replace('총 100개','총 50개').replace('100개 중 중복 없는','50개 중 중복 없는').replace('항해 안내 · v0.1.3.2','항해 안내 · v0.1.4');
+ return prevHelp014().replace('총 100개','총 50개').replace('100개 중 중복 없는','50개 중 중복 없는').replace('항해 안내 · v0.1.3.2','항해 안내 · v0.1.4.1');
 };
 const prevSide014=renderSide;
 renderSide=function(){
@@ -985,7 +1018,7 @@ renderSide=function(){
 const prevStart014=renderPlay;
 renderPlay=function(){
  const body=prevStart014();
- if(state.scene==='start')return body+'<div class="log-update"><h3>업데이트 내역 · V.0.1.4</h3><ul><li>호수 100개에서 50개로 개편</li><li>50개 호수 각각의 새로운 다단계 사건·묘사·선택지 추가</li><li>선택에 따른 사망 및 단계별 항해 분기 적용</li><li>재앙 고래 사냥 업적을 기적 등급으로 이동</li><li>기존 달성 업적은 별도로 보존</li></ul></div>';
+ if(state.scene==='start')return body+'<div class="log-update"><h3>업데이트 내역 · V.0.1.4.1</h3><ul><li>호수 100개에서 50개로 개편</li><li>50개 호수 각각의 새로운 다단계 사건·묘사·선택지 추가</li><li>선택에 따른 사망 및 단계별 항해 분기 적용</li><li>재앙 고래 사냥 업적을 기적 등급으로 이동</li><li>기존 달성 업적은 별도로 보존</li></ul></div>';
  return body;
 };
 document.addEventListener('click',e=>{
