@@ -183,6 +183,12 @@ LAKES.forEach((lake,i)=>{
  ACH.push({id:'lake_'+lake.id,tier,name:'제'+String(lake.id).padStart(3,'0')+'호 · '+lake.name+' 통과',desc:lake.name+'를 실제로 통과한다.',check:{kind:'uniqueLake',n:lake.id}});
 });
 
+// 신화 업적은 저장 데이터 복구 전에 등록합니다.
+['extra_voyage_16','extra_lake_16','extra_fishSold_16','extra_oilCollected_16','extra_coinHeads_16'].forEach(id=>{
+ const a=ACH.find(x=>x.id===id);if(a)a.tier='legend';
+});
+WHALES.forEach((w,k)=>ACH.push({id:'whale_hunt_'+k,tier:'myth',name:'재앙 사냥 · '+w.name,desc:'해당 재앙을 사냥한다.'}));
+
 function fresh(){return {grade:1,gold:150,hull:100,mind:100,xp:0,crew:[{id:1,role:'lower',condition:1}],nextCrew:2,voyage:0,offered:[],visited:[],whalePlaces:{},whaleSeen:[],whaleKilled:[],rumors:[],rumorBought:false,sea:false,current:null,scene:'start',ruleResolved:false,ruleResult:'',blueTorn:false,forceMermaid:false,mermaidResolved:false,battle:null,encounter:null,lastCoin:null,achievements:[],count:{lake:0,return:0,special:0,rumors:0},log:['항구의 새벽. 첫 항해를 준비하십시오.']};}
 let state=fresh(), tab='play',busy=false;
 let permanentAchievements=[];
@@ -543,10 +549,6 @@ const WHALE_LOOT=[
 ];
 const SPECIAL_LOOT=['창백한 기름','꿰뚫는 기름','들끓는 기름','뱉는 기름','날개의 기름'];
 const unitMoney=n=>Math.floor(n).toLocaleString('ko-KR')+'만 안(眼)';
-['extra_voyage_16','extra_lake_16','extra_fishSold_16','extra_oilCollected_16','extra_coinHeads_16'].forEach(id=>{
- const a=ACH.find(x=>x.id===id);if(a)a.tier='legend';
-});
-WHALES.forEach((w,k)=>ACH.push({id:'whale_hunt_'+k,tier:'myth',name:'재앙 사냥 · '+w.name,desc:'해당 재앙을 사냥한다.'}));
 function migrate132(){
  normalize0131();
  if(!state.relics||typeof state.relics!=='object')state.relics={};
