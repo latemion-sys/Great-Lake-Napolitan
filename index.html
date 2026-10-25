@@ -30,7 +30,30 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 .achgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.achievement{border:2px solid #737b86;border-radius:12px;padding:12px;background:#17212b}.achievement .tier{font-size:11px}.achievement.unearned{opacity:.46}
 .achievement.common{border-color:#8e939d}.achievement.rare{border-color:#4fc878}.achievement.hero{border-color:#4b9bff}.achievement.legend{border-color:#e4bf45}.achievement.myth{border-color:#f16868}
 .achievement.miracle{border:2px solid transparent;background:linear-gradient(#17212b,#17212b) padding-box,conic-gradient(#e34f50,#fff,#4074ee,#fff,#e34f50) border-box}
-.achievement.unique{border:2px solid transparent;background:linear-gradient(#17212b,#17212b) padding-box,linear-gradient(110deg,#f74a51,#f7af41,#fcf17a,#57d57c,#4da2f5,#aa72ef,#f74a51) border-box}
+/* 유일 · 쪽빛을 품은 이중 광채 문양 */
+.achievement.unique{
+ position:relative;isolation:isolate;overflow:hidden;
+ border:3px solid transparent;border-radius:14px;
+ color:#e7e9ff;
+ background:
+  linear-gradient(145deg,#151c39,#1d2852 55%,#141c38) padding-box,
+  linear-gradient(120deg,#29336f 0%,#7e9dff 22%,#d7deff 35%,#4a59b8 53%,#9eaeff 70%,#253376 100%) border-box;
+ box-shadow:0 0 0 1px #37437c,0 0 15px #5864d059,0 0 26px #283d8f33,
+  inset 0 0 0 1px #8a9df34d,inset 0 0 19px #6275d322;
+}
+.achievement.unique .tier{color:#adbfff;letter-spacing:.075em;text-shadow:0 0 7px #718df588}
+.achievement.unique b{color:#e3eaff;text-shadow:0 0 9px #98a9ff77}
+.achievement.unique::before{
+ content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+ background:linear-gradient(110deg,transparent 28%,#c7d4ff17 43%,#e5eaff31 50%,#c7d4ff17 57%,transparent 72%);
+ transform:translateX(-130%);animation:uniqueIndigoShimmer 6.5s ease-in-out infinite;
+}
+.achievement.unique::after{
+ content:"✦";position:absolute;bottom:0;right:8px;pointer-events:none;
+ color:#a9b9ff;font-size:23px;opacity:.66;text-shadow:0 0 10px #809aff,0 0 18px #3c58ff;
+}
+@keyframes uniqueIndigoShimmer{0%,22%{transform:translateX(-130%)}58%,100%{transform:translateX(135%)}}
+@media(prefers-reduced-motion:reduce){.achievement.unique::before{animation:none;display:none}}
 .coinpanel{text-align:center;background:#101820;border:1px solid #3d536a;padding:15px;border-radius:15px}.coinstage{height:126px;display:flex;align-items:center;justify-content:center;perspective:800px}
 .coin{height:86px;width:86px;position:relative;transform-style:preserve-3d;filter:drop-shadow(0 6px 8px #0009)}.coin .face{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;border:5px solid #dfc178;background:radial-gradient(circle at 25% 20%,#fff2bd,#b47737 76%);display:flex;align-items:center;justify-content:center;color:#36200c;font-weight:900;font-size:20px;box-shadow:inset 0 0 0 3px #986b34}
 .coin .back{transform:rotateY(180deg);background:radial-gradient(circle at 20% 20%,#dde7e7,#67788b 80%);border-color:#aab3c4;box-shadow:inset 0 0 0 3px #5e7088;color:#14253d}
@@ -155,7 +178,7 @@ const ACH=[
  {id:'whale1',tier:'legend',name:'재앙에 상처를 내다',desc:'재앙의 고래를 1마리 사냥한다.'},
  {id:'whale3',tier:'myth',name:'세 재앙의 종언',desc:'서로 다른 재앙의 고래 3마리를 사냥한다.'},
  {id:'survive3',tier:'miracle',name:'기적적인 생환',desc:'선체 내구도 1로 항구에 무사히 귀환한다.'},
- {id:'all5',tier:'unique',name:'대호수의 불가능',desc:'한 목숨으로 다섯 재앙의 고래를 전부 사냥한다.'}
+ {id:'all5',tier:'unique',name:'쪽빛노인',desc:'한 목숨으로 다섯 재앙의 고래를 전부 사냥한다.'}
 ];
 const TIER={common:'일반',rare:'희귀',hero:'영웅',legend:'전설',myth:'신화',miracle:'기적',unique:'유일'};
 const SAVE_KEY='great-lake-napolitan-v011';
