@@ -2050,7 +2050,8 @@ const previousTestPlay154=renderPlay;
 renderPlay=function(){
  const page=previousTestPlay154();
  if(state.scene!=='start')return page;
- return page+'<div class="log-update"><h3>테스트판 · V.0.1.5.4</h3><ul>'+
+ const clean=page.replace(/<div class="log-update">[\s\S]*?<\/div>/g,'');
+ return clean+'<div class="log-update"><h3>테스트판 · V.0.1.5.4</h3><ul>'+
  '<li>21-01~21-10의 호수만 항해에 등장합니다.</li>'+
  '<li>21-11~21-50의 호수 사건과 해당 호수 전용 업적을 제거했습니다.</li>'+
  '<li>등급별 접근 수는 4 / 8 / 10 / 10 / 10개입니다.</li></ul></div>';
