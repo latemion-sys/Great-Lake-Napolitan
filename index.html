@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.4.3</title>
+<title>대호수: The Great Lake | v0.1.4.4</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -117,7 +117,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <body>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.4.3</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.4.4</div>
  <h1>대호수: The Great Lake</h1>
  <p class="muted">규칙을 듣고, 선원을 지키며, 50개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
@@ -216,9 +216,9 @@ const ACH=[
  {id:'lake20',tier:'hero',name:'스무 번의 통과',desc:'누적 20개 호수를 통과한다.'},
  {id:'rank5',tier:'legend',name:'다섯 번째 등급',desc:'5등급 선장이 된다.'},
  {id:'whale1',tier:'legend',name:'흉터를 남긴 퇴각',desc:'재앙의 고래에게 한 번 이상 유효 타격을 가한 뒤 전투에서 살아 도주한다.'},
- {id:'whale3',tier:'myth',name:'세 재앙의 종언',desc:'서로 다른 재앙의 고래 세 마리를 각각 최초 한 번씩 사냥한다.'},
+ {id:'whale3',tier:'myth',name:'세 재앙의 종언',desc:'한 목숨 동안 서로 다른 재앙의 고래 세 마리를 사냥한다.'},
  {id:'survive3',tier:'miracle',name:'기적적인 생환',desc:'선체 내구도 1로 항구에 무사히 귀환한다.'},
- {id:'all5',tier:'unique',name:'쪽빛노인',desc:'다섯 재앙의 고래를 각각 최초 한 번씩 모두 사냥한다.'}
+ {id:'all5',tier:'unique',name:'쪽빛노인',desc:'한 목숨 동안 다섯 재앙의 고래를 모두 사냥한다.'}
 ];
 const TIER={common:'일반',rare:'희귀',hero:'영웅',legend:'전설',myth:'신화',miracle:'기적',unique:'유일'};
 const SAVE_KEY='great-lake-napolitan-v011';
@@ -1242,28 +1242,23 @@ renderPlay=function(){
 
 
 /* v0.1.4.3 · 재앙별 최초 사냥 영구 보존, 사망/출항을 넘어 중복 등장 금지 */
-let persistentWhaleKills143=[];
-try{
- const loaded=JSON.parse(localStorage.getItem(WHALE_KILLS_SAVE_KEY));
- if(Array.isArray(loaded))persistentWhaleKills143=loaded.filter(k=>Number.isInteger(k)&&k>=0&&k<WHALES.length);
-}catch(e){console.warn('재앙 사냥 정보 복구 실패:',e);}
+
+/* v0.1.4.4: 고래별 최초 업적은 영구 유지하지만 현재 목숨에서 잡은 재앙만 제외한다. */
 function huntedWhaleIndices143(){
- const previouslyEarned=[...(Array.isArray(state.achievements)?state.achievements:[]),...permanentAchievements];
- const earned=previouslyEarned.map(id=>/^whale_hunt_([0-4])$/.exec(id)).filter(Boolean).map(m=>Number(m[1]));
- const killedInOlderSave=Array.isArray(state.whaleKilled)?state.whaleKilled.filter(k=>Number.isInteger(k)&&k>=0&&k<WHALES.length):[];
- return [...new Set([...persistentWhaleKills143,...earned,...killedInOlderSave])].sort((a,b)=>a-b);
+ return [...new Set((Array.isArray(state.whaleKilled)?state.whaleKilled:[])
+  .filter(k=>Number.isInteger(k)&&k>=0&&k<WHALES.length))].sort((a,b)=>a-b);
 }
 function markHuntedWhale143(index){
  if(!Number.isInteger(index)||index<0||index>=WHALES.length)return;
- persistentWhaleKills143=[...new Set([...huntedWhaleIndices143(),index])].sort((a,b)=>a-b);
- try{localStorage.setItem(WHALE_KILLS_SAVE_KEY,JSON.stringify(persistentWhaleKills143));}
- catch(e){console.warn('재앙 사냥 정보 저장 실패:',e);}
- // 지난 버전에서 생성되어 있던 출항의 배치도 즉시 정리한다.
+ if(!Array.isArray(state.whaleKilled))state.whaleKilled=[];
+ if(!state.whaleKilled.includes(index))state.whaleKilled.push(index);
  for(const [lake,k] of Object.entries(state.whalePlaces||{}))if(k===index)delete state.whalePlaces[lake];
 }
 function reconcileWhalePlacement143(){
+ // 이전 버전의 영구 처치 데이터는 다시 등장할 고래를 결정할 때 절대 사용하지 않는다.
+ try{localStorage.removeItem(WHALE_KILLS_SAVE_KEY);}
+ catch(e){console.warn('이전 처치 데이터 정리 실패:',e);}
  const hunted=huntedWhaleIndices143();
- persistentWhaleKills143=[...new Set([...persistentWhaleKills143,...hunted])].sort((a,b)=>a-b);
  for(const [lake,k] of Object.entries(state.whalePlaces||{}))if(hunted.includes(k))delete state.whalePlaces[lake];
  if(state.scene==='encounter'&&hunted.includes(state.encounter)){
   state.encounter=null;state.scene='event';
@@ -1271,28 +1266,24 @@ function reconcileWhalePlacement143(){
  if(state.scene==='battle'&&state.battle?.type==='whale'&&hunted.includes(state.battle.index)){
   state.battle=null;state.scene='event';
  }
- try{localStorage.setItem(WHALE_KILLS_SAVE_KEY,JSON.stringify(persistentWhaleKills143));}
- catch(e){console.warn('재앙 사냥 정보 저장 실패:',e);}
 }
 const previousDeath143=die;
 die=function(){
- persistentWhaleKills143=huntedWhaleIndices143();
- try{localStorage.setItem(WHALE_KILLS_SAVE_KEY,JSON.stringify(persistentWhaleKills143));}
- catch(e){console.warn('재앙 사냥 정보 저장 실패:',e);}
- previousDeath143();
+ previousDeath143();  // fresh()로 현재 목숨의 사냥 명단 초기화, 업적은 기존대로 유지
+ reconcileWhalePlacement143();
 };
 const previousHelp143=renderHelp;
 renderHelp=function(){
  const html=previousHelp143();
- return html.replace('항해 안내 · v0.1.4.1','항해 안내 · v0.1.4.3').replace('매 출항시마다 다섯 재앙의 고래는 50개 중 중복 없는 랜덤한 임의의 호수에 배치되며',
- '아직 사냥하지 않은 재앙의 고래만 50개 중 중복 없는 임의의 호수에 배치되며')
+ return html.replace('항해 안내 · v0.1.4.1','항해 안내 · v0.1.4.4').replace('매 출항시마다 다섯 재앙의 고래는 50개 중 중복 없는 랜덤한 임의의 호수에 배치되며',
+ '현재 목숨에서 아직 사냥하지 않은 재앙의 고래만 50개 중 중복 없는 임의의 호수에 배치되며')
  .replace('매 출항시마다 다섯 재앙의 고래는 100개 중 중복 없는 랜덤한 임의의 호수에 배치되며',
- '아직 사냥하지 않은 재앙의 고래만 50개 중 중복 없는 임의의 호수에 배치되며');
+ '현재 목숨에서 아직 사냥하지 않은 재앙의 고래만 50개 중 중복 없는 임의의 호수에 배치되며');
 };
 const previousStart143=renderPlay;
 renderPlay=function(){
  const html=previousStart143();
- if(state.scene==='start')return html+'<div class="log-update"><h3>업데이트 내역 · V.0.1.4.3</h3><ul><li>재앙의 고래는 각각 최초 1회만 사냥할 수 있습니다.</li><li>사냥한 고래는 이후 출항에 다시 나타나지 않습니다.</li><li>사냥 및 업적 달성 정보는 사망과 재접속 후에도 유지됩니다.</li></ul></div>';
+ if(state.scene==='start')return html+'<div class="log-update"><h3>업데이트 내역 · V.0.1.4.4</h3><ul><li>재앙의 고래는 현재 목숨 동안 사냥한 개체만 이후 출항에서 제외됩니다.</li><li>사망 후 재시작하면 다섯 재앙 모두 다시 무작위로 배치됩니다.</li><li>고래별 최초 사냥 업적은 유지되며, 세 재앙의 종언과 쪽빛노인은 한 목숨 내 처치 수로 판정합니다.</li></ul></div>';
  return html;
 };
 reconcileWhalePlacement143();
