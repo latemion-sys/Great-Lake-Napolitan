@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.5.5</title>
+<title>대호수: The Great Lake | v0.1.5.6</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -112,12 +112,46 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 .log-update{background:#172635;border:1px solid #476077;padding:14px;border-radius:12px;margin-top:14px}
 .log-update h3{color:#d1e6ff}.log-update ul{margin:8px 0;padding-left:22px}
 .action-guard{color:#f1cc99;font-size:13px}
+
+/* V.0.1.5.6 프롤로그: 기존 항해 화면을 유지하는 닫기 가능한 시작 창 */
+.prologue-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:22px;background:rgba(5,9,15,.86);backdrop-filter:blur(6px)}
+.prologue-overlay[hidden]{display:none!important}
+.prologue-window{position:relative;width:min(100%,690px);max-height:calc(100dvh - 44px);overflow-y:auto;padding:36px 40px 30px;background:linear-gradient(150deg,#202a33,#141a23 73%);border:1px solid #7a7770;border-top:4px solid #c7a77a;border-radius:12px;box-shadow:0 20px 70px #000b}
+.prologue-kicker{color:#d1ae78;font-size:12px;font-weight:700;letter-spacing:.18em;margin:0 44px 18px 0}
+.prologue-window h2{font-size:clamp(19px,2.8vw,24px);line-height:1.55;color:#f0e0c5;letter-spacing:-.035em;margin:0 25px 26px 0}
+.prologue-copy{white-space:pre-line;font-size:15px;line-height:2.05;color:#e3e9ed;margin:0}
+.prologue-final{margin:24px 0 22px;padding:13px 14px;border-left:3px solid #c8a372;color:#f2e5d0;font-size:16px;font-weight:700}
+.prologue-dismiss{position:absolute;top:17px;right:17px;width:38px;height:38px;padding:0;border-radius:8px;border:1px solid #555d67;background:#28323c;color:#f2f4f6;font-size:26px;line-height:1;cursor:pointer}
+.prologue-dismiss:hover,.prologue-dismiss:focus-visible{border-color:#c8a372;background:#39424b}
+.prologue-actions{display:flex;justify-content:flex-end;margin-top:17px}
+.prologue-actions button{min-width:150px;padding:10px 18px}
+@media(max-width:600px){
+ .prologue-overlay{padding:12px;align-items:center}
+ .prologue-window{padding:26px 20px 20px;max-height:calc(100dvh - 24px)}
+ .prologue-window h2{margin-right:30px}
+ .prologue-copy{font-size:14px;line-height:1.9}
+}
 </style>
 </head>
 <body>
+<div class="prologue-overlay" id="prologueOverlay156" hidden aria-hidden="true">
+  <section class="prologue-window" role="dialog" aria-modal="true" aria-labelledby="prologueHeading156" aria-describedby="prologueStory156" tabindex="-1">
+    <button type="button" id="prologueClose156" class="prologue-dismiss" data-act="prologueDismiss156" aria-label="프롤로그 닫기" title="닫기">×</button>
+    <div class="prologue-kicker">대호수 · 프롤로그</div>
+    <h2 id="prologueHeading156">&quot;승선을 축하한다! 신참! 대호수의 법은 외우고 있겠지!&quot;</h2>
+    <div class="prologue-copy" id="prologueStory156">이곳은 도시. 당신은 어떤 삶을 살아왔을까요. 다행히 그 목숨을 잃지 않은 것은 정말 다행이겠지만
+어느 날, 당신은 문득 어디론가 떠나고 싶어졌습니다.
+돈은 충분했기에 당신은 작은 배 하나와 바닷가에 앉아 홀로 노래를 부르는 늙은 노인 하나를 선원으로 맞이하게 됩니다.
+당신의 목표가 무엇이든, 이 대호수에선 단 하나만 명심하면 됩니다.</div>
+    <p class="prologue-final">호수의 법을 어기지 말 것.</p>
+    <div class="prologue-actions">
+      <button type="button" class="primary" data-act="prologueDismiss156">창 닫기 · 항해 준비</button>
+    </div>
+  </section>
+</div>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.5</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.6</div>
  <h1>대호수: The Great Lake</h1>
  <p class="muted">규칙을 듣고, 선원을 지키며, 10개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
@@ -422,7 +456,7 @@ function renderSide(){const stats=[['선장 등급',state.grade+'등급'],['소�
 function render(){renderSide();document.querySelectorAll('[data-act="tab"]').forEach(el=>el.classList.toggle('active',el.dataset.value===tab));$('content').innerHTML=tab==='ach'?renderAch():tab==='crew'?renderCrew():tab==='title'?renderTitles132():tab==='shop'?renderShop132():tab==='help'?renderHelp():renderPlay();}
 function renderPlay(){const s=state.scene;
 if(s==='dead')return '<div class="inset warning"><h2>항해 종료</h2><p>선장 등급, 선원, 자금, 항해 진행은 초기화되었습니다.</p><p><b>달성한 업적은 그대로 남습니다.</b></p>'+button('처음부터 다시 시작','restart','','primary')+'</div>';
-if(s==='start')return '<div class="inset"><div class="small">초기 플레이</div><h2>항구에 선 당신</h2><p>당신은 1등급 선장입니다. 작은 배 한 척과 하급 선원 한 명을 데리고 U사의 항구에서 출발하려 합니다. 호수의 규칙은 문자로 남길 수 없어, 뱃사람들의 말로만 전해집니다.</p><p class="muted">죽음은 업적을 제외한 항해 진행을 초기화합니다. 살아서 귀환하면 출항을 거듭하고, 등급과 선원 규모를 키울 수 있습니다.</p>'+button('항구에서 준비 시작','enterPort','','primary')+'</div>';
+if(s==='start')return '<div class="inset"><div class="small">초기 플레이</div><h2>항구에 선 당신</h2><p>당신은 1등급 선장입니다. 일반적인 어선 정도의 크기를 지닌 강철 쪽배 한 척과 하급 선원 한 명을 데리고 U사의 항구에서 출발하려 합니다. 호수의 규칙은 문자로 남길 수 없어, 뱃사람들의 말로만 전해집니다.</p><p class="muted">죽음은 업적을 제외한 항해 진행을 초기화합니다. 살아서 귀환하면 출항을 거듭하고, 등급과 선원 규모를 키울 수 있습니다.</p>'+button('항구에서 준비 시작','enterPort','','primary')+'</div>';
 if(s==='port'){const next=state.grade+1;return '<div class="inset"><div class="small">항구 · 안전 구역</div><h2>다음 출항 준비</h2><p>10개의 서로 다른 호수 중 선장 등급에 따라 이번 항해에서 접근할 수 있는 구역이 무작위로 정해집니다. 재앙의 고래 다섯 마리 역시 매 출항마다 서로 다른 호수로 이동합니다.</p>'+button('새 출항 준비','prepare','','primary')+'</div><div class="inset"><h3>항구 시설</h3><p class="muted">선원 모집 및 승급은 위의 선원·승급 탭에서 진행할 수 있습니다.</p>'+button('선원 모집·승급 보기','tab','crew')+'</div><div class="inset"><h3>승급 현황</h3><p>통과 횟수 '+state.xp+'회 '+(next<=5?'/ 다음 등급 조건 '+RANK_XP[next]+'회':'/ 최고 등급')+'</p></div>';}
 if(s==='prep')return '<div class="inset"><div class="small">U사 출항 전 · 구전</div><h2>선원이 전하는 이야기</h2><p>항구에서 뱃사람들의 전언을 <b>무작위로 3개</b> 들을 수 있습니다. 그중 적어도 1개는 사실이며, 돈과 선장 등급이 높을수록 사실을 들을 가능성이 증가합니다. 참과 거짓은 표시되지 않습니다.</p><p class="muted">이야기는 이번 출항 중에만 제공됩니다. 호수의 규칙을 기록물로 남기지 않습니다.</p>'+(state.rumorBought?'<div class="stack">'+state.rumors.map((r,i)=>'<div class="rumor"><div class="small">전언 '+(i+1)+' · '+(r.lake?esc(LAKES[r.lake-1].name):'먼바다의 목격담')+'</div>“'+esc(r.text)+'”</div>').join('')+'</div>':'<div class="stack">'+button('일반 정보 듣기 · 무료','rumor','0')+button('술값 20 만 안(眼) 지불','rumor','20','',state.gold<20)+button('상급 정보료 50 만 안(眼) 지불','rumor','50','primary',state.gold<50)+'</div>')+'<div class="row" style="margin-top:14px">'+button('출항하기','launch','','primary')+'</div></div><div class="inset"><h3>이번 항해에서 접근할 호수</h3><p class="muted">출항 후 목록을 확인할 수 있습니다. 다섯 재앙의 위치는 공개되지 않습니다.</p>'+tag('접근 구역 '+state.offered.length+'개')+'</div>';
 if(s==='route'){const list=state.offered.map(id=>{const l=LAKES[id-1],seen=state.visited.includes(id);return '<div class="lake '+(seen?'locked':'')+'" style="border-left:5px solid '+l.hex+'"><div class="between"><span class="tag">제'+String(id).padStart(3,'0')+'호</span>'+tag('위험도 '+l.risk)+'</div><h3>'+esc(l.name)+'</h3><p class="muted">'+(l.mermaid?'인어가 출몰할 수 있는 구역':'불분명한 수면과 미확인 위험')+' · '+(l.id<=10?'예상 체류 3~6턴':'예상 체류 '+l.limit+'턴')+'</p>'+button(seen?'탐사 완료':'이 호수로 항해','lake',id,'primary',seen)+'</div>';}).join('');return '<div class="inset"><div class="between"><h2>이번 출항의 호수</h2>'+tag(state.visited.length+' / '+state.offered.length+' 통과·이탈')+'</div>'+(state.lastTransition?'<div class="result">'+esc(state.lastTransition)+'</div>':'')+'<p class="muted">선장의 등급에 해당하는 '+state.offered.length+'개의 호수를 50개 중 무작위로 배정했습니다. 모든 호수가 연속 항해로 이어질 수 있습니다.</p>'+button('항구로 귀환','return')+'</div><div class="lakegrid">'+list+'</div>';}
@@ -1470,7 +1504,7 @@ if(state.scene==='event'&&state.current>=1&&state.current<=10){
 /* V.0.1.5.0 - 대호수 항해 경제·선박 증급·침식도
    선박 명칭/등급/수치는 팬게임의 독자적 게임 시스템입니다. */
 const SHIP148=[null,
- {name:'연안 나룻배',crew:1,price:0,resist:0},
+ {name:'강철 쪽배',description:'강철로 만든 소형 선박. 쪽배라는 이름과 달리 실제 크기는 일반적인 어선 정도입니다.',crew:1,price:0,resist:0},
  {name:'소형 포경선',crew:3,price:70,resist:.05},
  {name:'중형 포경선',crew:5,price:125,resist:.10},
  {name:'대형 포경선',crew:7,price:195,resist:.15},
@@ -1631,7 +1665,7 @@ renderShop132=function(){
  '호수 침식은 귀항하면 가라앉습니다. 출항용 준비품은 한 항해 동안만 효력을 발휘합니다.</p>'+
  tag('소지 '+unitMoney(state.gold))+tag('선박 '+state.shipGrade+'등급')+
  tag('다음 출항 '+unitMoney(departureFee148()))+'</div>';
- out+='<div class="inset"><h3>선박 증급</h3><p>'+ship.name+' · 승선 정원 '+ship.crew+'명</p>';
+ out+='<div class="inset"><h3>선박 증급</h3><p>'+ship.name+' · 승선 정원 '+ship.crew+'명</p>'+(ship.description?'<p class="muted">'+esc(ship.description)+'</p>':'');
  if(next)out+='<p>'+next.name+' / 승선 정원 '+next.crew+'명 / '+unitMoney(next.price)+'</p>'+
  button('선박 '+(state.shipGrade+1)+'등급으로 교체','shipUpgrade','','',
  !ready||state.grade<=state.shipGrade||state.gold<next.price);
@@ -2165,6 +2199,57 @@ renderPlay=function(){
  const page=previousStartChangelog155();
  if(state.scene!=='start')return page;
  return page.replace('</ul></div>','<li>V.0.1.5.5: 사망 엔딩 구분과 창백한 고래의 백화 현상 적용</li></ul></div>');
+};
+
+
+/* V.0.1.5.6 시작 프롤로그: 게임 시작 때 자동 표시, 닫기 후 이름 설정/항해 진행 */
+const beforePrologueRender156=render;
+render=function(){
+ const value=beforePrologueRender156();
+ const popup=$('prologueOverlay156');
+ if(!popup)return value;
+ const shouldShow=state.scene==='start'&&!state.prologueDismissed156;
+ const wasHidden=!!popup.hidden;
+ popup.hidden=!shouldShow;
+ if(typeof popup.setAttribute==='function')popup.setAttribute('aria-hidden',shouldShow?'false':'true');
+ if(shouldShow&&wasHidden){
+  const focusTarget=$('prologueClose156');
+  if(focusTarget&&typeof focusTarget.focus==='function')focusTarget.focus({preventScroll:true});
+ }
+ return value;
+};
+function setPrologueDismissed156(dismissed){
+ if(state.scene!=='start')return;
+ state.prologueDismissed156=!!dismissed;
+ save();
+ render();
+ if(dismissed){
+  const field=$('captainNameInput');
+  if(field&&typeof field.focus==='function')field.focus({preventScroll:true});
+ }
+}
+document.addEventListener('click',e=>{
+ const button=e.target?.closest?.('button[data-act]');
+ if(button?.dataset?.act==='prologueDismiss156'){
+  setPrologueDismissed156(true);
+ }else if(button?.dataset?.act==='prologueReopen156'){
+  setPrologueDismissed156(false);
+ }else if(e.target===$('prologueOverlay156')&&!$('prologueOverlay156').hidden){
+  setPrologueDismissed156(true);
+ }
+});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&state.scene==='start'&&!state.prologueDismissed156){
+  e.preventDefault();
+  setPrologueDismissed156(true);
+ }
+});
+const beforeProloguePlay156=renderPlay;
+renderPlay=function(){
+ const out=beforeProloguePlay156();
+ if(state.scene!=='start')return out;
+ return out+(state.prologueDismissed156?'<div class="inset">'+
+  button('프롤로그 다시 읽기','prologueReopen156')+'</div>':'');
 };
 
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
