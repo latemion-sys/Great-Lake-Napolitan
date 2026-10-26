@@ -1646,6 +1646,15 @@ renderPlay=function(){
  '<li>선체 체력과 선박 수리 대신 호수 침식도와 항해 준비 도입</li></ul></div>';
  return page;
 };
+const previousNotes152=renderPlay;
+renderPlay=function(){
+ const page=previousNotes152();
+ if(state.scene!=='start')return page;
+ return page+'<div class="log-update"><h3>업데이트 내역 · V.0.1.5.2</h3><ul>'+
+  '<li>선장의 이름을 직접 정하거나 항구에서 변경할 수 있습니다.</li>'+
+  '<li>영웅·전설·신화·기적·유일 업적의 달성 난이도를 구분해 재조정했습니다.</li>'+
+  '<li>이전에 달성한 업적과 칭호는 그대로 유지됩니다.</li></ul></div>';
+};
 const previousNotes149=renderPlay;
 renderPlay=function(){
  const page=previousNotes149();
@@ -1654,7 +1663,7 @@ renderPlay=function(){
 };
 const oldHelp148=renderHelp;
 renderHelp=function(){
- return oldHelp148().replace(/항해 안내 · v0\.1\.[\d.]+/,'항해 안내 · v0.1.5.1')
+ return oldHelp148().replace(/항해 안내 · v0\.1\.[\d.]+/,'항해 안내 · v0.1.5.2')
  .replace('선박 내구도는 항구 상점에서 수리할 때만 회복할 수 있습니다.',
  '선박은 1~5등급으로 나뉘며 선장 등급보다 높일 수 없습니다. 선원 정원은 선장과 선박 등급 중 낮은 쪽을 따릅니다. 호수 침식도가 100에 도달하면 항해가 끝나며 귀항하면 초기화됩니다. 출항 시 보급비와 선원 급료가 필요합니다.');
 };
