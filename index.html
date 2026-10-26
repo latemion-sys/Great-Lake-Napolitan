@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.4.2</title>
+<title>대호수: The Great Lake | v0.1.4.3</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -117,7 +117,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <body>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.4.2</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.4.3</div>
  <h1>대호수: The Great Lake</h1>
  <p class="muted">규칙을 듣고, 선원을 지키며, 50개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
@@ -216,13 +216,14 @@ const ACH=[
  {id:'lake20',tier:'hero',name:'스무 번의 통과',desc:'누적 20개 호수를 통과한다.'},
  {id:'rank5',tier:'legend',name:'다섯 번째 등급',desc:'5등급 선장이 된다.'},
  {id:'whale1',tier:'legend',name:'흉터를 남긴 퇴각',desc:'재앙의 고래에게 한 번 이상 유효 타격을 가한 뒤 전투에서 살아 도주한다.'},
- {id:'whale3',tier:'myth',name:'세 재앙의 종언',desc:'한 차례 출항 동안 서로 다른 재앙의 고래 세 마리를 사냥한다.'},
+ {id:'whale3',tier:'myth',name:'세 재앙의 종언',desc:'서로 다른 재앙의 고래 세 마리를 각각 최초 한 번씩 사냥한다.'},
  {id:'survive3',tier:'miracle',name:'기적적인 생환',desc:'선체 내구도 1로 항구에 무사히 귀환한다.'},
- {id:'all5',tier:'unique',name:'쪽빛노인',desc:'한 목숨으로 다섯 재앙의 고래를 전부 사냥한다.'}
+ {id:'all5',tier:'unique',name:'쪽빛노인',desc:'다섯 재앙의 고래를 각각 최초 한 번씩 모두 사냥한다.'}
 ];
 const TIER={common:'일반',rare:'희귀',hero:'영웅',legend:'전설',myth:'신화',miracle:'기적',unique:'유일'};
 const SAVE_KEY='great-lake-napolitan-v011';
 const ACH_SAVE_KEY='great-lake-napolitan-permanent-achievements';
+const WHALE_KILLS_SAVE_KEY='great-lake-napolitan-whales-hunted-once';
 
 /* 100개 호수별 업적과 111개의 추가 업적, 총 223개. 신화 10, 기적 4, 유일 1. */
 const EXTRA_METRICS=[
@@ -318,7 +319,7 @@ const pct=n=>Math.round(n*100)+'%';
 function save(){try{permanentAchievements=[...new Set([...permanentAchievements,...state.achievements])];localStorage.setItem(ACH_SAVE_KEY,JSON.stringify(permanentAchievements));localStorage.setItem(SAVE_KEY,JSON.stringify({version:3,state}));}catch(e){console.warn('저장 실패',e);}}
 function log(msg){state.log.unshift(msg);state.log=state.log.slice(0,18);}
 function award(id){if(!state.achievements.includes(id)){state.achievements.push(id);const a=ACH.find(x=>x.id===id);if(a)log('업적 달성: '+a.name);}}
-function trophies(){if(state.voyage>0)award('launch');if(state.count.return>0)award('return');if(state.count.rumors>=3)award('rumor');if(state.count.lake>=5)award('lake5');if(state.count.lake>=20)award('lake20');if(state.grade>=3)award('rank3');if(state.grade>=5)award('rank5');if(state.count.special>0)award('special');if(state.whaleKilledThisVoyage?.length>=3)award('whale3');if(state.whaleKilled.length===5)award('all5');}
+function trophies(){if(state.voyage>0)award('launch');if(state.count.return>0)award('return');if(state.count.rumors>=3)award('rumor');if(state.count.lake>=5)award('lake5');if(state.count.lake>=20)award('lake20');if(state.grade>=3)award('rank3');if(state.grade>=5)award('rank5');if(state.count.special>0)award('special');if(huntedWhaleIndices143().length>=3)award('whale3');if(huntedWhaleIndices143().length===WHALES.length)award('all5');}
 function setScene(s){state.scene=s;tab='play';sync();}
 function sync(){trophies();save();render();}
 function safeCheck(){if(state.hull<=0||state.mind<=0){die();return false;}return true;}
@@ -332,16 +333,16 @@ function takeDamage(h,m){state.hull=Math.max(0,state.hull-h);state.mind=Math.max
 function activeLake(){return LAKES.find(l=>l.id===state.current);}
 function lakeLaw(l){return RULES[l.rule];}
 function lakeZone(l){return ZONES[l.zone];}
-function prepareVoyage(){if(state.sea)return;const ids=shuffle(LAKES.map(x=>x.id));state.offered=ids.slice(0,LAKE_CAP[state.grade]);const positions=shuffle(LAKES.map(x=>x.id)).slice(0,5);state.whalePlaces={};positions.forEach((id,i)=>state.whalePlaces[id]=i);state.visited=[];state.lastTransition='';state.whaleSeen=[];state.rumors=[];state.rumorBought=false;state.current=null;state.scene='prep';sync();}
+function prepareVoyage(){if(state.sea)return;const ids=shuffle(LAKES.map(x=>x.id));state.offered=ids.slice(0,LAKE_CAP[state.grade]);const remainingWhales=WHALES.map((_,i)=>i).filter(i=>!huntedWhaleIndices143().includes(i));const positions=shuffle(LAKES.map(x=>x.id)).slice(0,remainingWhales.length);state.whalePlaces={};positions.forEach((id,i)=>state.whalePlaces[id]=remainingWhales[i]);state.visited=[];state.lastTransition='';state.whaleSeen=[];state.rumors=[];state.rumorBought=false;state.current=null;state.scene='prep';sync();}
 function buyRumor(cost){if(state.scene!=='prep'||state.rumorBought||state.gold<cost)return;state.gold-=cost;
 const chance=cost===0?.4+state.grade*.06:cost===20?.65+state.grade*.045:.85+state.grade*.025;
 const ids=shuffle(state.offered).slice(0,2);const truths=ids.map(()=>Math.random()<chance);
-const hintTrue=Math.random()<chance;if(!hintTrue&&!truths.some(Boolean))truths[rng(truths.length)]=true;
+const currentWhales=Object.keys(state.whalePlaces).map(Number);const hintTrue=currentWhales.length===0||Math.random()<chance;if(!hintTrue&&!truths.some(Boolean))truths[rng(truths.length)]=true;
 const stories=ids.map((id,i)=>{const l=LAKES[id-1];return {lake:id,text:(truths[i]?lakeLaw(l).truth:lakeLaw(l).false)(lakeZone(l))};});
 const whaleIds=Object.keys(state.whalePlaces).map(Number);
 const outsiders=shuffle(LAKES.map(l=>l.id).filter(id=>!whaleIds.includes(id)));
-const candidates=shuffle(hintTrue?[whaleIds[rng(whaleIds.length)],...outsiders.slice(0,2)]:outsiders.slice(0,3));
-stories.push({lake:null,text:'다섯 재앙 중 하나를 제'+candidates.map(id=>String(id).padStart(3,'0')).join('호 · 제')+'호 중에서 봤다는 이야기가 있습니다.'});
+const candidates=whaleIds.length?shuffle(hintTrue?[whaleIds[rng(whaleIds.length)],...outsiders.slice(0,2)]:outsiders.slice(0,3)):[];
+stories.push({lake:null,text:whaleIds.length?'아직 사냥되지 않은 재앙의 고래 하나를 제'+candidates.map(id=>String(id).padStart(3,'0')).join('호 · 제')+'호 중에서 봤다는 이야기가 있습니다.':'다섯 재앙의 고래는 전부 사냥되어, 이 출항에서 그 어떤 재앙의 고래도 목격되지 않을 것이라고 합니다.'});
 state.rumors=shuffle(stories);state.rumorBought=true;state.count.rumors++;log('술집에서 전언 세 가지를 들었습니다. 진위는 알려지지 않았습니다.');sync();}
 function launch(){if(state.scene!=='prep')return;state.voyage++;state.sea=true;state.scene='route';log('제 '+state.voyage+'차 출항. 이번에는 '+state.offered.length+'개 구역에 접근합니다.');sync();}
 function returnPort(){if(!state.sea||busy||state.battle||state.encounter)return;state.sea=false;state.current=null;state.offered=[];state.visited=[];state.whalePlaces={};state.rumors=[];state.rumorBought=false;state.scene='port';state.count.return++;if(state.hull===1)award('survive3');log('항구로 무사히 돌아왔습니다. 선원과 배를 정비할 수 있습니다.');sync();}
@@ -349,7 +350,7 @@ function promote(){if(state.sea||state.grade>=5||state.scene!=='port')return;con
 function recruit(role){const r=ROLE[role];if(!r||state.sea||state.scene!=='port'||state.grade<r.grade||state.crew.length>=GRADE_CAP[state.grade]||state.gold<r.cost)return;state.gold-=r.cost;state.crew.push({id:state.nextCrew++,role,condition:1});log(r.name+' 한 명이 승선했습니다.');sync();}
 function repair(){if(state.sea||state.scene!=='port'||state.gold<35||state.hull>=100)return;state.gold-=35;state.hull=Math.min(100,state.hull+35);log('선체를 정비했습니다.');sync();}
 function rest(){if(state.sea||state.scene!=='port'||state.gold<20||!state.crew.some(c=>c.condition>0))return;state.gold-=20;restCrew();log('선원이 휴식을 취했습니다.');sync();}
-function selectLake(id){if(!state.sea||state.scene!=='route'||!state.offered.includes(id)||state.visited.includes(id))return;state.current=id;state.scene='event';state.ruleResolved=false;state.ruleResult='';state.blueTorn=false;state.blackCollapse=false;state.mermaidResolved=false;state.forceMermaid=false;state.lakeRumorTruth=Math.random()<.58;const k=state.whalePlaces[id];if(k!==undefined && !state.whaleSeen.includes(k)){state.whaleSeen.push(k);state.encounter=k;state.scene='encounter';applyWhale(k);if(!safeCheck())return;}log(LAKES[id-1].name+'에 진입했습니다.');sync();}
+function selectLake(id){if(!state.sea||state.scene!=='route'||!state.offered.includes(id)||state.visited.includes(id))return;state.current=id;state.scene='event';state.ruleResolved=false;state.ruleResult='';state.blueTorn=false;state.blackCollapse=false;state.mermaidResolved=false;state.forceMermaid=false;state.lakeRumorTruth=Math.random()<.58;const k=state.whalePlaces[id];if(k!==undefined && !huntedWhaleIndices143().includes(k) && !state.whaleSeen.includes(k)){state.whaleSeen.push(k);state.encounter=k;state.scene='encounter';applyWhale(k);if(!safeCheck())return;}log(LAKES[id-1].name+'에 진입했습니다.');sync();}
 function applyWhale(k){const w=WHALES[k];log('재앙 조우: '+w.name);if(k===0)state.hull=Math.max(1,Math.floor(state.hull/2));if(k===1)state.blueTorn=true;if(k===2)state.crew.forEach(c=>c.condition=Math.max(2,c.condition));if(k===3)takeDamage(9,5);if(k===4){state.crew.forEach(c=>c.condition=Math.max(c.condition,2));takeDamage(0,8);for(const c of [...state.crew]){if(Math.random()<.12){state.crew=state.crew.filter(x=>x.id!==c.id);log(ROLE[c.role].name+' 한 명이 해모의 영향으로 인어로 변했습니다.');}}} }
 function escapeWhale(){if(state.scene!=='encounter'||state.encounter===null)return;const k=state.encounter;state.encounter=null;const fail=Math.random()<(k===3?.22:.12);if(fail){takeDamage(k===3?24:14,8);log('재앙에게서 벗어나는 동안 선박이 큰 손상을 입었습니다.');}else log('재앙의 시야에서 벗어났습니다.');if(!safeCheck())return;afterWhale(k);}
 function huntWhale(){if(state.scene!=='encounter'||state.encounter===null)return;const k=state.encounter;state.encounter=null;beginBattle({type:'whale',index:k,name:WHALES[k].name,power:WHALES[k].power,need:WHALES[k].hits,won:0,history:[],after:'whale'});}
@@ -684,6 +685,7 @@ resolveCoin=function(win){
   if(item){
    state.relics['whale_'+idx]=(state.relics['whale_'+idx]||0)+1;
    state.gold+=item[1]-260;
+   markHuntedWhale143(idx);
    award('whale_hunt_'+idx);
    log('재앙의 특수 전리품 '+item[0]+' 획득, 보상 '+unitMoney(item[1])+'.');
   }
@@ -1153,7 +1155,6 @@ resolveCoin=function(win){
  if(finished&&battle?.type==='whale'&&state.scene!=='dead'){
   if(!Array.isArray(state.whaleKilledThisVoyage))state.whaleKilledThisVoyage=[];
   if(!state.whaleKilledThisVoyage.includes(battle.index))state.whaleKilledThisVoyage.push(battle.index);
-  if(state.whaleKilledThisVoyage.length>=3&&!state.achievements.includes('whale3')){award('whale3');save();render();}
  }
  if(finished&&state.scene!=='dead')
   dispatchAchievement142('battleWin',{type:battle.type,index:battle.index});
@@ -1238,6 +1239,63 @@ renderPlay=function(){
  }
  return out;
 };
+
+
+/* v0.1.4.3 · 재앙별 최초 사냥 영구 보존, 사망/출항을 넘어 중복 등장 금지 */
+let persistentWhaleKills143=[];
+try{
+ const loaded=JSON.parse(localStorage.getItem(WHALE_KILLS_SAVE_KEY));
+ if(Array.isArray(loaded))persistentWhaleKills143=loaded.filter(k=>Number.isInteger(k)&&k>=0&&k<WHALES.length);
+}catch(e){console.warn('재앙 사냥 정보 복구 실패:',e);}
+function huntedWhaleIndices143(){
+ const previouslyEarned=[...(Array.isArray(state.achievements)?state.achievements:[]),...permanentAchievements];
+ const earned=previouslyEarned.map(id=>/^whale_hunt_([0-4])$/.exec(id)).filter(Boolean).map(m=>Number(m[1]));
+ const killedInOlderSave=Array.isArray(state.whaleKilled)?state.whaleKilled.filter(k=>Number.isInteger(k)&&k>=0&&k<WHALES.length):[];
+ return [...new Set([...persistentWhaleKills143,...earned,...killedInOlderSave])].sort((a,b)=>a-b);
+}
+function markHuntedWhale143(index){
+ if(!Number.isInteger(index)||index<0||index>=WHALES.length)return;
+ persistentWhaleKills143=[...new Set([...huntedWhaleIndices143(),index])].sort((a,b)=>a-b);
+ try{localStorage.setItem(WHALE_KILLS_SAVE_KEY,JSON.stringify(persistentWhaleKills143));}
+ catch(e){console.warn('재앙 사냥 정보 저장 실패:',e);}
+ // 지난 버전에서 생성되어 있던 출항의 배치도 즉시 정리한다.
+ for(const [lake,k] of Object.entries(state.whalePlaces||{}))if(k===index)delete state.whalePlaces[lake];
+}
+function reconcileWhalePlacement143(){
+ const hunted=huntedWhaleIndices143();
+ persistentWhaleKills143=[...new Set([...persistentWhaleKills143,...hunted])].sort((a,b)=>a-b);
+ for(const [lake,k] of Object.entries(state.whalePlaces||{}))if(hunted.includes(k))delete state.whalePlaces[lake];
+ if(state.scene==='encounter'&&hunted.includes(state.encounter)){
+  state.encounter=null;state.scene='event';
+ }
+ if(state.scene==='battle'&&state.battle?.type==='whale'&&hunted.includes(state.battle.index)){
+  state.battle=null;state.scene='event';
+ }
+ try{localStorage.setItem(WHALE_KILLS_SAVE_KEY,JSON.stringify(persistentWhaleKills143));}
+ catch(e){console.warn('재앙 사냥 정보 저장 실패:',e);}
+}
+const previousDeath143=die;
+die=function(){
+ persistentWhaleKills143=huntedWhaleIndices143();
+ try{localStorage.setItem(WHALE_KILLS_SAVE_KEY,JSON.stringify(persistentWhaleKills143));}
+ catch(e){console.warn('재앙 사냥 정보 저장 실패:',e);}
+ previousDeath143();
+};
+const previousHelp143=renderHelp;
+renderHelp=function(){
+ const html=previousHelp143();
+ return html.replace('매 출항시마다 다섯 재앙의 고래는 50개 중 중복 없는 랜덤한 임의의 호수에 배치되며',
+ '아직 사냥하지 않은 재앙의 고래만 50개 중 중복 없는 임의의 호수에 배치되며')
+ .replace('매 출항시마다 다섯 재앙의 고래는 100개 중 중복 없는 랜덤한 임의의 호수에 배치되며',
+ '아직 사냥하지 않은 재앙의 고래만 50개 중 중복 없는 임의의 호수에 배치되며');
+};
+const previousStart143=renderPlay;
+renderPlay=function(){
+ const html=previousStart143();
+ if(state.scene==='start')return html+'<div class="log-update"><h3>업데이트 내역 · V.0.1.4.3</h3><ul><li>재앙의 고래는 각각 최초 1회만 사냥할 수 있습니다.</li><li>사냥한 고래는 이후 출항에 다시 나타나지 않습니다.</li><li>사냥 및 업적 달성 정보는 사망과 재접속 후에도 유지됩니다.</li></ul></div>';
+ return html;
+};
+reconcileWhalePlacement143();
 
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
