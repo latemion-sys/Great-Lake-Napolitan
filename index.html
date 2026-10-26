@@ -2281,6 +2281,7 @@ completeLake=function(success,msg){
  const answer=originalComplete157(success,msg);
  if(success&&Number.isInteger(id)&&(state.count?.lake||0)>old){
   careerPasses157++;
+  if(!Array.isArray(state.newlyCleared157))state.newlyCleared157=[];
   if(!state.newlyCleared157.includes(id))state.newlyCleared157.push(id);
   award('lake_'+id);
   awardCareerMilestones157();
