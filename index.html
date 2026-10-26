@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.5.6</title>
+<title>대호수: The Great Lake | v0.1.5.7</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -151,9 +151,9 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 </div>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.6</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.7</div>
  <h1>대호수: The Great Lake</h1>
- <p class="muted">규칙을 듣고, 선원을 지키며, 10개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
+ <p class="muted">규칙을 듣고, 선원을 지키며, 13개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
 </header>
 <div class="layout">
@@ -173,7 +173,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <script>
 'use strict';
 /* 대호수: The Great Lake v0.1.1 · 색상 규칙 개편 색상 규칙 개편. 10개 색상군 × 10개 색상 질감. */
-const GRADE_CAP=[0,1,3,5,7,10], LAKE_CAP=[0,4,8,10,10,10];
+const GRADE_CAP=[0,1,3,5,7,10], LAKE_CAP=[0,4,8,12,13,13];
 const RANK_XP=[0,0,4,10,20,36],RANK_COST=[0,0,85,175,285,420];
 const ROLE={lower:{name:'하급 선원',power:9,cost:32,grade:1},middle:{name:'중급 선원',power:15,cost:55,grade:2},upper:{name:'상급 선원',power:23,cost:85,grade:3},harpoon:{name:'작살잡이',power:31,cost:105,grade:3},navigator:{name:'1등 항해사',power:25,cost:120,grade:3}};
 const CONDITIONS=['좋음','보통','나쁨','최악'];
@@ -213,13 +213,14 @@ for(let hue=0;hue<COLOR_GROUPS.length;hue++)for(let material=0;material<MATERIAL
 let stableSeed=0x51adbef1;
 function stableRandom(){stableSeed=(Math.imul(stableSeed,1664525)+1013904223)>>>0;return stableSeed/4294967296;}
 for(let i=entries.length-1;i>0;i--){let j=Math.floor(stableRandom()*(i+1));[entries[i],entries[j]]=[entries[j],entries[i]];}
+const ENABLED_LAKE_IDS157=[1,2,3,4,5,6,7,8,9,10,11,17,40];
 const LAKES=[], RULES=[];
-for(let id=1;id<=10;id++){
+for(const id of ENABLED_LAKE_IDS157){
  const variant=fixedLakeEntries[id]||entries.shift();
  const hue=variant.hue,material=variant.material,z=COLOR_GROUPS[hue],m=MATERIALS[material];
  const required=(id===17)?true:(id===39)?false:((hue*3+material*5+Math.floor(id/7))%2===0);
  const name=z.label+' '+m.label+' 호수';
- const l={id,name,hue,material,zone:hue,rule:id-1,risk:1+(id*17+3)%4,limit:2+(id*7)%4,mermaid:(id*13+7)%10<4,hex:z.hex,required};
+ const l={id,name,hue,material,zone:hue,rule:LAKES.length,risk:1+(id*17+3)%4,limit:2+(id*7)%4,mermaid:(id*13+7)%10<4,hex:z.hex,required};
  LAKES.push(l);
  const norm='이 호수에서 '+m.qualifier+'에는 ';
  const truth=required?norm+z.verb+'가 반드시 필요하다.':norm+z.verb+'를 절대로 해서는 안 된다.';
@@ -230,7 +231,8 @@ for(let id=1;id<=10;id++){
   special:id===39?'blood_mermaid':null});
 }
 
-/* 테스트판에서는 21-11 이후의 임시 호수 자료를 제거합니다. */
+const LAKE_BY_ID157=new Map(LAKES.map(l=>[l.id,l]));
+/* 업로드한 대본에 있는 13개 호수만 등록합니다. */
 const WHALES=[
  {name:'창백의 향유고래',mermaid:'창백한 인어',power:500,hits:3,description:'다가오면 창백한 조직이 배에 달라붙습니다. 백화가 심해지면 승선자도 고래에게 동화됩니다.'},
  {name:'만물관통의 청새치 고래',mermaid:'꿰뚫는 인어',power:520,hits:3,description:'호수 자체를 꿰뚫어 이 호수의 규칙이 찢어집니다.'},
@@ -245,7 +247,8 @@ const ACH=[
  {id:'lake5',tier:'rare',name:'다섯 수역의 손님',desc:'누적 5개 호수를 통과한다.'},
  {id:'rank3',tier:'rare',name:'능숙한 선장',desc:'3등급에 도달한다.'},
  {id:'special',tier:'hero',name:'특이한 인어 사냥꾼',desc:'고래에 딸린 특수 인어를 사냥한다.'},
- {id:'lake20',tier:'hero',name:'스무 번의 통과',desc:'누적 20개 호수를 통과한다.'},
+ {id:'lake10',tier:'hero',name:'물빛의 문턱',desc:'호수를 누적 10회 통과한다.'},
+ {id:'lake50',tier:'legend',name:'끝없는 수역의 항해자',desc:'호수를 누적 50회 통과한다.'},
  {id:'rank5',tier:'legend',name:'다섯 번째 등급',desc:'5등급 선장이 된다.'},
  {id:'whale1',tier:'legend',name:'흉터를 남긴 퇴각',desc:'재앙의 고래에게 한 번 이상 유효 타격을 가한 뒤 전투에서 살아 도주한다.'},
  {id:'whale3',tier:'myth',name:'세 재앙의 종언',desc:'한 목숨 동안 서로 다른 재앙의 고래 세 마리를 사냥한다.'},
@@ -378,7 +381,7 @@ const pct=n=>Math.round(n*100)+'%';
 function save(){try{permanentAchievements=[...new Set([...permanentAchievements,...state.achievements])];localStorage.setItem(ACH_SAVE_KEY,JSON.stringify(permanentAchievements));localStorage.setItem(SAVE_KEY,JSON.stringify({version:3,state}));}catch(e){console.warn('저장 실패',e);}}
 function log(msg){state.log.unshift(msg);state.log=state.log.slice(0,18);}
 function award(id){if(!state.achievements.includes(id)){state.achievements.push(id);const a=ACH.find(x=>x.id===id);if(a)log('업적 달성: '+a.name);}}
-function trophies(){if(state.voyage>0)award('launch');if(state.count.return>0)award('return');if(state.count.rumors>=3)award('rumor');if(state.count.lake>=5)award('lake5');if(state.count.lake>=20)award('lake20');if(state.grade>=3)award('rank3');if(state.grade>=5)award('rank5');if(state.count.special>0)award('special');if(huntedWhaleIndices143().length>=3)award('whale3');if(huntedWhaleIndices143().length===WHALES.length)award('all5');}
+function trophies(){if(state.voyage>0)award('launch');if(state.count.return>0)award('return');if(state.count.rumors>=3)award('rumor');if(state.count.lake>=5)award('lake5');if(state.grade>=3)award('rank3');if(state.grade>=5)award('rank5');if(state.count.special>0)award('special');if(huntedWhaleIndices143().length>=3)award('whale3');if(huntedWhaleIndices143().length===WHALES.length)award('all5');}
 function setScene(s){state.scene=s;tab='play';sync();}
 function sync(){trophies();save();render();}
 function safeCheck(){if(state.hull<=0||state.mind<=0){die();return false;}return true;}
@@ -419,7 +422,7 @@ function buyRumor(cost){if(state.scene!=='prep'||state.rumorBought||state.gold<c
 const chance=cost===0?.4+state.grade*.06:cost===20?.65+state.grade*.045:.85+state.grade*.025;
 const ids=shuffle(state.offered).slice(0,2);const truths=ids.map(()=>Math.random()<chance);
 const currentWhales=Object.keys(state.whalePlaces).map(Number);const hintTrue=currentWhales.length===0||Math.random()<chance;if(!hintTrue&&!truths.some(Boolean))truths[rng(truths.length)]=true;
-const stories=ids.map((id,i)=>{const l=LAKES[id-1];return {lake:id,text:(truths[i]?lakeLaw(l).truth:lakeLaw(l).false)(lakeZone(l))};});
+const stories=ids.map((id,i)=>{const l=LAKE_BY_ID157.get(id);return {lake:id,text:(truths[i]?lakeLaw(l).truth:lakeLaw(l).false)(lakeZone(l))};});
 const whaleIds=Object.keys(state.whalePlaces).map(Number);
 const outsiders=shuffle(LAKES.map(l=>l.id).filter(id=>!whaleIds.includes(id)));
 const candidates=whaleIds.length?shuffle(hintTrue?[whaleIds[rng(whaleIds.length)],...outsiders.slice(0,2)]:outsiders.slice(0,3)):[];
@@ -431,7 +434,7 @@ function promote(){if(state.sea||state.grade>=5||state.scene!=='port')return;con
 function recruit(role){const r=ROLE[role];if(!r||state.sea||state.scene!=='port'||state.grade<r.grade||state.crew.length>=crewCapacity148()||state.gold<r.cost)return;state.gold-=r.cost;state.crew.push({id:state.nextCrew++,role,condition:1});log(r.name+' 한 명이 승선했습니다.');sync();}
 function repair(){if(state.sea||state.scene!=='port'||state.gold<35||state.hull>=100)return;state.gold-=35;state.hull=Math.min(100,state.hull+35);log('선체를 정비했습니다.');sync();}
 function rest(){if(state.sea||state.scene!=='port'||state.gold<20||!state.crew.some(c=>c.condition>0))return;state.gold-=20;restCrew();log('선원이 휴식을 취했습니다.');sync();}
-function selectLake(id){if(!state.sea||state.scene!=='route'||!state.offered.includes(id)||state.visited.includes(id))return;state.current=id;state.scene='event';state.ruleResolved=false;state.ruleResult='';state.blueTorn=false;state.blackCollapse=false;state.mermaidResolved=false;state.forceMermaid=false;state.lakeRumorTruth=Math.random()<.58;const k=state.whalePlaces[id];if(k!==undefined && !huntedWhaleIndices143().includes(k) && !state.whaleSeen.includes(k)){state.whaleSeen.push(k);state.encounter=k;state.scene='encounter';applyWhale(k);if(!safeCheck())return;}log(LAKES[id-1].name+'에 진입했습니다.');sync();}
+function selectLake(id){if(!state.sea||state.scene!=='route'||!state.offered.includes(id)||state.visited.includes(id))return;state.current=id;state.scene='event';state.ruleResolved=false;state.ruleResult='';state.blueTorn=false;state.blackCollapse=false;state.mermaidResolved=false;state.forceMermaid=false;state.lakeRumorTruth=Math.random()<.58;const k=state.whalePlaces[id];if(k!==undefined && !huntedWhaleIndices143().includes(k) && !state.whaleSeen.includes(k)){state.whaleSeen.push(k);state.encounter=k;state.scene='encounter';applyWhale(k);if(!safeCheck())return;}log(LAKE_BY_ID157.get(id).name+'에 진입했습니다.');sync();}
 function applyWhale(k){const w=WHALES[k];log('재앙 조우: '+w.name);if(k===0){addPallor155(32);log('창백한 고래의 살점이 뱃전에 달라붙었습니다. 백화 위험이 증가했습니다.');}if(k===1)state.blueTorn=true;if(k===2)state.crew.forEach(c=>c.condition=Math.max(2,c.condition));if(k===3)takeDamage(9,5);if(k===4){state.crew.forEach(c=>c.condition=Math.max(c.condition,2));takeDamage(0,8);for(const c of [...state.crew]){if(Math.random()<.12){state.crew=state.crew.filter(x=>x.id!==c.id);log(ROLE[c.role].name+' 한 명이 해모의 영향으로 인어로 변했습니다.');}}} }
 function escapeWhale(){if(state.scene!=='encounter'||state.encounter===null)return;const k=state.encounter;state.encounter=null;const fail=Math.random()<(k===3?.22:.12);if(fail){if(k===0){addPallor155(30);log('창백한 조직이 선원들의 손을 타고 올라왔습니다.');}takeDamage(k===3?24:14,8);log('재앙에게서 벗어나는 동안 호수 침식과 정신 피해를 입었습니다.');}else log('재앙의 시야에서 벗어났습니다.');if(!safeCheck())return;afterWhale(k);}
 function huntWhale(){if(state.scene!=='encounter'||state.encounter===null)return;const k=state.encounter;state.encounter=null;beginBattle({type:'whale',index:k,name:WHALES[k].name,power:WHALES[k].power,need:WHALES[k].hits,won:0,history:[],after:'whale'});}
@@ -442,7 +445,7 @@ function avoidSpecial(){if(state.scene!=='special')return;state.specialPending=n
 function startSpecial(){if(state.scene!=='special'||!canHuntSpecial())return;const k=state.specialPending;state.specialPending=null;beginBattle({type:'special',index:k,name:WHALES[k].mermaid,power:120+k*14,need:2,won:0,history:[],after:state.blackCollapse?'collapse':'event'});}
 function chooseRule(choice){if(state.scene!=='event'||state.ruleResolved)return;const l=activeLake();if(!l)return;state.ruleResolved=true;const effect=state.blueTorn?'torn':RULES[l.rule].effects[choice];if(effect==='torn'){state.ruleResult='청새치 고래가 호수의 규칙을 찢어 놓았습니다. 이 사건은 정상적인 판정을 받지 않습니다. \n선원들은 불안해합니다.';takeDamage(3,4);}else if(effect==='good'){state.ruleResult='위험한 행동을 막았습니다. 호수가 잠잠해집니다. 선원들은 간신히 안도의 숨을 내쉽니다.';gainMoney148(2);}else if(effect==='neutral'){state.ruleResult='조심스레 처리했습니다. 큰 재해는 피했지만 선체와 선원들에게 부담이 남습니다.';takeDamage(6,3);}else{state.ruleResult='금기를 건드렸습니다. '+(RULES[l.rule].danger||COLOR_GROUPS[l.hue].danger);takeDamage(22+l.risk*3,9+l.risk*2);if(l.id===39&&choice===0){if(state.crew.length&&Math.random()<.5){const victim=state.crew[0];state.crew=state.crew.filter(c=>c.id!==victim.id);state.ruleResult+=' 피를 바친 '+ROLE[victim.role].name+'이(가) 인어로 변했습니다.';}else{state.forceMermaid=true;state.ruleResult+=' 수면 아래에서 인어가 올라옵니다.';}}}log(l.name+': '+state.ruleResult.replace(/\n/g,' ').slice(0,76));if(!safeCheck())return;sync();}
 function nextEvent(){if(state.scene!=='event'||!state.ruleResolved)return;const l=activeLake();if(!l)return;if(state.forceMermaid){state.forceMermaid=false;state.mermaidResolved=true;beginBattle({type:'normal',name:'붉은 가루 호수의 인어',power:56+l.risk*18,need:1,won:0,history:[],after:'complete'});return;}if(l.mermaid&&!state.mermaidResolved&&Math.random()<(.13+l.risk*.07)){state.mermaidResolved=true;beginBattle({type:'normal',name:'대호수의 인어',power:35+l.risk*18,need:1,won:0,history:[],after:'complete'});return;}completeLake(true,'호수의 경계에서 벗어났습니다.');}
-function completeLake(success,msg){const id=state.current;if(id===null)return;if(!state.visited.includes(id))state.visited.push(id);if(success){state.count.lake++;state.xp++;gainMoney148(8+Math.floor(state.grade/2)+Math.min(2,LAKES[id-1].risk));}const lost=decayCrew();state.current=null;state.ruleResolved=false;state.ruleResult='';state.blueTorn=false;state.blackCollapse=false;state.forceMermaid=false;state.encounter=null;state.specialPending=null;state.battle=null;state.lastTransition=Math.random()<.5?'물빛이 바뀌었다.':'물빛이 갈라졌다.';log(state.lastTransition+' '+msg+(lost?' '+lost:''));if(!safeCheck())return;state.scene='route';if(state.visited.length>=state.offered.length){state.sea=false;state.scene='port';state.count.return++;state.offered=[];state.rumors=[];if((state.exposure||0)>=88)award('survive3');log('이번 출항의 접근 가능한 호수를 모두 지나 항구로 귀환했습니다.');}sync();}
+function completeLake(success,msg){const id=state.current;if(id===null)return;if(!state.visited.includes(id))state.visited.push(id);if(success){state.count.lake++;state.xp++;gainMoney148(8+Math.floor(state.grade/2)+Math.min(2,LAKE_BY_ID157.get(id).risk));}const lost=decayCrew();state.current=null;state.ruleResolved=false;state.ruleResult='';state.blueTorn=false;state.blackCollapse=false;state.forceMermaid=false;state.encounter=null;state.specialPending=null;state.battle=null;state.lastTransition=Math.random()<.5?'물빛이 바뀌었다.':'물빛이 갈라졌다.';log(state.lastTransition+' '+msg+(lost?' '+lost:''));if(!safeCheck())return;state.scene='route';if(state.visited.length>=state.offered.length){state.sea=false;state.scene='port';state.count.return++;state.offered=[];state.rumors=[];if((state.exposure||0)>=88)award('survive3');log('이번 출항의 접근 가능한 호수를 모두 지나 항구로 귀환했습니다.');}sync();}
 function beginBattle(b){state.battle=b;state.scene='battle';state.lastCoin=null;busy=false;sync();}
 function combatChance(){const b=state.battle;return clamp(crewPower()/(crewPower()+b.power),.025,.975);}
 function throwCoin(){if(busy||state.scene!=='battle'||!state.battle)return;busy=true;const b=state.battle,win=Math.random()<combatChance();const coin=$('coin'),status=$('coinText'),button=document.querySelector('button[data-act="coin"]');if(!coin||!status||!button){busy=false;return;}button.disabled=true;status.textContent='회전 중... 동전이 수면 위로 솟아오릅니다.';coin.style.setProperty('--landing',win?'1440deg':'1620deg');coin.classList.remove('flipping');void coin.offsetWidth;coin.classList.add('flipping');setTimeout(()=>{if(state.battle!==b){busy=false;return;}resolveCoin(win);busy=false;},3000);}
@@ -457,9 +460,9 @@ function render(){renderSide();document.querySelectorAll('[data-act="tab"]').for
 function renderPlay(){const s=state.scene;
 if(s==='dead')return '<div class="inset warning"><h2>항해 종료</h2><p>선장 등급, 선원, 자금, 항해 진행은 초기화되었습니다.</p><p><b>달성한 업적은 그대로 남습니다.</b></p>'+button('처음부터 다시 시작','restart','','primary')+'</div>';
 if(s==='start')return '<div class="inset"><div class="small">초기 플레이</div><h2>항구에 선 당신</h2><p>당신은 1등급 선장입니다. 일반적인 어선 정도의 크기를 지닌 강철 쪽배 한 척과 하급 선원 한 명을 데리고 U사의 항구에서 출발하려 합니다. 호수의 규칙은 문자로 남길 수 없어, 뱃사람들의 말로만 전해집니다.</p><p class="muted">죽음은 업적을 제외한 항해 진행을 초기화합니다. 살아서 귀환하면 출항을 거듭하고, 등급과 선원 규모를 키울 수 있습니다.</p>'+button('항구에서 준비 시작','enterPort','','primary')+'</div>';
-if(s==='port'){const next=state.grade+1;return '<div class="inset"><div class="small">항구 · 안전 구역</div><h2>다음 출항 준비</h2><p>10개의 서로 다른 호수 중 선장 등급에 따라 이번 항해에서 접근할 수 있는 구역이 무작위로 정해집니다. 재앙의 고래 다섯 마리 역시 매 출항마다 서로 다른 호수로 이동합니다.</p>'+button('새 출항 준비','prepare','','primary')+'</div><div class="inset"><h3>항구 시설</h3><p class="muted">선원 모집 및 승급은 위의 선원·승급 탭에서 진행할 수 있습니다.</p>'+button('선원 모집·승급 보기','tab','crew')+'</div><div class="inset"><h3>승급 현황</h3><p>통과 횟수 '+state.xp+'회 '+(next<=5?'/ 다음 등급 조건 '+RANK_XP[next]+'회':'/ 최고 등급')+'</p></div>';}
-if(s==='prep')return '<div class="inset"><div class="small">U사 출항 전 · 구전</div><h2>선원이 전하는 이야기</h2><p>항구에서 뱃사람들의 전언을 <b>무작위로 3개</b> 들을 수 있습니다. 그중 적어도 1개는 사실이며, 돈과 선장 등급이 높을수록 사실을 들을 가능성이 증가합니다. 참과 거짓은 표시되지 않습니다.</p><p class="muted">이야기는 이번 출항 중에만 제공됩니다. 호수의 규칙을 기록물로 남기지 않습니다.</p>'+(state.rumorBought?'<div class="stack">'+state.rumors.map((r,i)=>'<div class="rumor"><div class="small">전언 '+(i+1)+' · '+(r.lake?esc(LAKES[r.lake-1].name):'먼바다의 목격담')+'</div>“'+esc(r.text)+'”</div>').join('')+'</div>':'<div class="stack">'+button('일반 정보 듣기 · 무료','rumor','0')+button('술값 20 만 안(眼) 지불','rumor','20','',state.gold<20)+button('상급 정보료 50 만 안(眼) 지불','rumor','50','primary',state.gold<50)+'</div>')+'<div class="row" style="margin-top:14px">'+button('출항하기','launch','','primary')+'</div></div><div class="inset"><h3>이번 항해에서 접근할 호수</h3><p class="muted">출항 후 목록을 확인할 수 있습니다. 다섯 재앙의 위치는 공개되지 않습니다.</p>'+tag('접근 구역 '+state.offered.length+'개')+'</div>';
-if(s==='route'){const list=state.offered.map(id=>{const l=LAKES[id-1],seen=state.visited.includes(id);return '<div class="lake '+(seen?'locked':'')+'" style="border-left:5px solid '+l.hex+'"><div class="between"><span class="tag">제'+String(id).padStart(3,'0')+'호</span>'+tag('위험도 '+l.risk)+'</div><h3>'+esc(l.name)+'</h3><p class="muted">'+(l.mermaid?'인어가 출몰할 수 있는 구역':'불분명한 수면과 미확인 위험')+' · '+(l.id<=10?'예상 체류 3~6턴':'예상 체류 '+l.limit+'턴')+'</p>'+button(seen?'탐사 완료':'이 호수로 항해','lake',id,'primary',seen)+'</div>';}).join('');return '<div class="inset"><div class="between"><h2>이번 출항의 호수</h2>'+tag(state.visited.length+' / '+state.offered.length+' 통과·이탈')+'</div>'+(state.lastTransition?'<div class="result">'+esc(state.lastTransition)+'</div>':'')+'<p class="muted">선장의 등급에 해당하는 '+state.offered.length+'개의 호수를 50개 중 무작위로 배정했습니다. 모든 호수가 연속 항해로 이어질 수 있습니다.</p>'+button('항구로 귀환','return')+'</div><div class="lakegrid">'+list+'</div>';}
+if(s==='port'){const next=state.grade+1;return '<div class="inset"><div class="small">항구 · 안전 구역</div><h2>다음 출항 준비</h2><p>13개의 서로 다른 호수 중 선장 등급에 따라 이번 항해에서 접근할 수 있는 구역이 무작위로 정해집니다. 재앙의 고래 다섯 마리 역시 매 출항마다 서로 다른 호수로 이동합니다.</p>'+button('새 출항 준비','prepare','','primary')+'</div><div class="inset"><h3>항구 시설</h3><p class="muted">선원 모집 및 승급은 위의 선원·승급 탭에서 진행할 수 있습니다.</p>'+button('선원 모집·승급 보기','tab','crew')+'</div><div class="inset"><h3>승급 현황</h3><p>통과 횟수 '+state.xp+'회 '+(next<=5?'/ 다음 등급 조건 '+RANK_XP[next]+'회':'/ 최고 등급')+'</p></div>';}
+if(s==='prep')return '<div class="inset"><div class="small">U사 출항 전 · 구전</div><h2>선원이 전하는 이야기</h2><p>항구에서 뱃사람들의 전언을 <b>무작위로 3개</b> 들을 수 있습니다. 그중 적어도 1개는 사실이며, 돈과 선장 등급이 높을수록 사실을 들을 가능성이 증가합니다. 참과 거짓은 표시되지 않습니다.</p><p class="muted">이야기는 이번 출항 중에만 제공됩니다. 호수의 규칙을 기록물로 남기지 않습니다.</p>'+(state.rumorBought?'<div class="stack">'+state.rumors.map((r,i)=>'<div class="rumor"><div class="small">전언 '+(i+1)+' · '+(r.lake?esc(LAKE_BY_ID157.get(r.lake).name):'먼바다의 목격담')+'</div>“'+esc(r.text)+'”</div>').join('')+'</div>':'<div class="stack">'+button('일반 정보 듣기 · 무료','rumor','0')+button('술값 20 만 안(眼) 지불','rumor','20','',state.gold<20)+button('상급 정보료 50 만 안(眼) 지불','rumor','50','primary',state.gold<50)+'</div>')+'<div class="row" style="margin-top:14px">'+button('출항하기','launch','','primary')+'</div></div><div class="inset"><h3>이번 항해에서 접근할 호수</h3><p class="muted">출항 후 목록을 확인할 수 있습니다. 다섯 재앙의 위치는 공개되지 않습니다.</p>'+tag('접근 구역 '+state.offered.length+'개')+'</div>';
+if(s==='route'){const list=state.offered.map(id=>{const l=LAKE_BY_ID157.get(id),seen=state.visited.includes(id);return '<div class="lake '+(seen?'locked':'')+'" style="border-left:5px solid '+l.hex+'"><div class="between"><span class="tag">제'+String(id).padStart(3,'0')+'호</span>'+tag('위험도 '+l.risk)+'</div><h3>'+esc(l.name)+'</h3><p class="muted">'+(l.mermaid?'인어가 출몰할 수 있는 구역':'불분명한 수면과 미확인 위험')+' · '+(l.id<=10?'예상 체류 3~6턴':'예상 체류 '+l.limit+'턴')+'</p>'+button(seen?'탐사 완료':'이 호수로 항해','lake',id,'primary',seen)+'</div>';}).join('');return '<div class="inset"><div class="between"><h2>이번 출항의 호수</h2>'+tag(state.visited.length+' / '+state.offered.length+' 통과·이탈')+'</div>'+(state.lastTransition?'<div class="result">'+esc(state.lastTransition)+'</div>':'')+'<p class="muted">선장의 등급에 해당하는 '+state.offered.length+'개의 호수를 50개 중 무작위로 배정했습니다. 모든 호수가 연속 항해로 이어질 수 있습니다.</p>'+button('항구로 귀환','return')+'</div><div class="lakegrid">'+list+'</div>';}
 if(s==='encounter'){const k=state.encounter,w=WHALES[k];return '<div class="inset warning"><div class="small">경고 · 5재앙의 고래</div><h2>'+esc(w.name)+'</h2><p>'+esc(w.description)+'</p><p class="muted">사냥 난이도 측정 불가. 현명한 선택은 도주입니다.</p>'+tag('현재 선체 '+state.hull+' / 100')+' '+tag('아군 전투력 '+crewPower())+'<div class="stack" style="margin-top:14px">'+button('즉시 회피한다','escapeWhale','','primary')+button('재앙의 고래를 사냥한다','huntWhale','','danger')+'</div></div>';}
 if(s==='special'){const k=state.specialPending,w=WHALES[k],possible=canHuntSpecial();return '<div class="inset warning"><div class="small">특이한 인어 조우</div><h2>'+esc(w.mermaid)+'</h2><p>'+esc(w.name)+'을 따르는 인어가 뱃머리 앞에 나타났습니다.</p><p class="muted">사냥 가능 조건: 3등급 이상의 선장 + 작살잡이 + 1등 항해사 + 일반 선원(하급·중급·상급)이 모두 승선해야 합니다.</p>'+tag(possible?'사냥 자격 충족':'사냥 자격 부족')+'<div class="stack" style="margin-top:14px">'+button('사냥을 시도한다','specialBattle','','primary',!possible)+button('인어를 피해 이동한다','avoidSpecial')+'</div></div>';}
 if(s==='event'){const l=activeLake();if(!l)return '<div class="inset">호수 정보를 찾을 수 없습니다.</div>';const law=lakeLaw(l),z=lakeZone(l);const seen=state.lakeRumorTruth?law.truth(z):law.false(z);return '<div class="inset" style="border-top:4px solid '+l.hex+'"><div class="between"><h2>구역: '+esc(l.name)+'</h2>'+tag('구역 특성 '+(l.feature||COLOR_GROUPS[l.hue].label))+' '+tag('창작 구역')+'</div><div class="inset"><div class="barline"><span>호수 상태</span><span>체류 1 / '+l.limit+'턴</span></div><div class="meter"><span style="width:'+(100/l.limit)+'%"></span></div><div class="small">선원이 전하는 이야기 · 진위 불명</div><p>“'+esc(state.blueTorn?'이곳의 호수가 찢어졌습니다. 지금은 어떤 전언도 믿기 어렵습니다.':seen)+'”</p></div><h3>발생 사건</h3><p>'+esc(law.event(z))+'</p>'+(state.ruleResolved?'<div class="result">'+esc(state.ruleResult)+'</div><div class="stack" style="margin-top:12px">'+button('다음으로','nextEvent','','primary')+'</div>':'<div class="stack">'+law.options.map((opt,i)=>button(opt,'rule',i)).join('')+'</div>')+'</div>';}
@@ -487,7 +490,7 @@ function normalize0131(){
  if(!Number.isFinite(state.routeChoiceCount))state.routeChoiceCount=(state.voyage>0&&state.visited?.length>0)?1:0;
  if(!state.scene)state.scene='start';
  if(state.scene==='event'&&state.current!=null&&state.nav===null){
-  const old=LAKES[state.current-1];
+  const old=LAKE_BY_ID157.get(state.current);
   state.nav={stage:state.ruleResolved?'sail':'law',sight:false,helm:false,distance:0,
    target:2+(old&&old.risk>=3?1:0),turns:0,lawOk:!!state.ruleResolved,fished:false,transition:false};
  }
@@ -526,7 +529,7 @@ selectLake=function(id){
 };
 function enterNextLake0131(id){
  if(state.scene!=='route'||!state.offered.includes(id)||state.visited.includes(id))return;
- state.nav={stage:'law',sight:false,helm:false,distance:0,target:2+(LAKES[id-1].risk>=3?1:0),turns:0,lawOk:false,fished:false,transition:false};
+ state.nav={stage:'law',sight:false,helm:false,distance:0,target:2+(LAKE_BY_ID157.get(id).risk>=3?1:0),turns:0,lawOk:false,fished:false,transition:false};
  state.fishTries=0;
  state.normalMermaidDraw=Math.random()<0.20;
  oldSelect0131(id);sync();
@@ -1005,19 +1008,19 @@ const ARCHIVED_LAKES=[];
 for(let i=ACH.length-1;i>=0;i--)if(ARCHIVED_LAKES.includes(ACH[i]))ACH.splice(i,1);
 for(const a of ACH){
  const match=/^lake_(\d+)$/.exec(a.id);
- if(match){const l=LAKES[Number(match[1])-1];if(l)a.name=l.storyNo+' · '+l.name+' 통과';}
+ if(match){const l=LAKE_BY_ID157.get(Number(match[1]));if(l)a.name=l.storyNo+' · '+l.name+' 통과';}
  if(['whale1','whale3'].includes(a.id)||/^whale_hunt_\d+$/.test(a.id))a.tier='miracle';
 }
 /* 기존에 통과한 51~100번 호수 업적은 보관함의 과거 항로로 존치합니다. */
-LAKES.splice(10);RULES.splice(10);
+LAKES.splice(ENABLED_LAKE_IDS157.length);RULES.splice(ENABLED_LAKE_IDS157.length);
 function makeStory014(l){
  const d=STORY_DEFS[l.id-1],start=Array.isArray(d.start)?d.start[rng(d.start.length)]:d.start;
  return {id:l.id,step:start,turns:0,result:''};
 }
 const prevEnter014=enterNextLake0131;
 enterNextLake0131=function(id){
- if(id<1||id>10)return;
- state.lakeStory=makeStory014(LAKES[id-1]);
+ if(!LAKE_BY_ID157.has(id))return;
+ state.lakeStory=makeStory014(LAKE_BY_ID157.get(id));
  prevEnter014(id);
 };
 
@@ -1168,8 +1171,8 @@ if(state.sea&&(state.offered.some(x=>x>50)||state.current>50)){
  log('항로 재편으로 기존 항해를 중단하고 항구에 돌아왔습니다. 승선 인원과 재산은 유지됩니다.');
  save();
 }
-if(state.scene==='event'&&state.current>0&&state.current<=50&&(!state.lakeStory||state.lakeStory.id!==state.current)){
- state.lakeStory=makeStory014(LAKES[state.current-1]);
+if(state.scene==='event'&&LAKE_BY_ID157.has(state.current)&&(!state.lakeStory||state.lakeStory.id!==state.current)){
+ state.lakeStory=makeStory014(LAKE_BY_ID157.get(state.current));
  if(typeof state.normalMermaidDraw!=='boolean')state.normalMermaidDraw=Math.random()<.20;
  save();
 }
@@ -1372,10 +1375,10 @@ reconcileWhalePlacement143();
 
 /* 21-01~21-10: 첨부 대본을 실제 분기 자료로 적용.
    제작용 규칙, 분기명과 결과 메타데이터는 플레이어에게 표시하지 않습니다. */
-const SCRIPTED_LAKES_015=[{"id":1,"name":"붉은 호수","description":"물이 붉은빛으로 움직이기 시작했다. 붉은 것이 한참을 지나가도 그것의 끝이 보이지 않는다.","hints":["벌린 입에는 피 하나, 다문 입에는 물 하나를 주게. 그것은 받을 것을 구분하니.","만약 꼬리를 흔들거든 인사 말고 떠나게."],"hex":"#9e3d45","nodes":{"scene0":{"text":"붉은 비늘이 시야 가득 보인다. 그것이 입을 벌린다. 입 안쪽은 환하다.","scripted":true,"choices":[{"text":"핏방울을 입에 떨어뜨린다.","to":"scene2"},{"text":"호수의 물을 떠서 입에 붓는다.","death":true},{"text":"기다린다.","death":true}]},"scene1":{"text":"붉은 비늘이 시야 가득 보인다. 그것이 입을 다문다. 몸통이 뱃전을 감싼다.","scripted":true,"choices":[{"text":"핏방울을 입에 떨어뜨린다.","death":true},{"text":"호수의 물을 떠서 입에 붓는다.","to":"scene2"},{"text":"기다린다.","death":true}]},"scene2":{"text":"붉은 꼬리가 흔들린다. 꼬리 너머 물빛이 갈리기 시작한다.","scripted":true,"choices":[{"text":"꼬리 너머로 젓는다.","pass":true,"epilogue":""}]}}},{"id":2,"name":"적갈빛 호수","description":"적갈빛 물로 바뀌었다. 물이 흔들리며 불꽃이 일어난다. 얼굴에 닿는 바람이 차갑다.","hints":["불이 서면 노를 쉬고, 불이 누우면 저어 가세."],"hex":"#955847","nodes":{"scene0":{"text":"불꽃이 사람 키만큼 솟는다. 그 사이로 나아갈 수 있을 것 같은 틈이 보인다.","scripted":true,"choices":[{"text":"노를 거두고 기다린다.","to":"scene1"},{"text":"보이는 틈으로 젓는다.","death":true}]},"scene1":{"text":"불꽃이 수면에 낮게 붙었다. 뱃머리 앞이 트였다.","scripted":true,"choices":[{"text":"보이는 틈으로 젓는다.","pass":true,"epilogue":""},{"text":"노를 거두고 기다린다.","to":"scene0"}]},"scene2":{"text":"낮아졌던 불꽃이 다시 일어선다. 같이 탄 선원이 노를 집는다.","scripted":true,"choices":[{"text":"선원을 말리고 기다린다.","to":"scene1"},{"text":"함께 젓는다.","death":true}]}}},{"id":3,"name":"묵빛 호수","description":"물이 온통 검어지기 시작했다. 물 안쪽에는 검은 것들이 가득하다. 배가 들어서자 그것들이 한쪽으로 움직인다.","hints":["검은 것이 갈 때는 쉬고, 검은 것이 쉴 때 가세."],"hex":"#272e36","nodes":{"scene0":{"text":"검은 것들이 배 밑을 지난다. 배 밑바닥을 일정한 간격으로 두드리는 소리가 난다.","scripted":true,"choices":[{"text":"노를 멈추고 숨을 죽인다.","to":"scene2"},{"text":"배 밑바닥을 같은 리듬으로 두드린다.","death":true}]},"scene1":{"text":"검은 것들이 뱃머리 앞에 모였다. 멈춰있어도 조금씩 움직인다.","scripted":true,"choices":[{"text":"배를 멈추고 기다린다.","to":"scene2"},{"text":"움직임이 적은 쪽으로 젓는다.","death":true}]},"scene2":{"text":"검은 것들이 멎었다. 물이 흔들려도 그것들은 움직이지 않는다.","scripted":true,"choices":[{"text":"검은 것들 사이로 젓는다.","pass":true,"epilogue":""},{"text":"기다린다.","to":"scene0"}]}}},{"id":4,"name":"우윳빛 호수","description":"물이 우윳빛으로 흐려졌다. 앞쪽에 똑같이 생긴 배들이 떠 있다. 아무도 보이지 않는데 노랫소리가 들린다.","hints":["앞의 노래는 먼저 보내고, 곁의 노래에는 노를 주게.","뒤의 노래는 돌아보지 말고 저어 가세."],"hex":"#e7e7d9","nodes":{"scene0":{"text":"빈 배가 앞을 가로지른다. 사람은 보이지 않는다. 노랫소리 하나가 이쪽을 향한다.","scripted":true,"choices":[{"text":"노를 멈추고 먼저 보낸다.","to":"scene1"},{"text":"빈 배를 앞질러 젓는다.","death":true},{"text":"쓰던 노 하나를 걸쳐 준다.","death":true}]},"scene1":{"text":"앞을 가로막던 배가 멀어진다. 정면의 물빛이 갈리기 시작한다.","scripted":true,"choices":[{"text":"정면으로 젓는다.","pass":true,"epilogue":""}]},"scene2":{"text":"빈 배가 옆에 붙는다. 사람은 보이지 않는다. 노랫소리 하나가 물속으로 빠진다.","scripted":true,"choices":[{"text":"쓰던 노 하나를 걸쳐 준다.","to":"scene3"},{"text":"노를 멈추고 먼저 보낸다.","death":true},{"text":"노를 저어 빈 배에서 멀어진다.","death":true}]},"scene3":{"text":"뒤에서 노 젓는 소리가 난다. 바로 등 뒤에서 노랫소리가 들리기 시작한다.","scripted":true,"choices":[{"text":"돌아보지 않고 앞으로 젓는다.","pass":true,"epilogue":""},{"text":"돌아본다.","death":true},{"text":"노를 멈추고 먼저 보낸다.","death":true}]}}},{"id":5,"name":"반타빛 호수","description":"물이 반타빛으로 바뀌며 한치 앞도 보이지 않는다. 등불 아래로 어두운 것들이 배를 따라온다. 등불이 흔들리자 그것들도 같은 쪽으로 움직인다.","hints":["밝은 쪽은 저들에게 주고, 우리는 어두운 쪽으로 가세.","불을 끄지는 말게. 따라갈 곳이 있어야 하니."],"hex":"#172027","nodes":{"scene0":{"text":"등불 아래로 어두운 것들이 모인다. 뱃머리 앞이 어둠으로 가려진다.","scripted":true,"choices":[{"text":"등불을 왼쪽 뱃전으로 옮긴다.","to":"scene1"},{"text":"등불을 오른쪽 뱃전으로 옮긴다.","to":"scene2"},{"text":"등불을 끈다.","death":true}]},"scene1":{"text":"왼편의 등불 아래로 그것들이 모였다. 오른쪽 물이 비어 있다.","scripted":true,"choices":[{"text":"등불을 그대로 두고 오른쪽으로 젓는다.","to":"scene3"},{"text":"왼쪽으로 젓는다.","death":true}]},"scene2":{"text":"오른편의 등불 아래로 그것들이 모였다. 왼쪽 물이 비어 있다.","scripted":true,"choices":[{"text":"등불을 그대로 두고 오른쪽으로 젓는다.","death":true},{"text":"왼쪽으로 젓는다.","to":"scene3"}]},"scene3":{"text":"오른쪽도 왼쪽도 그것들이 모이지 않았다. 등불만이 조용히 어둠을 비춘다.","scripted":true,"choices":[{"text":"그대로 앞을 향해 젓는다.","pass":true,"epilogue":""},{"text":"등불을 끈다.","death":true}]}}},{"id":6,"name":"청록빛 호수","description":"물이 청록빛으로 맑아진다. 쓰던 노 하나가 손에서 빠져나간다. 끝이 갈라지고 손잡이에 천이 감긴 노다. 가라앉은 자리에서 노 여러 개가 떠오른다.","hints":["초록 물에선 내 것만 건져 가세, 만약 주지 않는다면 같은 것을 건네주게."],"hex":"#4faaa2","nodes":{"scene0":{"text":"노 하나가 뱃전에 닿는다. 끝이 갈라져 있다. 손잡이에는 아무것도 감겨 있지 않다.","scripted":true,"choices":[{"text":"건져 올린다.","death":true},{"text":"건드리지 않고 기다린다.","to":"scene2"}]},"scene1":{"text":"붉은 천이 감긴 손잡이가 물 위로 올라온다. 노 끝은 아직 보이지 않는다.","scripted":true,"choices":[{"text":"손잡이를 잡아 올린다.","death":true},{"text":"노 끝까지 떠오르기를 기다린다.","to":"scene2"}]},"scene2":{"text":"노 두 개가 나란히 떠온다. 하나는 끝이 멀쩡하고, 하나는 끝이 갈라져 있다. 두 손잡이 모두 검은 천이 감겨 있다.","scripted":true,"choices":[{"text":"끝이 멀쩡한 노를 건진다.","death":true},{"text":"끝이 갈라진 노를 건진다.","to":"scene3"},{"text":"두 개를 모두 건진다.","death":true}]},"scene3":{"text":"노가 다시 손에 있다. 앞쪽의 청록빛이 갈리기 시작한다.","scripted":true,"choices":[{"text":"젓는다.","pass":true,"epilogue":""}]}}},{"id":7,"name":"다홍빛 호수","description":"물이 다홍빛으로 물들어간다. 배 밑에서 무언가 두드리는 소리가 난다. 아래에는 아무것도 없다.","hints":["아래서 두드린 것보다 하나 덜 돌려주게.","하나가 오면 숨을 죽이고, 조용하면 떠나게."],"hex":"#dd6f51","nodes":{"scene0":{"text":"배 밑에서 세 번 두드린다. 마지막 소리가 울린다.","scripted":true,"choices":[{"text":"뱃바닥을 두 번 두드린다.","to":"scene1"},{"text":"뱃바닥을 세 번 두드린다.","death":true},{"text":"가만히 기다린다.","death":true}]},"scene1":{"text":"배 밑에서 두 번 두드린다. 마지막 소리가 살짝 가깝다.","scripted":true,"choices":[{"text":"뱃바닥을 한 번 두드린다.","to":"scene2"},{"text":"뱃바닥을 두 번 두드린다.","death":true},{"text":"가만히 기다린다.","death":true}]},"scene2":{"text":"배 밑에서 한 번 두드린다. 마지막 소리가 유난히 가깝다.","scripted":true,"choices":[{"text":"숨을 죽인다.","to":"scene3"},{"text":"뱃바닥을 한 번 두드린다.","death":true}]},"scene3":{"text":"두드리는 소리가 사라졌다. 배 밑을 스치던 것도 멀어진다. 앞쪽 물빛이 갈리기 시작한다.","scripted":true,"choices":[{"text":"젓는다.","pass":true,"epilogue":""},{"text":"뱃바닥을 두드려 확인한다.","death":true}]}}},{"id":8,"name":"","description":"물이 아무것도 없는 빛으로 바뀐다.","hints":["21-08번 호수는 존재하지 않습니다. 해당 번호가 표시된다면 즉시 눈을 감고 노를 저으십시오.","노가 물을 가르는 소리가 다시 들릴 때까지 눈을 뜨지 마십시오. 누군가 도착했다고 말하더라도 마찬가지입니다."],"hex":"#67727d","nodes":{"scene0":{"text":"항해 장치가 21-08을 가리킨다. 노가 물에 들어갔다 나오는데 아무 소리도 나지 않는다.","scripted":true,"choices":[{"text":"눈을 감고 계속 젓는다.","to":"scene1"},{"text":"장치를 다시 켜서 번호를 확인한다.","death":true},{"text":"노를 멈추고 여기가 어디인지 묻는다.","death":true}]},"scene1":{"text":"노를 젓는 팔이 무겁다. 물소리는 없다. 뱃머리 쪽에서 선원이 말한다. ‘다 나왔어. 눈 떠도 돼.’","scripted":true,"choices":[{"text":"눈을 감은 채 계속 젓는다.","to":"scene2"},{"text":"눈을 뜨고 물빛을 확인한다.","death":true},{"text":"노를 멈추고 여기가 어디인지 묻는다.","death":true}]},"scene2":{"text":"바로 옆에서 물소리가 난다. 내 노는 아직 물에 넣지 않았다.","scripted":true,"choices":[{"text":"눈을 감은 채 내 노를 물에 넣고 젓는다.","to":"scene3"},{"text":"눈을 뜬다.","death":true}]},"scene3":{"text":"내 노가 물에 들어갈 때 물소리가 난다. 당기면 물이 갈리고, 들어 올리면 물방울이 떨어진다.","scripted":true,"choices":[{"text":"눈을 뜨고 나아간다.","pass":true,"epilogue":"뱃머리가 다른 물빛 위로 넘어간다. 항해 장치에도 다른 번호가 떠 있다. 방금 일을 묻자 누군가 고개를 젓는다. “그런 번호의 호수는 없잖아.”"}]}}},{"id":9,"name":"황갈빛 호수","description":"물이 황갈빛으로 탁해진다. 배에 묶어 둔 밧줄 하나가 물속으로 늘어져 있다. 끝에 무엇을 매달았는지 아무도 기억하지 못한다.","hints":["당기는 줄은 내어 주고, 놓아주는 줄은 거둬 가세.","끝까지 돌아왔거든 더는 내리지 말게."],"hex":"#9c8253","nodes":{"scene0":{"text":"밧줄이 팽팽해진다. 뱃전이 삐걱인다. 물속에서 줄을 조금씩 가져간다.","scripted":true,"choices":[{"text":"밧줄을 풀어 물속으로 더 내준다.","to":"scene1"},{"text":"줄을 거둔다.","death":true},{"text":"밧줄을 뱃전에 단단히 묶는다.","death":true}]},"scene1":{"text":"밧줄이 느슨해졌다. 뱃전이 삐걱인다. 물속에서 줄을 조금씩 가져간다.","scripted":true,"choices":[{"text":"줄을 거둔다.","to":"scene2"},{"text":"밧줄을 풀어 물속으로 더 내준다.","death":true}]},"scene2":{"text":"밧줄이 더욱 느슨해졌다. 마지막 한 뼘이 물에 떠 있다. 끝에는 아무것도 없다.","scripted":true,"choices":[{"text":"남은 줄을 배 안으로 거둔다.","to":"scene3"},{"text":"밧줄을 풀어 물속으로 내준다.","death":true}]},"scene3":{"text":"밧줄 끝이 갑판에 놓였다. 젖은 줄 아래로 황갈빛 물이 고인다. 뱃머리 너머로 다른 물빛이 보인다.","scripted":true,"choices":[{"text":"노를 저어 나아간다.","pass":true,"epilogue":""},{"text":"줄 끝을 다시 물에 내린다.","death":true}]}}},{"id":10,"name":"회청빛 호수","description":"물이 회청빛으로 흐려진다. 물속에서 말소리가 올라온다. 노를 물에 넣자 말이 끊겼다가, 노를 꺼내니 끊긴 곳부터 이어진다.","hints":["부른 이름 돌려주고, 묻는 말은 흘려보내게.","잘 가라는 말에는 인사 말고 저어 가세."],"hex":"#728e9d","nodes":{"scene0":{"text":"물속에서 같이 탄 선원의 이름을 부른다. 선원이 뱃전으로 몸을 기울인다.","scripted":true,"choices":[{"text":"들은 이름을 그대로 말한다.","to":"scene1"},{"text":"선원을 가리키며 여기 있다고 대답한다.","death":true},{"text":"아무 말도 하지 않는다.","death":true}]},"scene1":{"text":"물속에서 묻는다. ‘거기 몇 명인가?’ 같이 탄 사람들이 서로를 쳐다본다.","scripted":true,"choices":[{"text":"사람 수를 세어 대답한다.","death":true},{"text":"입을 다문다.","to":"scene2"}]},"scene2":{"text":"물속에서 내 이름을 부른다. 또렷하게. 거품 낀 목소리로.","scripted":true,"choices":[{"text":"내 이름만 대답한다.","to":"scene3"},{"text":"듣고 있다고 대답한다.","death":true},{"text":"입을 다문다.","death":true}]},"scene3":{"text":"물속에서 ‘잘 가게’ 하는 말이 들리고 거품 소리가 사라진다. 회청빛 물 너머가 밝아진다.","scripted":true,"choices":[{"text":"노를 젓는다.","pass":true,"epilogue":""}]}}}];
+const SCRIPTED_LAKES_015=[{"id":1,"name":"붉은 호수","description":"물이 붉게 바뀌었다. 배 밑으로 붉은 것이 지나간다. 한참을 보아도 끝이 없다.","hints":["벌린 입에는 피 하나, 다문 입에는 물 하나를 주게.","꼬리를 흔들거든 인사 말고 떠나게."],"nodes":{"scene0":{"text":"눈앞이 온통 붉은 비늘이다. 입이 벌어진다.","scripted":true,"choices":[{"text":"핏방울을 입에 떨어뜨린다","to":"scene2"},{"text":"물을 떠서 입에 붓는다","death":true},{"text":"기다린다","death":true}]},"scene1":{"text":"눈앞이 온통 붉은 비늘이다. 입이 닫힌다.","scripted":true,"choices":[{"text":"핏방울을 입에 떨어뜨린다","death":true},{"text":"물을 떠서 입에 붓는다","to":"scene2"},{"text":"기다린다","death":true}]},"scene2":{"text":"붉은 꼬리가 흔들린다. 그 너머로 다른 물빛이 보인다.","scripted":true,"choices":[{"text":"꼬리 너머로 젓는다","pass":true},{"text":"꼬리를 향해 손을 흔든다","death":true}]}},"hex":"#9e3d45"},{"id":2,"name":"다홍빛 호수","description":"물이 다홍빛으로 일렁거린다. 물 위로 불꽃이 솟는다. 얼굴에 닿는 바람은 차갑다.","hints":["불이 서면 노를 쉬고, 불이 누우면 저어 가세."],"nodes":{"scene0":{"text":"불꽃이 사람 키만큼 솟았다. 사이에 틈이 있다. 배가 지나갈 만하다.","scripted":true,"choices":[{"text":"노를 거두고 기다린다","to":"scene1"},{"text":"보이는 틈으로 젓는다","death":true}]},"scene1":{"text":"불꽃이 낮게 누웠다. 앞쪽 물이 트였다.","scripted":true,"choices":[{"text":"보이는 틈으로 젓는다","pass":true},{"text":"노를 거두고 기다린다","to":"scene0"}]},"scene2":{"text":"불꽃이 다시 높아졌다. 같이 탄 선원이 노를 집었다.","scripted":true,"choices":[{"text":"선원을 말리고 기다린다","to":"scene1"},{"text":"함께 젓는다","death":true}]}},"hex":"#955847"},{"id":3,"name":"묵빛 호수","description":"물이 검다. 물 안에도 검은 것들이 있다. 배가 들어서자 한쪽으로 움직인다.","hints":["검은 것이 갈 때는 쉬고, 검은 것이 쉴 때 가세."],"nodes":{"scene0":{"text":"검은 것들이 배 밑을 지난다. 물이 뱃전을 두드린다. 간격이 같다.","scripted":true,"choices":[{"text":"노를 멈추고 숨을 죽인다","to":"scene2"},{"text":"박자에 맞춰 젓는다","death":true}]},"scene1":{"text":"검은 것들이 뱃머리 앞에 모였다. 멎은 것 같지만 조금씩 움직인다.","scripted":true,"choices":[{"text":"배를 멈추고 기다린다","to":"scene2"},{"text":"움직임이 적은 쪽으로 젓는다","death":true}]},"scene2":{"text":"검은 것들이 멎었다. 물만 흔들린다.","scripted":true,"choices":[{"text":"검은 것들 사이로 젓는다","pass":true},{"text":"기다린다","to":"scene0"}]}},"hex":"#272e36"},{"id":4,"name":"우윳빛 호수","description":"물이 우윳빛이다. 앞쪽에 모래톱이 길게 나 있다. 갈매기들이 그 위에 앉아 있다.","hints":["하얀 물에서는 땅에 배를 대지 말게. 새는 앉아도 뭍은 아니라네.","땅이 다가오거든 먼저 멀어지게."],"nodes":{"scene0":{"text":"갈매기 몇 마리가 날아올랐다. 모래톱도 그쪽으로 움직였다.","scripted":true,"choices":[{"text":"모래톱에서 멀어지도록 젓는다","pass":true},{"text":"모래톱에 배를 댄다","death":true},{"text":"갈매기가 떠난 자리에 내려선다","death":true}]},"scene1":{"text":"같이 탄 선원이 모래톱을 가리킨다.","scripted":true,"choices":[{"text":"선원을 말리고 모래톱에서 멀어지도록 젓는다","pass":true},{"text":"모래톱에 올라가 쉬기로 한다","death":true},{"text":"배를 세우고 모래톱이 오기를 기다린다","death":true}]}},"hex":"#e7e7d9"},{"id":5,"name":"천둥구름 호수","description":"회색 구름들이 물 위에 낮게 떠다닌다. 구름 속 어딘가에서 번쩍이는 소리가 난다.","hints":["번쩍이거든 노를 물에서 떼어 눕히게. 높이 쳐들지는 말게.","울음이 지나거든 다시 담그게. 구름은 올려다보지 말게."],"nodes":{"scene0":{"text":"구름 속이 하얗게 번쩍였다. 소리는 아직 없다.","scripted":true,"choices":[{"text":"노를 물에서 떼어 뱃전에 눕힌다","to":"scene2"},{"text":"노를 높이 쳐든다","death":true},{"text":"그대로 젓는다","death":true}]},"scene1":{"text":"같이 탄 선원이 노를 쳐들었다. 구름을 가리킨다. 그 안이 하얗게 번쩍였다.","scripted":true,"choices":[{"text":"선원의 노도 받아 함께 눕힌다","to":"scene2"},{"text":"선원과 함께 구름을 올려다본다","death":true},{"text":"내 노만 눕히고 선원의 노는 그대로 둔다","death":true}]},"scene2":{"text":"천둥이 지나갔다. 배 밑바닥이 떨린다. 구름이 더 낮아졌다.","scripted":true,"choices":[{"text":"노를 물에 담근다","to":"scene3"},{"text":"노를 눕힌 채 기다린다","to":"scene0"},{"text":"구름을 올려다본다","death":true}]},"scene3":{"text":"구름이 걷혔다. 반타빛 물이 보인다. 앞쪽이 트여 있다.","scripted":true,"choices":[{"text":"젓는다","pass":true},{"text":"노를 눕힌 채 기다린다","to":"scene0"}]}},"hex":"#172027"},{"id":6,"name":"청록빛 호수","description":"물이 맑은 청록빛이다. 끝이 갈라지고 손잡이에 검은 천이 감긴 노를 하나 던지자 그 자리에서 노가 여러 개 떠오른다.","hints":["초록 물에선 내 것만 건져 가세, 만약 주지 않는다면 같은 것을 건네주게."],"nodes":{"scene0":{"text":"노 하나가 뱃전에 닿았다. 끝이 갈라져 있다. 손잡이에는 천이 없다.","scripted":true,"choices":[{"text":"건져 올린다","death":true},{"text":"건드리지 않고 기다린다","to":"scene2"}]},"scene1":{"text":"손잡이 하나가 물 위로 올라왔다. 붉은 천이 감겨 있다. 노 끝은 보이지 않는다.","scripted":true,"choices":[{"text":"손잡이를 잡아 올린다","death":true},{"text":"노 끝이 보일 때까지 기다린다","to":"scene2"}]},"scene2":{"text":"노 두 개가 나란히 떠온다. 하나는 끝이 멀쩡하다. 하나는 갈라져 있다. 손잡이에는 둘 다 검은 천이 감겨 있다.","scripted":true,"choices":[{"text":"끝이 멀쩡한 노를 건진다","death":true},{"text":"끝이 갈라진 노를 건진다","to":"scene3"},{"text":"두 개를 모두 건진다","death":true}]},"scene3":{"text":"노가 손에 돌아왔다. 앞쪽 물빛이 갈라진다.","scripted":true,"choices":[{"text":"젓는다","pass":true}]}},"hex":"#4faaa2"},{"id":7,"name":"핏빛 호수","description":"물이 피처럼 끈적거리고 혈향이 난다. 붉은 나무들이 물속에 서 있다. 가지마다 열매가 꼬리를 위로 한 채 매달려 있다.","hints":["붉은 나무에 달린 열매는 잡지 말게.","떨어진 열매는 가지로 돌려보내게. 물에 놓아주지는 말게."],"nodes":{"scene0":{"text":"나뭇가지에 달린 열매가 흔들린다. 그것의 아가미가 움직인다.","scripted":true,"choices":[{"text":"그것을 가지에 다시 건다","to":"scene2"},{"text":"그것의 아가미를 쳐다본다.","death":true}]},"scene1":{"text":"나뭇가지에 달린 열매가 떨어진다. 그것의 아가미가 마구 버둥거린다.","scripted":true,"choices":[{"text":"그것을 노로 원래 가지에 건다","to":"scene2"},{"text":"열매를 그대로 물에 던진다.","death":true},{"text":"반대 방향으로 젓는다","death":true}]},"scene2":{"text":"그것들이 모두 가지에 매달려 있다. 앞쪽 나무 사이가 비었다.","scripted":true,"choices":[{"text":"나무 사이로 젓는다","pass":true}]}},"hex":"#dd6f51"},{"id":8,"name":"","description":"아무것도 없고, 아무것도 보이지 않는다.","hints":["21-08번 호수는 존재하지 않습니다. 해당 번호가 표시된다면 일지에 적지 마십시오.","번호를 소리 내어 읽거나 묻지 마십시오. 누군가 그 번호를 안다고 말하더라도 마찬가지입니다.","일지의 비운 칸은 그대로 두고 다음 호수로 넘어가십시오."],"nodes":{"scene0":{"text":"장치에 21-08이 떴다. 일지에도 같은 번호가 적혀 있다. 내 글씨다.","scripted":true,"choices":[{"text":"번호 아래에 항해한 일을 적는다","death":true},{"text":"적힌 번호를 지우고 21-09로 고쳐 적는다","death":true},{"text":"그 칸을 두고 다음 장을 펼친다","to":"scene1"}]},"scene1":{"text":"같이 탄 선원이 장치를 들여다본다.","scripted":true,"choices":[{"text":"같이 소리 내어 읽는다","death":true},{"text":"말없이 장치의 덮개를 닫는다","to":"scene2"}]},"scene2":{"text":"일지 한 칸이 비어 있다. 장치에도 번호가 없다.","scripted":true,"choices":[{"text":"빈칸을 그대로 두고 젓는다","pass":true,"epilogue":"다른 물로 넘어왔다. 장치에 다른 번호가 떴다. 방금 일을 물었다. 누군가 고개를 젓는다. “그런 번호의 호수는 없잖아.”"},{"text":"비어 있는 칸에 번호를 적어 둔다","death":true}]}},"hex":"#67727d"},{"id":9,"name":"황갈빛 호수","description":"물이 갈색 흙으로 뒤덮여 있다. 배에 묶인 밧줄이 물속으로 늘어져 있다. 끝에 무엇을 달았는지 아무도 모른다.","hints":["당기는 줄은 내어 주고, 놓아주는 줄은 거둬 가세.","끝까지 돌아왔거든 더는 내리지 말게."],"nodes":{"scene0":{"text":"밧줄이 팽팽하다. 뱃전이 삐걱인다. 물속에서 누가 당기는 것 같다.","scripted":true,"choices":[{"text":"줄을 더 풀어 준다","to":"scene1"},{"text":"줄을 거둔다","death":true},{"text":"밧줄을 뱃전에 단단히 묶는다","death":true}]},"scene1":{"text":"밧줄이 느슨해졌다. 떠오른 줄이 배 둘레를 돈다.","scripted":true,"choices":[{"text":"줄을 거둔다","to":"scene2"},{"text":"줄을 더 풀어 준다","death":true}]},"scene2":{"text":"밧줄이 더 느슨해졌다. 한 뼘만 남았다. 끝에는 아무것도 없다.","scripted":true,"choices":[{"text":"남은 줄을 거둔다","to":"scene3"},{"text":"줄을 풀어 준다","death":true}]},"scene3":{"text":"줄 끝이 배 안으로 들어왔다. 황갈빛 물이 뚝뚝 떨어진다. 앞쪽 물빛이 다르다.","scripted":true,"choices":[{"text":"젓는다","pass":true},{"text":"줄 끝을 다시 물에 내린다","death":true}]}},"hex":"#9c8253"},{"id":10,"name":"회청빛 호수","description":"물이 회청빛이다. 멀리 수면에 둥근 구멍이 하나 생겼다. 그보다 배에 가까운 곳에 또 하나가 생긴다. 구멍 사이의 간격이 점점 좁아지고 있다.","hints":["가까이 난 구멍은 서로 붙으니 그 사이로 가지 말게.","먼저 난 구멍 사이가 넓거든 그곳으로 지나가게."],"nodes":{"scene0":{"text":"구멍 셋이 한 줄로 생겼다. 먼 두 구멍 사이는 넓다. 가까운 두 구멍 사이는 배가 겨우 지날 만하다.","scripted":true,"choices":[{"text":"먼 두 구멍 사이로 나아간다","to":"scene2"},{"text":"가까운 두 구멍 사이로 나아간다","death":true},{"text":"구멍이 더 생기는지 지켜본다","death":true}]},"scene1":{"text":"같이 탄 선원이 가까운 구멍 둘을 가리킨다. 멀리 있는 구멍 둘은 서로 떨어져 있다.","scripted":true,"choices":[{"text":"선원이 가리킨 곳으로 나아간다","death":true},{"text":"멀리 떨어진 두 구멍 사이로 나아간다","to":"scene2"}]},"scene2":{"text":"구멍이 배 뒤에 남았다. 앞쪽 물빛이 다르다.","scripted":true,"choices":[{"text":"앞쪽으로 나아간다","pass":true}]}},"hex":"#728e9d"},{"id":11,"name":"연분홍빛 호수","description":"물이 연분홍빛이다. 돛 펼치는 소리가 난다. 바람이 어느 쪽에서 부는지 모르겠다.","hints":["등 미는 바람은 접어 보내고, 앞을 막는 바람엔 돛을 펴게.","바람이 쉬거든 노를 잡게. 노랫소리 실은 바람은 타지 말게."],"nodes":{"scene0":{"text":"뒤에서 바람이 분다. 돛이 부풀었다. 배가 저절로 나아간다. 노랫소리도 들리는 것 같다.","scripted":true,"choices":[{"text":"돛을 접는다","to":"scene2"},{"text":"돛을 그대로 두고 바람을 탄다","death":true},{"text":"바람보다 빨리 젓는다","death":true}]},"scene1":{"text":"같이 탄 선원이 웃으며 돛줄을 푼다. ‘바람이 좋은데.’ 뒤에서 부는 바람이다.","scripted":true,"choices":[{"text":"돛줄을 받아 돛을 접는다","to":"scene2"},{"text":"선원과 함께 바람을 탄다","death":true},{"text":"선원에게 노랫소리가 들리느냐고 묻는다","death":true}]},"scene2":{"text":"앞에서 바람이 분다. 배가 뒤로 밀린다. 접어 둔 돛이 펄럭인다.","scripted":true,"choices":[{"text":"돛을 펼친다","to":"scene3"},{"text":"바람을 거슬러 젓는다","death":true},{"text":"돛을 접은 채 기다린다","death":true}]},"scene3":{"text":"바람이 멎었다. 돛이 늘어졌다. 물도 조용하다.","scripted":true,"choices":[{"text":"노를 젓는다","pass":true},{"text":"바람이 다시 불기를 기다린다","to":"scene0"},{"text":"돛을 더 높이 올린다","death":true}]}},"hex":"#d68899"},{"id":17,"name":"초록 호수","description":"물이 맑은 초록빛이다. 쓰던 노를 빠뜨렸다. 끝이 갈라지고 손잡이에 검은 천이 감긴 노다. 그 자리에서 노가 여러 개 떠오른다. 전에 지나온 물 같다.","hints":["초록 물에선 내 것만 건져 가세, 만약 주지 않는다면 같은 것을 건네주게."],"nodes":{"scene0":{"text":"노 두 개가 나란히 떠온다. 하나는 끝이 멀쩡하다. 하나는 갈라져 있다. 손잡이에는 둘 다 검은 천이 감겨 있다. 물속의 손들이 노 끝을 잡고 있다.","scripted":true,"choices":[{"text":"끝이 갈라진 노를 잡아당긴다","death":true},{"text":"끝이 멀쩡한 노를 잡아당긴다","death":true},{"text":"노 하나를 물속의 손에 건넨다","to":"scene2"},{"text":"그물을 물속의 손에 건넨다","to":"scene1"}]},"scene1":{"text":"노 하나가 뱃전에 닿았다. 끝이 멀쩡하다. 손잡이에는 검은 천이 감겨 있다. 물속의 손이 노를 놓았다.","scripted":true,"choices":[{"text":"노를 건진다","death":true},{"text":"건드리지 않고 기다린다","to":"scene0"}]},"scene2":{"text":"노 하나가 뱃전에 닿았다. 끝이 갈라져 있다. 손잡이에는 검은 천이 감겨 있다. 잡고 있던 손은 없다.","scripted":true,"choices":[{"text":"노를 건진다","to":"scene3"},{"text":"다른 물건을 더 던지고 기다린다","death":true}]},"scene3":{"text":"노가 손에 돌아왔다. 다른 노들은 가라앉았다. 앞쪽 물빛이 갈라진다.","scripted":true,"choices":[{"text":"젓는다","pass":true}]}},"hex":"#5da488"},{"id":40,"name":"두 배가 떠다니는 호수","description":"평범한 하늘빛 물에 두 배가 떠 있다. 두 배의 양 끝에는 거대한 U자 형태의 굽쇠가 달려 있다. 저곳을 통과하려 하자 점점 두 배가 가까워진다.","hints":["두 사람은 만나면 꼬리만 부순다네. 용기있게 나아가세. 돌리면 오히려 가라앉지."],"nodes":{"scene0":{"text":"두 배가 점점 가까워진다. 이대로 간다면 두 배 사이에 끼어서 침몰할 것 같다.","scripted":true,"choices":[{"text":"그대로 배를 향해 젓는다","to":"scene1"},{"text":"그대로 배를 돌려 반대 방향으로 젓는다","death":true}]},"scene1":{"text":"두 배가 빠른 속도로 가까워진다. 이대로라면 배가 사이에 껴 부서질 듯 하다.","scripted":true,"choices":[{"text":"그럼에도 끝없이 나아간다.","to":"scene2"},{"text":"이제라도 배를 돌린다.","death":true}]},"scene2":{"text":"배 끝부분이 두 사이에 껴 그대로 소리와 함께 부서졌지만 통과했다","scripted":true,"choices":[{"text":"그대로 물이 갈리는 곳으로 젓는다.","pass":true}]}},"hex":"#83b0cf"}];
 const SCRIPTED_LAKE_MAP_015=new Map(SCRIPTED_LAKES_015.map(d=>[d.id,d]));
 for(const d of SCRIPTED_LAKES_015){
- const l=LAKES[d.id-1],r=RULES[d.id-1];
+ const l=LAKE_BY_ID157.get(d.id),r=RULES[l.rule];
  l.name=d.name;l.hex=d.hex;l.mermaid=true;l.storyNo='21-'+String(d.id).padStart(2,'0');
  // 출항 전 구전 후보에만 노랫말을 연결한다. 사건 화면에는 정답을 출력하지 않는다.
  r.truth=()=>d.hints[rng(d.hints.length)];
@@ -1392,7 +1395,7 @@ function lakeMinimumActions015(def,from){
   const {step,n}=q.shift();if(seen.has(step))continue;seen.add(step);
   const node=def.nodes[step];if(!node)continue;
   for(const opt of node.choices){
-   if(opt.pass)return n+1;
+   if(opt.pass)return n;
    if(opt.to&&!seen.has(opt.to))q.push({step:opt.to,n:n+1});
   }
  }
@@ -1409,10 +1412,8 @@ makeStory014=function(l){
 };
 const previousDisplayedChoices015=storyChoicesVisible014;
 storyChoicesVisible014=function(st,node){
- if(!node?.scripted)return previousDisplayedChoices015(st,node);
- if(node.choices.some(c=>/젓는다|젓는다\.|젓|나아간다/.test(c.text)))return node.choices;
- if(node.choices.some(c=>c.pass))return node.choices;
- return [...node.choices,{text:'노를 저어 나아간다',advance:true}];
+ if(node?.scripted)return node.choices;
+ return previousDisplayedChoices015(st,node);
 };
 function mermaidDeath015(id){
  const number='21-'+String(id).padStart(2,'0');
@@ -1432,10 +1433,10 @@ storyChoice014=function(i){
  // 인어 조우는 입장 시 결정한 20%를 그대로 사용한다. 통과가 빠른 장면에도 적용한다.
  if(op.pass&&state.normalMermaidDraw&&!state.mermaidResolved){
   state.mermaidResolved=true;
-  beginBattle({type:'normal',name:'대호수의 인어',power:35+LAKES[id-1].risk*18,need:1,won:0,history:[],after:'navigation'});
+  beginBattle({type:'normal',name:'대호수의 인어',power:35+LAKE_BY_ID157.get(id).risk*18,need:1,won:0,history:[],after:'navigation'});
   return;
  }
- scene.turns++;
+ if(!op.pass)scene.turns++;
  if(scene.turns>scene.turnLimit)return mermaidDeath015(id);
  if(!state.nav)state.nav={stage:'law',turns:0,transition:false};
  state.nav.turns=scene.turns;
@@ -1453,7 +1454,7 @@ storyChoice014=function(i){
  dispatchAchievement142('choice',{lake:id,stage:prevStage,choice:i});
  if(state.normalMermaidDraw&&!state.mermaidResolved){
   state.mermaidResolved=true;
-  beginBattle({type:'normal',name:'대호수의 인어',power:35+LAKES[id-1].risk*18,need:1,won:0,history:[],after:'navigation'});
+  beginBattle({type:'normal',name:'대호수의 인어',power:35+LAKE_BY_ID157.get(id).risk*18,need:1,won:0,history:[],after:'navigation'});
   return;
  }
  sync();
@@ -1493,10 +1494,10 @@ renderPlay=function(){
  return previousScreen015();
 };
 // 구버전 진행 도중 변경된 사건 단계 이름을 무리하게 재사용하지 않는다.
-if(state.scene==='event'&&state.current>=1&&state.current<=10){
+if(state.scene==='event'&&SCRIPTED_LAKE_MAP_015.has(state.current)){
  const old=state.lakeStory,def=SCRIPTED_LAKE_MAP_015.get(state.current);
  if(!old?.scripted||!def.nodes[old.step]||!Number.isInteger(old.turnLimit)||old.turnLimit<3||old.turnLimit>6){
-  state.lakeStory=makeStory014(LAKES[state.current-1]);save();
+  state.lakeStory=makeStory014(LAKE_BY_ID157.get(state.current));save();
  }
 }
 
@@ -1640,7 +1641,7 @@ renderSide=function(){
  ['선박 등급',state.shipGrade+'등급 · '+SHIP148[state.shipGrade].name],
  ['소지 자금 (만 안(眼))',String(state.gold)],
  ['승선 인원',state.crew.length+' / '+crewCapacity148()],
- ['접근 가능 호수',LAKE_CAP[state.grade]+' / 10'],
+ ['접근 가능 호수',LAKE_CAP[state.grade]+' / '+LAKES.length],
  ['누적 통과',state.count.lake+'개'],
  ['이번 출항',state.sea?state.visited.length+' / '+state.offered.length:'항구']
  ];
@@ -1802,7 +1803,7 @@ function medalProgress152(){
 const HIGH_REQUIREMENTS152={};
 function hardMedal152(id,conditions){HIGH_REQUIREMENTS152[id]=conditions;}
 hardMedal152('special',{grade:4,ship:4,crew:5,mind:75,noCrewLost:true});
-hardMedal152('lake20',{grade:3,ship:3,crew:4,full:1,mind:70});
+/* 누적 통과 업적에는 횟수 외 별도의 추가 조건을 두지 않습니다. */
 hardMedal152('rank5',{grade:5,ship:5,crew:7,full5:1,mind:70});
 for(let i=11;i<=13;i++){
  hardMedal152('extra_voyage_'+i,{grade:3,ship:3,visited:4+i-11,mind:75,noDamage:true});
@@ -1937,8 +1938,7 @@ function earnedSinceReset153(id){
  if(id==='launch')return state.voyage>b.voyage;
  if(id==='return')return (c.return||0)>b.return;
  if(id==='rumor')return (c.rumors||0)>=b.rumors+3;
- if(id==='lake5')return (c.lake||0)>=b.lake+5;
- if(id==='lake20')return (c.lake||0)>=b.lake+20;
+ if(id==='lake5'||id==='lake10'||id==='lake50')return true;
  if(id==='special')return (c.special||0)>b.special;
  if(id==='rank3')return b.grade<3&&state.grade>=3;
  if(id==='rank5')return b.grade<5&&state.grade>=5;
@@ -1946,7 +1946,7 @@ function earnedSinceReset153(id){
  const a=ACH.find(x=>x.id===id);
  if(!a?.check)return true;
  const {kind,n}=a.check;
- if(kind==='uniqueLake')return !(b.clearedIds||[]).includes(n);
+ if(kind==='uniqueLake')return !(b.clearedIds||[]).includes(n)||!!state.newlyCleared157?.includes(n);
  const valueMap={voyage:state.voyage,lake:c.lake,fishSold:state.prog?.fishSold,
   oilCollected:state.prog?.oilCollected,coinHeads:state.prog?.coinHeads,
   goldPeak:state.prog?.goldPeak,mermaidKills:state.prog?.mermaidKills,
@@ -2085,15 +2085,15 @@ renderPlay=function(){
  const page=previousTestPlay154();
  if(state.scene!=='start')return page;
  const clean=page.replace(/<div class="log-update">[\s\S]*?<\/div>/g,'');
- return clean+'<div class="log-update"><h3>테스트판 · V.0.1.5.4</h3><ul>'+
- '<li>21-01~21-10의 호수만 항해에 등장합니다.</li>'+
- '<li>21-11~21-50의 호수 사건과 해당 호수 전용 업적을 제거했습니다.</li>'+
- '<li>등급별 접근 수는 4 / 8 / 10 / 10 / 10개입니다.</li></ul></div>';
+ return clean+'<div class="log-update"><h3>V.0.1.5.7 · 호수 추가</h3><ul>'+
+ '<li>첨부 파일의 13개 호수를 반영했습니다.</li>'+
+ '<li>21-17과 21-40은 고유 번호를 유지합니다.</li>'+
+ '<li>호수별 통과 업적과 누적 통과 업적을 추가했습니다.</li></ul></div>';
 };
 renderHelp=function(){
- return '<div class="inset"><h2>항해 안내 · v0.1.5.4</h2>'+
- '<p>현재 테스트 대상은 21-01부터 21-10까지 총 10개 호수입니다. 선장 등급마다 접근 가능한 호수는 4 / 8 / 10 / 10 / 10개로 출항할 때 무작위로 정해집니다.</p>'+
- '<p>재앙의 고래는 현재 목숨에서 처치한 개체를 제외하고 출항마다 한 개체가 10개 호수 중 하나에 배치됩니다. 고래 사냥 난이도와 각 호수의 안전한 선택은 공개하지 않습니다.</p>'+
+ return '<div class="inset"><h2>항해 안내 · v0.1.5.7</h2>'+
+ '<p>현재 항해 가능 호수는 총 13개 호수입니다. 21-01~21-11과 21-17, 21-40이 등장합니다. 선장 등급별 접근 호수 수는 4 / 8 / 12 / 13 / 13개이며 출항마다 무작위로 정해집니다.</p>'+
+ '<p>재앙의 고래는 현재 목숨에서 처치한 개체를 제외하고 출항마다 한 개체가 13개 호수 중 하나에 배치됩니다. 고래 사냥 난이도와 각 호수의 안전한 선택은 공개하지 않습니다.</p>'+
  '<p>각 호수에서는 인어를 만날 가능성이 있습니다. 전투는 동전 판정으로 진행합니다. 출항 준비와 선원 관리, 정신 상태와 호수 침식도는 기존 방식으로 작동합니다.</p>'+
  '<p>선장과 선박은 1~5등급이며 승선 정원은 두 등급 중 낮은 쪽으로 정해집니다. 모든 진행은 브라우저에 자동 저장되며 사망하면 업적을 제외한 현재 항해가 초기화됩니다.</p>'+
  '<p class="muted">이 게임은 Project Moon 세계관에 기반한 비영리 팬게임이며 호수와 일부 사건에는 비공식 창작 설정이 있습니다.</p></div>';
@@ -2251,6 +2251,62 @@ renderPlay=function(){
  return out+(state.prologueDismissed156?'<div class="inset">'+
   button('프롤로그 다시 읽기','prologueReopen156')+'</div>':'');
 };
+
+
+/* V.0.1.5.7: 13 scripted lakes and persistent total passage achievements. */
+const CAREER_PASSES_KEY157='great-lake-napolitan-career-pass-count';
+let careerPasses157=0;
+try{
+ const saved=Number(localStorage.getItem(CAREER_PASSES_KEY157));
+ careerPasses157=Math.max(Number.isFinite(saved)&&saved>=0?Math.floor(saved):0,Math.max(0,Number(state.count?.lake)||0));
+}catch(e){careerPasses157=Math.max(0,Number(state.count?.lake)||0);}
+if(!Array.isArray(state.newlyCleared157))state.newlyCleared157=[];
+for(const lake of LAKES){
+ const medal=ACH.find(a=>a.id==='lake_'+lake.id);
+ if(!medal)continue;
+ medal.tier='common';
+ medal.name=lake.id===8?'21-08 · 공백을 지나간 배':'21-'+String(lake.id).padStart(2,'0')+' · '+lake.name+' 통과';
+ medal.desc=lake.id===8?'21-08 호수의 규칙을 지키고 통과한다.':'21-'+String(lake.id).padStart(2,'0')+' '+lake.name+'를 통과한다.';
+}
+const fiveMedal157=ACH.find(a=>a.id==='lake5');
+if(fiveMedal157){fiveMedal157.tier='rare';fiveMedal157.desc='호수를 누적 5회 통과한다.';}
+function awardCareerMilestones157(){
+ if(careerPasses157>=5)award('lake5');
+ if(careerPasses157>=10)award('lake10');
+ if(careerPasses157>=50)award('lake50');
+}
+const originalComplete157=completeLake;
+completeLake=function(success,msg){
+ const old=state.count?.lake||0,id=state.current;
+ const answer=originalComplete157(success,msg);
+ if(success&&Number.isInteger(id)&&(state.count?.lake||0)>old){
+  careerPasses157++;
+  if(!state.newlyCleared157.includes(id))state.newlyCleared157.push(id);
+  award('lake_'+id);
+  awardCareerMilestones157();
+  try{localStorage.setItem(CAREER_PASSES_KEY157,String(careerPasses157));}catch(e){}
+  save();render();
+ }
+ return answer;
+};
+const previousTrophies157=trophies;
+trophies=function(){previousTrophies157();awardCareerMilestones157();};
+const previousDie157=die;
+die=function(){
+ previousDie157();
+ try{localStorage.setItem(CAREER_PASSES_KEY157,String(careerPasses157));}catch(e){}
+};
+if(state.sea&&((state.current!==null&&!LAKE_BY_ID157.has(state.current))||state.offered.some(id=>!LAKE_BY_ID157.has(id)))){
+ state.sea=false;state.scene='port';state.current=null;state.offered=[];state.visited=[];
+ state.encounter=null;state.battle=null;state.lakeStory=null;state.nav=null;state.whalePlaces={};state.rumors=[];
+ log('현재 항해 구역에 맞춰 항구로 돌아왔습니다.');
+}
+if(state.scene==='event'&&LAKE_BY_ID157.has(state.current)){
+ const scenario=SCRIPTED_LAKE_MAP_015.get(state.current),old=state.lakeStory;
+ if(scenario&&(!old?.scripted||!scenario.nodes[old.step]))state.lakeStory=makeStory014(LAKE_BY_ID157.get(state.current));
+}
+try{localStorage.setItem(CAREER_PASSES_KEY157,String(careerPasses157));}catch(e){}
+save();
 
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
