@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.5.1</title>
+<title>대호수: The Great Lake | v0.1.5.2</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -117,7 +117,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <body>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.1</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.2</div>
  <h1>대호수: The Great Lake</h1>
  <p class="muted">규칙을 듣고, 선원을 지키며, 50개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
@@ -304,7 +304,7 @@ DISTINCT_NEW_ACH.forEach(([id,name,desc,challenge],i)=>{
  ACH.push({id,name,desc,challenge,tier});
 });
 
-function fresh(){return {grade:1,gold:150,hull:100,mind:100,exposure:0,shipGrade:1,preparations:{},xp:0,crew:[{id:1,role:'lower',condition:1}],nextCrew:2,voyage:0,offered:[],visited:[],whalePlaces:{},whaleSeen:[],whaleKilled:[],rumors:[],rumorBought:false,sea:false,current:null,scene:'start',ruleResolved:false,ruleResult:'',blueTorn:false,forceMermaid:false,mermaidResolved:false,battle:null,encounter:null,lastCoin:null,achievements:[],count:{lake:0,return:0,special:0,rumors:0},log:['항구의 새벽. 첫 항해를 준비하십시오.']};}
+function fresh(){return {grade:1,gold:150,hull:100,mind:100,exposure:0,shipGrade:1,preparations:{},captainName:'',xp:0,crew:[{id:1,role:'lower',condition:1}],nextCrew:2,voyage:0,offered:[],visited:[],whalePlaces:{},whaleSeen:[],whaleKilled:[],rumors:[],rumorBought:false,sea:false,current:null,scene:'start',ruleResolved:false,ruleResult:'',blueTorn:false,forceMermaid:false,mermaidResolved:false,battle:null,encounter:null,lastCoin:null,achievements:[],count:{lake:0,return:0,special:0,rumors:0},log:['항구의 새벽. 첫 항해를 준비하십시오.']};}
 let state=fresh(), tab='play',busy=false;
 let permanentAchievements=[];
 try{const old=JSON.parse(localStorage.getItem(ACH_SAVE_KEY));if(Array.isArray(old))permanentAchievements=old.filter(id=>ACH.some(a=>a.id===id)||/^lake_(?:5[1-9]|[6-9][0-9]|100)$/.test(id));}catch(e){console.warn('업적 복구 실패:',e);}
@@ -333,7 +333,22 @@ function takeDamage(h,m){state.hull=Math.max(0,state.hull-h);state.mind=Math.max
 function activeLake(){return LAKES.find(l=>l.id===state.current);}
 function lakeLaw(l){return RULES[l.rule];}
 function lakeZone(l){return ZONES[l.zone];}
-function prepareVoyage(){if(state.sea)return;const ids=shuffle(LAKES.map(x=>x.id));state.offered=ids.slice(0,LAKE_CAP[state.grade]);const remainingWhales=WHALES.map((_,i)=>i).filter(i=>!huntedWhaleIndices143().includes(i));const positions=shuffle(LAKES.map(x=>x.id)).slice(0,remainingWhales.length);state.whalePlaces={};positions.forEach((id,i)=>state.whalePlaces[id]=remainingWhales[i]);state.visited=[];state.lastTransition='';state.whaleSeen=[];state.rumors=[];state.rumorBought=false;state.current=null;state.scene='prep';sync();}
+function prepareVoyage(){if(state.sea)return;const ids=shuffle(LAKES.map(x=>x.id));state.offered=ids.slice(0,LAKE_CAP[state.grade]);const remainingWhales=WHALES.map((_,i)=>i).filter(i=>!huntedWhaleIndices143().includes(i));const freeLakes=LAKES.map(x=>x.id);
+ state.whalePlaces={};
+ const wantedWhale=state.captainName==='에이해브'?0:state.captainName==='이스마엘'?2:-1;
+ for(const whale of shuffle(remainingWhales)){
+  let selected;
+  if(whale===wantedWhale){
+   // 비공개 이름 효과: 현재 출항의 접근 가능 호수에만 1.18배의 아주 작은 가중치
+   const accessible=new Set(state.offered);
+   const weights=freeLakes.map(id=>accessible.has(id)?1.18:1);
+   const total=weights.reduce((sum,n)=>sum+n,0);
+   let roll=Math.random()*total,ix=weights.length-1;
+   for(let j=0;j<weights.length;j++){roll-=weights[j];if(roll<0){ix=j;break;}}
+   selected=freeLakes.splice(ix,1)[0];
+  }else selected=freeLakes.splice(rng(freeLakes.length),1)[0];
+  state.whalePlaces[selected]=whale;
+ }state.visited=[];state.lastTransition='';state.whaleSeen=[];state.rumors=[];state.rumorBought=false;state.current=null;state.scene='prep';sync();}
 function buyRumor(cost){if(state.scene!=='prep'||state.rumorBought||state.gold<cost)return;state.gold-=cost;
 const chance=cost===0?.4+state.grade*.06:cost===20?.65+state.grade*.045:.85+state.grade*.025;
 const ids=shuffle(state.offered).slice(0,2);const truths=ids.map(()=>Math.random()<chance);
@@ -387,7 +402,7 @@ return '<div class="inset">알 수 없는 장면입니다. '+button('항구로 �
 function renderCrew(){let html='<div class="inset"><h2>선원 명부 · 승급</h2><p>선장의 기본 전투력 '+(20+state.grade*8)+' / 선원 포함 실제 전투력 <b>'+crewPower()+'</b></p><p class="muted">선원이 나쁨 또는 최악 상태가 되면 인어로 변할 수 있습니다. 컨디션에 따라 전투력도 줄어듭니다.</p>';html+=state.crew.map(c=>'<div class="inset crew"><div><b>'+esc(ROLE[c.role].name)+'</b><small>전투력 기본 '+ROLE[c.role].power+' · 상태 <span class="'+['good','normal','bad','worst'][c.condition]+'">'+CONDITIONS[c.condition]+'</span></small></div></div>').join('');html+='</div>';html+='<div class="inset"><h3>등급 상승</h3>';if(state.grade<5){const n=state.grade+1;html+='<p>'+n+'등급 요구: 통과 '+RANK_XP[n]+'회 / '+RANK_COST[n]+' 만 안(眼)<br><span class="muted">현재 통과 '+state.xp+'회 · 보유 '+state.gold+' 만 안(眼)</span></p>'+button(n+'등급 승급','promote','','primary',state.sea||state.scene!=='port'||state.gold<RANK_COST[n]||state.xp<RANK_XP[n]);}else html+='<p>최고 5등급에 도달했습니다.</p>';html+='</div><div class="inset"><h3>선원 모집</h3><p class="muted">현재 최대 '+crewCapacity148()+'명. 선장은 인원수에 포함하지 않습니다. 모든 모집과 정비는 항구에서만 가능합니다.</p><div class="stack">';for(const [key,r] of Object.entries(ROLE)){html+=button(r.name+' · 전투력 '+r.power+' · '+r.cost+' 만 안(眼) ('+r.grade+'등급 이상)','recruit',key,'',state.sea||state.scene!=='port'||state.gold<r.cost||state.grade<r.grade||state.crew.length>=crewCapacity148());}html+='</div></div><div class="inset"><h3>수리·장비·회복</h3>'+button('항구 상점으로','tab','shop','primary')+'</div>';return html;}
 function renderAch(){const order=['common','rare','hero','legend','myth','miracle','unique'];let h='<div class="inset"><h2>업적 보관함</h2><p class="muted">카테고리별 전용 테두리로 구분됩니다. 달성한 업적은 사망하더라도 그대로 유지됩니다.</p>'+tag('달성 '+state.achievements.length+' / '+ACH.length)+'</div>';for(const tier of order){h+='<h3>'+TIER[tier]+'</h3><div class="achgrid">';for(const a of ACH.filter(x=>x.tier===tier)){const done=state.achievements.includes(a.id);h+='<div class="achievement '+tier+(done?'':' unearned')+'"><div class="tier">'+TIER[tier]+' · '+(done?'달성':'미달성')+'</div><b>'+esc(a.name)+'</b><p class="muted">'+esc(a.desc)+'</p></div>';}h+='</div>';}return h;}
 function renderHelp(){return '<div class="inset"><h2>항해 안내 · v0.1.3.2</h2><p>전체 호수는 총 100개이며, 등급마다 <b>4 / 8 / 12 / 16 / 20개</b>가 매 항해 시마다 랜덤하게 배치되어 무작위로 열립니다. 매 출항시마다 다섯 재앙의 고래는 100개 중 중복 없는 랜덤한 임의의 호수에 배치되며 이는 플레이어가 알 수 없지만 소문을 통해 어디에 있을지 후보를 좁힐 수는 있습니다.</p><p>출항 전 구전으로 세 가지 이야기를 들을 수 있으며, 최소 하나는 사실입니다. 돈을 더 지불하거나 선장 등급이 높으면 정보 신뢰도가 올라갑니다. 각 호수의 숨겨진 규칙은 이 도움말에 공개하지 않습니다.</p><p>전투는 선장과 선원들의 전투력을 비교하여 동전 앞면 확률을 결정합니다. 선원에게는 좋음·보통·나쁨·최악의 컨디션이 있으며, 악화될수록 전투력이 감소하고 인어로 변할 위험이 커집니다. 고래 사냥 난이도는 공개하지 않습니다.</p><p class="muted">호수 이름과 사건 대부분 및 4번째와 5번째 재앙의 고래는 비공식 창작물입니다. 다섯 재앙 이름과 특수 인어 명칭은 비공식적으로 창작했습니다.</p><p>항구 거래와 항해 보상은 만 안(眼)을 기준으로 계산합니다. 선박 내구도는 항구 상점에서 수리할 때만 회복할 수 있습니다.</p><p>자동 저장은 현재 브라우저에 저장됩니다. 사망하면 선장 등급·선원·자금 등 항해 진행은 초기화되지만 <b>달성한 업적은 그대로 남습니다.</b></p></div>';}
-document.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b||b.disabled||busy)return;const act=b.dataset.act,v=b.dataset.value;switch(act){case 'tab':tab=v;render();break;case 'enterPort':state.scene='port';sync();break;case 'prepare':prepareVoyage();break;case 'rumor':buyRumor(Number(v));break;case 'launch':launch();break;case 'return':returnPort();break;case 'lake':selectLake(Number(v));break;case 'rule':chooseRule(Number(v));break;case 'nextEvent':nextEvent();break;case 'escapeWhale':escapeWhale();break;case 'huntWhale':huntWhale();break;case 'avoidSpecial':avoidSpecial();break;case 'specialBattle':startSpecial();break;case 'coin':throwCoin();break;case 'flee':fleeBattle();break;case 'promote':promote();break;case 'recruit':recruit(v);break;case 'repair':repair();break;case 'rest':rest();break;case 'restart':state.scene='start';sync();break;}});
+document.addEventListener('click',e=>{const b=e.target.closest('button[data-act]');if(!b||b.disabled||busy)return;const act=b.dataset.act,v=b.dataset.value;switch(act){case 'tab':tab=v;render();break;case 'enterPort':if(!applyCaptainName153())break;state.scene='port';sync();break;case 'prepare':prepareVoyage();break;case 'rumor':buyRumor(Number(v));break;case 'launch':launch();break;case 'return':returnPort();break;case 'lake':selectLake(Number(v));break;case 'rule':chooseRule(Number(v));break;case 'nextEvent':nextEvent();break;case 'escapeWhale':escapeWhale();break;case 'huntWhale':huntWhale();break;case 'avoidSpecial':avoidSpecial();break;case 'specialBattle':startSpecial();break;case 'coin':throwCoin();break;case 'flee':fleeBattle();break;case 'promote':promote();break;case 'recruit':recruit(v);break;case 'repair':repair();break;case 'rest':rest();break;case 'restart':state.scene='start';sync();break;}});
 
 /* v0.1.3.1: 후방 호환 기본 필드 보정 */
 function normalize0131(){
@@ -1657,6 +1672,45 @@ document.addEventListener('click',e=>{
  if(b.dataset.act==='shipUpgrade')upgradeShip148();
  if(b.dataset.act==='voyageKit')buyKit148(b.dataset.value);
 });
+
+
+/* V.0.1.5.2 선장 이름 설정: 숨겨진 이름별 가중치는 항해 시스템에서만 계산합니다. */
+function applyCaptainName153(){
+ const el=document.getElementById('captainNameInput');
+ if(!el)return true;
+ const name=String(el.value||'').trim().replace(/\s+/g,' ');
+ if(name.length>16){alert('선장 이름은 16글자 이하로 입력해 주세요.');return false;}
+ state.captainName=name;
+ save();
+ return true;
+}
+const oldCaptainScreen153=renderPlay;
+renderPlay=function(){
+ const original=oldCaptainScreen153();
+ if(state.scene!=='start'&&state.scene!=='port')return original;
+ const current=state.captainName||'';
+ const box='<div class="inset"><h3>선장 이름</h3>'+
+  '<label class="small" for="captainNameInput">현재 선장의 이름을 정하십시오. 비워 두면 선장으로 표시됩니다.</label>'+
+  '<input id="captainNameInput" maxlength="16" autocomplete="off" placeholder="선장 이름 (최대 16글자)" value="'+esc(current)+'" style="width:100%;margin:9px 0 12px;padding:10px;border-radius:8px;border:1px solid #6b8290;background:#15232b;color:#e9f3f5">'+
+  (state.scene==='port'?button('선장 이름 저장','captainNameSave'):'')+
+  '</div>';
+ return box+original;
+};
+const oldCaptainSidebar153=renderSide;
+renderSide=function(){
+ oldCaptainSidebar153();
+ const panel=$('stats');
+ if(panel){
+  const label=esc(state.captainName?.trim()||'선장');
+  panel.innerHTML='<div class="stat"><small>선장 이름</small><strong>'+label+'</strong></div>'+panel.innerHTML;
+ }
+};
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button[data-act]');
+ if(!b||b.disabled||busy||b.dataset.act!=='captainNameSave')return;
+ if(applyCaptainName153())sync();
+});
+if(typeof state.captainName!=='string')state.captainName='';
 
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
