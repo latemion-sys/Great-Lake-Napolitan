@@ -1452,7 +1452,7 @@ function gainMoney148(amount){
  migrate148();
  const cap=CAP148[state.grade]||260;
  const gain=Math.max(0,Math.floor(amount));
- const next=Math.min(cap,state.gold+gain);
+ const next=Math.max(state.gold,Math.min(cap,state.gold+gain));
  const actual=Math.max(0,next-state.gold);
  state.gold=next;return actual;
 }
@@ -1560,7 +1560,7 @@ const oldCrewScreen148=renderCrew;
 renderCrew=function(){
  const types=SHIP148.slice(1).map((x,i)=>(i+1)+'등급 '+x.name+' · '+x.crew+'명').join(' / ');
  return '<div class="inset"><h3>현재 선박</h3><p>'+esc(SHIP148[state.shipGrade].name)+
- ' · 선원 정원 '+crewCapacity148()+'명</p><p class="muted">'+esc(types)+'</p></div>'+oldCrewScreen148();
+ ' · 선원 정원 '+crewCapacity148()+'명</p><p class="muted">'+esc(types)+'</p></div>'+oldCrewScreen148().replace('수리·장비·회복','선박·장비·회복');
 };
 renderShop132=function(){
  migrate148();migrate132();const ready=inShop132(),ship=SHIP148[state.shipGrade],next=SHIP148[state.shipGrade+1];
