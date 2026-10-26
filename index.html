@@ -1394,6 +1394,12 @@ function renderScriptedLake015(){
   actions.map((o,i)=>button('▸ '+o.text,'storyChoice',String(i),o.pass?'primary':'')).join('')+
   '</div></div>';
 }
+const previousVersionNotes015=renderPlay;
+renderPlay=function(){
+ const page=previousVersionNotes015();
+ if(state.scene!=='start')return page;
+ return page+'<div class="log-update"><h3>업데이트 내역 · V.0.1.4.5</h3><ul><li>21-01부터 21-10까지의 호수 사건과 선택지를 새로운 대본으로 개편했습니다.</li><li>나머지 호수와 기존 항해 시스템은 유지됩니다.</li></ul></div>';
+};
 const previousScreen015=renderPlay;
 renderPlay=function(){
  if(state.scene==='event'&&SCRIPTED_LAKE_MAP_015.has(state.current))return renderScriptedLake015();
