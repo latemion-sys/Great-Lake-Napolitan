@@ -1712,6 +1712,147 @@ document.addEventListener('click',e=>{
 });
 if(typeof state.captainName!=='string')state.captainName='';
 
+
+/* V.0.1.5.2 고난도 업적 재설계. 50개의 업적 중 고등급은 모든 추가 조건을 충족해야만 달성.
+   고래별 최초 사냥 5종은 기존 약속대로 해당 고래 첫 처치로만 판정한다. */
+function medalProgress152(){
+ if(!state.medalRun152||typeof state.medalRun152!=='object')
+  state.medalRun152={streak:0,full:0,full5:0,clean:0,clean5:0,battleWins:0,crewLoss:0,crewCount:state.crew.length};
+ const run=state.medalRun152;
+ if(!Number.isFinite(run.crewCount))run.crewCount=state.crew.length;
+ if(state.crew.length<run.crewCount)run.crewLoss+=(run.crewCount-state.crew.length);
+ run.crewCount=state.crew.length;
+ return run;
+}
+const HIGH_REQUIREMENTS152={};
+function hardMedal152(id,conditions){HIGH_REQUIREMENTS152[id]=conditions;}
+hardMedal152('special',{grade:4,ship:4,crew:5,mind:75,noCrewLost:true});
+hardMedal152('lake20',{grade:3,ship:3,crew:4,full:1,mind:70});
+hardMedal152('rank5',{grade:5,ship:5,crew:7,full5:1,mind:70});
+for(let i=11;i<=13;i++){
+ hardMedal152('extra_voyage_'+i,{grade:3,ship:3,visited:4+i-11,mind:75,noDamage:true});
+ hardMedal152('extra_lake_'+i,{grade:3,ship:3,visited:4+i-11,mind:80,noDamage:true});
+ hardMedal152('extra_oilCollected_'+i,{grade:i===13?3:2,ship:2,mind:75,streak:2,noDamage:true});
+ hardMedal152('extra_coinHeads_'+i,{ship:i-8,visited:3+(i-11)*2,mind:80,noDamage:true});
+ hardMedal152('extra_goldPeak_'+i,{grade:3,ship:3,full:1,mind:75,crew:3});
+}
+for(let i=11;i<=13;i++){
+ hardMedal152('extra_fishSold_'+i,{ship:i===11?4:5,crew:i===11?4:6,mind:75,noCrewLost:true});
+}
+hardMedal152('fresh_promote_4',{grade:4,ship:3,clean:1,mind:80});
+hardMedal152('fresh_whale_flee',{grade:3,ship:3,mind:80,maxExposure:35,noDamage:true});
+hardMedal152('fresh_battle_flee',{grade:3,ship:3,mind:85,noDamage:true});
+for(let i=14;i<=16;i++){
+ hardMedal152('extra_voyage_'+i,{grade:4,ship:4,visited:6+i-14,mind:80,noDamage:true});
+ hardMedal152('extra_lake_'+i,{grade:4,ship:4,visited:6+i-14,mind:80,maxExposure:30,noDamage:true});
+ hardMedal152('extra_oilCollected_'+i,{grade:4,ship:4,mind:80,streak:3,noDamage:true,crew:4});
+ hardMedal152('extra_coinHeads_'+i,{ship:i-13,visited:3+2*(i-14),mind:85,noDamage:true});
+}
+hardMedal152('extra_voyage_17',{grade:5,ship:5,visited:12,mind:88,noDamage:true,crew:6,noCrewLost:true});
+hardMedal152('extra_lake_17',{grade:5,ship:5,visited:14,mind:90,maxExposure:25,noDamage:true,crew:7,noCrewLost:true});
+hardMedal152('extra_fishSold_14',{ship:1,mind:80,noCrewLost:true});
+hardMedal152('extra_fishSold_15',{ship:3,mind:80,noDamage:true,noCrewLost:true});
+hardMedal152('extra_fishSold_16',{ship:2,mind:80,noDamage:true,crew:3});
+hardMedal152('extra_fishSold_17',{ship:5,mind:90,maxExposure:20,noDamage:true,crew:7,noCrewLost:true});
+hardMedal152('extra_oilCollected_17',{grade:5,ship:5,mind:85,streak:4,crew:6,noCrewLost:true});
+hardMedal152('extra_coinHeads_17',{ship:4,visited:9,mind:88,noDamage:true});
+hardMedal152('extra_goldPeak_14',{grade:4,ship:4,crew:5,full:1,mind:85});
+hardMedal152('extra_goldPeak_15',{grade:5,ship:5,crew:7,clean:1,mind:85});
+hardMedal152('extra_goldPeak_16',{grade:5,ship:5,crew:7,clean5:1,mind:95,noCrewLost:true});
+hardMedal152('extra_goldPeak_17',{grade:5,ship:5,crew:8,full5:1,mind:85});
+hardMedal152('fresh_visit_full',{grade:3,ship:3,visited:8,mind:80,maxExposure:30,noCrewLost:false});
+hardMedal152('fresh_indigo_mist',{grade:4,ship:4,visited:6,mind:90,noDamage:true});
+hardMedal152('fresh_sail_deep',{grade:5,ship:5,crew:6,mind:80,noCrewLost:true});
+hardMedal152('fresh_mermaid_flee',{grade:5,ship:5,mind:90,maxExposure:20,noDamage:true,crew:6});
+hardMedal152('whale1',{grade:4,ship:4,mind:75,maxExposure:40,streak:2,crew:4,noCrewLost:true});
+hardMedal152('whale3',{grade:4,ship:4,mind:65,crew:4,noCrewLost:true});
+hardMedal152('survive3',{grade:5,ship:5,visited:20,crew:6,mind:50,noCrewLost:true});
+hardMedal152('miracle_extra_0',{grade:5,ship:5,visited:20,crew:7,mind:90,noDamage:true,noCrewLost:true});
+hardMedal152('miracle_extra_1',{grade:5,ship:5,visited:20,crew:10,mind:80,noDamage:true,noCrewLost:true});
+hardMedal152('miracle_extra_2',{grade:5,ship:5,crew:7,mind:80,noCrewLost:true,full5:1});
+hardMedal152('all5',{grade:5,ship:5,mind:65,crew:7,full5:1,noCrewLost:true});
+// 고래별 최초 사냥 업적은 희귀한 고래 사냥 그 자체로 이미 고난도이므로 달성 조건을 유지한다.
+const FIRST_WHALE_BADGES152=new Set(WHALES.map((_,i)=>'whale_hunt_'+i));
+// 21-01 ~ 21-10 새 대본의 사건 단계에 맞춘 저등급 사건 업적 교정
+for(let i=0;i<10;i++){
+ const medal=ACH.find(a=>a.id==='extra_voyage_'+i);
+ const lake=SCRIPTED_LAKE_MAP_015.get(i+1),start=lake?.nodes?.scene0;
+ if(!medal||!start)continue;
+ const good=start.choices.findIndex(c=>!!(c.to||c.pass)&&!c.death);
+ medal.challenge={event:'choice',lake:i+1,stage:'scene0',choice:good};
+ medal.desc='21-'+String(i+1).padStart(2,'0')+' 호수에서 첫 사건을 올바르게 해결한다.';
+}
+// 구판의 존재하지 않는 21-10 'second' 분기를 실제 두 번째 사건으로 변경
+const indigoMedal152=ACH.find(a=>a.id==='fresh_indigo_mist');
+if(indigoMedal152){
+ indigoMedal152.challenge={event:'choice',lake:10,stage:'scene1',choice:1};
+ indigoMedal152.desc='21-10 호수의 두 번째 사건을 잘못 대응하지 않고 넘어간다.';
+}
+const weightedRunBefore152=render;
+render=function(){medalProgress152();return weightedRunBefore152();};
+function meetsExtraRequirement152(id){
+ if(FIRST_WHALE_BADGES152.has(id))return true;
+ const req=HIGH_REQUIREMENTS152[id];
+ if(!req)return true;
+ const p=medalProgress152();
+ const current={
+ grade:state.grade,ship:state.shipGrade||1,crew:state.crew.length,
+ mind:state.mind,visited:state.visited?.length||0,streak:p.streak,
+ full:p.full,full5:p.full5,clean:p.clean,clean5:p.clean5
+ };
+ for(const [key,n] of Object.entries(req)){
+  if(key==='noDamage'){if(n&&state.lossesThisVoyage!==0)return false;}
+  else if(key==='noCrewLost'){if(n&&p.crewLoss!==0)return false;}
+  else if(key==='maxExposure'){if(state.exposure>n)return false;}
+  else if(key==='noCrewLost'&&n===false){/* 이 업적은 강제 희생을 요구하지 않는다. */}
+  else if((current[key]??-Infinity)<n)return false;
+ }
+ return true;
+}
+const oldMedalAward152=award;
+award=function(id){
+ if(!meetsExtraRequirement152(id))return;
+ oldMedalAward152(id);
+};
+const previousMedalCheck152=checkAchievementContext142;
+checkAchievementContext142=function(criteria,event,info){
+ if(!previousMedalCheck152(criteria,event,info))return false;
+ const match=ACH.find(a=>a.challenge===criteria);
+ return !match||meetsExtraRequirement152(match.id);
+};
+const beforeMedalCoin152=resolveCoin;
+resolveCoin=function(win){
+ const b=state.battle,p=medalProgress152();
+ if(b){
+  p.streak=win?p.streak+1:0;
+  if(win&&b.won+1>=b.need)p.battleWins=(p.battleWins||0)+1;
+ }
+ return beforeMedalCoin152(win);
+};
+const beforeMedalPrep152=prepareVoyage;
+prepareVoyage=function(){
+ if(!state.sea){
+  const p=medalProgress152();p.streak=0;p.battleWins=0;
+ }
+ return beforeMedalPrep152();
+};
+const beforeMedalComplete152=completeLake;
+completeLake=function(success,msg){
+ const p=medalProgress152();
+ const last=success&&state.current!=null&&state.sea&&state.offered.length>0&&
+  !state.visited.includes(state.current)&&state.visited.length+1===state.offered.length;
+ if(last){
+  p.full++;
+  if(state.grade===5)p.full5++;
+  if(state.lossesThisVoyage===0&&p.crewLoss===0){
+   p.clean++;if(state.grade===5)p.clean5++;
+  }
+ }
+ return beforeMedalComplete152(success,msg);
+};
+// Mythic and above achievements no longer get awarded from a generic 'one task done' alone.
+// Conditions remain intentionally hidden in the player-facing achievement view.
+
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
 </script>
