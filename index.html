@@ -1928,6 +1928,12 @@ function baseMedalCondition153(a){
  if(a.challenge){
   const x=achievementReadableCondition142(a.challenge);
   if(x)base=x.replace(/선체 내구도/g,'침식 방어도').replace(/선체 (\d+)/g,'침식 방어도 $1');
+  if(a.challenge.event==='choice'){
+   const c=a.challenge;
+   const node=SCRIPTED_LAKE_MAP_015.get(c.lake)?.nodes?.[c.stage]||STORY_DEFS[c.lake-1]?.nodes?.[c.stage];
+   const action=node?.choices?.[c.choice]?.text;
+   if(action)base='21-'+String(c.lake).padStart(2,'0')+' 호수의 해당 사건에서 「'+action+'」 선택지를 고른다.';
+  }
  }
  if(a.check){
   const c=a.check;
