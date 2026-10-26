@@ -1419,6 +1419,223 @@ if(state.scene==='event'&&state.current>=1&&state.current<=10){
  }
 }
 
+
+/* V.0.1.5.0 - 대호수 항해 경제·선박 증급·침식도
+   선박 명칭/등급/수치는 팬게임의 독자적 게임 시스템입니다. */
+const SHIP148=[null,
+ {name:'연안 나룻배',crew:1,price:0,resist:0},
+ {name:'소형 포경선',crew:3,price:70,resist:.05},
+ {name:'중형 포경선',crew:5,price:125,resist:.10},
+ {name:'대형 포경선',crew:7,price:195,resist:.15},
+ {name:'원양 포경선',crew:10,price:285,resist:.20}
+],CAP148=[0,260,400,560,740,950];
+const KITS148=[
+ {id:'chart',name:'항구선 변동좌표 대조',description:'이번 출항 침식 증가 20% 경감',base:14,step:5},
+ {id:'harpoon',name:'포경선 작살줄 점검',description:'이번 출항 전투력 +12',base:18,step:6},
+ {id:'supplies',name:'선원용 방호 보급품',description:'이번 출항 정신 피해 20% 경감',base:14,step:5}];
+const GRADE_GEAR148={captainCharm:1,captainHarpoon:2,captainCoat:3,crewHelmet:2,crewHarpoon:3,crewTether:2,crewPouch:1};
+function migrate148(){
+ if(!Number.isInteger(state.shipGrade)||state.shipGrade<1||state.shipGrade>5){
+  state.shipGrade=1;
+  while(state.shipGrade<Math.min(5,state.grade)&&SHIP148[state.shipGrade].crew<(state.crew?.length||0))state.shipGrade++;
+ }
+ if(!Number.isFinite(state.exposure))state.exposure=Math.min(95,Math.max(0,Math.ceil((100-(state.hull??100))*.7)));
+ if(!state.preparations||typeof state.preparations!=='object')state.preparations={};
+ if(!Array.isArray(state.equipment))state.equipment=[];
+ state.hull=100; // 기존 내구도는 침식도로 이관; 선체 체력 판정 폐지
+}
+migrate148();
+function crewCapacity148(){
+ return Math.min(GRADE_CAP[state.grade]||1,SHIP148[state.shipGrade||1]?.crew||1);
+}
+function gainMoney148(amount){
+ migrate148();
+ const cap=CAP148[state.grade]||260;
+ const gain=Math.max(0,Math.floor(amount));
+ const next=Math.min(cap,state.gold+gain);
+ const actual=Math.max(0,next-state.gold);
+ state.gold=next;return actual;
+}
+function departureFee148(){return 4+4*state.shipGrade+(state.shipGrade+1)*state.crew.length;}
+const oldPrepare148=prepareVoyage;
+prepareVoyage=function(){
+ if(state.sea)return;
+ migrate148();
+ const cost=departureFee148(),paid=Math.min(cost,state.gold);
+ state.gold-=paid;state.exposure=0;
+ oldPrepare148();
+ log('출항 보급과 승선 선원 급료 '+unitMoney(paid)+' 지불.'+(paid<cost?' 일부 급료는 외상으로 처리되었습니다.':''));
+ sync();
+};
+const oldRecruit148=recruit;
+recruit=function(role){
+ migrate148();if(state.crew.length>=crewCapacity148())return;
+ oldRecruit148(role);
+};
+function upgradeShip148(){
+ migrate148();
+ if(!inShop132()||state.shipGrade>=5||state.shipGrade>=state.grade)return;
+ const next=SHIP148[state.shipGrade+1];
+ if(!next||state.gold<next.price)return;
+ state.gold-=next.price;state.shipGrade++;
+ log(next.name+'을 구입했습니다. 승선 가능 선원 '+next.crew+'명.');sync();
+}
+const oldGear148=buyGear132;
+buyGear132=function(id){
+ if(state.shipGrade<(GRADE_GEAR148[id]||1))return;
+ return oldGear148(id);
+};
+function buyKit148(id){
+ migrate148();const k=KITS148.find(x=>x.id===id);
+ if(!k||!inShop132()||state.preparations[id])return;
+ const cost=k.base+k.step*state.shipGrade;
+ if(state.gold<cost)return;
+ state.gold-=cost;state.preparations[id]=true;
+ log(k.name+'을 준비했습니다. 다음 항해에 효력이 있습니다.');
+ dispatchAchievement142('preparation',{id});sync();
+}
+const originalPower148=crewPower;
+crewPower=function(){return originalPower148()+(state.sea&&state.preparations?.harpoon?12:0);};
+takeDamage=function(h,m){
+ migrate148();
+ if(state.sea&&(h>0||m>0))state.lossesThisVoyage=(state.lossesThisVoyage||0)+1;
+ const resist=SHIP148[state.shipGrade].resist+(state.preparations.chart?.20:0)+
+ (state.equipment.includes('crewTether')?.12:0);
+ const mindResist=(state.preparations.supplies?.20:0)+state.equipment.reduce((n,id)=>
+ n+(SHOP_GEAR_132.find(x=>x.id===id)?.mind||0),0);
+ if(h>0)state.exposure=Math.min(100,state.exposure+Math.max(1,Math.ceil(h*.72*(1-Math.min(.65,resist)))));
+ if(m>0)state.mind=Math.max(0,state.mind-Math.max(1,Math.ceil(m*(1-Math.min(.65,mindResist)))));
+};
+safeCheck=function(){
+ migrate148();if(state.exposure>=100||state.mind<=0){die();return false;}return true;
+};
+const oldWhaleEffect148=applyWhale;
+applyWhale=function(k){
+ migrate148();oldWhaleEffect148(k);
+ if(state.hull<100){
+  state.exposure=Math.min(100,state.exposure+Math.ceil((100-state.hull)*.48*(1-SHIP148[state.shipGrade].resist)));
+  state.hull=100;
+ }
+};
+const oldReturn148=returnPort;
+returnPort=function(){
+ const atSea=state.sea;oldReturn148();
+ if(atSea&&!state.sea){state.exposure=0;state.preparations={};save();render();}
+};
+const oldComplete148=completeLake;
+completeLake=function(success,msg){
+ oldComplete148(success,msg);
+ if(!state.sea&&state.scene==='port'){state.exposure=0;state.preparations={};save();render();}
+};
+buyRepair132=function(){};repair=function(){};
+for(const [id,name,item] of [
+ ['extra_goldPeak_7','항구선의 좌표','chart'],
+ ['extra_goldPeak_8','작살줄을 고친 손','harpoon'],
+ ['extra_goldPeak_9','나눌 수 있는 식량','supplies']
+]){
+ const a=ACH.find(x=>x.id===id);
+ if(a){a.name=name;a.desc=KITS148.find(x=>x.id===item).name+' 준비';a.challenge={event:'preparation',id:item};}
+}
+renderSide=function(){
+ migrate148();
+ const fields=[
+ ['선장 등급',state.grade+'등급'],
+ ['선박 등급',state.shipGrade+'등급 · '+SHIP148[state.shipGrade].name],
+ ['소지 자금 (만 안(眼))',String(state.gold)+' / 수입 조절 기준 '+CAP148[state.grade]],
+ ['승선 인원',state.crew.length+' / '+crewCapacity148()],
+ ['접근 가능 호수',LAKE_CAP[state.grade]+' / 50'],
+ ['누적 통과',state.count.lake+'개'],
+ ['이번 출항',state.sea?state.visited.length+' / '+state.offered.length:'항구']
+ ];
+ $('stats').innerHTML=fields.map(f=>'<div class="stat"><small>'+f[0]+'</small><strong>'+f[1]+'</strong></div>').join('');
+ $('meters').innerHTML=[['호수 침식도',state.exposure,true],['정신 상태',state.mind,false]].map(f=>
+ '<div class="barline"><span>'+f[0]+'</span><span>'+f[1]+' / 100</span></div><div class="meter '+
+ (f[2]?f[1]>=70?'alert':'':f[1]<=30?'alert':'')+'"><span style="width:'+clamp(f[1],0,100)+'%"></span></div>').join('');
+ $('sidebarCrew').innerHTML=state.crew.length?state.crew.map(c=>'<div class="inset"><b>'+
+ esc(c.name||ROLE[c.role].name)+'</b><span class="muted"> · '+ROLE[c.role].name+' / 전투력 '+ROLE[c.role].power+
+ '</span><br><small class="'+['good','normal','bad','worst'][c.condition]+'">'+CONDITIONS[c.condition]+'</small></div>').join(''):'<div class="inset warning">승선 선원이 없습니다.</div>';
+ $('logs').textContent=state.log.slice(0,10).join('\n\n');
+};
+const oldCrewScreen148=renderCrew;
+renderCrew=function(){
+ const types=SHIP148.slice(1).map((x,i)=>(i+1)+'등급 '+x.name+' · '+x.crew+'명').join(' / ');
+ return '<div class="inset"><h3>현재 선박</h3><p>'+esc(SHIP148[state.shipGrade].name)+
+ ' · 선원 정원 '+crewCapacity148()+'명</p><p class="muted">'+esc(types)+'</p></div>'+oldCrewScreen148();
+};
+renderShop132=function(){
+ migrate148();migrate132();const ready=inShop132(),ship=SHIP148[state.shipGrade],next=SHIP148[state.shipGrade+1];
+ let out='<div class="inset"><h2>항구선 · 항해 준비 상점</h2><p class="muted">'+
+ '호수 침식은 귀항하면 가라앉습니다. 출항용 준비품은 한 항해 동안만 효력을 발휘합니다.</p>'+
+ tag('소지 '+unitMoney(state.gold))+tag('선박 '+state.shipGrade+'등급')+
+ tag('다음 출항 '+unitMoney(departureFee148()))+'</div>';
+ out+='<div class="inset"><h3>선박 증급</h3><p>'+ship.name+' · 승선 정원 '+ship.crew+'명</p>';
+ if(next)out+='<p>'+next.name+' / 승선 정원 '+next.crew+'명 / '+unitMoney(next.price)+'</p>'+
+ button('선박 '+(state.shipGrade+1)+'등급으로 교체','shipUpgrade','','',
+ !ready||state.grade<=state.shipGrade||state.gold<next.price);
+ else out+='<p>최고 등급의 선박을 보유하고 있습니다.</p>';
+ out+='</div><div class="inset"><h3>항해 준비</h3><div class="stack">';
+ for(const k of KITS148){
+  const price=k.base+k.step*state.shipGrade,done=!!state.preparations[k.id];
+  out+=button(k.name+' · '+unitMoney(price)+' · '+k.description+(done?' [준비 완료]':''),
+  'voyageKit',k.id,'',!ready||done||state.gold<price);
+ }
+ out+='</div></div><div class="inset"><h3>선장용·선원용 장비</h3>';
+ for(const group of ['선장용','선원용']){
+  out+='<h3>'+group+'</h3><div class="stack">';
+  for(const x of SHOP_GEAR_132.filter(x=>x.group===group)){
+   const rank=GRADE_GEAR148[x.id]||1,owned=state.equipment.includes(x.id);
+   const effects=(x.atk?'전투력 +'+x.atk+' / ':'')+(x.mind?'정신 피해 경감 '+Math.round(x.mind*100)+'% / ':'')+
+    (x.hull?'침식 증가 경감 '+Math.round(x.hull*100)+'% / ':'');
+   out+=button(x.name+' · '+unitMoney(x.cost)+' · 선박 '+rank+'등급 · '+effects+(owned?'[구매 완료]':''),
+   'shopGear',x.id,'',!ready||state.shipGrade<rank||owned||state.gold<x.cost);
+  }
+  out+='</div>';
+ }
+ out+='</div><div class="inset"><h3>정신 상태·선원 컨디션 회복</h3><div class="stack">';
+ for(const x of SHOP_RECOVERY_132){
+  const need=x.kind==='mind'?state.mind<100:state.crew.some(c=>c.condition>0);
+  out+=button(x.name+' · '+unitMoney(x.cost)+' · '+(x.kind==='mind'?'정신 +'+x.amount:'컨디션 '+x.amount+'단계 개선'),
+    'shopRecover',x.id,'',!ready||!need||state.gold<x.cost);
+ }
+ out+='</div></div><div class="inset"><h3>특수 전리품 보관함</h3>';
+ const loot=[...WHALE_LOOT.map((x,k)=>[x[0],state.relics['whale_'+k]||0]),
+ ...SPECIAL_LOOT.map((x,k)=>[x,state.relics['special_'+k]||0])].filter(x=>x[1]>0);
+ out+=loot.length?loot.map(x=>'<p>'+esc(x[0])+' × '+x[1]+'</p>').join(''):'<p class="muted">보관 중인 특수 전리품이 없습니다.</p>';
+ return out+'</div>';
+};
+const oldPlay148=renderPlay;
+renderPlay=function(){
+ let page=oldPlay148();
+ if(['encounter','battle'].includes(state.scene))page=page.replace(/현재 선체 \d+ \/ 100/g,'호수 침식도 '+state.exposure+' / 100');
+ if(state.scene==='port')return page+'<div class="inset"><h3>선박과 출항 경비</h3><p>'+
+ esc(SHIP148[state.shipGrade].name)+' · 승선 선원 '+state.crew.length+'명</p>'+
+ '<p>다음 출항 경비 '+unitMoney(departureFee148())+'</p>'+button('항해 준비 상점','tab','shop','primary')+'</div>';
+ if(state.scene==='start')return page+'<div class="log-update"><h3>업데이트 내역 · V.0.1.5.0</h3><ul>'+
+ '<li>1~5등급 선박과 승선 인원 제한</li><li>등급별 수입·출항 경비·승급 비용 재조정</li>'+
+ '<li>선체 체력과 선박 수리 대신 호수 침식도와 항해 준비 도입</li></ul></div>';
+ return page;
+};
+const oldHelp148=renderHelp;
+renderHelp=function(){
+ return oldHelp148().replace(/항해 안내 · v0\.1\.[\d.]+/,'항해 안내 · v0.1.5.0')
+ .replace('선박 내구도는 항구 상점에서 수리할 때만 회복할 수 있습니다.',
+ '선박은 1~5등급으로 나뉘며 선장 등급보다 높일 수 없습니다. 선원 정원은 선장과 선박 등급 중 낮은 쪽을 따릅니다. 호수 침식도가 100에 도달하면 항해가 끝나며 귀항하면 초기화됩니다. 출항 시 보급비와 선원 급료가 필요합니다.');
+};
+const previousCondition148=checkAchievementContext142;
+checkAchievementContext142=function(criteria,event,info){
+ if(criteria&&('minHull'in criteria||'maxHull'in criteria)){
+  const hull=state.hull;state.hull=100-(state.exposure||0);
+  const answer=previousCondition148(criteria,event,info);state.hull=hull;return answer;
+ }
+ return previousCondition148(criteria,event,info);
+};
+for(const medal of ACH)if(medal.challenge&&medal.desc)medal.desc=medal.desc.replace(/선체 내구도/g,'침식 방어도').replace(/선체 (\d+)/g,'침식 방어도 $1');
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button[data-act]');if(!b||b.disabled||busy)return;
+ if(b.dataset.act==='shipUpgrade')upgradeShip148();
+ if(b.dataset.act==='voyageKit')buyKit148(b.dataset.value);
+});
+
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
 </script>
