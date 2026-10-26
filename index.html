@@ -217,7 +217,7 @@ const ACH=[
  {id:'rank5',tier:'legend',name:'다섯 번째 등급',desc:'5등급 선장이 된다.'},
  {id:'whale1',tier:'legend',name:'흉터를 남긴 퇴각',desc:'재앙의 고래에게 한 번 이상 유효 타격을 가한 뒤 전투에서 살아 도주한다.'},
  {id:'whale3',tier:'myth',name:'세 재앙의 종언',desc:'한 목숨 동안 서로 다른 재앙의 고래 세 마리를 사냥한다.'},
- {id:'survive3',tier:'miracle',name:'기적적인 생환',desc:'선체 내구도 1로 항구에 무사히 귀환한다.'},
+ {id:'survive3',tier:'miracle',name:'기적적인 생환',desc:'호수 침식도 88 이상으로 항구에 무사히 귀환한다.'},
  {id:'all5',tier:'unique',name:'쪽빛노인',desc:'한 목숨 동안 다섯 재앙의 고래를 모두 사냥한다.'}
 ];
 const TIER={common:'일반',rare:'희귀',hero:'영웅',legend:'전설',myth:'신화',miracle:'기적',unique:'유일'};
@@ -598,7 +598,7 @@ function renameCrew0131(id){
 }
 function sellFish0131(){
  if(state.sea||state.scene!=='port'||state.fish<=0)return;
- const sold=state.fish,earn=sold*(2+Math.floor(state.grade/2));gainMoney148(earn);state.fish=0;
+ const sold=state.fish,nominal=sold*(2+Math.floor(state.grade/2)),earn=gainMoney148(nominal);state.fish=0;
  state.prog.fishSold+=sold;state.prog.goldPeak=Math.max(state.prog.goldPeak,state.gold);
  log('물고기 '+sold+'마리를 판매해 '+earn+' 만 안(眼)을 받았습니다.');sync();
 }
@@ -687,7 +687,7 @@ resolveCoin=function(win){
    /* 보수 정산 완료 */
    markHuntedWhale143(idx);
    award('whale_hunt_'+idx);
-   log('재앙의 특수 전리품 '+item[0]+' 획득, 보상 '+unitMoney(item[1])+'.');
+   log('재앙의 특수 전리품 '+item[0]+' 획득, 보상 '+unitMoney(state.lastIncome148||0)+'.');
   }
  }else if(battle.type==='special'){
   state.oil=Math.max(0,state.oil-2);
@@ -1454,7 +1454,7 @@ function gainMoney148(amount){
  const gain=Math.max(0,Math.floor(amount));
  const next=Math.max(state.gold,Math.min(cap,state.gold+gain));
  const actual=Math.max(0,next-state.gold);
- state.gold=next;return actual;
+ state.gold=next;state.lastIncome148=actual;return actual;
 }
 function departureFee148(){return 4+4*state.shipGrade+(state.shipGrade+1)*state.crew.length;}
 const oldPrepare148=prepareVoyage;
