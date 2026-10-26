@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.5.0</title>
+<title>대호수: The Great Lake | v0.1.5.1</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -117,7 +117,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <body>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.0</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.1</div>
  <h1>대호수: The Great Lake</h1>
  <p class="muted">규칙을 듣고, 선원을 지키며, 50개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
@@ -361,7 +361,7 @@ function avoidSpecial(){if(state.scene!=='special')return;state.specialPending=n
 function startSpecial(){if(state.scene!=='special'||!canHuntSpecial())return;const k=state.specialPending;state.specialPending=null;beginBattle({type:'special',index:k,name:WHALES[k].mermaid,power:120+k*14,need:2,won:0,history:[],after:state.blackCollapse?'collapse':'event'});}
 function chooseRule(choice){if(state.scene!=='event'||state.ruleResolved)return;const l=activeLake();if(!l)return;state.ruleResolved=true;const effect=state.blueTorn?'torn':RULES[l.rule].effects[choice];if(effect==='torn'){state.ruleResult='청새치 고래가 호수의 규칙을 찢어 놓았습니다. 이 사건은 정상적인 판정을 받지 않습니다. \n선원들은 불안해합니다.';takeDamage(3,4);}else if(effect==='good'){state.ruleResult='위험한 행동을 막았습니다. 호수가 잠잠해집니다. 선원들은 간신히 안도의 숨을 내쉽니다.';gainMoney148(2);}else if(effect==='neutral'){state.ruleResult='조심스레 처리했습니다. 큰 재해는 피했지만 선체와 선원들에게 부담이 남습니다.';takeDamage(6,3);}else{state.ruleResult='금기를 건드렸습니다. '+(RULES[l.rule].danger||COLOR_GROUPS[l.hue].danger);takeDamage(22+l.risk*3,9+l.risk*2);if(l.id===39&&choice===0){if(state.crew.length&&Math.random()<.5){const victim=state.crew[0];state.crew=state.crew.filter(c=>c.id!==victim.id);state.ruleResult+=' 피를 바친 '+ROLE[victim.role].name+'이(가) 인어로 변했습니다.';}else{state.forceMermaid=true;state.ruleResult+=' 수면 아래에서 인어가 올라옵니다.';}}}log(l.name+': '+state.ruleResult.replace(/\n/g,' ').slice(0,76));if(!safeCheck())return;sync();}
 function nextEvent(){if(state.scene!=='event'||!state.ruleResolved)return;const l=activeLake();if(!l)return;if(state.forceMermaid){state.forceMermaid=false;state.mermaidResolved=true;beginBattle({type:'normal',name:'붉은 가루 호수의 인어',power:56+l.risk*18,need:1,won:0,history:[],after:'complete'});return;}if(l.mermaid&&!state.mermaidResolved&&Math.random()<(.13+l.risk*.07)){state.mermaidResolved=true;beginBattle({type:'normal',name:'대호수의 인어',power:35+l.risk*18,need:1,won:0,history:[],after:'complete'});return;}completeLake(true,'호수의 경계에서 벗어났습니다.');}
-function completeLake(success,msg){const id=state.current;if(id===null)return;if(!state.visited.includes(id))state.visited.push(id);if(success){state.count.lake++;state.xp++;gainMoney148(6+2*state.grade+Math.min(3,LAKES[id-1].risk));}const lost=decayCrew();state.current=null;state.ruleResolved=false;state.ruleResult='';state.blueTorn=false;state.blackCollapse=false;state.forceMermaid=false;state.encounter=null;state.specialPending=null;state.battle=null;state.lastTransition=Math.random()<.5?'물빛이 바뀌었다.':'물빛이 갈라졌다.';log(state.lastTransition+' '+msg+(lost?' '+lost:''));if(!safeCheck())return;state.scene='route';if(state.visited.length>=state.offered.length){state.sea=false;state.scene='port';state.count.return++;state.offered=[];state.rumors=[];if((state.exposure||0)>=88)award('survive3');log('이번 출항의 접근 가능한 호수를 모두 지나 항구로 귀환했습니다.');}sync();}
+function completeLake(success,msg){const id=state.current;if(id===null)return;if(!state.visited.includes(id))state.visited.push(id);if(success){state.count.lake++;state.xp++;gainMoney148(8+Math.floor(state.grade/2)+Math.min(2,LAKES[id-1].risk));}const lost=decayCrew();state.current=null;state.ruleResolved=false;state.ruleResult='';state.blueTorn=false;state.blackCollapse=false;state.forceMermaid=false;state.encounter=null;state.specialPending=null;state.battle=null;state.lastTransition=Math.random()<.5?'물빛이 바뀌었다.':'물빛이 갈라졌다.';log(state.lastTransition+' '+msg+(lost?' '+lost:''));if(!safeCheck())return;state.scene='route';if(state.visited.length>=state.offered.length){state.sea=false;state.scene='port';state.count.return++;state.offered=[];state.rumors=[];if((state.exposure||0)>=88)award('survive3');log('이번 출항의 접근 가능한 호수를 모두 지나 항구로 귀환했습니다.');}sync();}
 function beginBattle(b){state.battle=b;state.scene='battle';state.lastCoin=null;busy=false;sync();}
 function combatChance(){const b=state.battle;return clamp(crewPower()/(crewPower()+b.power),.025,.975);}
 function throwCoin(){if(busy||state.scene!=='battle'||!state.battle)return;busy=true;const b=state.battle,win=Math.random()<combatChance();const coin=$('coin'),status=$('coinText'),button=document.querySelector('button[data-act="coin"]');if(!coin||!status||!button){busy=false;return;}button.disabled=true;status.textContent='회전 중... 동전이 수면 위로 솟아오릅니다.';coin.style.setProperty('--landing',win?'1440deg':'1620deg');coin.classList.remove('flipping');void coin.offsetWidth;coin.classList.add('flipping');setTimeout(()=>{if(state.battle!==b){busy=false;return;}resolveCoin(win);busy=false;},3000);}
@@ -1428,7 +1428,7 @@ const SHIP148=[null,
  {name:'중형 포경선',crew:5,price:125,resist:.10},
  {name:'대형 포경선',crew:7,price:195,resist:.15},
  {name:'원양 포경선',crew:10,price:285,resist:.20}
-],CAP148=[0,260,400,560,740,950];
+];
 const KITS148=[
  {id:'chart',name:'항구선 변동좌표 대조',description:'이번 출항 침식 증가 20% 경감',base:14,step:5},
  {id:'harpoon',name:'포경선 작살줄 점검',description:'이번 출항 전투력 +12',base:18,step:6},
@@ -1450,11 +1450,10 @@ function crewCapacity148(){
 }
 function gainMoney148(amount){
  migrate148();
- const cap=CAP148[state.grade]||260;
  const gain=Math.max(0,Math.floor(amount));
- const next=Math.max(state.gold,Math.min(cap,state.gold+gain));
- const actual=Math.max(0,next-state.gold);
- state.gold=next;state.lastIncome148=actual;return actual;
+ state.gold+=gain;
+ state.lastIncome148=gain;
+ return gain;
 }
 function departureFee148(){return 4+4*state.shipGrade+(state.shipGrade+1)*state.crew.length;}
 const oldPrepare148=prepareVoyage;
@@ -1499,33 +1498,50 @@ crewPower=function(){return originalPower148()+(state.sea&&state.preparations?.h
 takeDamage=function(h,m){
  migrate148();
  if(state.sea&&(h>0||m>0))state.lossesThisVoyage=(state.lossesThisVoyage||0)+1;
+ const lengthFactor=routeLengthFactor149();
  const resist=SHIP148[state.shipGrade].resist+(state.preparations.chart?.20:0)+
  (state.equipment.includes('crewTether')?.12:0);
  const mindResist=(state.preparations.supplies?.20:0)+state.equipment.reduce((n,id)=>
  n+(SHOP_GEAR_132.find(x=>x.id===id)?.mind||0),0);
- if(h>0)state.exposure=Math.min(100,state.exposure+Math.max(1,Math.ceil(h*.72*(1-Math.min(.65,resist)))));
- if(m>0)state.mind=Math.max(0,state.mind-Math.max(1,Math.ceil(m*(1-Math.min(.65,mindResist)))));
+ if(h>0)state.exposure=Math.min(100,state.exposure+Math.max(1,Math.ceil(h*.72*lengthFactor*(1-Math.min(.65,resist)))));
+ if(m>0)state.mind=Math.max(0,state.mind-Math.max(1,Math.ceil(m*lengthFactor*(1-Math.min(.65,mindResist)))));
 };
 safeCheck=function(){
  migrate148();if(state.exposure>=100||state.mind<=0){die();return false;}return true;
 };
+/* 긴 항로일수록 동일한 공격이 차지하는 침식/정신 부담을 비례 축소.
+   4·8·12·16·20개 호수를 모두 진행할 때의 누적 위험을 고려합니다. */
+function routeLengthFactor149(){
+ return Math.sqrt(LAKE_CAP[1]/LAKE_CAP[state.grade]);
+}
 const oldWhaleEffect148=applyWhale;
 applyWhale=function(k){
  migrate148();oldWhaleEffect148(k);
  if(state.hull<100){
-  state.exposure=Math.min(100,state.exposure+Math.ceil((100-state.hull)*.48*(1-SHIP148[state.shipGrade].resist)));
+  state.exposure=Math.min(100,state.exposure+Math.ceil((100-state.hull)*.48*routeLengthFactor149()*(1-SHIP148[state.shipGrade].resist)));
   state.hull=100;
  }
 };
+/* 실제 소비로 조절하는 경제: 출항 보급비와 귀항 계선·선원 정산비.
+   자금 자체에는 숨은 상한을 두지 않습니다. */
+function portSettlement149(){
+ if(state.sea||state.scene!=='port')return;
+ if(state.lastSettlementCount149===state.count.return)return;
+ const expected=2*LAKE_CAP[state.grade]+5*state.shipGrade+state.crew.length;
+ const paid=Math.min(state.gold,expected);
+ state.gold-=paid;
+ state.lastSettlementCount149=state.count.return;
+ log('항구 계선료와 선원 후불 급료 '+unitMoney(paid)+' 정산.');
+}
 const oldReturn148=returnPort;
 returnPort=function(){
  const atSea=state.sea;oldReturn148();
- if(atSea&&!state.sea){state.exposure=0;state.preparations={};save();render();}
+ if(atSea&&!state.sea){portSettlement149();state.exposure=0;state.preparations={};save();render();}
 };
 const oldComplete148=completeLake;
 completeLake=function(success,msg){
  oldComplete148(success,msg);
- if(!state.sea&&state.scene==='port'){state.exposure=0;state.preparations={};save();render();}
+ if(!state.sea&&state.scene==='port'){portSettlement149();state.exposure=0;state.preparations={};save();render();}
 };
 buyRepair132=function(){};repair=function(){};
 for(const [id,name,item] of [
@@ -1541,7 +1557,7 @@ renderSide=function(){
  const fields=[
  ['선장 등급',state.grade+'등급'],
  ['선박 등급',state.shipGrade+'등급 · '+SHIP148[state.shipGrade].name],
- ['소지 자금 (만 안(眼))',String(state.gold)+' / 수입 조절 기준 '+CAP148[state.grade]],
+ ['소지 자금 (만 안(眼))',String(state.gold)],
  ['승선 인원',state.crew.length+' / '+crewCapacity148()],
  ['접근 가능 호수',LAKE_CAP[state.grade]+' / 50'],
  ['누적 통과',state.count.lake+'개'],
@@ -1609,15 +1625,21 @@ renderPlay=function(){
  if(['encounter','battle'].includes(state.scene))page=page.replace(/현재 선체 \d+ \/ 100/g,'호수 침식도 '+state.exposure+' / 100');
  if(state.scene==='port')return page+'<div class="inset"><h3>선박과 출항 경비</h3><p>'+
  esc(SHIP148[state.shipGrade].name)+' · 승선 선원 '+state.crew.length+'명</p>'+
- '<p>다음 출항 경비 '+unitMoney(departureFee148())+'</p>'+button('항해 준비 상점','tab','shop','primary')+'</div>';
+ '<p>다음 출항 경비 '+unitMoney(departureFee148())+' · 귀항 시 계선료와 후불 급료를 정산합니다.</p>'+button('항해 준비 상점','tab','shop','primary')+'</div>';
  if(state.scene==='start')return page+'<div class="log-update"><h3>업데이트 내역 · V.0.1.5.0</h3><ul>'+
  '<li>1~5등급 선박과 승선 인원 제한</li><li>등급별 수입·출항 경비·승급 비용 재조정</li>'+
  '<li>선체 체력과 선박 수리 대신 호수 침식도와 항해 준비 도입</li></ul></div>';
  return page;
 };
+const previousNotes149=renderPlay;
+renderPlay=function(){
+ const page=previousNotes149();
+ if(state.scene!=='start')return page;
+ return page+'<div class="log-update"><h3>업데이트 내역 · V.0.1.5.1</h3><ul><li>자금 보유 한도를 없애고 수입·출항·귀항 비용을 조정했습니다.</li><li>선장 등급별 호수 수에 맞춰 침식도와 정신 피해 증가량을 조정했습니다.</li></ul></div>';
+};
 const oldHelp148=renderHelp;
 renderHelp=function(){
- return oldHelp148().replace(/항해 안내 · v0\.1\.[\d.]+/,'항해 안내 · v0.1.5.0')
+ return oldHelp148().replace(/항해 안내 · v0\.1\.[\d.]+/,'항해 안내 · v0.1.5.1')
  .replace('선박 내구도는 항구 상점에서 수리할 때만 회복할 수 있습니다.',
  '선박은 1~5등급으로 나뉘며 선장 등급보다 높일 수 없습니다. 선원 정원은 선장과 선박 등급 중 낮은 쪽을 따릅니다. 호수 침식도가 100에 도달하면 항해가 끝나며 귀항하면 초기화됩니다. 출항 시 보급비와 선원 급료가 필요합니다.');
 };
