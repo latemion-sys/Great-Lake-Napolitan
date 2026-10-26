@@ -1263,9 +1263,9 @@ equipTitle132=function(id){
 };
 const prevWhaleEscapeAchievement142=escapeWhale;
 escapeWhale=function(){
- const k=state.encounter,before=state.hull;
+ const k=state.encounter,before=state.lossesThisVoyage||0;
  prevWhaleEscapeAchievement142();
- if(k!==null&&state.scene!=='dead'&&state.encounter===null&&before===state.hull)
+ if(k!==null&&state.scene!=='dead'&&state.encounter===null&&before===(state.lossesThisVoyage||0))
   dispatchAchievement142('whaleEscape');
 };
 const prevBattleEscapeAchievement142=fleeBattle;
