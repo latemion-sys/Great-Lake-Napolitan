@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.5.2</title>
+<title>대호수: The Great Lake | v0.1.5.3</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -117,7 +117,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <body>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.2</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.3</div>
  <h1>대호수: The Great Lake</h1>
  <p class="muted">규칙을 듣고, 선원을 지키며, 50개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
@@ -223,6 +223,8 @@ const ACH=[
 const TIER={common:'일반',rare:'희귀',hero:'영웅',legend:'전설',myth:'신화',miracle:'기적',unique:'유일'};
 const SAVE_KEY='great-lake-napolitan-v011';
 const ACH_SAVE_KEY='great-lake-napolitan-permanent-achievements';
+const ACH_RESET_KEY_153='great-lake-napolitan-achievements-reset-revision';
+const ACH_RESET_REVISION_153='v0.1.5.3';
 const WHALE_KILLS_SAVE_KEY='great-lake-napolitan-whales-hunted-once';
 
 /* 100개 호수별 업적과 111개의 추가 업적, 총 223개. 신화 10, 기적 4, 유일 1. */
@@ -310,6 +312,31 @@ let permanentAchievements=[];
 try{const old=JSON.parse(localStorage.getItem(ACH_SAVE_KEY));if(Array.isArray(old))permanentAchievements=old.filter(id=>ACH.some(a=>a.id===id)||/^lake_(?:5[1-9]|[6-9][0-9]|100)$/.test(id));}catch(e){console.warn('업적 복구 실패:',e);}
 try{const saved=JSON.parse(localStorage.getItem(SAVE_KEY));if(saved && [1,2,3].includes(saved.version) && saved.state && saved.state.grade>=1 && saved.state.grade<=5){state=saved.state;if(saved.version===1){state.scene='port';state.sea=false;state.current=null;state.offered=[];state.visited=[];state.whalePlaces={};state.rumors=[];state.battle=null;state.encounter=null;state.ruleResolved=false;state.ruleResult='';state.forceMermaid=false;state.rumorBought=false;}else if(state.scene==='battle'&&!state.battle)state.scene='route';}}catch(e){console.warn('저장 데이터 복구 실패:',e);}
 state.achievements=[...new Set([...permanentAchievements,...(Array.isArray(state.achievements)?state.achievements:[])])].filter(id=>ACH.some(a=>a.id===id)||/^lake_(?:5[1-9]|[6-9][0-9]|100)$/.test(id));
+/* v0.1.5.3: 한 번만 이루어지는 브라우저별 업적 일괄 초기화.
+   선원·화폐·고래·항해 진행을 변경하지 않으며 구형 업적 복원도 막습니다. */
+try{
+ if(localStorage.getItem(ACH_RESET_KEY_153)!==ACH_RESET_REVISION_153){
+  state.achievementBaseline153={
+   voyage:state.voyage||0,grade:state.grade||1,
+   return:state.count?.return||0,rumors:state.count?.rumors||0,
+   lake:state.count?.lake||0,special:state.count?.special||0,
+   whaleKilled:[...(state.whaleKilled||[])],
+   prog:{...(state.prog||{})},
+   clearedIds:[...(state.clearedIds||[])]
+  };
+  state.achievements=[];
+  permanentAchievements=[];
+  state.equippedTitle='';
+  state.medalRun152={streak:0,full:0,full5:0,clean:0,clean5:0,battleWins:0,crewLoss:0,crewCount:state.crew?.length||0};
+  localStorage.setItem(ACH_SAVE_KEY,'[]');
+  localStorage.setItem(SAVE_KEY,JSON.stringify({version:3,state}));
+  localStorage.setItem(ACH_RESET_KEY_153,ACH_RESET_REVISION_153);
+ }
+}catch(e){
+ console.warn('업적 초기화 저장에 실패했습니다:',e);
+ state.achievements=[];permanentAchievements=[];state.equippedTitle='';
+}
+
 const $=id=>document.getElementById(id);
 const esc=str=>String(str).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const rng=n=>Math.floor(Math.random()*n);
@@ -1861,6 +1888,112 @@ completeLake=function(success,msg){
 };
 // Mythic and above achievements no longer get awarded from a generic 'one task done' alone.
 // Conditions remain intentionally hidden in the player-facing achievement view.
+
+
+/* 0.1.5.3: 초기화 이전 실적이 자동으로 새 업적으로 다시 지급되지 않도록 제한 */
+function earnedSinceReset153(id){
+ const b=state.achievementBaseline153;
+ if(!b)return true;
+ const c=state.count||{};
+ if(id==='launch')return state.voyage>b.voyage;
+ if(id==='return')return (c.return||0)>b.return;
+ if(id==='rumor')return (c.rumors||0)>=b.rumors+3;
+ if(id==='lake5')return (c.lake||0)>=b.lake+5;
+ if(id==='lake20')return (c.lake||0)>=b.lake+20;
+ if(id==='special')return (c.special||0)>b.special;
+ if(id==='rank3')return b.grade<3&&state.grade>=3;
+ if(id==='rank5')return b.grade<5&&state.grade>=5;
+ if(id==='whale3'||id==='all5')return b.whaleKilled.length===0;
+ const a=ACH.find(x=>x.id===id);
+ if(!a?.check)return true;
+ const {kind,n}=a.check;
+ if(kind==='uniqueLake')return !(b.clearedIds||[]).includes(n);
+ const valueMap={voyage:state.voyage,lake:c.lake,fishSold:state.prog?.fishSold,
+  oilCollected:state.prog?.oilCollected,coinHeads:state.prog?.coinHeads,
+  goldPeak:state.prog?.goldPeak,mermaidKills:state.prog?.mermaidKills,
+  perfectVoyage:state.prog?.perfectVoyage,fullCrewVoyage:state.prog?.fullCrewVoyage};
+ const before=kind==='voyage'?b.voyage:kind==='lake'?b.lake:b.prog?.[kind]||0;
+ const current=valueMap[kind]||0;
+ if(kind==='goldPeak')return current>before&&current>=n;
+ return current-before>=n;
+}
+const awardBeforeResetGate153=award;
+award=function(id){
+ if(!earnedSinceReset153(id))return;
+ return awardBeforeResetGate153(id);
+};
+/* 이미 달성한 업적의 실제 기본 조건과 추가 도전 조건을 모두 볼 수 있게 합니다. */
+function baseMedalCondition153(a){
+ let base=a.desc||'';
+ if(a.challenge){
+  const x=achievementReadableCondition142(a.challenge);
+  if(x)base=x.replace(/선체 내구도/g,'침식 방어도').replace(/선체 (\d+)/g,'침식 방어도 $1');
+ }
+ if(a.check){
+  const c=a.check;
+  if(c.kind==='perfectVoyage')base='피해 없는 항해를 '+c.n+'회 마친다.';
+  else if(c.kind==='fullCrewVoyage')base='선원 정원을 채운 항해를 '+c.n+'회 마친다.';
+  else if(c.kind==='mermaidKills')base='인어를 누적 '+c.n+'마리 처치한다.';
+  else if(c.kind==='uniqueLake')base='21-'+String(c.n).padStart(2,'0')+' 호수를 통과한다.';
+  else base=(base?base+' ':'')+'누적 실적 '+c.kind+' '+c.n+' 이상을 달성한다.';
+ }
+ return base;
+}
+function extraMedalCondition153(a){
+ const requirements=HIGH_REQUIREMENTS152[a.id];
+ if(!requirements)return '';
+ const desc={
+  grade:n=>'선장 '+n+'등급 이상',
+  ship:n=>'선박 '+n+'등급 이상',
+  crew:n=>'승선 선원 '+n+'명 이상',
+  mind:n=>'정신 상태 '+n+' 이상',
+  visited:n=>'이번 출항 호수 '+n+'개 이상 통과',
+  streak:n=>'동전 앞면 '+n+'회 연속',
+  full:n=>'한 목숨에서 항해 완주 '+n+'회 이상',
+  full5:n=>'한 목숨에서 5등급 항해 완주 '+n+'회 이상',
+  clean:n=>'한 목숨에서 무피해 항해 완주 '+n+'회 이상',
+  clean5:n=>'한 목숨에서 무피해 5등급 항해 완주 '+n+'회 이상',
+  maxExposure:n=>'호수 침식도 '+n+' 이하',
+  noDamage:n=>n?'이번 출항 피해 0회':'',
+  noCrewLost:n=>n?'현재 목숨에서 선원 사망·상실 0명':''
+ };
+ return Object.entries(requirements)
+  .map(([k,v])=>desc[k]?.(v)||'').filter(Boolean).join(' · ');
+}
+renderAch=function(){
+ const order=['common','rare','hero','legend','myth','miracle','unique'];
+ const acquired=ACH.filter(x=>state.achievements.includes(x.id)).length;
+ let h='<div class="inset"><h2>업적 보관함</h2>'+
+  '<p class="muted">업적 달성 내역을 새로 시작했습니다. 일반·희귀 업적은 기존처럼 조건을 볼 수 있으며, 영웅 이상은 달성하면 조건이 공개됩니다. 달성 업적은 이후 사망해도 유지됩니다.</p>'+
+  tag('달성 '+acquired+' / '+ACH.length)+'</div>';
+ for(const tier of order){
+  const group=ACH.filter(x=>x.tier===tier);
+  h+='<h3>'+TIER[tier]+' · '+group.length+'종</h3><div class="achgrid">';
+  for(const a of group){
+   const earned=state.achievements.includes(a.id);
+   const show=earned||tier==='common'||tier==='rare';
+   h+='<div class="achievement '+tier+(earned?'':' unearned')+'">'+
+    '<div class="tier">'+TIER[tier]+' · '+(earned?'달성':'미달성')+'</div>'+
+    '<b>'+esc(a.name)+'</b>';
+   if(show){
+    const base=baseMedalCondition153(a),additional=earned?extraMedalCondition153(a):'';
+    if(base)h+='<p class="muted">'+esc(base)+'</p>';
+    if(additional)h+='<p class="muted">추가 달성 조건: '+esc(additional)+'</p>';
+   }
+   h+='</div>';
+  }
+  h+='</div>';
+ }
+ return h;
+};
+const lastRenderNotes153=renderPlay;
+renderPlay=function(){
+ const view=lastRenderNotes153();
+ if(state.scene!=='start')return view;
+ return view+'<div class="log-update"><h3>업데이트 내역 · V.0.1.5.3</h3><ul>'+
+  '<li>기존 업적과 업적 칭호 해금을 한 번 초기화했습니다. 항해 데이터는 유지됩니다.</li>'+
+  '<li>영웅 이상 업적은 달성한 뒤에만 상세 달성 조건이 공개됩니다.</li></ul></div>';
+};
 
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
