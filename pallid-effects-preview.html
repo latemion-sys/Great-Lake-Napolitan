@@ -1,175 +1,107 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>창백의 향유고래 · 사냥 이펙트 미리보기</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>창백의 향유고래 · 사냥 이펙트 시연 2차 개선</title>
+<link rel="stylesheet" href="./pallid-cinematic-v2.css?v=01513">
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#19323d,#0b1018 73%);color:#edf3f4;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;line-height:1.55}
-.wrapper{max-width:920px;padding:36px 18px 66px;margin:auto}
-h1{font-size:26px;margin:7px 0 11px;letter-spacing:-.035em}
-.eyebrow{font-size:12px;color:#aacfd3;letter-spacing:.19em}
-.desc{color:#b8c6cc;font-size:14px;max-width:740px}
-.controls{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:22px 0 14px}
-button{border:1px solid #405867;border-radius:10px;padding:11px 7px;background:#1c2a35;color:#d5e3e6;font:inherit;font-size:13px;cursor:pointer;transition:background .2s,border-color .2s}
-button:hover{background:#324450}
-button.active{color:#f8fcff;background:#284c5b;border-color:#a7d4dc}
-.effect-card{border:1px solid #415560;background:#16232e;padding:20px;border-radius:16px;box-shadow:0 17px 50px #0005}
-.pfx-162{height:300px;margin:0}
-.meta{display:flex;align-items:center;gap:16px;justify-content:space-between;margin-top:18px;flex-wrap:wrap}
-.meta h2{font-size:18px;margin:0 0 2px}
-.meta p{margin:0;color:#9fb6bd;font-size:13px}
-button.replay{border-color:#7a9ba5;background:#234452;white-space:nowrap;padding:10px 17px}
-.note{margin-top:16px;color:#94a9b1;font-size:12px}
-@media(max-width:640px){.controls{grid-template-columns:repeat(2,minmax(0,1fr))}.controls button:last-child{grid-column:auto}.effect-card{padding:12px}.pfx-162{height:220px}h1{font-size:21px}}
-/* V.0.1.5.12 · 창백한 고래의 CSS 시네마틱. 외부 사진/영상 없음. */
-.pfx-162{position:relative;isolation:isolate;overflow:hidden;width:100%;height:206px;border:1px solid #53626c;border-radius:13px;margin:0 0 15px;background:radial-gradient(ellipse at 70% 40%,#29434c 0%,#111e29 43%,#071018 100%);box-shadow:inset 0 0 46px #02090fb8,0 8px 22px #03080e55}
-.pfx-162 *{box-sizing:border-box}
-.pfx-162 .pfx-grain{position:absolute;inset:0;z-index:12;pointer-events:none;opacity:.22;background:repeating-linear-gradient(0deg,transparent 0 3px,#c6e3ea0b 4px 5px)}
-.pfx-162 .pfx-kicker{position:absolute;z-index:15;left:14px;top:11px;font-size:10px;line-height:1.4;letter-spacing:.15em;color:#d7e7e7;text-shadow:0 1px 5px #000b}
-.pfx-162 .pfx-caption{position:absolute;z-index:15;left:14px;bottom:10px;font-size:11px;letter-spacing:.07em;color:#c6dedc;text-shadow:0 1px 5px #000b}
-.pfx-162 .pfx-sea{position:absolute;inset:70% -10% -28%;border-radius:45% 55% 0 0;background:repeating-linear-gradient(175deg,#152e3b 0px,#1d4550 5px,#0c1f2d 13px,#112937 18px);box-shadow:0 -6px 19px #abdada2a;animation:pfx-water162 2.7s ease-in-out infinite alternate}
-.pfx-162 .pfx-mist{position:absolute;inset:20% 0 23%;background:radial-gradient(ellipse at 60% 70%,#c2d1c31e,transparent 60%);animation:pfx-mist162 3.6s ease-in-out infinite alternate}
-.pfx-162 .pfx-ship{position:absolute;z-index:5;width:105px;height:23px;left:16%;top:57%;background:linear-gradient(180deg,#536574,#172733);clip-path:polygon(0 0,100% 0,88% 80%,65% 100%,19% 85%);filter:drop-shadow(0 4px 3px #000b);transform-origin:center}
-.pfx-162 .pfx-ship:before{content:"";position:absolute;left:51%;bottom:1px;width:3px;height:70px;background:#b7c5c7;transform:translateY(-15px)}
-.pfx-162 .pfx-sail{position:absolute;z-index:6;width:55px;height:68px;left:calc(16% + 44px);top:calc(57% - 65px);background:linear-gradient(130deg,#d2d6c8,#657986);clip-path:polygon(5% 10%,94% 50%,5% 98%);filter:drop-shadow(1px 2px 2px #000a)}
-.pfx-harpoon162 .pfx-whale{position:absolute;width:48%;height:66%;right:-4%;top:24%;border-radius:65% 35% 42% 52%;background:radial-gradient(ellipse at 34% 27%,#d9d6c8,#829ea6 40%,#40555f 69%,#101f2b 100%);box-shadow:inset 8px 11px 28px #fcf9e539,0 7px 40px #cad3cc22;transform:rotate(-8deg);animation:pfx-whale162 2.2s ease-in-out infinite alternate}
-.pfx-harpoon162 .pfx-whale:after{content:"";position:absolute;left:27%;top:39%;width:8px;height:8px;border-radius:50%;background:#0b1a20;box-shadow:0 0 0 3px #bac7c3a6}
-.pfx-harpoon162 .pfx-spear,.pfx-final162 .pfx-spear,.pfx-victory162 .pfx-spear{position:absolute;z-index:8;width:120px;height:4px;left:29%;top:49%;background:linear-gradient(90deg,#506c7f,#f5eee0 55%,#cadfe2);transform-origin:90% 50%;box-shadow:0 0 10px #cdefff81;animation:pfx-spear162 3.25s ease-in-out infinite}
-.pfx-162 .pfx-spear:after{content:"";position:absolute;right:-17px;top:-7px;border-top:9px solid transparent;border-bottom:9px solid transparent;border-left:22px solid #d3e1db;filter:drop-shadow(0 0 4px #b0f6ff)}
-.pfx-harpoon162 .pfx-impact{position:absolute;z-index:9;left:71%;top:47%;width:18px;height:18px;border:2px solid #effff8;border-radius:50%;box-shadow:0 0 14px #effff9;transform:translate(-50%,-50%) scale(0);animation:pfx-impact162 3.25s ease-out infinite}
-.pfx-harpoon162 .pfx-particles{position:absolute;z-index:9;left:71%;top:46%;width:5px;height:5px;border-radius:50%;background:#eef6e5;box-shadow:-29px -31px #d9e9e1,15px 34px #d9e9e1,32px -16px #d9e9e1,-19px 19px #d9e9e1;opacity:0;animation:pfx-sparks162 3.25s ease-out infinite}
-.pfx-ingest162{background:radial-gradient(ellipse at 75% 50%,#5a343c,#18212b 45%,#070c15 80%)}
-.pfx-ingest162 .pfx-mouth{position:absolute;z-index:3;right:5%;top:-20%;height:148%;width:68%;border-radius:46% 44% 40% 45%;background:radial-gradient(ellipse at 48% 51%,#010609 0%,#071016 27%,#562d35 47%,#9c7f7f 62%,#c5c6bd 70%,#465863 90%);box-shadow:inset 0 0 20px #d7d8c1b3,0 0 45px #aeb9b51c;animation:pfx-mouth162 3.2s ease-in-out infinite}
-.pfx-ingest162 .pfx-jaw{position:absolute;z-index:6;right:6%;height:49%;width:69%;border-radius:40%;background:linear-gradient(#c0c1b4,#566f75 75%,#273840);animation:pfx-jawTop162 3.2s ease-in-out infinite}
-.pfx-ingest162 .pfx-jaw.top{top:-44%}
-.pfx-ingest162 .pfx-jaw.bottom{bottom:-44%;transform:scaleY(-1);animation-name:pfx-jawBottom162}
-.pfx-ingest162 .pfx-ship,.pfx-ingest162 .pfx-sail{animation:pfx-swallow162 3.2s ease-in infinite}
-.pfx-ingest162 .pfx-sail{animation-name:pfx-sailSwallow162}
-.pfx-ingest162 .pfx-iris{position:absolute;inset:0;z-index:10;pointer-events:none;box-shadow:inset 0 0 0 0 #03080a;animation:pfx-dark162 3.2s ease-in-out infinite}
-.pfx-acid162{background:radial-gradient(ellipse at 40% 0%,#4b4d39,#272521 44%,#0c1518 100%)}
-.pfx-acid162 .pfx-rib{position:absolute;inset:-20% 0 12%;border-radius:0 0 40% 40%;box-shadow:inset 25px 13px 25px #86474188,inset -28px 16px 32px #663e3988;animation:pfx-rib162 2.9s ease-in-out infinite alternate}
-.pfx-acid162 .pfx-pool{position:absolute;inset:59% -4% -23%;background:repeating-linear-gradient(168deg,#b6c46b 0px,#7d944c 8px,#344f31 20px,#b5c06b 28px);border-radius:37% 50% 0 0;box-shadow:0 -10px 30px #b1cc6470;animation:pfx-acidRise162 3.8s ease-in-out infinite}
-.pfx-acid162 .pfx-ship,.pfx-acid162 .pfx-sail{z-index:8;animation:pfx-acidCross162 3.8s ease-in-out infinite}
-.pfx-acid162 .pfx-sail{animation-name:pfx-acidSail162}
-.pfx-acid162 .pfx-bubble{position:absolute;z-index:7;bottom:4%;left:30%;width:12px;height:12px;border:2px solid #d8ec91;border-radius:50%;box-shadow:0 0 15px #b9e06c91;animation:pfx-bubbles162 2.1s ease-out infinite}
-.pfx-acid162 .pfx-bubble.b2{left:68%;bottom:12%;width:20px;height:20px;animation-delay:-.9s}
-.pfx-acid162 .pfx-bubble.b3{left:53%;bottom:17%;width:8px;height:8px;animation-delay:-1.3s}
-.pfx-search162{background:radial-gradient(ellipse at 58% 51%,#461c26,#1c1520 53%,#080d16)}
-.pfx-search162 .pfx-vessel{position:absolute;z-index:4;height:12px;left:16%;top:60%;width:74%;border-radius:30px;background:linear-gradient(90deg,#391522,#b34552 49%,#601f33);transform-origin:left center;box-shadow:0 0 15px #be45586e;animation:pfx-vein162 1.65s ease-in-out infinite}
-.pfx-search162 .pfx-vessel.v2{transform:rotate(-29deg);width:55%;height:8px;left:31%;top:55%;animation-delay:-.5s}
-.pfx-search162 .pfx-vessel.v3{transform:rotate(28deg);width:58%;height:8px;left:31%;top:55%;animation-delay:-1s}
-.pfx-search162 .pfx-vessel.v4{transform:rotate(-57deg);width:31%;height:5px;left:61%;top:50%;animation-delay:-.3s}
-.pfx-search162 .pfx-knot{position:absolute;z-index:6;left:64%;top:40%;width:45px;height:45px;background:radial-gradient(circle,#f59c9a,#a64254 35%,#561a2e 72%);border-radius:50%;box-shadow:0 0 30px #e86a7988;animation:pfx-beat162 1.3s ease-in-out infinite}
-.pfx-search162 .pfx-scan{position:absolute;z-index:8;top:-30%;left:-50%;height:170%;width:60%;transform:skewX(-24deg);background:linear-gradient(90deg,transparent,#c8f4ec28,#e5fff84b,#c8f4ec20,transparent);animation:pfx-scan162 4s ease-in-out infinite}
-.pfx-search162 .pfx-dot{position:absolute;z-index:6;left:calc(64% + 20px);top:calc(40% + 20px);width:6px;height:6px;border-radius:50%;background:#fff6d7;box-shadow:0 0 15px 6px #d99599;animation:pfx-dot162 1.3s infinite}
-.pfx-final162,.pfx-victory162{background:radial-gradient(ellipse at 50% 50%,#5d2330,#26141b 47%,#070c13)}
-.pfx-final162 .pfx-rings,.pfx-victory162 .pfx-rings{position:absolute;left:50%;top:50%;width:160px;height:160px;border-radius:50%;border:2px solid #9f505968;box-shadow:0 0 0 15px #96374721,0 0 0 33px #a5404720,0 0 45px #ff69752a;transform:translate(-50%,-50%);animation:pfx-rings162 1.2s ease-in-out infinite}
-.pfx-final162 .pfx-heart,.pfx-victory162 .pfx-heart{position:absolute;z-index:5;left:50%;top:50%;height:80px;width:80px;background:linear-gradient(135deg,#c46b70,#6d1d34 80%);transform:translate(-50%,-39%) rotate(-45deg);border-radius:14px;filter:drop-shadow(0 0 25px #cf4557);animation:pfx-heart162 1.2s ease-in-out infinite}
-.pfx-162 .pfx-heart:before,.pfx-162 .pfx-heart:after{content:"";position:absolute;height:80px;width:80px;border-radius:50%;background:inherit}
-.pfx-162 .pfx-heart:before{top:-40px;left:0}
-.pfx-162 .pfx-heart:after{left:40px;top:0}
-.pfx-final162 .pfx-spear,.pfx-victory162 .pfx-spear{top:41%;left:16%;animation:pfx-finisher162 3.3s ease-in infinite;z-index:10}
-.pfx-final162 .pfx-crack,.pfx-victory162 .pfx-crack{position:absolute;z-index:13;left:51%;top:32%;width:4px;height:76px;transform:rotate(33deg) scaleY(0);background:#e7f8f2;box-shadow:13px 4px 0 -1px #e7f8f2,0 0 17px 4px #f8f1e0;animation:pfx-crack162 3.3s ease-out infinite}
-.pfx-final162 .pfx-flash,.pfx-victory162 .pfx-flash{position:absolute;inset:0;z-index:14;background:#ecfff3;opacity:0;animation:pfx-flash162 3.3s ease-out infinite}
-.pfx-victory162 .pfx-heart{animation:pfx-heartVictory162 3s forwards}
-.pfx-victory162 .pfx-spear{animation:pfx-finisherVictory162 3s forwards}
-.pfx-victory162 .pfx-crack{animation:pfx-crackVictory162 3s forwards}
-.pfx-victory162 .pfx-flash{animation:pfx-flashVictory162 3s forwards}
-@keyframes pfx-water162{to{transform:translateY(7px) rotate(.8deg)}}
-@keyframes pfx-mist162{to{opacity:.37;transform:translateX(-10px)}}
-@keyframes pfx-whale162{to{transform:translateY(8px) rotate(-5deg)}}
-@keyframes pfx-spear162{0%,12%{transform:translate(-190px,29px) rotate(-8deg);opacity:0}17%{opacity:1}40%,100%{transform:translate(120px,-4px) rotate(-8deg);opacity:0}}
-@keyframes pfx-impact162{0%,35%{opacity:0;transform:translate(-50%,-50%) scale(0)}42%{opacity:1}65%,100%{opacity:0;transform:translate(-50%,-50%) scale(6)}}
-@keyframes pfx-sparks162{0%,36%{opacity:0;transform:scale(.2)}42%{opacity:1}67%,100%{opacity:0;transform:scale(2)}}
-@keyframes pfx-mouth162{0%,20%{transform:scale(.85)}62%{transform:scale(1.1)}100%{transform:scale(.95)}}
-@keyframes pfx-jawTop162{0%,44%{transform:translateY(0)}83%,100%{transform:translateY(58px)}}
-@keyframes pfx-jawBottom162{0%,44%{transform:scaleY(-1) translateY(0)}83%,100%{transform:scaleY(-1) translateY(58px)}}
-@keyframes pfx-swallow162{0%,20%{transform:translate(-50px,10px) scale(1);opacity:1}70%{opacity:1}100%{transform:translate(240px,-20px) scale(.02);opacity:0}}
-@keyframes pfx-sailSwallow162{0%,20%{transform:translate(-50px,10px) scale(1);opacity:1}100%{transform:translate(240px,-20px) scale(.02);opacity:0}}
-@keyframes pfx-dark162{0%,63%{box-shadow:inset 0 0 0 0 #03080a}100%{box-shadow:inset 0 0 0 180px #03080a}}
-@keyframes pfx-rib162{to{transform:scaleX(.94)}}
-@keyframes pfx-acidRise162{0%,100%{transform:translateY(10px)}44%,65%{transform:translateY(-28px)}}
-@keyframes pfx-acidCross162{0%{transform:translate(-75px,6px) rotate(-5deg)}45%{transform:translate(40px,0) rotate(8deg)}100%{transform:translate(255px,-9px) rotate(-4deg)}}
-@keyframes pfx-acidSail162{0%{transform:translate(-75px,6px) rotate(-5deg)}45%{transform:translate(40px,0) rotate(8deg)}100%{transform:translate(255px,-9px) rotate(-4deg)}}
-@keyframes pfx-bubbles162{0%{opacity:0;transform:translateY(0) scale(.4)}20%{opacity:.8}100%{opacity:0;transform:translate(10px,-115px) scale(1.8)}}
-@keyframes pfx-vein162{0%,100%{filter:brightness(.8)}52%{filter:brightness(1.8)}}
-@keyframes pfx-beat162{0%,100%{transform:scale(.93)}20%{transform:scale(1.07)}35%{transform:scale(.98)}49%{transform:scale(1.12)}}
-@keyframes pfx-scan162{0%{transform:translateX(0) skewX(-24deg)}72%,100%{transform:translateX(270%) skewX(-24deg)}}
-@keyframes pfx-dot162{50%{opacity:.4;transform:scale(1.7)}}
-@keyframes pfx-rings162{50%{transform:translate(-50%,-50%) scale(1.08);opacity:.7}}
-@keyframes pfx-heart162{0%,100%{transform:translate(-50%,-39%) rotate(-45deg) scale(.87)}22%{transform:translate(-50%,-39%) rotate(-45deg) scale(1.05)}42%{transform:translate(-50%,-39%) rotate(-45deg) scale(.95)}57%{transform:translate(-50%,-39%) rotate(-45deg) scale(1.14)}}
-@keyframes pfx-finisher162{0%,31%{transform:translate(-190px,50px) rotate(-12deg);opacity:0}38%{opacity:1}62%,100%{transform:translate(80px,-6px) rotate(-12deg);opacity:0}}
-@keyframes pfx-crack162{0%,46%{transform:rotate(33deg) scaleY(0);opacity:0}59%,68%{transform:rotate(33deg) scaleY(1);opacity:1}100%{opacity:0}}
-@keyframes pfx-flash162{0%,55%,100%{opacity:0}61%{opacity:.86}68%{opacity:0}}
-@keyframes pfx-heartVictory162{0%,40%{transform:translate(-50%,-39%) rotate(-45deg) scale(1)}60%{transform:translate(-50%,-39%) rotate(-45deg) scale(1.2)}100%{transform:translate(-50%,-39%) rotate(-45deg) scale(.1);opacity:0}}
-@keyframes pfx-finisherVictory162{0%,18%{transform:translate(-190px,50px) rotate(-12deg);opacity:0}35%{opacity:1}70%,100%{transform:translate(80px,-6px) rotate(-12deg);opacity:0}}
-@keyframes pfx-crackVictory162{0%,34%{transform:rotate(33deg) scaleY(0);opacity:0}48%,70%{transform:rotate(33deg) scaleY(1);opacity:1}100%{opacity:0}}
-@keyframes pfx-flashVictory162{0%,45%,65%,100%{opacity:0}52%{opacity:.92}}
-@media (max-width:600px){.pfx-162{height:168px}.pfx-162 .pfx-ship{width:75px}.pfx-162 .pfx-sail{width:40px;height:48px;left:calc(16% + 30px);top:calc(57% - 47px)}.pfx-162 .pfx-caption{font-size:10px}}
-@media (prefers-reduced-motion:reduce){.pfx-162 *{animation:none!important;transition:none!important}.pfx-162 .pfx-spear{transform:translate(20px,0) rotate(-8deg);opacity:1}.pfx-162 .pfx-crack{transform:rotate(33deg) scaleY(1);opacity:1}.pfx-162 .pfx-iris{box-shadow:none}}
-
-
+body{background:radial-gradient(ellipse at 45% 0%,#263941,#0c141e 49%,#080b13 100%);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#e7eef0;line-height:1.65;margin:0}
+main{max-width:1110px;margin:auto;padding:36px 18px 72px}
+h1{font-size:29px;letter-spacing:-.04em;margin:6px 0 8px}
+p{margin:5px 0 15px}.eyebrow{font-size:12px;letter-spacing:.18em;color:#afced0}
+.subtitle{color:#b4c1ca;font-size:14px}
+.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:23px 0 12px}
+button{font:inherit;cursor:pointer;font-size:13px;line-height:1.5;background:#172730;color:#bbcfd6;padding:12px;border:1px solid #3e5560;border-radius:10px}
+button:hover{background:#28414e}
+button:focus-visible{outline:3px solid #a0d3dd;outline-offset:2px}
+.tabs button[aria-pressed="true"]{color:#faffff;background:#2b5664;border-color:#9bd0d6;box-shadow:inset 0 -3px #80b7bc}
+.tabs button[aria-pressed="false"]{opacity:.85}
+.viewer{background:linear-gradient(120deg,#192832,#152029);border:1px solid #455b65;border-radius:17px;padding:19px;box-shadow:0 24px 70px #0005}
+#stage .pallid-cine-v2{margin:0;height:clamp(270px,47vw,485px);border-color:#79939b}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:13px;margin-top:15px;flex-wrap:wrap}
+.meta h2{font-size:19px;letter-spacing:-.03em;margin:0 0 2px}
+.meta p{font-size:13px;color:#a4bbc1;margin:0}
+.actions{display:flex;gap:7px}
+.actions button{padding:9px 14px;white-space:nowrap}
+.actions .primary{background:#315f6d;color:white;border-color:#78abb5}
+.help{margin-top:16px;font-size:12px;color:#90a8b3}
+.load-error{padding:20px;color:#ffcbc4;background:#421c24;border:1px solid #a94d57;border-radius:12px}
+.stage-placeholder{display:flex;align-items:center;justify-content:center;min-height:330px;background:#101e29;color:#b1bdc4;border:1px dashed #617582;border-radius:10px}
+@media(max-width:650px){main{padding:21px 11px 50px}.tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.tabs button{padding:8px 5px;font-size:11px}.viewer{padding:10px}.actions button{font-size:12px}h1{font-size:23px}#stage .pallid-cine-v2{height:clamp(200px,60vw,275px)}}
+@media(prefers-reduced-motion:reduce){.help::after{content:" (기기 설정에 따라 움직임이 제한될 수 있습니다.)"}}
 </style>
 </head>
 <body>
-<main class="wrapper">
-<div class="eyebrow">대호수 · 애니메이션 시연</div>
-<h1>창백의 향유고래 사냥 이펙트</h1>
-<p class="desc">게임에 적용된 화면과 같은 애니메이션을 재생합니다. 각 장면을 선택하거나 다시 재생할 수 있습니다. 외부 영상 없이 스타일시트만으로 그려낸 연출입니다.</p>
-<nav class="controls" aria-label="장면 선택">
-<button type="button" data-scene="harpoon" class="active">작살 공격</button>
-<button type="button" data-scene="ingest">위장 진입</button>
-<button type="button" data-scene="acid">위산 통과</button>
-<button type="button" data-scene="search">심장 탐색</button>
-<button type="button" data-scene="final">최종 전투</button>
+<main>
+<div class="eyebrow">대호수 · 창백의 향유고래 · CSS 시네마틱</div>
+<h1>사냥 이펙트 실시간 미리보기</h1>
+<p class="subtitle">다섯 장면을 직접 선택하고, 멈추거나 다시 재생할 수 있습니다. 애니메이션은 벡터 그림과 스타일시트만으로 구현했습니다.</p>
+<nav class="tabs" id="scene-tabs" aria-label="장면 선택">
+<button type="button" data-scene="harpoon" aria-pressed="true">작살 공격</button>
+<button type="button" data-scene="ingest" aria-pressed="false">위장 진입</button>
+<button type="button" data-scene="acid" aria-pressed="false">위산 통과</button>
+<button type="button" data-scene="search" aria-pressed="false">심장 탐색</button>
+<button type="button" data-scene="final" aria-pressed="false">최종 전투</button>
+<button type="button" data-scene="victory" aria-pressed="false">심장 파괴</button>
 </nav>
-<section class="effect-card">
-<div id="effect-stage" aria-live="polite"></div>
-<div class="meta"><div><h2 id="scene-title"></h2><p id="scene-desc"></p></div><button type="button" class="replay" id="replay">처음부터 재생</button></div>
+<section class="viewer" aria-label="이펙트 영상">
+<div id="stage" aria-live="off"><div class="stage-placeholder">애니메이션을 불러오는 중입니다.</div></div>
+<div class="controls">
+<div class="meta"><h2 id="scene-title">작살 공격</h2><p id="scene-desc">작살이 고래의 외피에 닿습니다.</p></div>
+<div class="actions">
+<button class="primary" id="replay" type="button">처음부터 재생 ↻</button>
+<button id="pause" type="button" aria-pressed="false">일시 정지</button>
+</div>
+</div>
 </section>
-<p class="note">심장 파괴는 최종 전투에서 유효 타격 세 번을 성공하면 실제 게임에서 추가 연출됩니다. 움직임 최소화 설정을 사용 중이면 애니메이션은 정지 화면으로 표시됩니다.</p>
+<p class="help">시연에서는 모든 장면이 반복 재생됩니다. 실제 게임에서는 해당 사건이나 전투에 도달했을 때 장면이 자동으로 나타납니다. 기기의 동작 최소화 설정이 켜져 있으면 움직임이 제한됩니다.</p>
 </main>
+<script src="./pallid-cinematic-v2.js?v=01513"></script>
 <script>
+(function(){
 'use strict';
-const esc=str=>String(str).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const PALLID_FX_LABELS162={
- harpoon:['작살 공격','차가운 금속이 창백한 외피를 향합니다.'],
- ingest:['위장 진입','입이 닫히고 배는 살아 있는 어둠으로 들어갑니다.'],
- acid:['위산 통과','분출이 잦아든 잠깐 사이 배가 통로를 건넙니다.'],
- search:['심장 탐색','두 종류의 박동 가운데 하나가 다른 곳에서 울립니다.'],
- final:['최종 전투','작살 끝이 심장 안쪽의 작은 심장을 향합니다.'],
- victory:['심장 파괴','작은 박동이 멎자 거대한 몸이 흔들립니다.']
-};
-
-function pallidFxMarkup162(which){
- const data=PALLID_FX_LABELS162[which];
- if(!data)return '';
- const ship='<span class="pfx-ship"></span><span class="pfx-sail"></span>';
- let objects='';
- if(which==='harpoon')objects='<span class="pfx-mist"></span><span class="pfx-whale"></span><span class="pfx-sea"></span>'+ship+
-  '<span class="pfx-spear"></span><span class="pfx-impact"></span><span class="pfx-particles"></span>';
- if(which==='ingest')objects='<span class="pfx-mouth"></span>'+ship+'<span class="pfx-jaw top"></span><span class="pfx-jaw bottom"></span><span class="pfx-iris"></span>';
- if(which==='acid')objects='<span class="pfx-rib"></span><span class="pfx-pool"></span>'+ship+'<span class="pfx-bubble"></span><span class="pfx-bubble b2"></span><span class="pfx-bubble b3"></span>';
- if(which==='search')objects='<span class="pfx-vessel"></span><span class="pfx-vessel v2"></span><span class="pfx-vessel v3"></span><span class="pfx-vessel v4"></span><span class="pfx-knot"></span><span class="pfx-scan"></span><span class="pfx-dot"></span>';
- if(which==='final'||which==='victory')objects='<span class="pfx-rings"></span><span class="pfx-heart"></span><span class="pfx-spear"></span><span class="pfx-crack"></span><span class="pfx-flash"></span>';
- return '<div class="pfx-162 pfx-'+which+'162" role="img" aria-label="'+esc(data[0]+': '+data[1])+'">'+
-  '<span class="pfx-kicker" aria-hidden="true">창백의 향유고래 · '+esc(data[0])+'</span>'+objects+
-  '<span class="pfx-grain"></span><span class="pfx-caption" aria-hidden="true">'+esc(data[1])+'</span></div>';
+var lib=window.PallidCinematicV2;
+var stage=document.getElementById('stage');
+var title=document.getElementById('scene-title');
+var desc=document.getElementById('scene-desc');
+var pause=document.getElementById('pause');
+var playing=true;
+var active='harpoon';
+function display(name){
+ if(!lib||!lib.names[name])return;
+ active=name;
+ stage.innerHTML=lib.html(name);
+ // DOM 교체는 모든 CSS 키프레임을 처음부터 다시 시작시키므로 재생 동작을 보장합니다.
+ stage.querySelector('.pallid-cine-v2').style.animationPlayState='running';
+ stage.classList.toggle('is-paused',!playing);
+ stage.style.setProperty('--preview-animation-state',playing?'running':'paused');
+ title.textContent=lib.names[name][0];
+ desc.textContent=lib.names[name][1];
+ document.querySelectorAll('#scene-tabs [data-scene]').forEach(function(b){
+  b.setAttribute('aria-pressed',String(b.getAttribute('data-scene')===name));
+ });
 }
-
-let selected='harpoon';
-function display(which){
- if(!PALLID_FX_LABELS162[which])return;
- selected=which;
- document.querySelectorAll('[data-scene]').forEach(b=>{b.classList.toggle('active',b.dataset.scene===which);b.setAttribute('aria-pressed',b.dataset.scene===which?'true':'false')});
- document.getElementById('effect-stage').innerHTML=pallidFxMarkup162(which);
- document.getElementById('scene-title').textContent=PALLID_FX_LABELS162[which][0];
- document.getElementById('scene-desc').textContent=PALLID_FX_LABELS162[which][1];
-}
-document.querySelector('.controls').addEventListener('click',e=>{const b=e.target.closest('[data-scene]');if(b)display(b.dataset.scene)});
-document.getElementById('replay').addEventListener('click',()=>display(selected));
-display('harpoon');
+document.getElementById('scene-tabs').addEventListener('click',function(event){
+ var button=event.target.closest('button[data-scene]');
+ if(button)display(button.getAttribute('data-scene'));
+});
+document.getElementById('replay').addEventListener('click',function(){playing=true;pause.textContent='일시 정지';pause.setAttribute('aria-pressed','false');display(active)});
+pause.addEventListener('click',function(){
+ playing=!playing;
+ stage.classList.toggle('is-paused',!playing);
+ stage.style.setProperty('--preview-animation-state',playing?'running':'paused');
+ pause.textContent=playing?'일시 정지':'계속 재생';
+ pause.setAttribute('aria-pressed',String(!playing));
+});
+if(!lib){
+ stage.innerHTML='<div class="load-error">애니메이션 파일을 불러오지 못했습니다. 페이지를 새로고침해 주세요.</div>';
+}else display(active);
+})();
 </script>
-</body></html>
+<style>#stage.is-paused .pallid-cine-v2 svg *,#stage.is-paused .pallid-cine-v2 svg {animation-play-state:paused!important}</style>
+</body>
+</html>
