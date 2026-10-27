@@ -204,7 +204,7 @@ const MATERIALS=[
 ];
 const ZONES=COLOR_GROUPS;
 /* 번호는 출항마다 바뀌지 않습니다. 17·39호는 요청한 두 붉은 호수로 고정합니다. */
-const fixedLakeEntries={17:{hue:0,material:0},39:{hue:0,material:1}};
+const fixedLakeEntries={17:{hue:0,material:0},39:{hue:0,material:1},40:{hue:6,material:9}};
 const entries=[];
 for(let hue=0;hue<COLOR_GROUPS.length;hue++)for(let material=0;material<MATERIALS.length;material++){
  if(hue===0&&(material===0||material===1))continue;
