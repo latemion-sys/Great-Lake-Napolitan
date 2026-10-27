@@ -2320,6 +2320,241 @@ if(state.equippedTitle==='whale3')state.equippedTitle='';
 delete HIGH_REQUIREMENTS152.whale3;
 save();
 
+
+/* V.0.1.5.11: 창백의 향유고래 사냥 기믹
+   외피를 때려서는 처치할 수 없고, 삼켜진 뒤 내부의 두 번째 심장을 적출해야만 사냥이 성립한다.
+   나머지 네 재앙의 전투는 기존 방식 그대로 유지한다. */
+const PALLID_SCENE_161='pallidHunt161';
+const PALLID_BATTLES_161=new Set(['pallidShell161','pallidLure161','pallidMermaid161','pallidCore161']);
+function pallidNeeds161(){
+ const missing=[];
+ if(state.grade<4)missing.push('선장 4등급');
+ if((state.shipGrade||1)<4)missing.push('선박 4등급');
+ if(state.crew.length<5)missing.push('승선 5명');
+ if(!state.crew.some(c=>c.role==='harpoon'))missing.push('작살잡이');
+ if(!state.crew.some(c=>c.role==='navigator'))missing.push('1등 항해사');
+ if(state.hull<70)missing.push('선체 내구도 70');
+ if(state.mind<60)missing.push('정신 상태 60');
+ return missing;
+}
+const beforePallidHunt161=huntWhale;
+huntWhale=function(){
+ if(state.scene!=='encounter'||state.encounter!==0)return beforePallidHunt161();
+ const missing=pallidNeeds161();
+ state.encounter=null;
+ state.pallidHunt161={phase:'approach',ready:missing.length===0,missing,wound:false};
+ state.scene=PALLID_SCENE_161;
+ log('창백의 향유고래 앞에서 사냥 방법을 결정합니다.');
+ sync();
+};
+function pallidStartBattle161(type,name,power,need){
+ if(!state.pallidHunt161||state.current==null||!state.sea)return;
+ beginBattle({type,index:0,name,power,need,won:0,history:[],after:'whale'});
+}
+function pallidExit161(){
+ const hunt=state.pallidHunt161;
+ if(!hunt||!state.sea)return;
+ if(Math.random()<.64){
+  const marked=!!hunt.wound;
+  state.battle=null;state.pallidHunt161=null;
+  state.encounter=null;
+  log('창백한 고래에게서 가까스로 벗어났습니다.');
+  if(marked && meetsExtraRequirement152('whale1'))award('whale1');
+  afterWhale(0);
+ }else{
+  takeDamage(15,8);addPallor155(12);
+  log('고래가 선박을 뒤흔들어 탈출에 실패했습니다.');
+  if(!safeCheck())return;
+  if(state.scene==='battle')state.battle=null;
+  state.scene=PALLID_SCENE_161;
+  sync();
+ }
+}
+function pallidAction161(act){
+ const hunt=state.pallidHunt161;
+ if(state.scene!==PALLID_SCENE_161||!hunt)return;
+ if(act==='pallidRetreat161'){
+  if(['approach','mouth','wound'].includes(hunt.phase))pallidExit161();
+  return;
+ }
+ if(act==='pallidStrike161'&&hunt.phase==='approach'){
+  pallidStartBattle161('pallidShell161','창백의 향유고래 · 외피',500,1);return;
+ }
+ if(act==='pallidLure161'&&hunt.phase==='approach'&&hunt.ready){
+  pallidStartBattle161('pallidLure161','창백의 향유고래 · 입을 벌리게 할 작살',210,1);return;
+ }
+ if(act==='pallidEnter161'&&hunt.phase==='mouth'&&hunt.ready){
+  takeDamage(12,7);addPallor155(16);
+  if(!safeCheck())return;
+  hunt.phase='stomach';
+  log('배와 선원들이 통째로 삼켜졌습니다. 돌아갈 수 있는 입구는 닫혔습니다.');
+  sync();return;
+ }
+ if(act==='pallidAcidEarly161'&&hunt.phase==='stomach'){
+  takeDamage(22,10);addPallor155(12);
+  log('위산 분출 직전에 나아갔습니다. 선체와 선원들의 피부가 타들어 갑니다.');
+  if(safeCheck())sync();
+  return;
+ }
+ if(act==='pallidAcidWait161'&&hunt.phase==='stomach'){
+  hunt.phase='mermaids';
+  log('위산이 빠져나간 틈을 이용해 위장을 빠져나왔습니다.');
+  sync();return;
+ }
+ if(act==='pallidMermaids161'&&hunt.phase==='mermaids'){
+  pallidStartBattle161('pallidMermaid161','창백한 인어 무리',185,2);return;
+ }
+ if(act==='pallidVesselWrong161'&&hunt.phase==='vessels'){
+  takeDamage(0,10);addPallor155(12);
+  log('굵은 혈관의 끝에는 심장이 없었습니다. 창백한 조직이 목덜미로 번집니다.');
+  if(safeCheck())sync();
+  return;
+ }
+ if(act==='pallidVesselRight161'&&hunt.phase==='vessels'){
+  hunt.phase='heart';
+  log('좌우 심실이 맞닿은 곳에서 또 다른 박동이 느껴집니다.');
+  sync();return;
+ }
+ if(act==='pallidHeart161'&&hunt.phase==='heart'){
+  pallidStartBattle161('pallidCore161','창백의 향유고래 · 심장 속 심장',220,3);
+ }
+}
+const beforePallidCoin161=resolveCoin;
+resolveCoin=function(win){
+ const b=state.battle;
+ if(!b||!PALLID_BATTLES_161.has(b.type))return beforePallidCoin161(win);
+ const hunt=state.pallidHunt161;
+ if(!hunt||!state.sea||state.current==null){state.battle=null;state.scene='route';sync();return;}
+ // 마지막 심장 타격은 기존 고래 처치 처리로 넘겨 전리품·업적·한 목숨 사냥 현황을 보존한다.
+ if(b.type==='pallidCore161'&&win&&b.won+1>=b.need){
+  b.type='whale';state.pallidHunt161=null;
+  log('심장 안에서 다시 뛰던 작은 심장이 작살에 꿰뚫렸습니다.');
+  return beforePallidCoin161(true);
+ }
+ const progress=medalProgress152();
+ progress.streak=win?progress.streak+1:0;
+ b.history.push(win?'앞면 · 유효 타격':'뒷면 · 고래의 반격');
+ state.lastCoin=win?'앞면 · 성공':'뒷면 · 실패';
+ if(win){
+  b.won++;
+  log(b.name+'에 유효 타격 성공 ('+b.won+'/'+b.need+').');
+ }else{
+  const effect={
+   pallidShell161:[20,12,20],
+   pallidLure161:[12,8,14],
+   pallidMermaid161:[0,10,13],
+   pallidCore161:[0,12,14]
+  }[b.type];
+  takeDamage(effect[0],effect[1]);addPallor155(effect[2]);
+  if(b.type==='pallidMermaid161'&&state.crew.length){
+   const c=state.crew[rng(state.crew.length)];
+   c.condition=Math.min(3,c.condition+1);
+  }
+  log('창백한 조직이 몸과 배를 침식합니다.');
+  if(!safeCheck())return;
+ }
+ if(b.won>=b.need){
+  progress.battleWins=(progress.battleWins||0)+1;
+  if(b.type==='pallidShell161'){hunt.wound=true;hunt.phase='wound';}
+  if(b.type==='pallidLure161')hunt.phase='mouth';
+  if(b.type==='pallidMermaid161')hunt.phase='vessels';
+  state.battle=null;
+  state.scene=PALLID_SCENE_161;
+ }
+ sync();
+};
+const beforePallidFlee161=fleeBattle;
+fleeBattle=function(){
+ if(!state.battle||!PALLID_BATTLES_161.has(state.battle.type))return beforePallidFlee161();
+ if(state.battle.type==='pallidShell161'||state.battle.type==='pallidLure161')pallidExit161();
+};
+function pallidStatus161(){
+ return tag('백화 위험 '+Math.round(state.pallor155||0)+'/100')+' '+tag('정신 '+state.mind+'/100')+' '+tag('선체 '+state.hull+'/100');
+}
+function pallidPanel161(title,text,options){
+ return '<div class="inset warning"><div class="small">재앙의 고래 · 창백의 향유고래</div><h2>'+esc(title)+'</h2>'+
+  '<p>'+esc(text)+'</p><p>'+pallidStatus161()+'</p><div class="stack" style="margin-top:14px">'+
+  options.map(o=>button(o[0],o[1],'',o[2]||'')).join('')+'</div></div>';
+}
+function pallidStory161(){
+ const h=state.pallidHunt161;
+ if(!h)return '<div class="inset warning">사냥 상태를 찾을 수 없습니다.</div>';
+ if(h.phase==='approach'){
+  const ready=h.ready;
+  const detail=ready
+   ?'고래의 외피에는 헤아릴 수 없는 작살이 박혀 있지만, 몸통은 아직도 멀쩡합니다. 1등 항해사가 말합니다. “밖에서 죽이는 건 불가능할 겁니다. 입을 벌리게 해야 합니다.”'
+   :'눈앞의 고래를 쓰러뜨리기에는 준비가 부족합니다. 현 상태에서는 외피에 상처를 남기고 달아나는 것조차 목숨을 걸어야 합니다.';
+  const options=ready?[['아물지 않은 상처에 작살을 겨눈다','pallidLure161','primary']]:[];
+  options.push(['외피에 작살을 꽂고 물러날 기회를 노린다','pallidStrike161']);
+  options.push(['사냥을 포기하고 도주한다','pallidRetreat161']);
+  return pallidPanel161('눈앞의 하얀 거체',detail,options);
+ }
+ if(h.phase==='wound')return pallidPanel161('사라지는 상처',
+  '작살이 피부에 박혔지만 깊이 들어가지 못합니다. 고래가 몸을 뒤틀자 벌어진 상처가 창백한 살점에 덮입니다. 그나마 눈길을 돌린 지금이 도망칠 기회입니다.',
+  [['고래의 시야에서 벗어난다','pallidRetreat161','primary']]);
+ if(h.phase==='mouth')return pallidPanel161('벌어진 입',
+  '작살이 닿은 자리에서 거대한 입이 벌어집니다. 1등 항해사는 배를 안쪽으로 돌립니다. 밖에서는 죽일 수 없습니다. 이제 배를 통째로 삼켜지게 할지 결정해야 합니다.',
+  [['벌어진 입으로 배를 돌진시킨다','pallidEnter161','primary'],['마지막 순간에 뱃머리를 돌려 달아난다','pallidRetreat161']]);
+ if(h.phase==='stomach')return pallidPanel161('위장 · 주기적인 분출',
+  '선체가 살아 있는 벽 사이에 걸렸습니다. 바닥에 고여 있던 산성액이 일정한 간격으로 거세게 솟았다 가라앉습니다. 분출이 멎으면 한동안 통로가 드러납니다.',
+  [['산성액이 빠져나간 직후 통로로 전진한다','pallidAcidWait161','primary'],['분출이 시작되기 전에 통로를 먼저 돌파한다','pallidAcidEarly161']]);
+ if(h.phase==='mermaids')return pallidPanel161('창백해진 것들',
+  '고래의 기관을 따라 움직이던 사람들과 인어가 한꺼번에 고개를 듭니다. 뭉개진 목소리가 같은 소리를 되풀이합니다. 그 뒤에서 커다란 심장 소리가 울려 옵니다.',
+  [['창백한 인어 무리를 상대한다','pallidMermaids161','primary']]);
+ if(h.phase==='vessels')return pallidPanel161('심장으로 가는 길',
+  '좌우로 갈라지는 혈관 끝에서 두 종류의 박동이 들립니다. 하나는 거대한 심장의 수축과 동시에 울리고, 다른 하나는 그 수축이 끝난 뒤에야 짧게 뜁니다.',
+  [['가장 굵은 혈관을 따라 올라간다','pallidVesselWrong161'],['좌우 심실이 맞닿은 중심부를 향한다','pallidVesselRight161','primary']]);
+ if(h.phase==='heart')return pallidPanel161('심장 속의 심장',
+  '거대한 심장벽 안쪽에 훨씬 작은 살덩이가 있습니다. 바깥의 심장이 멎는 순간에도 이것은 혼자 뜁니다. 작살잡이가 무기를 들어 올립니다. 창백한 고래를 죽일 수 있는 마지막 기회입니다.',
+  [['심장 속의 심장에 작살을 박는다','pallidHeart161','primary']]);
+ return '<div class="inset warning">현재 사냥 상태를 확인할 수 없습니다.</div>';
+}
+function pallidBattlePanel161(b){
+ const outside=b.type==='pallidShell161'||b.type==='pallidLure161';
+ return '<div class="inset warning"><div class="small">창백의 향유고래 · 특수 전투</div><h2>'+esc(b.name)+'</h2>'+
+  '<p>'+pallidStatus161()+'</p><p class="muted">재앙의 사냥 난이도는 측정할 수 없습니다.</p>'+
+  '<p>유효 타격: <b>'+b.won+' / '+b.need+'</b></p>'+
+  '<div class="coinpanel" id="coinPanel"><div class="small">앞면: 타격 성공 · 뒷면: 백화 진행</div>'+
+  '<div class="coinstage"><div class="coin" id="coin"><div class="face">앞면</div><div class="face back">뒷면</div></div></div>'+
+  '<p id="coinText">'+esc(state.lastCoin||'동전을 던져 공격을 판정하십시오.')+'</p>'+
+  button('동전 던지기','coin','','primary')+'</div>'+
+  (outside?'<div class="stack" style="margin-top:12px">'+button('전투를 포기하고 도주한다','flee')+'</div>':
+   '<p class="muted">이미 고래 안쪽에 들어왔습니다. 끝까지 싸우거나 이곳에서 죽어야 합니다.</p>')+
+  '<div class="log">'+esc(b.history.slice(-6).join('\n'))+'</div></div>';
+}
+const beforePallidRender161=renderPlay;
+renderPlay=function(){
+ if(state.scene==='encounter'&&state.encounter===0){
+  return pallidPanel161('창백의 향유고래',
+   '수평선을 가득 가린 흰 몸통이 배 앞에 멈춰 섭니다. 외피에 박힌 쇠붙이가 잔뜩 흔들립니다. 창백한 조직이 갑판을 타고 기어올라옵니다.',
+   [['즉시 도주한다','escapeWhale','primary'],['고래를 사냥하겠다','huntWhale','danger']]);
+ }
+ if(state.scene===PALLID_SCENE_161)return pallidStory161();
+ if(state.scene==='battle'&&state.battle&&PALLID_BATTLES_161.has(state.battle.type))
+  return pallidBattlePanel161(state.battle);
+ return beforePallidRender161();
+};
+document.addEventListener('click',e=>{
+ const b=e.target?.closest?.('button[data-act]');
+ if(!b||b.disabled||busy)return;
+ if(/^pallid(?:Strike|Lure|Enter|AcidEarly|AcidWait|Mermaids|VesselWrong|VesselRight|Heart|Retreat)161$/.test(b.dataset.act)){
+  pallidAction161(b.dataset.act);
+ }
+});
+if(state.scene===PALLID_SCENE_161&&!state.pallidHunt161){
+ state.scene=state.sea&&state.current!=null?'event':'port';
+}
+const beforePallidChangelog161=renderPlay;
+renderPlay=function(){
+ const page=beforePallidChangelog161();
+ if(state.scene!=='start')return page;
+ return page.replace('V.0.1.5.10 · 기적 업적 정리','V.0.1.5.11 · 창백한 고래 사냥 조건')
+  .replace('세 재앙 누적 사냥 업적을 제거했습니다.','창백의 향유고래의 외부 처치가 불가능하도록 변경했습니다.')
+  .replace('기적 등급은 재앙별 사냥 업적 5개로 구성됩니다.','고래에게 삼켜진 뒤 내부 심장을 공격하는 특수 사냥을 추가했습니다.')
+  .replace('재앙별 사냥, 신화 및 유일 업적의 조건은 유지됩니다.','재앙별 기적 업적과 유일 업적의 달성 내역은 유지됩니다.');
+};
+
+
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
 </script>
