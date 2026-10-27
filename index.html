@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.5.9</title>
+<title>대호수: The Great Lake | v0.1.5.10</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -151,7 +151,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 </div>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.9</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.10</div>
  <h1>대호수: The Great Lake</h1>
  <p class="muted">규칙을 듣고, 선원을 지키며, 15개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
@@ -251,7 +251,6 @@ const ACH=[
  {id:'lake50',tier:'legend',name:'끝없는 수역의 항해자',desc:'호수를 누적 50회 통과한다.'},
  {id:'rank5',tier:'legend',name:'다섯 번째 등급',desc:'5등급 선장이 된다.'},
  {id:'whale1',tier:'legend',name:'흉터를 남긴 퇴각',desc:'재앙의 고래에게 한 번 이상 유효 타격을 가한 뒤 전투에서 살아 도주한다.'},
- {id:'whale3',tier:'myth',name:'세 재앙을 사냥한 자',desc:'한 목숨 동안 서로 다른 재앙의 고래 세 마리를 사냥한다.'},
  {id:'survive3',tier:'miracle',name:'기적적인 생환',desc:'호수 침식도 88 이상으로 항구에 무사히 귀환한다.'},
  {id:'all5',tier:'unique',name:'쪽빛노인',desc:'한 목숨 동안 다섯 재앙의 고래를 모두 사냥한다.'}
 ];
@@ -381,7 +380,7 @@ const pct=n=>Math.round(n*100)+'%';
 function save(){try{permanentAchievements=[...new Set([...permanentAchievements,...state.achievements])];localStorage.setItem(ACH_SAVE_KEY,JSON.stringify(permanentAchievements));localStorage.setItem(SAVE_KEY,JSON.stringify({version:3,state}));}catch(e){console.warn('저장 실패',e);}}
 function log(msg){state.log.unshift(msg);state.log=state.log.slice(0,18);}
 function award(id){if(!state.achievements.includes(id)){state.achievements.push(id);const a=ACH.find(x=>x.id===id);if(a)log('업적 달성: '+a.name);}}
-function trophies(){if(state.voyage>0)award('launch');if(state.count.return>0)award('return');if(state.count.rumors>=3)award('rumor');if(state.count.lake>=5)award('lake5');if(state.grade>=3)award('rank3');if(state.grade>=5)award('rank5');if(state.count.special>0)award('special');if(huntedWhaleIndices143().length>=3)award('whale3');if(huntedWhaleIndices143().length===WHALES.length)award('all5');}
+function trophies(){if(state.voyage>0)award('launch');if(state.count.return>0)award('return');if(state.count.rumors>=3)award('rumor');if(state.count.lake>=5)award('lake5');if(state.grade>=3)award('rank3');if(state.grade>=5)award('rank5');if(state.count.special>0)award('special');if(huntedWhaleIndices143().length===WHALES.length)award('all5');}
 function setScene(s){state.scene=s;tab='play';sync();}
 function sync(){trophies();save();render();}
 function safeCheck(){if(state.hull<=0||state.mind<=0){die();return false;}return true;}
@@ -1009,7 +1008,7 @@ for(let i=ACH.length-1;i>=0;i--)if(ARCHIVED_LAKES.includes(ACH[i]))ACH.splice(i,
 for(const a of ACH){
  const match=/^lake_(\d+)$/.exec(a.id);
  if(match){const l=LAKE_BY_ID157.get(Number(match[1]));if(l)a.name=l.storyNo+' · '+l.name+' 통과';}
- if(['whale1','whale3'].includes(a.id)||/^whale_hunt_\d+$/.test(a.id))a.tier='miracle';
+ if(a.id==='whale1'||/^whale_hunt_\d+$/.test(a.id))a.tier='miracle';
 }
 /* 기존에 통과한 51~100번 호수 업적은 보관함의 과거 항로로 존치합니다. */
 LAKES.splice(ENABLED_LAKE_IDS157.length);RULES.splice(ENABLED_LAKE_IDS157.length);
@@ -1367,7 +1366,7 @@ renderHelp=function(){
 const previousStart143=renderPlay;
 renderPlay=function(){
  const html=previousStart143();
- if(state.scene==='start')return html+'<div class="log-update"><h3>업데이트 내역 · V.0.1.4.4</h3><ul><li>재앙의 고래는 현재 목숨 동안 사냥한 개체만 이후 출항에서 제외됩니다.</li><li>사망 후 재시작하면 다섯 재앙 모두 다시 무작위로 배치됩니다.</li><li>고래별 최초 사냥 업적은 유지되며, 세 재앙의 종언과 쪽빛노인은 한 목숨 내 처치 수로 판정합니다.</li></ul></div>';
+ if(state.scene==='start')return html+'<div class="log-update"><h3>업데이트 내역 · V.0.1.4.4</h3><ul><li>재앙의 고래는 현재 목숨 동안 사냥한 개체만 이후 출항에서 제외됩니다.</li><li>사망 후 재시작하면 다섯 재앙 모두 다시 무작위로 배치됩니다.</li><li>고래별 최초 사냥 업적은 유지되며, 쪽빛노인은 한 목숨 내 다섯 재앙 사냥으로 판정합니다.</li></ul></div>';
  return html;
 };
 reconcileWhalePlacement143();
@@ -1841,7 +1840,6 @@ hardMedal152('fresh_indigo_mist',{grade:4,ship:4,visited:6,mind:90,noDamage:true
 hardMedal152('fresh_sail_deep',{grade:5,ship:5,crew:6,mind:80,noCrewLost:true});
 hardMedal152('fresh_mermaid_flee',{grade:5,ship:5,mind:90,maxExposure:20,noDamage:true,crew:6});
 hardMedal152('whale1',{grade:4,ship:4,mind:75,maxExposure:40,streak:2,crew:4,noCrewLost:true});
-hardMedal152('whale3',{grade:4,ship:4,mind:65,crew:4,noCrewLost:true});
 hardMedal152('survive3',{grade:5,ship:5,visited:20,crew:6,mind:50,noCrewLost:true});
 hardMedal152('miracle_extra_0',{grade:5,ship:5,visited:20,crew:7,mind:90,noDamage:true,noCrewLost:true});
 hardMedal152('miracle_extra_1',{grade:5,ship:5,visited:20,crew:10,mind:80,noDamage:true,noCrewLost:true});
@@ -1942,7 +1940,7 @@ function earnedSinceReset153(id){
  if(id==='special')return (c.special||0)>b.special;
  if(id==='rank3')return b.grade<3&&state.grade>=3;
  if(id==='rank5')return b.grade<5&&state.grade>=5;
- if(id==='whale3'||id==='all5')return b.whaleKilled.length===0;
+ if(id==='all5')return b.whaleKilled.length===0;
  const a=ACH.find(x=>x.id===id);
  if(!a?.check)return true;
  const {kind,n}=a.check;
@@ -2085,10 +2083,10 @@ renderPlay=function(){
  const page=previousTestPlay154();
  if(state.scene!=='start')return page;
  const clean=page.replace(/<div class="log-update">[\s\S]*?<\/div>/g,'');
- return clean+'<div class="log-update"><h3>V.0.1.5.9 · 업적 등급 조정</h3><ul>'+
- '<li>「세 재앙의 종언」을 「세 재앙을 사냥한 자」로 변경했습니다.</li>'+
- '<li>기적에는 세 재앙 사냥과 재앙별 사냥 업적만 남깁니다.</li>'+
- '<li>나머지 기적 업적은 신화 등급으로 이동합니다. 달성 내역은 유지됩니다.</li></ul></div>';
+ return clean+'<div class="log-update"><h3>V.0.1.5.10 · 기적 업적 정리</h3><ul>'+
+ '<li>세 재앙 누적 사냥 업적을 제거했습니다.</li>'+
+ '<li>기적 등급은 재앙별 사냥 업적 5개로 구성됩니다.</li>'+
+ '<li>재앙별 사냥, 신화 및 유일 업적의 조건은 유지됩니다.</li></ul></div>';
 };
 renderHelp=function(){
  return '<div class="inset"><h2>항해 안내 · v0.1.5.8</h2>'+
@@ -2310,13 +2308,17 @@ try{localStorage.setItem(CAREER_PASSES_KEY157,String(careerPasses157));}catch(e)
 save();
 
 
-/* V.0.1.5.9: 기적에는 세 재앙 및 개별 재앙 사냥 업적만 남깁니다.
-   기존 업적 ID와 달성 기준, 획득 내역은 그대로 유지합니다. */
-const MIRACLE_PRESERVE_159=new Set(['whale3',...WHALES.map((_,i)=>'whale_hunt_'+i)]);
+/* V.0.1.5.10: 재앙별 사냥 다섯 개만 기적 등급에 유지합니다. */
+const MIRACLE_PRESERVE_159=new Set(WHALES.map((_,i)=>'whale_hunt_'+i));
 for(const medal of ACH){
- if(medal.id==='whale3')medal.name='세 재앙을 사냥한 자';
  if(medal.tier==='miracle'&&!MIRACLE_PRESERVE_159.has(medal.id))medal.tier='myth';
 }
+// 이전 버전에서 달성한 폐지 업적은 다른 업적에 영향을 주지 않고 정리합니다.
+state.achievements=(state.achievements||[]).filter(id=>id!=='whale3');
+permanentAchievements=permanentAchievements.filter(id=>id!=='whale3');
+if(state.equippedTitle==='whale3')state.equippedTitle='';
+delete HIGH_REQUIREMENTS152.whale3;
+save();
 
 if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
 
