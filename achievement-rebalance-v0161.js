@@ -296,7 +296,7 @@
   const previous=state.voyage||0;
   const answer=oldLaunch();
   if((state.voyage||0)>previous){
-   high('voyages',state.voyage);
+   incr('voyages');
    evaluate('voyageStart');
   }
   return answer;
