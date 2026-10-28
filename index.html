@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.5.13</title>
+<title>대호수: The Great Lake | v0.1.6.0</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -262,7 +262,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <script>
 'use strict';
 /* 대호수: The Great Lake v0.1.1 · 색상 규칙 개편 색상 규칙 개편. 10개 색상군 × 10개 색상 질감. */
-const GRADE_CAP=[0,1,3,5,7,10], LAKE_CAP=[0,4,8,12,15,15];
+const GRADE_CAP=[0,1,3,5,7,10], LAKE_CAP=[0,4,8,12,16,20];
 const RANK_XP=[0,0,4,10,20,36],RANK_COST=[0,0,85,175,285,420];
 const ROLE={lower:{name:'하급 선원',power:9,cost:32,grade:1},middle:{name:'중급 선원',power:15,cost:55,grade:2},upper:{name:'상급 선원',power:23,cost:85,grade:3},harpoon:{name:'작살잡이',power:31,cost:105,grade:3},navigator:{name:'1등 항해사',power:25,cost:120,grade:3}};
 const CONDITIONS=['좋음','보통','나쁨','최악'];
@@ -302,7 +302,7 @@ for(let hue=0;hue<COLOR_GROUPS.length;hue++)for(let material=0;material<MATERIAL
 let stableSeed=0x51adbef1;
 function stableRandom(){stableSeed=(Math.imul(stableSeed,1664525)+1013904223)>>>0;return stableSeed/4294967296;}
 for(let i=entries.length-1;i>0;i--){let j=Math.floor(stableRandom()*(i+1));[entries[i],entries[j]]=[entries[j],entries[i]];}
-const ENABLED_LAKE_IDS157=[1,2,3,4,5,6,7,8,9,10,11,12,13,17,40];
+const ENABLED_LAKE_IDS157=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,40];
 const LAKES=[], RULES=[];
 for(const id of ENABLED_LAKE_IDS157){
  const variant=fixedLakeEntries[id]||entries.shift();
@@ -2716,9 +2716,11 @@ resolveCoin=function(win){
  return result;
 };
 
-if(state.scene==='route'&&state.sea&&state.routeChoiceCount>0)autoLake0131();else render();
+/* 대본과 업적 확장 파일을 불러온 다음 최초 화면을 표시합니다. */
 
 </script>
+<script src="./lake-script-data-v016.js?v=0160" onerror="render()"></script>
+<script src="./lake-expansion-v016.js?v=0160" onerror="render()"></script>
 <script src="./pallid-cinematic-v2.js?v=01513"></script>
 </body>
 </html>
