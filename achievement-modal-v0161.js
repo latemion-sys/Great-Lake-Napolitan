@@ -18,12 +18,12 @@ let selected='common',mode='all',phrase='',visible=false,focusBefore=null;
 const owned=id=>state.achievements.includes(id);
 function card(a){
  const yes=owned(a.id);
- const hidden=!yes&&['hero','legend','myth'].includes(a.tier);
+ const hidden=!yes&&['legend','myth'].includes(a.tier);
  const shown=yes||['common','rare'].includes(a.tier);
  return '<article class="ach-modal-item-161 '+(yes?'earned':'locked')+(hidden?' secret':'')+'" data-tier="'+escapeText(a.tier)+'">'+
   '<div class="ach-topline-161"><span>'+label[a.tier]+'</span><span class="ach-tag-161">'+(yes?'✓ 달성':'미달성')+'</span></div>'+
   '<h3>'+escapeText(hidden?'???':a.name)+'</h3>'+
-  (shown&&a.desc?'<p>'+escapeText(a.desc)+'</p>':hidden?'<p>달성 후 공개됩니다.</p>':'')+'</article>';
+  (shown&&a.desc?'<p>'+escapeText(a.desc)+'</p>':hidden?'<p>달성 후 공개됩니다.</p>':!yes&&a.tier==='hero'?'<p>달성 조건은 비공개입니다.</p>':'')+'</article>';
 }
 function draw(keepScroll){
  if(!visible)return;
@@ -46,8 +46,9 @@ function draw(keepScroll){
   if(mode==='earned'&&!yes)return false;
   if(mode==='locked'&&yes)return false;
   if(!needle)return true;
-  if(!yes&&['hero','legend','myth'].includes(a.tier))return false;
-  return (a.name+' '+(a.desc||'')).toLocaleLowerCase('ko-KR').includes(needle);
+  if(!yes&&['legend','myth'].includes(a.tier))return false;
+  const searchable=yes||['common','rare'].includes(a.tier)?a.name+' '+(a.desc||''):a.name;
+  return searchable.toLocaleLowerCase('ko-KR').includes(needle);
  });
  filtered.sort((a,b)=>tiers.indexOf(a.tier)-tiers.indexOf(b.tier)||
   Number(owned(b.id))-Number(owned(a.id))||a.name.localeCompare(b.name,'ko'));
