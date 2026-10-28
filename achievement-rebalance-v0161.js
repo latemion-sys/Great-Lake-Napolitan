@@ -257,7 +257,10 @@
    if(info.type==='special'){incr('specialWins');}
    run.battles++;
   }
-  if(event==='battleEscape'){incr('battleEscapes');run.escapes++;}
+  if(event==='battleEscape'){
+   incr('battleEscapes');run.escapes++;
+   if(info.type==='whale'){incr('whaleEscapes');run.whaleEscapes++;}
+  }
   if(event==='whaleEscape'){incr('whaleEscapes');run.whaleEscapes++;}
   if(event==='gear')incr('gearBought');
   if(event==='recruit')incr('crewHires');
@@ -297,6 +300,20 @@
    evaluate('voyageStart');
   }
   return answer;
+ };
+ const oldReturnPort=returnPort;
+ returnPort=function(){
+  const before=state.count?.return||0;
+  const result=oldReturnPort();
+  if((state.count?.return||0)>before){incr('returns');evaluate('manualReturn');}
+  return result;
+ };
+ const oldPallidExit=pallidExit161;
+ pallidExit161=function(){
+  const existed=!!state.pallidHunt161;
+  const result=oldPallidExit();
+  if(existed&&!state.pallidHunt161&&state.scene!=='dead')dispatchAchievement142('whaleEscape',{type:'pallid'});
+  return result;
  };
  const oldRenderAchievements=renderAch;
  renderAch=function(){
