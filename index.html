@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.6.0</title>
+<title>대호수: The Great Lake | v0.1.6.1</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -221,8 +221,34 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 
 </style>
 <link rel="stylesheet" href="./pallid-cinematic-v2.css?v=01513">
+<link rel="stylesheet" href="./achievement-modal-v0161.css?v=0161">
 </head>
 <body>
+<div class="ach-modal-mask-161" id="achievementsOverlay161" hidden aria-hidden="true">
+ <section class="ach-modal-window-161" role="dialog" aria-modal="true" aria-labelledby="achievementsHeading161" tabindex="-1">
+  <button type="button" id="achievementsClose161" class="ach-modal-close-161" data-ach-close aria-label="업적 보관함 닫기" title="닫기">×</button>
+  <div class="ach-modal-heading-161">
+   <div class="topline">대호수 · 업적 보관함</div>
+   <h2 id="achievementsHeading161">항해의 증명</h2>
+   <p>이 항해에서 얻은 증표와 아직 밝혀지지 않은 목표. 달성 업적은 사망 후에도 남습니다.</p>
+   <div class="ach-progress-161">
+    <strong id="achievementsTotal161">0 / 0 달성</strong>
+    <div class="ach-progress-track-161" aria-label="업적 진행도"><span id="achievementsProgress161"></span></div>
+   </div>
+  </div>
+  <div class="ach-modal-toolbar-161">
+   <nav class="ach-modal-tiers-161" id="achievementsTiers161" aria-label="업적 등급 선택"></nav>
+   <div class="ach-modal-tools-161">
+    <input id="achievementsSearch161" type="search" placeholder="공개된 업적 검색" autocomplete="off" aria-label="업적 검색">
+    <div class="ach-state-161" id="achievementsFilters161" aria-label="달성 여부 필터"></div>
+   </div>
+  </div>
+  <div class="ach-modal-scroll-161" id="achievementsList161" tabindex="0">
+   <div id="achievementsListSummary161" class="ach-list-summary-161"></div>
+  </div>
+  <div class="ach-modal-footer-161"><span>영웅·전설·신화 업적은 달성하기 전까지 상세 조건을 알 수 없습니다.</span><span>ESC · 닫기</span></div>
+ </section>
+</div>
 <div class="prologue-overlay" id="prologueOverlay156" hidden aria-hidden="true">
   <section class="prologue-window" role="dialog" aria-modal="true" aria-labelledby="prologueHeading156" aria-describedby="prologueStory156" tabindex="-1">
     <button type="button" id="prologueClose156" class="prologue-dismiss" data-act="prologueDismiss156" aria-label="프롤로그 닫기" title="닫기">×</button>
@@ -240,9 +266,9 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 </div>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.5.10</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.6.1</div>
  <h1>대호수: The Great Lake</h1>
- <p class="muted">규칙을 듣고, 선원을 지키며, 15개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
+ <p class="muted">규칙을 듣고, 선원을 지키며, 20개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
 </header>
 <div class="layout">
@@ -253,7 +279,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
  <h3 style="margin-top:20px">최근 사건</h3><div class="inset log" id="logs"></div>
 </aside>
 <main class="panel">
- <div class="tabs"><button id="tab-play" class="active" data-act="tab" data-value="play">항해</button><button id="tab-crew" data-act="tab" data-value="crew">선원·승급</button><button id="tab-title" data-act="tab" data-value="title">칭호</button><button id="tab-shop" data-act="tab" data-value="shop">항구 상점</button><button id="tab-ach" data-act="tab" data-value="ach">업적</button><button id="tab-help" data-act="tab" data-value="help">도움말</button></div>
+ <div class="tabs"><button id="tab-play" class="active" data-act="tab" data-value="play">항해</button><button id="tab-crew" data-act="tab" data-value="crew">선원·승급</button><button id="tab-title" data-act="tab" data-value="title">칭호</button><button id="tab-shop" data-act="tab" data-value="shop">항구 상점</button><button id="tab-ach" data-act="achievementOpen161">업적</button><button id="tab-help" data-act="tab" data-value="help">도움말</button></div>
  <div id="content" aria-live="polite"></div>
 </main>
 </div>
@@ -2721,6 +2747,8 @@ resolveCoin=function(win){
 </script>
 <script src="./lake-script-data-v016.js?v=0160" onerror="render()"></script>
 <script src="./lake-expansion-v016.js?v=0160" onerror="render()"></script>
+<script src="./achievement-rebalance-v0161.js?v=0161"></script>
+<script src="./achievement-modal-v0161.js?v=0161"></script>
 <script src="./pallid-cinematic-v2.js?v=01513"></script>
 </body>
 </html>
