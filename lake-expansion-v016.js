@@ -23,6 +23,17 @@
   rules.truth=()=>hints[rng(hints.length)];
   rules.false=()=>wrongRumors[rng(wrongRumors.length)];
  }
+ // 원문 공통 지침: 통과 선택을 제외한 정답 경로는 3턴을 넘지 않아야 합니다.
+ // 체류 제한은 3~6턴으로 무작위 지정하되, 시작 장면은 3턴 이내에 통과 가능한 곳에서 고릅니다.
+ const oldStoryMaker016=makeStory014;
+ makeStory014=function(lake){
+  const def=SCRIPTED_LAKE_MAP_015.get(lake.id);
+  if(!def)return oldStoryMaker016(lake);
+  const cap=3+rng(4);
+  const choices=Object.keys(def.nodes).filter(step=>lakeMinimumActions015(def,step)<=3);
+  if(!choices.length)throw Error('정답 경로가 없는 호수: '+lake.id);
+  return{id:lake.id,scripted:true,step:choices[rng(choices.length)],turns:0,turnLimit:cap,result:''};
+ };
  // 과거 항해 중 저장된 기존 사건 단계가 원본의 단계 번호와 다르면
  // 해당 호수의 시작 장면을 현재 대본에 맞게 갱신합니다. 선원·자금·등급은 보존합니다.
  if(state.scene==='event'&&ids.has(state.current)){
