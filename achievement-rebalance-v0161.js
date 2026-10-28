@@ -22,11 +22,11 @@
   fresh_promote_2:'common',fresh_crew_rename:'common',
   extra_fishSold_0:'rare',extra_fishSold_2:'rare',
   extra_fishSold_3:'rare',extra_fishSold_4:'rare',extra_fishSold_5:'rare',
-  extra_oilCollected_5:'hero',extra_oilCollected_6:'hero',
+  extra_oilCollected_5:'hero',lake10:'common',extra_oilCollected_6:'hero',
   extra_oilCollected_7:'hero',extra_oilCollected_8:'hero',extra_oilCollected_9:'hero',
   extra_oilCollected_11:'rare',extra_oilCollected_14:'rare',
-  extra_oilCollected_15:'rare',extra_oilCollected_16:'hero',
-  extra_fishSold_11:'legend',fresh_sail_deep:'myth'
+  extra_oilCollected_15:'rare',extra_oilCollected_16:'hero',extra_oilCollected_13:'common',
+  extra_fishSold_11:'legend',extra_fishSold_13:'legend',fresh_sail_deep:'myth'
  };
  for(const a of ACH){
   if(NEW_TIER[a.id])a.tier=NEW_TIER[a.id];
@@ -183,8 +183,9 @@
  for(const [k,v] of Object.entries(initial))counters[k]=Math.max(Number(counters[k])||0,v);
  // 현재 생존 중인 항해의 실적은 전환 시점부터 집계합니다.
  let run={coinWins:0,coinFailures:0,normalWins:0,whaleKills:0,battles:0,escapes:0,whaleEscapes:0,crewLossAtStart:state.medalRun152?.crewLoss||0};
+ try{const old=JSON.parse(localStorage.getItem(METRICS_KEY));if(state.sea&&old?.voyage===state.voyage&&old?.run){run={...run,...old.run};}}catch(e){}
  function saveStats(){
-  try{localStorage.setItem(METRICS_KEY,JSON.stringify({counts:counters,uniqueLakes:[...uniqueSeen]}));}catch(e){}
+  try{localStorage.setItem(METRICS_KEY,JSON.stringify({counts:counters,uniqueLakes:[...uniqueSeen],voyage:state.voyage,run}));}catch(e){}
  }
  function incr(kind,num=1){counters[kind]=(Number(counters[kind])||0)+num;}
  function high(kind,n){counters[kind]=Math.max(Number(counters[kind])||0,n);}
@@ -276,7 +277,7 @@
    if(win){incr('coinWins');run.coinWins++;}
    else run.coinFailures++;
    if((state.whaleKilled?.length||0)>wasWhaleCount)run.whaleKills++;
-   evaluate('coin');
+   if(state.scene!=='dead')evaluate('coin');
   }
   return result;
  };
@@ -284,9 +285,18 @@
  prepareVoyage=function(){
   if(!state.sea)run={coinWins:0,coinFailures:0,normalWins:0,whaleKills:0,battles:0,escapes:0,whaleEscapes:0,crewLossAtStart:state.medalRun152?.crewLoss||0};
   const result=oldPrepare();
-  if(state.sea)incr('voyages');
-  evaluate('voyageStart');
+  evaluate('voyagePreparation');
   return result;
+ };
+ const oldLaunch=launch;
+ launch=function(){
+  const previous=state.voyage||0;
+  const answer=oldLaunch();
+  if((state.voyage||0)>previous){
+   high('voyages',state.voyage);
+   evaluate('voyageStart');
+  }
+  return answer;
  };
  const oldRenderAchievements=renderAch;
  renderAch=function(){
@@ -302,6 +312,8 @@
   high('coinStreak',state.medalRun152?.streak||0);
   for(const a of ACH)if(a.goal161?.kind==='metric')merit(a);
  };
+ const oldSave161=save;
+ save=function(){saveStats();return oldSave161();};
  // 기존 업적과 보존될 기적·유일 업적을 포함하여 실제 존재하는 항목만 저장합니다.
  const ids=new Set(ACH.map(a=>a.id));
  state.achievements=[...new Set(state.achievements.filter(id=>ids.has(id)))];
