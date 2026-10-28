@@ -57,3 +57,225 @@ body.ach-modal-open-161{overflow:hidden}
  .ach-modal-item-161{padding:10px 12px}.ach-modal-footer-161{padding:9px 12px}
 }
 @media(prefers-reduced-motion:reduce){.ach-progress-track-161 span{transition:none}}
+
+
+/* v0.1.6.2 · 기존 업적 뱃지 디자인 원형 복구. */
+/* 색 코드는 본 게임의 원본 업적 CSS에서 추출했습니다. */
+.ach-modal-item-161[data-tier="miracle"]{
+ border:2px solid transparent;
+ background:linear-gradient(#17212b,#17212b) padding-box,
+ conic-gradient(#e34f50,#fff,#4074ee,#fff,#e34f50) border-box;
+}
+.ach-modal-item-161[data-tier="miracle"].locked{opacity:.46}
+.ach-modal-item-161[data-tier="unique"].locked{opacity:.46}
+.ach-modal-item-161[data-tier="unique"]{
+ position:relative;isolation:isolate;overflow:hidden;
+ border:3px solid transparent;
+ border-radius:14px;
+ padding:13px 77px 13px 13px;
+ color:#d5e2df;
+ background:
+  radial-gradient(circle at 91% 14%,#69cdd128,transparent 42%) padding-box,
+  repeating-linear-gradient(153deg,transparent 0px,transparent 19px,#9faea508 20px,transparent 22px) padding-box,
+  linear-gradient(137deg,#121c21 0%,#213538 49%,#111e23 100%) padding-box,
+  linear-gradient(116deg,#1b373f 0%,#5a8283 14%,#c2c9bf 22%,#365962 36%,#79a9aa 54%,#162f35 73%,#81b6bc 90%,#29454e 100%) border-box;
+ box-shadow:
+  0 0 0 1px #13262e,
+  0 0 0 2px #547d764a,
+  0 6px 17px #03090dab,
+  0 0 14px #3b93962d,
+  inset 0 0 0 1px #87a6a15c,
+  inset 0 0 0 3px #0b171c94;
+}
+.ach-modal-item-161[data-tier="unique"] .ach-topline-161{
+ color:#98b7b5;
+ letter-spacing:.055em;
+ text-shadow:0 0 7px #63c4c444;
+}
+.ach-modal-item-161[data-tier="unique"] h3{
+ color:#d6e5e1;
+ text-shadow:0 0 8px #80c6c342;
+}
+.ach-modal-item-161[data-tier="unique"]::before{
+ content:"";pointer-events:none;position:absolute;
+ inset:5px;border-radius:9px;
+ border:1px solid #81988d52;
+ background:
+  radial-gradient(circle at 7px 7px,#a9b8aa 0 2px,transparent 2.8px),
+  radial-gradient(circle at calc(100% - 7px) calc(100% - 7px),#a9b8aa 0 2px,transparent 2.8px);
+ box-shadow:inset 0 0 0 1px #0c181a88;
+}
+.ach-modal-item-161[data-tier="unique"]::after{
+ content:"";pointer-events:none;position:absolute;
+ right:5px;top:50%;width:70px;height:94px;
+ transform:translateY(-50%);
+ background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20112%20136%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22steel%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23d2d7ca%22%2F%3E%3Cstop%20offset%3D%22.27%22%20stop-color%3D%22%2375949a%22%2F%3E%3Cstop%20offset%3D%22.67%22%20stop-color%3D%22%23344b52%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238ea7a0%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22spear%22%20x1%3D%220%22%20x2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23233c46%22%2F%3E%3Cstop%20offset%3D%22.45%22%20stop-color%3D%22%23a7bfbd%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23264651%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22flame%22%3E%3Cstop%20stop-color%3D%22%23d6fbfb%22%2F%3E%3Cstop%20offset%3D%22.25%22%20stop-color%3D%22%2388f2eb%22%2F%3E%3Cstop%20offset%3D%22.6%22%20stop-color%3D%22%233fb9c2%22%20stop-opacity%3D%22.8%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%232b899e%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3C!--%20%EB%A7%9D%ED%86%A0%EC%9D%98%20%EC%A0%91%ED%9E%8C%20%EA%B0%80%EC%9E%A5%EC%9E%90%EB%A6%AC%EC%97%90%EC%84%9C%20%EC%B0%A9%EC%95%88%ED%95%9C%20%EB%AC%B8%EC%9E%A5%ED%8C%90%20--%3E%3Cpath%20d%3D%22M56%204%20102%2020%2099%2091%2056%20131%2013%2091%2010%2020Z%22%20fill%3D%22%23101b22%22%20fill-opacity%3D%22.86%22%20stroke%3D%22%23657f7a%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M56%2012%2094%2025%2091%2087%2056%20121%2021%2087%2018%2025Z%22%20fill%3D%22%231b3035%22%20stroke%3D%22%2398b4aa%22%20stroke-opacity%3D%22.55%22%20stroke-width%3D%221%22%2F%3E%3Cpath%20d%3D%22M56%2013V120M19%2042H93M22%2087H90%22%20stroke%3D%22%2376908b%22%20stroke-opacity%3D%22.19%22%20stroke-width%3D%221%22%2F%3E%3C!--%20%EB%A1%9C%ED%94%84%EB%A5%BC%20%EA%B0%90%EC%9D%80%20%EB%82%9A%EC%8B%9C%20%EA%B3%A0%EB%A6%AC%20--%3E%3Cpath%20d%3D%22M31%20103C13%2078%2025%2055%2041%2060c18%205%2012%2027-2%2026-14-1-15-20-2-21%208-1%2012%207%208%2012M31%20102c13%2011%2029%2015%2045%208%22%20fill%3D%22none%22%20stroke%3D%22%23a29475%22%20stroke-width%3D%224.6%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M31%20103C13%2078%2025%2055%2041%2060c18%205%2012%2027-2%2026-14-1-15-20-2-21%22%20fill%3D%22none%22%20stroke%3D%22%23dbd0ab%22%20stroke-width%3D%221%22%20stroke-dasharray%3D%223%203%22%20stroke-linecap%3D%22round%22%2F%3E%3C!--%20%EA%B1%B0%EB%8C%80%ED%95%9C%20%EC%9E%91%EC%82%B4%3A%20%EC%B6%95%2C%20%EA%B8%B0%EC%96%B4%EB%B0%9B%EC%B9%A8%2C%20%EA%B1%B0%EC%B9%9C%20%EC%B9%BC%EB%82%A0%20--%3E%3Cg%20transform%3D%22rotate(37%2057%2068)%22%3E%3Cpath%20d%3D%22M52%20112V33H60V112Z%22%20fill%3D%22url(%23spear)%22%20stroke%3D%22%2317292c%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M56%2036V109%22%20stroke%3D%22%23d2d5c2%22%20stroke-width%3D%221.2%22%20opacity%3D%22.65%22%2F%3E%3Cpath%20d%3D%22M56%206%2069%2035%2060%2032%2056%2043%2052%2032%2043%2035Z%22%20fill%3D%22url(%23steel)%22%20stroke%3D%22%231a3035%22%20stroke-width%3D%222.2%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M47%2031%2042%2022%2050%2027%2056%206%2062%2027%2070%2022%2065%2031%22%20fill%3D%22none%22%20stroke%3D%22%23d5e7de%22%20stroke-width%3D%221%22%20opacity%3D%22.8%22%2F%3E%3Cpath%20d%3D%22M46%2039h20l-6%209h-8Z%22%20fill%3D%22%23617e7f%22%20stroke%3D%22%23172a2f%22%20stroke-width%3D%221.5%22%2F%3E%3Cpath%20d%3D%22M48%20103h16v11H48Z%22%20fill%3D%22%23546f70%22%20stroke%3D%22%23acbeb2%22%20stroke-width%3D%221%22%2F%3E%3Cpath%20d%3D%22m48%20106%2016%200m-16%205h16%22%20stroke%3D%22%23243d41%22%20stroke-width%3D%222%22%2F%3E%3C%2Fg%3E%3C!--%20%EB%82%9A%EC%8B%AF%EC%A4%84%EA%B3%BC%20%EC%9E%91%EC%82%B4%EC%9D%98%20%EC%87%A0%EA%B3%A0%EB%A6%AC%20--%3E%3Cpath%20d%3D%22M66%2074c18%201%2027%2010%2023%2021s-16%2011-21%205%22%20fill%3D%22none%22%20stroke%3D%22%23a5a78e%22%20stroke-width%3D%222.2%22%2F%3E%3Ccircle%20cx%3D%2267%22%20cy%3D%2275%22%20r%3D%223%22%20fill%3D%22%23859f9a%22%20stroke%3D%22%23d9ddd0%22%20stroke-width%3D%221%22%2F%3E%3C!--%20%ED%91%B8%EB%A5%B8%20%EC%8B%9C%EA%B0%80%20%EB%B6%88%EA%BD%83.%20hood%20%EB%82%B4%EB%B6%80%20%EA%B7%B8%EB%A6%BC%EC%9E%90%20--%3E%3Cpath%20d%3D%22M26%2040c3-16%2012-24%2027-24%2016%200%2028%2012%2030%2029-9-7-20-10-30-7-12-2-20-1-27%202Z%22%20fill%3D%22%23081217%22%20stroke%3D%22%236e8e88%22%20stroke-opacity%3D%22.5%22%20stroke-width%3D%221.5%22%2F%3E%3Cpath%20d%3D%22M33%2036c11-8%2026-11%2042%200%22%20stroke%3D%22%2347696b%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20opacity%3D%22.8%22%2F%3E%3Cpath%20d%3D%22M58%2047h19%22%20stroke%3D%22%23b6aba0%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M58%2047h12%22%20stroke%3D%22%234a5052%22%20stroke-width%3D%222%22%20stroke-dasharray%3D%222%203%22%2F%3E%3Cellipse%20cx%3D%2281%22%20cy%3D%2246%22%20rx%3D%2213%22%20ry%3D%2215%22%20fill%3D%22url(%23flame)%22%2F%3E%3Cpath%20d%3D%22M80%2055c-5-7-4-12%202-16-2%204%203%204%203%208%200%204-2%206-5%208Z%22%20fill%3D%22%239df6ea%22%2F%3E%3Cpath%20d%3D%22M83%2048c-3-7%202-9%202-13%22%20fill%3D%22none%22%20stroke%3D%22%235fdae2%22%20stroke-width%3D%221.5%22%20opacity%3D%22.8%22%2F%3E%3C!--%20%EC%9E%91%EC%9D%80%20%EA%B8%88%EC%86%8D%20%EA%B3%A0%EC%A0%95%EC%A0%90%20--%3E%3Ccircle%20cx%3D%2256%22%20cy%3D%2214%22%20r%3D%222.4%22%20fill%3D%22%23b9c6bc%22%2F%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2227%22%20r%3D%222.3%22%20fill%3D%22%2391a9a5%22%2F%3E%3Ccircle%20cx%3D%2292%22%20cy%3D%2227%22%20r%3D%222.3%22%20fill%3D%22%2391a9a5%22%2F%3E%3Ccircle%20cx%3D%2256%22%20cy%3D%22123%22%20r%3D%222.1%22%20fill%3D%22%23b9c6bc%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;
+ opacity:.91;
+ filter:drop-shadow(0 1px 1px #020b0d) drop-shadow(0 0 6px #3b929742);
+}
+.ach-modal-item-161[data-tier="unique"].earned{
+ box-shadow:
+  0 0 0 1px #193139,
+  0 0 0 2px #6ca7a052,
+  0 8px 19px #02080cba,
+  0 0 16px #4eafb339,
+  inset 0 0 0 1px #9dbbb474,
+  inset 0 0 0 3px #0b171c94;
+}
+.ach-modal-item-161[data-tier="unique"].earned::before{animation:indigoElderGlow 7s ease-in-out infinite}
+@keyframes indigoElderGlow{
+ 0%,100%{border-color:#81988d52}
+ 50%{border-color:#76b7b2a3}
+}
+@media(prefers-reduced-motion:reduce){
+ .ach-modal-item-161[data-tier="unique"].earned::before{animation:none}
+}
+
+
+/* common: 원래 게임 등급 색상 */
+.ach-modal-tiers-161 button[data-ach-tier="common"]{
+ color:#8e939d;
+ font-weight:750;
+}
+.ach-modal-tiers-161 button[data-ach-tier="common"] small{
+ color:#8e939d;opacity:.83;font-weight:500;
+}
+.ach-modal-tiers-161 button[data-ach-tier="common"][aria-pressed="true"]{
+ color:#8e939d;
+ background:color-mix(in srgb, #8e939d 15%, #17232e);
+ border-color:#8e939d;
+ box-shadow:inset 0 -3px #8e939d8c,0 0 9px #8e939d22;
+}
+.ach-modal-item-161[data-tier="common"] .ach-topline-161>span:first-child{
+ color:#8e939d;font-weight:750;
+}
+
+
+/* rare: 원래 게임 등급 색상 */
+.ach-modal-tiers-161 button[data-ach-tier="rare"]{
+ color:#4fc878;
+ font-weight:750;
+}
+.ach-modal-tiers-161 button[data-ach-tier="rare"] small{
+ color:#4fc878;opacity:.83;font-weight:500;
+}
+.ach-modal-tiers-161 button[data-ach-tier="rare"][aria-pressed="true"]{
+ color:#4fc878;
+ background:color-mix(in srgb, #4fc878 15%, #17232e);
+ border-color:#4fc878;
+ box-shadow:inset 0 -3px #4fc8788c,0 0 9px #4fc87822;
+}
+.ach-modal-item-161[data-tier="rare"] .ach-topline-161>span:first-child{
+ color:#4fc878;font-weight:750;
+}
+
+
+/* hero: 원래 게임 등급 색상 */
+.ach-modal-tiers-161 button[data-ach-tier="hero"]{
+ color:#4b9bff;
+ font-weight:750;
+}
+.ach-modal-tiers-161 button[data-ach-tier="hero"] small{
+ color:#4b9bff;opacity:.83;font-weight:500;
+}
+.ach-modal-tiers-161 button[data-ach-tier="hero"][aria-pressed="true"]{
+ color:#4b9bff;
+ background:color-mix(in srgb, #4b9bff 15%, #17232e);
+ border-color:#4b9bff;
+ box-shadow:inset 0 -3px #4b9bff8c,0 0 9px #4b9bff22;
+}
+.ach-modal-item-161[data-tier="hero"] .ach-topline-161>span:first-child{
+ color:#4b9bff;font-weight:750;
+}
+
+
+/* legend: 원래 게임 등급 색상 */
+.ach-modal-tiers-161 button[data-ach-tier="legend"]{
+ color:#e4bf45;
+ font-weight:750;
+}
+.ach-modal-tiers-161 button[data-ach-tier="legend"] small{
+ color:#e4bf45;opacity:.83;font-weight:500;
+}
+.ach-modal-tiers-161 button[data-ach-tier="legend"][aria-pressed="true"]{
+ color:#e4bf45;
+ background:color-mix(in srgb, #e4bf45 15%, #17232e);
+ border-color:#e4bf45;
+ box-shadow:inset 0 -3px #e4bf458c,0 0 9px #e4bf4522;
+}
+.ach-modal-item-161[data-tier="legend"] .ach-topline-161>span:first-child{
+ color:#e4bf45;font-weight:750;
+}
+
+
+/* myth: 원래 게임 등급 색상 */
+.ach-modal-tiers-161 button[data-ach-tier="myth"]{
+ color:#f16868;
+ font-weight:750;
+}
+.ach-modal-tiers-161 button[data-ach-tier="myth"] small{
+ color:#f16868;opacity:.83;font-weight:500;
+}
+.ach-modal-tiers-161 button[data-ach-tier="myth"][aria-pressed="true"]{
+ color:#f16868;
+ background:color-mix(in srgb, #f16868 15%, #17232e);
+ border-color:#f16868;
+ box-shadow:inset 0 -3px #f168688c,0 0 9px #f1686822;
+}
+.ach-modal-item-161[data-tier="myth"] .ach-topline-161>span:first-child{
+ color:#f16868;font-weight:750;
+}
+
+
+/* miracle: 원래 게임 등급 색상 */
+.ach-modal-tiers-161 button[data-ach-tier="miracle"]{
+ color:#e2edf5;
+ font-weight:750;
+}
+.ach-modal-tiers-161 button[data-ach-tier="miracle"] small{
+ color:#e2edf5;opacity:.83;font-weight:500;
+}
+.ach-modal-tiers-161 button[data-ach-tier="miracle"][aria-pressed="true"]{
+ color:#e2edf5;
+ background:color-mix(in srgb, #e2edf5 15%, #17232e);
+ border-color:#e2edf5;
+ box-shadow:inset 0 -3px #e2edf58c,0 0 9px #e2edf522;
+}
+.ach-modal-item-161[data-tier="miracle"] .ach-topline-161>span:first-child{
+ color:#e2edf5;font-weight:750;
+}
+
+
+/* unique: 원래 게임 등급 색상 */
+.ach-modal-tiers-161 button[data-ach-tier="unique"]{
+ color:#98b7b5;
+ font-weight:750;
+}
+.ach-modal-tiers-161 button[data-ach-tier="unique"] small{
+ color:#98b7b5;opacity:.83;font-weight:500;
+}
+.ach-modal-tiers-161 button[data-ach-tier="unique"][aria-pressed="true"]{
+ color:#98b7b5;
+ background:color-mix(in srgb, #98b7b5 15%, #17232e);
+ border-color:#98b7b5;
+ box-shadow:inset 0 -3px #98b7b58c,0 0 9px #98b7b522;
+}
+.ach-modal-item-161[data-tier="unique"] .ach-topline-161>span:first-child{
+ color:#98b7b5;font-weight:750;
+}
+
+/* 기적 카테고리 이름 역시 원본의 붉은색·흰색·푸른색을 사용합니다. */
+.ach-modal-tiers-161 button[data-ach-tier="miracle"],
+.ach-modal-tiers-161 button[data-ach-tier="miracle"][aria-pressed="true"]{
+ background-image:linear-gradient(100deg,#e34f50 0%,#fff 49%,#4074ee 100%);
+ background-clip:text;
+ -webkit-background-clip:text;
+ -webkit-text-fill-color:transparent;
+}
+/* 카테고리 버튼은 색상 및 선택 표시를 별도의 테두리로 구분합니다. */
+.ach-modal-tiers-161 button[data-ach-tier="miracle"][aria-pressed="true"]{
+ box-shadow:inset 0 -3px #4074ee,0 0 9px #e34f5028;
+}
+.ach-modal-tiers-161 button[data-ach-tier="unique"]{
+ text-shadow:0 0 7px #63c4c444;
+}
