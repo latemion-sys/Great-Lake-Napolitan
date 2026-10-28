@@ -33,7 +33,7 @@ function draw(keepScroll){
  progress.style.setProperty('--progress',(ACH.length?100*finished/ACH.length:0).toFixed(2)+'%');
  tabs.innerHTML=tiers.map(k=>{
   const arr=k==='all'?ACH:ACH.filter(a=>a.tier===k);
-  return '<button type="button" data-ach-tier="'+k+'" aria-pressed="'+(selected===k)+'">'+label[k]+
+  return '<button type="button" data-ach-tier="'+k+'" aria-pressed="'+(selected===k)+'"><span class="ach-tier-name-161">'+label[k]+'</span>'+ 
    '<small>'+arr.filter(a=>owned(a.id)).length+' / '+arr.length+'</small></button>';
  }).join('');
  states.innerHTML=[['all','전체'],['earned','달성'],['locked','미달성']].map(pair=>{
