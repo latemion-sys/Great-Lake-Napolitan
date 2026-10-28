@@ -331,6 +331,20 @@
  };
  const oldSave161=save;
  save=function(){saveStats();return oldSave161();};
+ const oldHelp161=renderHelp;
+ renderHelp=function(){
+  return oldHelp161().replace('항해 안내 · v0.1.6.0','항해 안내 · v0.1.6.1');
+ };
+ const oldPlay161=renderPlay;
+ renderPlay=function(){
+  const page=oldPlay161();
+  if(state.scene!=='start')return page;
+  return page+'<div class="log-update"><h3>V.0.1.6.1 · 업적 보관함 개편</h3><ul>'+
+   '<li>업적은 항해 화면 위에 뜨는 별도 팝업에서 확인합니다.</li>'+
+   '<li>중복·난이도 오류가 있는 업적을 정리하고 사건별 도전 업적을 추가했습니다.</li>'+
+   '<li>업적 등급과 달성 여부별 필터, 검색 기능을 추가했습니다.</li>'+
+   '<li>기적 5개와 유일 1개, 호수별 일반·영웅·전설 업적은 유지됩니다.</li></ul></div>';
+ };
  // 기존 업적과 보존될 기적·유일 업적을 포함하여 실제 존재하는 항목만 저장합니다.
  const ids=new Set(ACH.map(a=>a.id));
  state.achievements=[...new Set(state.achievements.filter(id=>ids.has(id)))];
