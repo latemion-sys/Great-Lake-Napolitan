@@ -9,7 +9,7 @@ const progress=document.getElementById('achievementsProgress161');
 const total=document.getElementById('achievementsTotal161');
 const tabs=document.getElementById('achievementsTiers161');
 const search=document.getElementById('achievementsSearch161');
-const summary=document.getElementById('achievementsListSummary161');
+
 const states=document.getElementById('achievementsFilters161');
 const tiers=['all','common','rare','hero','legend','myth','miracle','unique'];
 const label={all:'전체',common:'일반',rare:'희귀',hero:'영웅',legend:'전설',myth:'신화',miracle:'기적',unique:'유일'};
@@ -51,9 +51,10 @@ function draw(keepScroll){
  });
  filtered.sort((a,b)=>tiers.indexOf(a.tier)-tiers.indexOf(b.tier)||
   Number(owned(b.id))-Number(owned(a.id))||a.name.localeCompare(b.name,'ko'));
- summary.textContent=label[selected]+' 업적 · '+filtered.length+'개'+(needle?' 검색 결과':'');
- pane.innerHTML=filtered.length?'<div class="ach-modal-grid-161">'+filtered.map(card).join('')+'</div>':
-  '<div class="ach-modal-none-161">이 조건에 해당하는 업적이 없습니다.</div>';
+ const message=label[selected]+' 업적 · '+filtered.length+'개'+(needle?' 검색 결과':'');
+ pane.innerHTML='<div class="ach-list-summary-161">'+escapeText(message)+'</div>'+
+  (filtered.length?'<div class="ach-modal-grid-161">'+filtered.map(card).join('')+'</div>':
+  '<div class="ach-modal-none-161">이 조건에 해당하는 업적이 없습니다.</div>');
  pane.scrollTop=top;
 }
 function open(){
