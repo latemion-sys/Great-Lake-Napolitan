@@ -151,7 +151,7 @@ function surfaceY(x,t,base,rough){
 let start=0,lastSeen=0,seenTok=0;
 // 미니게임 상태 (pallid-acid-game.js가 켜고 끈다)
 const GAME=window.PallidAcidGame=window.PallidAcidGame||{active:false};
-const WINDOWS=[1.0,0.5,0.25];                   // 성공할수록 빠진 시간이 짧아짐 (1초 → 0.5초 → 0.25초)
+const WINDOWS=[1.8,1.2,0.6];                    // 성공할수록 빠진 시간이 짧아짐 (1.8초 → 1.2초 → 0.6초)
 function resetGame(){GAME.startAt=0;GAME.steps=0;GAME.stepAt=[];GAME.failAt=-9;GAME.lastPress=-9;GAME.cycles=[];GAME.doneAt=null;}
 GAME.reset=resetGame;
 function mkCycle(s0){
