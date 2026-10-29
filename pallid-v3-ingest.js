@@ -1,4 +1,4 @@
-/* 창백의 향유고래 · v3 시네마틱 · 위장 진입(삼킴) 장면
+/* 모든 것을 삼키는 창백한 고래 · v3 시네마틱 · 위장 진입(삼킴) 장면
    쪽배 아래로 창백한 그림자가 떠오르고 → 고래가 입을 벌린 채 수직으로 솟구쳐
    → 배가 목구멍으로 미끄러져 들어가고 → 턱이 닫히며 → 고래가 가라앉은 뒤
    → 어둠 속에 등불 하나만 흔들린다(위산 장면으로 이어짐).
@@ -151,7 +151,7 @@ function ingestHtml(){
   '<rect class="w4-loopveil" width="'+W+'" height="'+H+'" fill="#020306" opacity="0"/>'+
  '</g></svg>';
  return '<div class="pallid-cine-v2 pallid-cine-v3 w4-ingest-scene" role="img" aria-label="'+esc(title[0]+' · '+title[1])+'">'+svg+
-  '<span class="cine-top" aria-hidden="true">창백의 향유고래 · '+esc(title[0])+'</span>'+
+  '<span class="cine-top" aria-hidden="true">모든 것을 삼키는 창백한 고래 · '+esc(title[0])+'</span>'+
   '<span class="cine-bottom" aria-hidden="true">'+esc(title[1])+'</span>'+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
 }
