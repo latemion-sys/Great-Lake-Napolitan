@@ -341,7 +341,7 @@ for(let hue=0;hue<COLOR_GROUPS.length;hue++)for(let material=0;material<MATERIAL
 let stableSeed=0x51adbef1;
 function stableRandom(){stableSeed=(Math.imul(stableSeed,1664525)+1013904223)>>>0;return stableSeed/4294967296;}
 for(let i=entries.length-1;i>0;i--){let j=Math.floor(stableRandom()*(i+1));[entries[i],entries[j]]=[entries[j],entries[i]];}
-const ENABLED_LAKE_IDS157=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,40];
+const ENABLED_LAKE_IDS157=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,40];
 const LAKES=[], RULES=[];
 for(const id of ENABLED_LAKE_IDS157){
  const variant=fixedLakeEntries[id]||entries.shift();
@@ -2785,6 +2785,8 @@ renderPlay=function(){
 <script src="./lake-gameplay-v018.js?v=0180"></script>
 <script src="./lake-script-data-v019.js?v=0190"></script>
 <script src="./lake-gameplay-v019.js?v=0190"></script>
+<script src="./lake-script-data-v020.js?v=0200"></script>
+<script src="./lake-gameplay-v020.js?v=0200"></script>
 <script src="./achievement-modal-v0161.js?v=0163"></script>
 <script src="./pallid-cinematic-v2.js?v=01513"></script>
 <script src="./pallid-cinematic-v3.js?v=0205"></script>
