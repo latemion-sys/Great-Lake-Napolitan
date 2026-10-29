@@ -91,17 +91,20 @@
  // 매 프레임 현재 화면의 .lakefx 하나를 시간 기준으로 갱신한다.
  function frame(now){
   const el=document.querySelector('.lakefx');
-  if(el&&el.isConnected)paint(el,reduceMotion?entryAt+60000:now);
+  if(el&&el.isConnected)paint(el,now);
   requestAnimationFrame(frame);
  }
  function ease(x){x=Math.min(1,Math.max(0,x));return 1-Math.pow(1-x,3);}
  function paint(el,now){
-  const t=(now-entryAt)/1000,bob=+el.dataset.bob||1,drift=+el.dataset.drift||1;
-  const enter=ease(t/2.6);
-  // 왼쪽 안개에서 미끄러져 들어와 중앙 부근에 멈춰 떠 있는다.
-  const x=W/2-40+(1-enter)*-300+Math.sin(t*0.11)*26*drift*enter;
-  const y=WATER+Math.sin(t*1.35)*1.6*bob+Math.sin(t*0.53+1)*0.9*bob;
-  const roll=Math.sin(t*1.05+0.6)*2.2*bob+Math.sin(t*0.37)*0.8*bob;
+  // '애니메이션 줄이기'(Windows 애니메이션 효과 끔 등)에서도 멈추지 않고,
+  // 진입 미끄러짐만 생략한 채 조금 더 잔잔하게 떠 있는다.
+  const calm=reduceMotion?0.6:1;
+  const t=(now-entryAt)/1000,bob=(+el.dataset.bob||1)*calm,drift=(+el.dataset.drift||1)*calm;
+  const enter=reduceMotion?1:ease(t/2.6);
+  // 왼쪽 안개에서 미끄러져 들어와 중앙 부근에서 떠 있는다.
+  const x=W/2-40+(1-enter)*-300+Math.sin(t*0.21)*42*drift*enter;
+  const y=WATER+Math.sin(t*1.6)*3.2*bob+Math.sin(t*0.63+1)*1.4*bob;
+  const roll=Math.sin(t*1.25+0.6)*3.6*bob+Math.sin(t*0.45)*1.2*bob;
   const s=0.92;
   const boat=el.querySelector('.lfx-boat'),ref=el.querySelector('.lfx-reflection');
   if(boat)boat.setAttribute('transform','translate('+x.toFixed(2)+' '+y.toFixed(2)+') rotate('+roll.toFixed(2)+') scale('+s+')');
