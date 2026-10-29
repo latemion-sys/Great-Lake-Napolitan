@@ -12,3 +12,6 @@
 .lakefx .lfx-wave{fill:none;stroke:var(--lfx-wave,#c9d6de);stroke-linecap:round}
 .lakefx .lfx-ripple{fill:none;stroke:var(--lfx-wave,#c9d6de);stroke-width:1;stroke-opacity:0}
 @media(max-width:620px){.lakefx{height:118px}}
+.lakefx .lfx-lamp{fill:var(--lfx-lamp-core,#fff1c4);stroke:var(--lfx-lamp,#ffc65c);stroke-width:.8}
+.lakefx .lfx-lampglow{mix-blend-mode:screen}
+.lakefx .lfx-glint{opacity:0;mix-blend-mode:screen}
