@@ -20,17 +20,9 @@ function phaseNow(){
  return null;
 }
 function blueMarkup(stage){
- const item=labels[stage];
- if(!item)return '';
- return '<section class="bluewhale-game'+(stage===4?' bluewhale-game-finale':'')+'" aria-label="모든 것을 뚫는 푸른 고래 · '+(stage+1)+'단계 시네마틱">'+
- '<div class="bluewhale-game-header"><span class="bluewhale-game-title">'+(stage+1)+' · '+item.title+'</span>'+
- '<span class="bluewhale-game-phase">'+item.tag+'</span></div>'+
- '<div class="bluewhale-game-screen" data-bluewhale-stage="'+stage+'">'+
- '<canvas id="blueWhaleCanvas021" width="1024" height="576" role="img" aria-label="거대한 푸른 고래의 '+item.title+' 연출"></canvas>'+
- '<span class="bluewhale-game-corner">THE GREAT LAKE · BLUE CALAMITY</span>'+
- '<div class="bluewhale-caption" aria-live="off"></div></div>'+
- '<div class="bluewhale-game-footer"><span class="bluewhale-game-desc">'+item.desc+'</span>'+
- '<button class="bluewhale-replay" data-act="blueWhaleReplay021" type="button">연출 다시 보기 ↻</button></div></section>';
+ // v3: 청새치 형상의 SVG 시네마틱 (blue-whale-v3.js / blue-whale-v3-scenes.js)
+ if(window.BlueWhaleV3)return window.BlueWhaleV3.html(stage);
+ return '';
 }
 const oldPlay=renderPlay;
 renderPlay=function(){
@@ -55,18 +47,6 @@ resolveCoin=function(win){
  if(final)state.blueWhaleFinalStage=true;
  const result=oldResolve(win);
  if(final&&state.scene==='dead')state.blueWhaleFinalStage=false;
- return result;
-};
-const oldRender=render;
-render=function(){
- const result=oldRender();
- const canvas=document.getElementById('blueWhaleCanvas021');
- if(canvas&&window.BlueWhaleCinematic){
-  const stage=phaseNow();
-  if(stage!==null)window.BlueWhaleCinematic.mount(canvas,stage);
- }else if(window.BlueWhaleCinematic){
-  window.BlueWhaleCinematic.stop();
- }
  return result;
 };
 document.addEventListener('click',function(ev){
