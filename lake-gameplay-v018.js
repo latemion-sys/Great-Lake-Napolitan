@@ -27,7 +27,9 @@
   rule.false=()=>choose(FALSERUMORS);
  }
  const name=()=>String(state.captainName||state.playerName||'').trim()||'선장';
- const write=(str,vars)=>String(str).replace(/\{([^}]+)\}/g,(_,key)=>vars[key]??'{'+key+'}')
+ const nameParticle=()=>{const v=name(),code=v.charCodeAt(v.length-1);return code>=0xAC00&&code<=0xD7A3&&(code-0xAC00)%28!==0?'은':'는';};
+ const write=(str,vars)=>String(str).replace(/\[플레이어\](?:는|은)/g,()=>name()+nameParticle())
+  .replace(/\{([^}]+)\}/g,(_,key)=>vars[key]??'{'+key+'}')
   .replace(/\[플레이어\]/g,name());
  function seedVars(st){
   const v=st.vars||(st.vars={});
