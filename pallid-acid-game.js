@@ -1,4 +1,4 @@
-/* 창백의 향유고래 · 3단계 위산 통과 미니게임
+/* 모든 것을 삼키는 창백한 고래 · 3단계 위산 통과 미니게임
    위장(stomach) 단계의 선택지 대신 쓴다. 위액이 불규칙하게 솟았다 빠지고,
    완전히 빠진 짧은 순간에 노를 저으면(화면 누르기 · 스페이스 · 버튼) 1/3씩 전진한다.
    3번 성공하면 통로에 닿아 다음 단계(창백한 인어)로 넘어간다.
@@ -27,7 +27,7 @@ pallidStory161=function(){
  const h=state.pallidHunt161;
  if(!h||h.phase!=='stomach')return beforeStory();
  const n=GAME.steps||0;
- return '<div class="inset warning"><div class="small">재앙의 고래 · 창백의 향유고래</div><h2>위장 · 주기적인 분출</h2>'+
+ return '<div class="inset warning"><div class="small">재앙의 고래 · 모든 것을 삼키는 창백한 고래</div><h2>위장 · 주기적인 분출</h2>'+
   '<p>선체가 살아 있는 벽 사이에 걸렸습니다. 바닥에 고인 산성액이 불규칙한 간격으로 거세게 솟았다 가라앉습니다. 위액이 완전히 빠진 짧은 순간에만 노를 저어 나아갈 수 있습니다.</p>'+
   '<p>'+pallidStatus161()+'</p>'+
   '<div class="coinpanel acid-game"><div class="small">위액이 바닥까지 빠지고 건너편 통로가 빛날 때 노를 저으십시오 · 3번 전진하면 통과 · 분출 중에 저으면 휩쓸림</div>'+
