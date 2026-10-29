@@ -1,4 +1,4 @@
-/* 창백의 향유고래 · v3 시네마틱 · 3단계 이어서: 창백한 것에 뒤덮인 것들
+/* 모든 것을 삼키는 창백한 고래 · v3 시네마틱 · 3단계 이어서: 창백한 것에 뒤덮인 것들
    위산을 넘자 드러난 넓은 위장벽. 벽과 살 턱에 늘어져 있던 인어들(머리와 어깨가
    창백한 덩어리에 뒤덮임)이 한꺼번에 고개를 들고, 기묘한 노래를 되풀이한다.
    어디선가 커다란 심장 박동이 울린다. 인어는 원작 디자인을 따르지 않은 창작 형태.
@@ -119,7 +119,7 @@ function mermaidsHtml(){
   '<rect class="w8-veil" width="'+W+'" height="'+H+'" fill="#020103" opacity="0"/>'+
  '</g></svg>';
  return '<div class="pallid-cine-v2 pallid-cine-v3 w8-mermaid-scene" role="img" aria-label="'+esc(LABEL[0]+' · '+LABEL[1])+'">'+svg+
-  '<span class="cine-top" aria-hidden="true">창백의 향유고래 · '+esc(LABEL[0])+'</span>'+
+  '<span class="cine-top" aria-hidden="true">모든 것을 삼키는 창백한 고래 · '+esc(LABEL[0])+'</span>'+
   '<span class="cine-bottom" aria-hidden="true">'+esc(LABEL[1])+'</span>'+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
 }
