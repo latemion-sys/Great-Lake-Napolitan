@@ -1,4 +1,4 @@
-/* 창백의 향유고래 · v3 시네마틱 · 위산 통과 장면
+/* 모든 것을 삼키는 창백한 고래 · v3 시네마틱 · 위산 통과 장면
    위장 속 어둠. 쪽배는 살 주름 턱에서 기다리고 → 위액이 솟구쳤다가
    → 급히 빠지는 틈에 → 얕아진 위액 위를 건너 → 다시 차오르는 위액을 등지고
    반대편 통로(심장 쪽)에 닿는다. 시간 기준 requestAnimationFrame 방식. */
@@ -123,7 +123,7 @@ function acidHtml(){
   '<rect class="w5-veil" width="'+W+'" height="'+H+'" fill="#020103" opacity="0"/>'+
  '</g></svg>';
  return '<div class="pallid-cine-v2 pallid-cine-v3 w5-acid-scene" role="img" aria-label="'+esc(title[0]+' · '+title[1])+'">'+svg+
-  '<span class="cine-top" aria-hidden="true">창백의 향유고래 · '+esc(title[0])+'</span>'+
+  '<span class="cine-top" aria-hidden="true">모든 것을 삼키는 창백한 고래 · '+esc(title[0])+'</span>'+
   '<span class="cine-bottom" aria-hidden="true">'+esc(title[1])+'</span>'+
   '<span class="w5-hint" aria-hidden="true">위액이 완전히 빠진 순간 노를 저으세요 · 화면 누르기 / 스페이스</span>'+
   '<span class="w5-progress" aria-hidden="true"><i></i><i></i><i></i></span>'+
