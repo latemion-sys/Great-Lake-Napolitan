@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>대호수: The Great Lake | v0.1.6.4</title>
+<title>대호수: The Great Lake | v0.1.7.0</title>
 <style>
 :root{--bg:#0d1117;--panel:#161b22;--subpanel:#202833;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff;--gold:#e4bd7a;--red:#ef7b7b;--green:#8bd5a3}
 *{box-sizing:border-box}
@@ -277,9 +277,9 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 </div>
 <div class="shell">
 <header>
- <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.6.4</div>
+ <div class="eyebrow">대호수 항해 시뮬레이션 · v0.1.7.0</div>
  <h1>대호수: The Great Lake</h1>
- <p class="muted">규칙을 듣고, 선원을 지키며, 20개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
+ <p class="muted">규칙을 듣고, 선원을 지키며, 25개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>
  <div class="notice">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</div>
 </header>
 <div class="layout">
@@ -339,7 +339,7 @@ for(let hue=0;hue<COLOR_GROUPS.length;hue++)for(let material=0;material<MATERIAL
 let stableSeed=0x51adbef1;
 function stableRandom(){stableSeed=(Math.imul(stableSeed,1664525)+1013904223)>>>0;return stableSeed/4294967296;}
 for(let i=entries.length-1;i>0;i--){let j=Math.floor(stableRandom()*(i+1));[entries[i],entries[j]]=[entries[j],entries[i]];}
-const ENABLED_LAKE_IDS157=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,40];
+const ENABLED_LAKE_IDS157=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,40];
 const LAKES=[], RULES=[];
 for(const id of ENABLED_LAKE_IDS157){
  const variant=fixedLakeEntries[id]||entries.shift();
@@ -2777,6 +2777,8 @@ renderPlay=function(){
 <script src="./lake-script-data-v016.js?v=0160" onerror="render()"></script>
 <script src="./lake-expansion-v016.js?v=0160" onerror="render()"></script>
 <script src="./achievement-rebalance-v0161.js?v=0161"></script>
+<script src="./lake-script-data-v017.js?v=0170"></script>
+<script src="./lake-gameplay-v017.js?v=0170"></script>
 <script src="./achievement-modal-v0161.js?v=0163"></script>
 <script src="./pallid-cinematic-v2.js?v=01513"></script>
 </body>
