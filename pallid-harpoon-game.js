@@ -1,4 +1,4 @@
-/* 창백의 향유고래 · 1단계 작살 투척 미니게임
+/* 모든 것을 삼키는 창백한 고래 · 1단계 작살 투척 미니게임
    '외피' / '입을 벌리게 할 작살' 두 전투에서 동전 던지기 대신 쓴다.
    작살 장면 위에서 조준점이 고래 이마를 오가고, 붉은 상처(명중 구간)에 겹칠 때
    화면을 누르거나 스페이스(또는 '작살 던지기' 버튼)로 던진다.
@@ -38,7 +38,7 @@ const beforePanel=pallidBattlePanel161;
 pallidBattlePanel161=function(b){
  if(!TYPES.has(b.type))return beforePanel(b);
  const [zone,speed]=labels();
- return '<div class="inset warning"><div class="small">창백의 향유고래 · 작살 투척</div><h2>'+esc(b.name)+'</h2>'+
+ return '<div class="inset warning"><div class="small">모든 것을 삼키는 창백한 고래 · 작살 투척</div><h2>'+esc(b.name)+'</h2>'+
   '<p>'+pallidStatus161()+'</p>'+
   '<p>유효 타격: <b>'+b.won+' / '+b.need+'</b></p>'+
   '<div class="coinpanel harpoon-game"><div class="small">조준점이 붉은 상처에 겹칠 때 던지십시오 · 명중: 타격 성공 · 빗나감: 백화 진행</div>'+
