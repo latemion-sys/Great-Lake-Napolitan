@@ -220,7 +220,7 @@
  permanentAchievements=permanentAchievements.filter(id=>!overlapping017.has(id));
  const prevHelp017=renderHelp;
  renderHelp=function(){
-  return prevHelp017().replace(/현재 항해 가능 호수는 총 20개입니다\.[^<]*/,
+  return prevHelp017().replace('항해 안내 · v0.1.6.1','항해 안내 · v0.1.7.0').replace(/현재 항해 가능 호수는 총 20개입니다\.[^<]*/,
    '현재 호수는 총 25개입니다. 21-01부터 21-24까지와 21-40이 등장합니다. 등급별로 출항마다 4 / 8 / 12 / 16 / 20개 호수가 배치됩니다.')
    .replace('20개 호수 중 하나','25개 호수 중 하나');
  };
@@ -228,6 +228,11 @@
  renderPlay=function(){
   const h=oldPlay017();
   if(state.scene==='port')return h.replaceAll('20개의 서로 다른 호수','25개의 서로 다른 호수');
+  if(state.scene==='start')return h+
+   '<div class="log-update"><h3>V.0.1.7.0 · 대호수 수정본 3</h3><ul>'+
+   '<li>21-01부터 21-24, 21-40까지 총 25개 호수의 장면과 판정을 원문에 맞춰 갱신했습니다.</li>'+
+   '<li>장면과 선택지 무작위 배치, 3~6턴 체류, 인어 조우 20%와 호수별 랜덤 값을 적용했습니다.</li>'+
+   '<li>호수별 일반·영웅·전설 업적 75개를 유지하고 중복 업적 11개를 정리했습니다.</li></ul></div>';
   return h;
  };
  save();render();
