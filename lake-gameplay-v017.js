@@ -74,6 +74,7 @@
   if(def.id===19&&['scene0','scene1','scene2'].includes(stage))return Math.max(4,scores[stage]);
   if(def.id===13&&['scene0','scene1'].includes(stage))return Math.max(4,scores[stage]);
   if(def.id===14&&stage==='scene0')return Math.max(3,scores[stage]);
+  if(def.id===14&&stage==='scene1')return Math.max(4,scores[stage]);
   if(def.id===23&&stage==='scene0')return Math.max(4,scores[stage]);
   return scores[stage];
  }
