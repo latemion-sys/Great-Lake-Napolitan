@@ -103,16 +103,17 @@
   const node=def.nodes[st.step],actual=st.order[chosen],opt=node?.choices[actual];
   if(!opt)return;
   if(opt.death)return mermaidDeath015(id);
+  // 통과 직전 인어가 나오면 전투가 끝나고 같은 선택을 다시 할 수 있어야 하므로 턴을 미리 소비하지 않는다.
+  if(opt.pass&&state.normalMermaidDraw&&!state.mermaidResolved){
+   state.mermaidResolved=true;
+   beginBattle({type:'normal',name:'대호수의 인어',power:35+LAKE_BY_ID157.get(id).risk*18,need:1,won:0,history:[],after:'navigation'});
+   return;
+  }
   st.turns++;
   if(st.turns>st.turnLimit)return mermaidDeath015(id);
   if(!state.nav)state.nav={stage:'law',turns:0,transition:false};
   state.nav.turns=st.turns;
   if(opt.pass){
-   if(state.normalMermaidDraw&&!state.mermaidResolved){
-    state.mermaidResolved=true;
-    beginBattle({type:'normal',name:'대호수의 인어',power:35+LAKE_BY_ID157.get(id).risk*18,need:1,won:0,history:[],after:'navigation'});
-    return;
-   }
    if(opt.epilogue)log(opt.epilogue);
    state.nav.transition=true;state.ruleResolved=true;
    completeLake(true,'호수의 경계를 건넜습니다.');
@@ -125,7 +126,7 @@
    next=count.looks===1?'scene0':'scene4';
   }else if(opt.special==='turnTwice'){
    count.turns++;
-   next=count.turns>=2?'scene2':nextOf017(opt.toAny||[opt.to||'scene0'],st.step);
+   next=count.turns>=2?'scene2':nextOf017((opt.toAny||[opt.to||'scene0']).filter(k=>k!=='scene2'),st.step);
   }else if(opt.special==='netTwice'){
    count.nets++;
    next=count.nets>=2?'scene2':(st.specialNetUsed?'scene0':pick(['scene0','scene1']));
@@ -160,9 +161,9 @@
   if(!def.nodes[st.step])state.lakeStory=makeStory014(lake);
   const current=state.lakeStory,stage=def.nodes[current.step];
   const actions=current.order.map(i=>stage.choices[i]);
-  const title='21-'+String(lake.id).padStart(2,'0')+(def.name?' · '+def.name:'');
+  const title=lake.id===8?'':'21-'+String(lake.id).padStart(2,'0')+(def.name?' · '+def.name:'');
   return '<div class="inset" style="border-top:4px solid '+def.hex+'">'+
-   '<div class="between"><h2>'+esc(title)+'</h2>'+tag('창작 구역')+'</div>'+
+   '<div class="between">'+(title?'<h2>'+esc(title)+'</h2>':'')+tag('창작 구역')+'</div>'+
    '<p class="muted">'+esc(interpolate017(def.description,current.vars))+'</p>'+
    '<div class="inset"><div class="barline"><span>호수 체류</span><span>'+current.turns+' / '+current.turnLimit+'턴</span></div>'+
    '<div class="meter"><span style="width:'+Math.min(100,100*current.turns/current.turnLimit)+'%"></span></div></div>'+
