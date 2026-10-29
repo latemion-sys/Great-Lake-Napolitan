@@ -1,0 +1,14 @@
+/* Great Lake v0.1.9.0 · 호수 진입 이펙트 */
+.lakefx{position:relative;height:150px;margin:2px 0 12px;border-radius:12px;overflow:hidden;border:1px solid #2c3742;background:#121a21;box-shadow:inset 0 0 40px #0008}
+.lakefx svg{display:block;width:100%;height:100%}
+.lakefx .lfx-hull{fill:var(--lfx-boat,#050607)}
+.lakefx .lfx-rimline{fill:none;stroke:var(--lfx-rim,#8fa3ae);stroke-width:.9;stroke-opacity:.45}
+.lakefx .lfx-mast{fill:none;stroke:var(--lfx-boat,#050607);stroke-width:2.6;stroke-linecap:round}
+.lakefx .lfx-mast.thin{stroke-width:1.6}
+.lakefx .lfx-stay{fill:none;stroke:var(--lfx-boat,#050607);stroke-width:.7;stroke-opacity:.8}
+.lakefx .lfx-reflection{opacity:0}
+.lakefx .lfx-horizon{stroke:var(--lfx-wave,#c9d6de);stroke-opacity:.22;stroke-width:1}
+.lakefx .lfx-mist rect{fill:#dfe7ec;opacity:.07;filter:blur(6px)}
+.lakefx .lfx-wave{fill:none;stroke:var(--lfx-wave,#c9d6de);stroke-linecap:round}
+.lakefx .lfx-ripple{fill:none;stroke:var(--lfx-wave,#c9d6de);stroke-width:1;stroke-opacity:0}
+@media(max-width:620px){.lakefx{height:118px}}
