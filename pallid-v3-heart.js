@@ -1,4 +1,4 @@
-/* 창백의 향유고래 · v3 시네마틱 · 4단계 심장 탐색(옛 '심장 탐색'+'최종 전투')
+/* 모든 것을 삼키는 창백한 고래 · v3 시네마틱 · 4단계 심장 탐색(옛 '심장 탐색'+'최종 전투')
    혈관이 뒤엉킨 어둠 속, 피 웅덩이 위의 쪽배가 등불로 거대한 심장을 비춘다.
    큰 심장의 박동 사이로 다른 박자로 뛰는 창백한 작은 심장을 찾아내고
    → 등불 빛이 멈추고 → 작살잡이가 던진 작살이 작은 심장에 꽂혀 금이 간다.
@@ -120,7 +120,7 @@ function heartHtml(){
   '<rect class="w6-veil" width="'+W+'" height="'+H+'" fill="#020103" opacity="0"/>'+
  '</g></svg>';
  return '<div class="pallid-cine-v2 pallid-cine-v3 w6-heart-scene" role="img" aria-label="'+esc(LABEL[0]+' · '+LABEL[1])+'">'+svg+
-  '<span class="cine-top" aria-hidden="true">창백의 향유고래 · '+esc(LABEL[0])+'</span>'+
+  '<span class="cine-top" aria-hidden="true">모든 것을 삼키는 창백한 고래 · '+esc(LABEL[0])+'</span>'+
   '<span class="cine-bottom" aria-hidden="true">'+esc(LABEL[1])+'</span>'+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
 }
