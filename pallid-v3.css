@@ -7,3 +7,16 @@
 .pallid-cine-v3 .w3-verdict.miss{opacity:1;color:#c8d3d6;text-shadow:0 0 14px #000,0 2px 8px #000}
 @keyframes w3-hint-pulse{0%,100%{opacity:.75}50%{opacity:1}}
 @media(max-width:620px){.pallid-cine-v3 .w3-hint{font-size:10px;bottom:36px;white-space:normal;width:84%;text-align:center}.pallid-cine-v3 .w3-verdict{font-size:22px}}
+/* 3단계 위산 통과 미니게임 */
+.pallid-cine-v3 .w5-hint{position:absolute;z-index:6;left:50%;top:40px;transform:translateX(-50%);display:none;padding:5px 12px;border-radius:20px;background:#0a0608cc;border:1px solid #d6ef8a55;color:#eef5d2;font-size:12px;letter-spacing:.04em;white-space:nowrap;pointer-events:none;transition:border-color .1s,color .1s}
+.pallid-cine-v3.w5-playing{cursor:pointer}
+.pallid-cine-v3.w5-playing .w5-hint{display:block}
+.pallid-cine-v3.w5-open .w5-hint{border-color:#ffd59a;color:#fff1d8;box-shadow:0 0 14px #ffb36a66}
+.pallid-cine-v3 .w5-progress{position:absolute;z-index:6;top:12px;right:16px;display:none;gap:6px}
+.pallid-cine-v3.w5-playing .w5-progress,.pallid-cine-v3 .w5-progress:has(i.on){display:flex}
+.pallid-cine-v3 .w5-progress i{width:26px;height:8px;border-radius:4px;background:#0a0608cc;border:1.5px solid #e9f5c0aa}
+.pallid-cine-v3 .w5-progress i.on{background:#ffd59a;border-color:#ffd59a;box-shadow:0 0 8px #ffb36a}
+.pallid-cine-v3 .w5-verdict{position:absolute;z-index:6;left:50%;top:38%;transform:translate(-50%,-50%);font-size:30px;font-weight:700;letter-spacing:.3em;pointer-events:none;opacity:0;transition:opacity .2s}
+.pallid-cine-v3 .w5-verdict.hit{opacity:1;color:#ffe2c0;text-shadow:0 0 18px #ff9b6a,0 2px 8px #000}
+.pallid-cine-v3 .w5-verdict.miss{opacity:1;color:#e4f2b0;text-shadow:0 0 16px #6f8a37,0 2px 8px #000}
+@media(max-width:620px){.pallid-cine-v3 .w5-hint{font-size:10px;top:30px;white-space:normal;width:84%;text-align:center}.pallid-cine-v3 .w5-verdict{font-size:22px}.pallid-cine-v3 .w5-progress{top:9px;right:12px}}

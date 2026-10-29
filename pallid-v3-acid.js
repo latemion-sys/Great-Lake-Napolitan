@@ -67,6 +67,8 @@ function acidHtml(){
   '<radialGradient id="w3Lamp"><stop stop-color="#ffbf47" stop-opacity=".95"/><stop offset=".22" stop-color="#ffbf47" stop-opacity=".42"/><stop offset=".6" stop-color="#ffbf47" stop-opacity=".08"/><stop offset="1" stop-color="#ffbf47" stop-opacity="0"/></radialGradient>'+
   '<radialGradient id="w5Warm"><stop stop-color="#ffb35a" stop-opacity=".34"/><stop offset=".4" stop-color="#d0685a" stop-opacity=".12"/><stop offset="1" stop-color="#d0685a" stop-opacity="0"/></radialGradient>'+
   '<radialGradient id="w5Hole" cx=".5" cy=".5" r=".5"><stop stop-color="#000"/><stop offset=".55" stop-color="#0a0305"/><stop offset=".8" stop-color="#4a1724"/><stop offset="1" stop-color="#4a1724" stop-opacity="0"/></radialGradient>'+
+  '<radialGradient id="w5Cue"><stop stop-color="#ffd59a" stop-opacity=".55"/><stop offset=".5" stop-color="#ff9a6a" stop-opacity=".18"/><stop offset="1" stop-color="#ff9a6a" stop-opacity="0"/></radialGradient>'+
+  '<radialGradient id="w5Hurt" cx=".5" cy=".5" r=".75"><stop stop-color="#c8e46a" stop-opacity="0"/><stop offset=".6" stop-color="#c8e46a" stop-opacity=".08"/><stop offset="1" stop-color="#d0f070" stop-opacity=".5"/></radialGradient>'+
   '<filter id="w5Blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="12"/></filter>'+
   '<filter id="w5Steam" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>'+
   '<filter id="w5Soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.4"/></filter>'+
@@ -108,6 +110,9 @@ function acidHtml(){
   '<g class="w5-drips" fill="#d7ea8a">'+Array.from({length:6},(_,i)=>'<ellipse class="w5-drip" data-i="'+i+'" rx="2.2" ry="4.2" opacity="0"/>').join('')+'</g>'+
   // 등불의 따스한 빛
   '<circle class="w5-warm" r="210" fill="url(#w5Warm)"/>'+
+  // 미니게임: 위액이 빠진 순간 통로가 열리듯 빛남
+  '<ellipse class="w5-cue" cx="842" cy="292" rx="70" ry="90" fill="url(#w5Cue)" opacity="0"/>'+
+  '<rect class="w5-hurt" width="'+W+'" height="'+H+'" fill="url(#w5Hurt)" opacity="0"/>'+
   // 앞쪽 벽 주름(화면 가장자리)
   '<g class="w5-front">'+
    '<path d="M-40,300 Q30,330 54,400 Q80,470 170,500 Q230,520 250,560 L-40,560 Z" fill="#0f0408"/>'+
@@ -120,6 +125,9 @@ function acidHtml(){
  return '<div class="pallid-cine-v2 pallid-cine-v3 w5-acid-scene" role="img" aria-label="'+esc(title[0]+' · '+title[1])+'">'+svg+
   '<span class="cine-top" aria-hidden="true">창백의 향유고래 · '+esc(title[0])+'</span>'+
   '<span class="cine-bottom" aria-hidden="true">'+esc(title[1])+'</span>'+
+  '<span class="w5-hint" aria-hidden="true">위액이 완전히 빠진 순간 노를 저으세요 · 화면 누르기 / 스페이스</span>'+
+  '<span class="w5-progress" aria-hidden="true"><i></i><i></i><i></i></span>'+
+  '<span class="w5-verdict" aria-hidden="true"></span>'+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
 }
 
@@ -141,6 +149,45 @@ function surfaceY(x,t,base,rough){
 }
 
 let start=0,lastSeen=0,seenTok=0;
+// 미니게임 상태 (pallid-acid-game.js가 켜고 끈다)
+const GAME=window.PallidAcidGame=window.PallidAcidGame||{active:false};
+const WINDOWS=[0.38,0.32,0.27];                 // 성공할수록 빠진 시간이 짧아짐
+function resetGame(){GAME.startAt=0;GAME.steps=0;GAME.stepAt=[];GAME.failAt=-9;GAME.lastPress=-9;GAME.cycles=[];GAME.doneAt=null;}
+GAME.reset=resetGame;
+function mkCycle(s0){
+ const r=Math.random;
+ const c={s:s0,rise:0.42+r()*0.2,high:0.4+r()*0.75,drain:0.38+r()*0.14,low:WINDOWS[Math.min(GAME.steps||0,2)]};
+ c.end=c.s+c.rise+c.high+c.drain+c.low;c.open=c.s+c.rise+c.high+c.drain;
+ return c;
+}
+function cycleAt(t){
+ const cs=GAME.cycles||(GAME.cycles=[]);
+ if(!cs.length)cs.push(mkCycle(0));
+ while(cs[cs.length-1].end<t+3)cs.push(mkCycle(cs[cs.length-1].end));
+ for(const c of cs)if(t<c.end)return c;
+ return cs[cs.length-1];
+}
+function holdLevel(t){
+ const c=cycleAt(t),u=t-c.s;
+ if(u<c.rise)return LOW+(HIGH-LOW)*outC(u/c.rise);
+ if(u<c.rise+c.high)return HIGH;
+ if(u<c.rise+c.high+c.drain)return HIGH+(LOW-HIGH)*inOut((u-c.rise-c.high)/c.drain);
+ return LOW;
+}
+function inWindow(t){const c=cycleAt(t);return !c.used&&t>=c.open-0.05&&t<c.end+0.03;}
+GAME.press=function(){
+ if(!GAME.active||!GAME.startAt||GAME.steps>=3)return null;
+ const t=(performance.now()-GAME.startAt)/1000;
+ if(t-GAME.lastPress<0.3)return 'busy';
+ GAME.lastPress=t;
+ if(inWindow(t)){
+  cycleAt(t).used=true;GAME.steps++;GAME.stepAt.push(t);
+  if(GAME.steps>=3)GAME.doneAt=t;
+  return 'ok';
+ }
+ GAME.failAt=t;return 'fail';
+};
+resetGame();
 function frame(now){
  const el=document.querySelector('.w5-acid-scene');
  if(el&&el.isConnected){
@@ -149,13 +196,16 @@ function frame(now){
   if(now-lastSeen>900||tok!==seenTok){start=now;seenTok=tok;}   // 새로 열리거나 '다시 재생'일 때만 처음부터
   if(paused)start+=now-lastSeen;
   lastSeen=now;
-  paint(el,el.dataset.seek!=null?+el.dataset.seek:((now-start)/1000)%LOOP);
+  if(GAME.active){
+   if(!GAME.startAt)GAME.startAt=now;
+   paint(el,(now-GAME.startAt)/1000,true);
+  }else paint(el,el.dataset.seek!=null?+el.dataset.seek:((now-start)/1000)%LOOP,false);
  }
  requestAnimationFrame(frame);
 }
-function paint(el,t){
+function paint(el,t,hold){
  const q=s=>el.querySelector(s),qa=s=>el.querySelectorAll(s);
- const base=level(t);
+ const base=hold?holdLevel(t):level(t);
  const surging=clamp((LOW-base)/(LOW-HIGH));          // 0(낮음)~1(높음)
  const rough=0.45+surging*1.4;
  // 위액 표면
@@ -176,8 +226,12 @@ function paint(el,t){
  glow.style.opacity=(0.7+0.3*surging+Math.sin(t*3)*0.06).toFixed(3);
 
  // 쪽배: 턱 위에서 기다림 → 건넘(노 젓듯 일정하지 않은 속도) → 통로 앞
- const c=clamp((t-T.cross[0])/(T.cross[1]-T.cross[0]));
- const stroke=c-Math.sin(c*Math.PI*6)/(Math.PI*6)*0.9;  // 노를 저을 때마다 밀려 나가는 느낌
+ let c=clamp((t-T.cross[0])/(T.cross[1]-T.cross[0]));
+ let stroke=c-Math.sin(c*Math.PI*6)/(Math.PI*6)*0.9;  // 노를 저을 때마다 밀려 나가는 느낌
+ if(hold){ // 성공할 때마다 1/3씩 노를 저어 나아감
+  stroke=0;GAME.stepAt.forEach(s0=>{stroke+=outC((t-s0)/0.8)/3;});
+  c=stroke>0&&stroke<1?0.5:stroke>=1?1:0;
+ }
  const bx=WAIT_X+(END_X-WAIT_X)*clamp(stroke);
  let by;
  if(c<=0){ // 턱 위: 높은 위액이 턱을 넘으면 함께 들림
@@ -185,7 +239,9 @@ function paint(el,t){
  }else{
   by=Math.min(surfaceY(bx,t,base,rough)-3,FLOOR-6);
  }
- const rock=Math.sin(t*2.4)*(2+3*surging)+(c>0&&c<1?Math.sin(c*Math.PI*6)*2:0);
+ let rock=Math.sin(t*2.4)*(2+3*surging)+(!hold&&c>0&&c<1?Math.sin(c*Math.PI*6)*2:0);
+ const hurt=hold?t-GAME.failAt:9;
+ if(hurt>=0&&hurt<1.2)rock+=Math.sin(hurt*26)*9*Math.exp(-hurt*3);
  q('.w5-boat').setAttribute('transform','translate('+bx.toFixed(1)+' '+by.toFixed(1)+') rotate('+rock.toFixed(2)+') scale('+BOAT_S+')');
  const lampK=0.86+Math.sin(t*7.3)*.05+Math.sin(t*12.9+1.7)*.04;
  const lg=q('.w3-lampglow');if(lg)lg.style.opacity=lampK.toFixed(3);
@@ -196,7 +252,7 @@ function paint(el,t){
  qa('.w5-siz').forEach(s=>{
   const i=+s.dataset.i,ph=(t*2.2+i*0.37)%1;
   s.setAttribute('cx',(bx+(i-3.5)*14*BOAT_S*0.9).toFixed(1));s.setAttribute('cy',(by+6-ph*14).toFixed(1));
-  s.style.opacity=inAcid?(0.8*(1-ph)).toFixed(3):'0';
+  s.style.opacity=(inAcid||(hurt>=0&&hurt<1.2))?(0.8*(1-ph)).toFixed(3):'0';
  });
 
  // 거품: 바닥에서 올라와 표면에서 터짐
@@ -229,11 +285,25 @@ function paint(el,t){
  // 위벽이 천천히 수축
  q('.w5-breathe').setAttribute('transform','translate(480 270) scale('+(1+Math.sin(t*0.9)*0.012).toFixed(4)+') translate(-480 -270)');
  // 위액이 솟구칠 때 화면 흔들림
- const sh=3.5*clamp((t-T.surge[0])/0.3)*Math.exp(-Math.max(0,t-T.surge[0]-0.3)*2.2)*(t<T.drain[0]?1:0);
+ let sh=hold?0:3.5*clamp((t-T.surge[0])/0.3)*Math.exp(-Math.max(0,t-T.surge[0]-0.3)*2.2)*(t<T.drain[0]?1:0);
+ if(hurt>=0&&hurt<1)sh+=6*Math.exp(-hurt*4);
  q('.w5-root').setAttribute('transform','translate('+(Math.sin(t*55)*sh).toFixed(2)+' '+(Math.sin(t*43+1)*sh).toFixed(2)+')');
  // 반복 경계
- const v=t<0.6?1-t/0.6:clamp((t-T.loop[0])/(T.loop[1]-T.loop[0]));
+ const v=hold?0:(t<0.6?1-t/0.6:clamp((t-T.loop[0])/(T.loop[1]-T.loop[0])));
  q('.w5-veil').style.opacity=(v*0.95).toFixed(3);
+ // 미니게임 표시: 빠진 순간 통로가 빛남 · 휩쓸림 · 진행 칸
+ const cue=q('.w5-cue');
+ if(hold){
+  const open=GAME.steps<3&&inWindow(t);
+  cue.style.opacity=open?(0.75+0.25*Math.sin(t*20)).toFixed(3):'0';
+  q('.w5-hurt').style.opacity=hurt>=0&&hurt<0.8?(0.9*(1-hurt/0.8)).toFixed(3):'0';
+  el.classList.toggle('w5-playing',GAME.steps<3);
+  el.classList.toggle('w5-open',open);
+  el.querySelectorAll('.w5-progress i').forEach((pip,i)=>pip.className=i<GAME.steps?'on':'');
+  const vd=el.querySelector('.w5-verdict'),lastOk=GAME.stepAt.length?t-GAME.stepAt[GAME.stepAt.length-1]:9;
+  const txt=hurt>=0&&hurt<1.1?'휩쓸림':lastOk<1.1?(GAME.steps>=3?'통과':'전진'):'';
+  vd.textContent=txt;vd.className='w5-verdict'+(txt?(txt==='휩쓸림'?' miss':' hit'):'');
+ }else{cue.style.opacity='0';q('.w5-hurt').style.opacity='0';el.classList.remove('w5-playing','w5-open');}
 }
 requestAnimationFrame(frame);
 
