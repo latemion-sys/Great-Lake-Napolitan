@@ -1,5 +1,5 @@
 
-/* 창백의 향유고래 · 고화질 벡터 시네마틱. 장면 변환은 CSS 키프레임만 사용합니다. */
+/* 모든 것을 삼키는 창백한 고래 · 고화질 벡터 시네마틱. 장면 변환은 CSS 키프레임만 사용합니다. */
 (function(){
 'use strict';
 const NAMES={
@@ -136,7 +136,7 @@ function sceneHtml(name){
  const isWin=name==='victory';
  const title=NAMES[name],svg='<svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" preserveAspectRatio="xMidYMid slice">'+D+'<g clip-path="url(#cinViewport)" class="cine-'+name+'">'+SCENES[name]()+'</g></svg>';
  return '<div class="pallid-cine-v2'+(isWin?' cine-victory':'')+'" role="img" aria-label="'+esc(title[0]+' · '+title[1])+'">'+svg+
-  '<span class="cine-top" aria-hidden="true">창백의 향유고래 · '+esc(title[0])+'</span>'+
+  '<span class="cine-top" aria-hidden="true">모든 것을 삼키는 창백한 고래 · '+esc(title[0])+'</span>'+
   '<span class="cine-bottom" aria-hidden="true">'+esc(title[1])+'</span>'+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
 }
