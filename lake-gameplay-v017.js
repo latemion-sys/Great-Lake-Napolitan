@@ -130,7 +130,7 @@
    next=count.turns>=2?'scene2':nextOf017((opt.toAny||[opt.to||'scene0']).filter(k=>k!=='scene2'),st.step);
   }else if(opt.special==='netTwice'){
    count.nets++;
-   next=count.nets>=2?'scene2':(st.specialNetUsed?'scene0':pick(['scene0','scene1']));
+   next=count.nets>=2?'scene2':(st.specialNetUsed||st.turnLimit-st.turns<3?'scene0':pick(['scene0','scene1']));
    if(next==='scene1')st.specialNetUsed=true;
   }else if(opt.special==='tieThree'){
    count.ties++;
