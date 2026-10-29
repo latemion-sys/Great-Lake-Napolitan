@@ -182,6 +182,17 @@
   }
   return result;
  };
+ // 추가 호수에 따른 안내 숫자만 갱신한다. 다른 안내/이벤트/화면 구성은 유지한다.
+ const previousHelp=renderHelp;
+ renderHelp=function(){
+  return previousHelp().replace('현재 호수는 총 31개입니다. 21-01부터 21-30까지와 21-40이 등장합니다.',
+   '현재 호수는 총 34개입니다. 21-01부터 21-33까지와 21-40이 등장합니다.');
+ };
+ const previousPlay=renderPlay;
+ renderPlay=function(){
+  const page=previousPlay();
+  return state.scene==='port'?page.replaceAll('31개의 서로 다른 호수','34개의 서로 다른 호수'):page;
+ };
  try{localStorage.setItem(COUNTS_KEY,JSON.stringify(passes));}catch(e){}
  save();render();
  window.GREAT_LAKE_PATCH_020={ids:[...byId.keys()],counts:()=>({...passes})};
