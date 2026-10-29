@@ -1,4 +1,4 @@
-/* 창백의 향유고래 · v3 시네마틱 · 5단계 심장 파괴
+/* 모든 것을 삼키는 창백한 고래 · v3 시네마틱 · 5단계 심장 파괴
    한 번만 재생하고 마지막 장면에 머문다.
    작은 심장의 금 사이로 창백한 빛이 새고 → 산산이 부서지고 → 큰 심장이 경련 끝에 멎으며
    붉은빛이 빠져 창백해지고 → 하얗게 번진 뒤 → 바깥의 밤 호수, 숨이 끊긴 고래 곁에 등불 단 쪽배.
@@ -119,7 +119,7 @@ function victoryHtml(){
   '<rect class="w7-veil" width="'+W+'" height="'+H+'" fill="#020103" opacity="0"/>'+
  '</g></svg>';
  return '<div class="pallid-cine-v2 pallid-cine-v3 w7-victory-scene" role="img" aria-label="'+esc(LABEL[0]+' · '+LABEL[1])+'">'+svg+
-  '<span class="cine-top" aria-hidden="true">창백의 향유고래 · '+esc(LABEL[0])+'</span>'+
+  '<span class="cine-top" aria-hidden="true">모든 것을 삼키는 창백한 고래 · '+esc(LABEL[0])+'</span>'+
   '<span class="cine-bottom" aria-hidden="true">'+esc(LABEL[1])+'</span>'+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
 }
