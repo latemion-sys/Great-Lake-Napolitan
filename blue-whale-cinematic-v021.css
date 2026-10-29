@@ -1,0 +1,18 @@
+/* Blue whale cinematic: presentation only. Scoped to the blue whale encounter and hunt. */
+.bluewhale-game{margin:0 0 16px;border:1px solid #466f95;background:linear-gradient(140deg,#0e2235 0%,#07121f 100%);border-radius:14px;padding:14px;box-shadow:inset 0 0 42px #03080f,0 10px 33px #0005}
+.bluewhale-game-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+.bluewhale-game-title{font-size:15px;font-weight:700;color:#d8f6ff;letter-spacing:-.02em}
+.bluewhale-game-phase{font-size:11px;letter-spacing:.13em;color:#8ecde9;white-space:nowrap}
+.bluewhale-game-screen{position:relative;overflow:hidden;aspect-ratio:16/9;max-height:410px;background:#081320;border:1px solid #6186a2;border-radius:10px;isolation:isolate}
+.bluewhale-game-screen canvas{display:block;width:100%;height:100%}
+.bluewhale-game-screen::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 65px #0009}
+.bluewhale-game-corner{position:absolute;z-index:1;top:12px;left:14px;color:#b0d6eb;letter-spacing:.14em;font-size:10px;text-shadow:0 1px 7px #000;pointer-events:none}
+.bluewhale-caption{position:absolute;z-index:1;left:14px;right:14px;bottom:14px;font-size:12px;font-weight:600;line-height:1.55;color:#eefaff;text-shadow:0 2px 10px #000,0 1px 3px #000;pointer-events:none;word-break:keep-all}
+.bluewhale-game-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 2px 0}
+.bluewhale-game-desc{font-size:12px;color:#b7ccdd;line-height:1.7;flex:1;min-width:160px}
+.bluewhale-replay{cursor:pointer;font-size:12px;border:1px solid #5589a6;border-radius:8px;color:#e5f8ff;background:#153d56;padding:7px 11px}
+.bluewhale-replay:hover{background:#215b78}
+.bluewhale-game-finale{border-color:#83d2ef}
+.bluewhale-game-finale .bluewhale-game-title{color:#aeefff}
+@media(max-width:560px){.bluewhale-game{padding:9px}.bluewhale-game-header{align-items:flex-start;flex-direction:column;gap:3px}.bluewhale-caption{font-size:10px;bottom:9px;left:9px;right:9px}.bluewhale-game-corner{font-size:8px;top:8px;left:9px}}
+@media(prefers-reduced-motion:reduce){.bluewhale-game-screen{scroll-behavior:auto}}
