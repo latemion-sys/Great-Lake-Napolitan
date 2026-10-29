@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>대호수 · 동전 회전 미리보기</title>
+<style>
+:root{--bg:#0d1117;--line:#343f4b;--text:#e8edf3;--muted:#a8b4c0;--blue:#9fc6ff}
+body{margin:0;background:radial-gradient(circle at 40% -10%,#1b2e3b,#0d1117 56%);color:var(--text);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;line-height:1.65;min-height:100vh}
+main{max-width:560px;margin:auto;padding:36px 16px 60px}
+h1{font-size:24px;margin:4px 0 6px}.small{font-size:12px;color:var(--blue)}.muted{color:var(--muted);font-size:14px}
+.panel{background:#161b22;border:1px solid var(--line);border-radius:17px;padding:20px;margin-top:16px}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+button{background:#283544;color:var(--text);border:1px solid #435468;padding:10px 14px;border-radius:10px;font:inherit;cursor:pointer;font-size:13px}
+button:hover:not(:disabled){background:#354d64}button:disabled{opacity:.42;cursor:not-allowed}
+button.primary{background:#315f6d;border-color:#78abb5}
+button.on{background:#5a3f22;border-color:#ffcf9a;color:#fff1d8}
+#elapsed{font-variant-numeric:tabular-nums;color:#ffcf9a}
+</style>
+<style id="gameCoinCss"></style>
+</head>
+<body>
+<main>
+<div class="small">대호수 · 테스트 페이지</div>
+<h1>동전 회전 미리보기</h1>
+<p class="muted">게임 화면과 같은 동전 이펙트를 그대로 불러와 보여 줍니다. 사이트의 동전 속도를 바꾸면 이 페이지에도 자동으로 반영됩니다.</p>
+<div class="panel">
+ <div class="coinpanel" id="coinPanel">
+  <div class="small">앞면: 타격 성공 · 뒷면: 적의 반격</div>
+  <div class="coinstage"><div class="coin" id="coin"><div class="face">앞면</div><div class="face back">뒷면</div></div></div>
+  <p id="coinText">동전을 던져 보세요.</p>
+  <p class="muted">회전 시간 <span id="elapsed">0.0</span>초 / <span id="total">-</span>초</p>
+  <div class="row">
+   <button type="button" class="primary" data-throw="random">동전 던지기</button>
+   <button type="button" data-throw="head">앞면으로</button>
+   <button type="button" data-throw="tail">뒷면으로</button>
+  </div>
+ </div>
+ <div class="row" style="margin-top:16px">
+  <span class="muted" style="align-self:center">속도 비교</span>
+  <button type="button" data-speed="site" class="on">현재 사이트 (<span id="siteSec">-</span>초)</button>
+  <button type="button" data-speed="3">이전 속도 (3초)</button>
+ </div>
+</div>
+</main>
+<script>
+(function(){
+'use strict';
+let siteSec=4.5,useSec=null,busy=false;
+const coin=document.getElementById('coin'),text=document.getElementById('coinText');
+// 실제 게임(index.html)의 동전 스타일을 그대로 가져온다
+fetch('./index.html',{cache:'no-store'}).then(r=>r.text()).then(html=>{
+ const css=(html.match(/<style>([\s\S]*?)<\/style>/i)||[])[1]||'';
+ const rules=[];
+ const re=/@keyframes (coinflight|glow)\{(?:[^{}]*\{[^{}]*\})*\}|[^{}@]*\.coin[^{}]*\{[^{}]*\}/g;
+ let m;while((m=re.exec(css)))rules.push(m[0].trim());
+ document.getElementById('gameCoinCss').textContent=rules.join('\n');
+ const d=(css.match(/\.coin\.flipping\{animation:coinflight ([\d.]+)s/)||[])[1];
+ if(d)siteSec=+d;
+ // 게임 코드의 판정 대기 시간(밀리초)도 확인
+ const wait=(html.match(/resolveCoin\(win\);busy=false;\},(\d+)\)/)||[])[1];
+ if(wait)siteSec=Math.max(siteSec,+wait/1000);
+ document.getElementById('siteSec').textContent=siteSec;
+ document.getElementById('total').textContent=siteSec;
+}).catch(()=>{text.textContent='게임 파일을 불러오지 못했습니다. 새로고침해 주세요.';});
+
+function sec(){return useSec||siteSec;}
+function throwCoin(kind){
+ if(busy)return;busy=true;
+ const win=kind==='head'?true:kind==='tail'?false:Math.random()<0.5;
+ document.querySelectorAll('[data-throw]').forEach(b=>b.disabled=true);
+ text.textContent='회전 중... 동전이 수면 위로 솟아오릅니다.';
+ coin.style.setProperty('--landing',win?'1440deg':'1620deg');
+ coin.style.animationDuration=sec()+'s';
+ coin.classList.remove('flipping');void coin.offsetWidth;coin.classList.add('flipping');
+ const t0=performance.now(),el=document.getElementById('elapsed');
+ (function tick(){const s=(performance.now()-t0)/1000;el.textContent=Math.min(s,sec()).toFixed(1);if(s<sec())requestAnimationFrame(tick);})();
+ setTimeout(()=>{
+  text.textContent=win?'앞면 · 타격 성공':'뒷면 · 적의 반격';
+  const p=document.getElementById('coinPanel');p.classList.remove('hit');void p.offsetWidth;if(win)p.classList.add('hit');
+  document.querySelectorAll('[data-throw]').forEach(b=>b.disabled=false);busy=false;
+ },sec()*1000);
+}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-throw]');if(t)throwCoin(t.dataset.throw);
+ const s=e.target.closest('[data-speed]');
+ if(s&&!busy){
+  useSec=s.dataset.speed==='site'?null:+s.dataset.speed;
+  document.querySelectorAll('[data-speed]').forEach(b=>b.classList.toggle('on',b===s));
+  document.getElementById('total').textContent=sec();
+ }
+});
+})();
+</script>
+</body>
+</html>

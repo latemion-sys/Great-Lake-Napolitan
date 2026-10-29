@@ -313,6 +313,15 @@ function sceneHtml(name){return name==='acid'?acidHtml():prev(name);}
 window.PallidCinematicV2=Object.assign({},V2,{html:sceneHtml});
 V3.html=sceneHtml;V3.acid=acidHtml;
 try{
+ // 인어 단계와 인어 전투에는 시네마틱 이펙트를 띄우지 않는다
+ if(typeof pallidFxNow162==='function'){
+  const beforeNow=pallidFxNow162;
+  pallidFxNow162=function(){
+   if(state.scene==='battle'&&state.battle&&state.battle.type==='pallidMermaid161')return null;
+   if(state.scene===PALLID_SCENE_161&&state.pallidHunt161&&state.pallidHunt161.phase==='mermaids')return null;
+   return beforeNow();
+  };
+ }
  if(typeof pallidFxMarkup162==='function'){
   pallidFxMarkup162=sceneHtml;
   if(typeof render==='function')render();
