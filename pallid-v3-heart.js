@@ -133,12 +133,13 @@ const LIFT=26;
 function lubdub(p){p=((p%1)+1)%1;return Math.exp(-Math.pow((p-0.06)/0.05,2))+0.6*Math.exp(-Math.pow((p-0.24)/0.05,2));}
 function poolY(x,t){return POOL+Math.sin(x*0.02+t*1.4)*2.2+Math.sin(x*0.007-t*.8)*2;}
 
-let start=0,lastSeen=0;
+let start=0,lastSeen=0,seenTok=0;
 function frame(now){
  const el=document.querySelector('.w6-heart-scene');
  if(el&&el.isConnected){
   const paused=!!el.closest('.is-paused');
-  if(now-lastSeen>900)start=now;
+  const tok=(window.PallidCinematicV3||{}).replayToken||0;
+  if(now-lastSeen>900||tok!==seenTok){start=now;seenTok=tok;}   // 새로 열리거나 '다시 재생'일 때만 처음부터
   if(paused)start+=now-lastSeen;
   lastSeen=now;
   paint(el,el.dataset.seek!=null?+el.dataset.seek:((now-start)/1000)%LOOP);
@@ -271,7 +272,8 @@ const prev=V2.html;
 function sceneHtml(name){return name==='search'||name==='final'?heartHtml():prev(name);}
 const names=Object.assign({},V2.names,{search:LABEL,final:LABEL});
 window.PallidCinematicV2=Object.assign({},V2,{html:sceneHtml,names,stages:['harpoon','ingest','acid','search','victory']});
-V3.html=sceneHtml;V3.heart=heartHtml;V3.stages=['harpoon','ingest','acid','search','victory'];
+V3.html=sceneHtml;V3.heart=heartHtml;
+V3.heartParts={BIG,AORTA,BRANCH,PULM,CAVA,GROOVE,CORONARY,HC,PLACE,ROT,SCL,SMALL,vesselPaths};V3.stages=['harpoon','ingest','acid','search','victory'];
 try{
  if(typeof PALLID_FX_LABELS162==='object'){PALLID_FX_LABELS162.search=LABEL;PALLID_FX_LABELS162.final=LABEL;}
  if(typeof pallidFxMarkup162==='function'){

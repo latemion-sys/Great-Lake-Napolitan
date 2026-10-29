@@ -161,12 +161,13 @@ const T={ghost:[0.2,1.6],rise:[1.4,2.3],slide:[2.5,3.5],snap:[3.45,3.75],sink:[4
 const DROPS=Array.from({length:46},(_,i)=>{const r=seeded(700+i);return {x:250+r()*600,vx:(r()-.5)*90,vy:-(220+r()*360),d:r()*0.35,life:1.1+r()*0.6};});
 const rot=(p,deg,c)=>{const a=deg*Math.PI/180,x=p[0]-c[0],y=p[1]-c[1];return [c[0]+x*Math.cos(a)-y*Math.sin(a),c[1]+x*Math.sin(a)+y*Math.cos(a)];};
 
-let start=0,lastSeen=0;
+let start=0,lastSeen=0,seenTok=0;
 function frame(now){
  const el=document.querySelector('.w4-ingest-scene');
  if(el&&el.isConnected){
   const paused=!!el.closest('.is-paused');
-  if(now-lastSeen>900)start=now;
+  const tok=(window.PallidCinematicV3||{}).replayToken||0;
+  if(now-lastSeen>900||tok!==seenTok){start=now;seenTok=tok;}   // 새로 열리거나 '다시 재생'일 때만 처음부터
   if(paused)start+=now-lastSeen;
   lastSeen=now;
   // data-seek가 있으면 그 시각에 고정(미리보기·검수용)

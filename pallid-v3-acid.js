@@ -140,12 +140,13 @@ function surfaceY(x,t,base,rough){
  return base+Math.sin(x*0.012+t*2.2)*6*rough+Math.sin(x*0.031-t*3.1)*3*rough+Math.sin(x*0.004+t*.7)*4;
 }
 
-let start=0,lastSeen=0;
+let start=0,lastSeen=0,seenTok=0;
 function frame(now){
  const el=document.querySelector('.w5-acid-scene');
  if(el&&el.isConnected){
   const paused=!!el.closest('.is-paused');
-  if(now-lastSeen>900)start=now;
+  const tok=(window.PallidCinematicV3||{}).replayToken||0;
+  if(now-lastSeen>900||tok!==seenTok){start=now;seenTok=tok;}   // 새로 열리거나 '다시 재생'일 때만 처음부터
   if(paused)start+=now-lastSeen;
   lastSeen=now;
   paint(el,el.dataset.seek!=null?+el.dataset.seek:((now-start)/1000)%LOOP);

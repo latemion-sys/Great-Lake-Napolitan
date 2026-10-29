@@ -164,12 +164,13 @@ const T={rise:[0,1.8],aim:[1.8,2.5],fly:[2.5,3.05],sink:[4.4,7.2],veilOut:[6.6,7
 const THROW_FROM=[0,0]; // 매 프레임 갱신 (작살잡이 손 위치)
 const DROPS=Array.from({length:22},(_,i)=>{const r=seeded(300+i);const a=Math.PI*(0.65+r()*0.75);const v=110+r()*190;return {vx:Math.cos(a)*v,vy:-Math.abs(Math.sin(a))*v*(0.7+r()*0.6),d:r()*0.08};});
 
-let start=0,lastSeen=0;
+let start=0,lastSeen=0,seenTok=0;
 function frame(now){
  const el=document.querySelector('.w3-harpoon-scene');
  if(el&&el.isConnected){
   const paused=!!el.closest('.is-paused');
-  if(now-lastSeen>900)start=now;               // 새로 열릴 때만 처음부터, 재렌더에는 이어서
+  const tok=(window.PallidCinematicV3||{}).replayToken||0;
+  if(now-lastSeen>900||tok!==seenTok){start=now;seenTok=tok;}   // 새로 열리거나 '다시 재생'일 때만 처음부터               // 새로 열릴 때만 처음부터, 재렌더에는 이어서
   if(paused)start+=now-lastSeen;
   lastSeen=now;
   paint(el,((now-start)/1000)%LOOP);
@@ -299,7 +300,7 @@ const v2html=V2.html;
 function sceneHtml(name){return name==='harpoon'?harpoonHtml():v2html(name);}
 window.PallidCinematicV2=Object.assign({},V2,{html:sceneHtml});
 window.PallidCinematicV3={html:sceneHtml,harpoon:harpoonHtml,
- shared:{W,H,SEA,BOAT,seeded,wrinkles,scars,esc,clamp,outC,inOut}};
+ shared:{W,H,SEA,BOAT,seeded,wrinkles,scars,esc,clamp,outC,inOut,WHALE,WHALE_TOP,IMPACT}};
 try{
  if(typeof pallidFxMarkup162==='function'){
   pallidFxMarkup162=sceneHtml;
