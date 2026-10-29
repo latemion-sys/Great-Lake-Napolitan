@@ -205,6 +205,19 @@
   }
   return result;
  };
+ // 기존 호수 업적, 기적, 유일, 이전에 있던 고유 업적은 건드리지 않습니다.
+ // 직전 업데이트에서 새로 만든 업적 중 같은 누적 수치/같은 완주 조건을 반복하는 11개만 정리합니다.
+ const overlapping017=new Set([
+  'progress_161_fifteen_returns','progress_161_twohundred_coins',
+  'progress_161_fifty_mermaids','progress_161_feat_full_grade4',
+  'progress_161_feat_full_grade5','progress_161_fifty_returns',
+  'progress_161_hundredfifty_mermaids','progress_161_twelve_streak',
+  'progress_161_feat_zero_damage4','progress_161_feat_high_mental_full',
+  'progress_161_feat_five_no_crew_loss'
+ ]);
+ for(let i=ACH.length-1;i>=0;i--)if(overlapping017.has(ACH[i].id))ACH.splice(i,1);
+ state.achievements=(state.achievements||[]).filter(id=>!overlapping017.has(id));
+ permanentAchievements=permanentAchievements.filter(id=>!overlapping017.has(id));
  const prevHelp017=renderHelp;
  renderHelp=function(){
   return prevHelp017().replace(/현재 항해 가능 호수는 총 20개입니다\.[^<]*/,
