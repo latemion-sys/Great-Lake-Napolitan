@@ -330,7 +330,7 @@ function updateUI(t){
  flash.style.opacity=String(impact);
 }
 function frame(ms){
- if(!last)last=ms;let delta=Math.min(.055,(ms-last)/1000);last=ms;
+ if(!last)last=ms;let delta=Math.min(.1,(ms-last)/1000);last=ms;
  if(!paused)time+=delta*rate;
  if(time>=DUR){
   if(autoNext.checked&&!arriveLock){arriveLock=true;setPhase(phase+1);}
