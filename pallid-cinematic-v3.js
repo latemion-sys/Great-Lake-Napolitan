@@ -1,4 +1,4 @@
-/* 창백의 향유고래 · v3 시네마틱 (작살 장면 개편)
+/* 모든 것을 삼키는 창백한 고래 · v3 시네마틱 (작살 장면 개편)
    - 안개 낀 밤 호수, 각진 머리의 창백한 향유고래, 등불을 단 검은 쪽배.
    - 동전 판정마다 화면이 다시 그려지므로 CSS 키프레임 대신 시간 기준 requestAnimationFrame으로 움직인다.
    - 나머지 장면(삼킴·위산·심장 탐색·최종 전투·심장 파괴)은 v2를 그대로 쓴다. */
@@ -151,7 +151,7 @@ function harpoonHtml(){
   '<rect class="w3-veil" width="'+W+'" height="'+H+'" fill="#020306" opacity="0"/>'+
  '</g></svg>';
  return '<div class="pallid-cine-v2 pallid-cine-v3 w3-harpoon-scene" role="img" aria-label="'+esc(title[0]+' · '+title[1])+'">'+svg+
-  '<span class="cine-top" aria-hidden="true">창백의 향유고래 · '+esc(title[0])+'</span>'+
+  '<span class="cine-top" aria-hidden="true">모든 것을 삼키는 창백한 고래 · '+esc(title[0])+'</span>'+
   '<span class="cine-bottom" aria-hidden="true">'+esc(title[1])+'</span>'+
   '<span class="w3-hint" aria-hidden="true">조준점이 붉은 상처에 겹칠 때 화면을 누르세요 · 스페이스</span>'+
   '<span class="w3-verdict" aria-hidden="true"></span>'+
