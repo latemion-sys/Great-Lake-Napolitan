@@ -229,7 +229,7 @@
  renderPlay=function(){
   const h=oldPlay017();
   if(state.scene==='port')return h.replaceAll('20개의 서로 다른 호수','25개의 서로 다른 호수');
-  if(state.scene==='start')return h+
+  if(state.scene==='start')return h.replace(/<div class="log-update"><h3>V\.0\.1\.6\.0 · 호수 20개와 호수별 업적<\/h3>[\s\S]*?<\/div>/,'')+
    '<div class="log-update"><h3>V.0.1.7.0 · 대호수 수정본 3</h3><ul>'+
    '<li>21-01부터 21-24, 21-40까지 총 25개 호수의 장면과 판정을 원문에 맞춰 갱신했습니다.</li>'+
    '<li>장면과 선택지 무작위 배치, 3~6턴 체류, 인어 조우 20%와 호수별 랜덤 값을 적용했습니다.</li>'+
