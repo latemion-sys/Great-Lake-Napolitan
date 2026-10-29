@@ -1,17 +1,23 @@
-/* Great Lake v0.1.9.0 · 호수 진입 이펙트 */
-.lakefx{position:relative;height:150px;margin:2px 0 12px;border-radius:12px;overflow:hidden;border:1px solid #2c3742;background:#121a21;box-shadow:inset 0 0 40px #0008}
+/* Great Lake v0.1.9.x · 호수 진입 이펙트 (창백의 향유고래 시네마틱과 같은 틀) */
+.lakefx{position:relative;isolation:isolate;overflow:hidden;width:100%;height:clamp(170px,24vw,220px);margin:2px 0 14px;background:#070c14;border:1px solid #56646b;border-radius:13px;box-shadow:inset 0 0 65px #020509,0 8px 30px #0008}
 .lakefx svg{display:block;width:100%;height:100%}
-.lakefx .lfx-hull{fill:var(--lfx-boat,#050607)}
-.lakefx .lfx-rimline{fill:none;stroke:var(--lfx-rim,#8fa3ae);stroke-width:.9;stroke-opacity:.45}
-.lakefx .lfx-mast{fill:none;stroke:var(--lfx-boat,#050607);stroke-width:2.6;stroke-linecap:round}
-.lakefx .lfx-mast.thin{stroke-width:1.6}
-.lakefx .lfx-stay{fill:none;stroke:var(--lfx-boat,#050607);stroke-width:.7;stroke-opacity:.8}
+.lakefx .lfx-hull{fill:var(--lfx-boat,#040608);stroke:var(--lfx-rim,#a5b5ae);stroke-opacity:.42;stroke-width:1.1;stroke-linejoin:round}
+.lakefx .lfx-deck{fill:none;stroke:var(--lfx-rim,#a5b5ae);stroke-width:1.2;stroke-opacity:.55}
+.lakefx .lfx-mast{fill:none;stroke:var(--lfx-boat,#040608);stroke-width:2.8;stroke-linecap:round}
+.lakefx .lfx-mast.thin{stroke-width:1.7}
+.lakefx .lfx-stay{fill:none;stroke:var(--lfx-rim,#a5b5ae);stroke-width:.6;stroke-opacity:.35}
 .lakefx .lfx-reflection{opacity:0}
-.lakefx .lfx-horizon{stroke:var(--lfx-wave,#c9d6de);stroke-opacity:.22;stroke-width:1}
-.lakefx .lfx-mist rect{fill:#dfe7ec;opacity:.07;filter:blur(6px)}
-.lakefx .lfx-wave{fill:none;stroke:var(--lfx-wave,#c9d6de);stroke-linecap:round}
-.lakefx .lfx-ripple{fill:none;stroke:var(--lfx-wave,#c9d6de);stroke-width:1;stroke-opacity:0}
-@media(max-width:620px){.lakefx{height:118px}}
-.lakefx .lfx-lamp{fill:var(--lfx-lamp-core,#fff1c4);stroke:var(--lfx-lamp,#ffc65c);stroke-width:.8}
+.lakefx .lfx-reflection .lfx-hull,.lakefx .lfx-reflection .lfx-deck,.lakefx .lfx-reflection .lfx-stay{stroke:none}
+.lakefx .lfx-horizon{fill:none;stroke:#83aab1;stroke-opacity:.2;stroke-width:1.5}
+.lakefx .lfx-mist rect{fill:#c9dde0;opacity:.06;filter:blur(7px)}
+.lakefx .lfx-crest{fill:none;stroke:var(--lfx-crest,#abc8c7);stroke-opacity:.34;stroke-width:2;stroke-linejoin:round}
+.lakefx .lfx-far{fill:none;stroke:var(--lfx-swell,#71a3ad);stroke-linejoin:round}
+.lakefx .lfx-ripple{fill:none;stroke:var(--lfx-crest,#abc8c7);stroke-width:1.3;stroke-opacity:0;stroke-linecap:round}
+.lakefx .lfx-lamp{fill:var(--lfx-lamp-core,#ffe39a);stroke:var(--lfx-lamp,#ffbf47);stroke-width:.8}
 .lakefx .lfx-lampglow{mix-blend-mode:screen}
 .lakefx .lfx-glint{opacity:0;mix-blend-mode:screen}
+.lakefx .lfx-corner{position:absolute;z-index:3;inset:0;pointer-events:none;background:linear-gradient(90deg,#080b16af,transparent 22%,transparent 78%,#090e19b3),linear-gradient(0deg,#03080dd9,transparent 26%,transparent 76%,#050a12ad)}
+.lakefx .lfx-grain{position:absolute;z-index:4;inset:0;pointer-events:none;opacity:.22;background:repeating-linear-gradient(0deg,transparent 0 2px,#e2f3ed0b 3px 4px)}
+.lakefx .lfx-vignette{position:absolute;z-index:2;inset:0;pointer-events:none;box-shadow:inset 0 0 68px 14px #040a13}
+.lakefx .lfx-top{position:absolute;z-index:5;top:12px;left:16px;font-size:10px;letter-spacing:.21em;color:#c8d8de;text-shadow:0 2px 8px #000,0 0 8px #000}
+@media(max-width:620px){.lakefx{height:clamp(140px,40vw,180px)}.lakefx .lfx-top{letter-spacing:.09em;font-size:9px;top:9px;left:12px}}
