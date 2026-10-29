@@ -40,20 +40,20 @@ button.on{background:#5a3f22;border-color:#ffcf9a;color:#fff1d8}
  <div class="row" style="margin-top:16px">
   <span class="muted" style="align-self:center">속도 비교</span>
   <button type="button" data-speed="site" class="on">현재 사이트 (<span id="siteSec">-</span>초)</button>
-  <button type="button" data-speed="3">이전 속도 (3초)</button>
+  <button type="button" data-speed="4.5">비교 · 직전 길이 (4.5초)</button>
  </div>
 </div>
 </main>
 <script>
 (function(){
 'use strict';
-let siteSec=4.5,useSec=null,busy=false;
+let siteSec=2,useSec=null,busy=false;
 const coin=document.getElementById('coin'),text=document.getElementById('coinText');
 // 실제 게임(index.html)의 동전 스타일을 그대로 가져온다
 fetch('./index.html',{cache:'no-store'}).then(r=>r.text()).then(html=>{
  const css=(html.match(/<style>([\s\S]*?)<\/style>/i)||[])[1]||'';
  const rules=[];
- const re=/@keyframes (coinflight|glow)\{(?:[^{}]*\{[^{}]*\})*\}|[^{}@]*\.coin[^{}]*\{[^{}]*\}/g;
+ const re=/@keyframes (coinflight|coinshadow|glow)\{(?:[^{}]*\{[^{}]*\})*\}|[^{}@]*\.coin[^{}]*\{[^{}]*\}/g;
  let m;while((m=re.exec(css)))rules.push(m[0].trim());
  document.getElementById('gameCoinCss').textContent=rules.join('\n');
  const d=(css.match(/\.coin\.flipping\{animation:coinflight ([\d.]+)s/)||[])[1];
@@ -71,7 +71,7 @@ function throwCoin(kind){
  const win=kind==='head'?true:kind==='tail'?false:Math.random()<0.5;
  document.querySelectorAll('[data-throw]').forEach(b=>b.disabled=true);
  text.textContent='회전 중... 동전이 수면 위로 솟아오릅니다.';
- coin.style.setProperty('--landing',win?'1440deg':'1620deg');
+ coin.style.setProperty('--landing',win?'1080deg':'1260deg');
  coin.style.animationDuration=sec()+'s';
  coin.classList.remove('flipping');void coin.offsetWidth;coin.classList.add('flipping');
  const t0=performance.now(),el=document.getElementById('elapsed');
