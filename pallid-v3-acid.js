@@ -151,7 +151,7 @@ function surfaceY(x,t,base,rough){
 let start=0,lastSeen=0,seenTok=0;
 // 미니게임 상태 (pallid-acid-game.js가 켜고 끈다)
 const GAME=window.PallidAcidGame=window.PallidAcidGame||{active:false};
-const WINDOWS=[0.38,0.32,0.27];                 // 성공할수록 빠진 시간이 짧아짐
+const WINDOWS=[1.0,0.5,0.25];                   // 성공할수록 빠진 시간이 짧아짐 (1초 → 0.5초 → 0.25초)
 function resetGame(){GAME.startAt=0;GAME.steps=0;GAME.stepAt=[];GAME.failAt=-9;GAME.lastPress=-9;GAME.cycles=[];GAME.doneAt=null;}
 GAME.reset=resetGame;
 function mkCycle(s0){
@@ -181,7 +181,8 @@ GAME.press=function(){
  if(t-GAME.lastPress<0.3)return 'busy';
  GAME.lastPress=t;
  if(inWindow(t)){
-  cycleAt(t).used=true;GAME.steps++;GAME.stepAt.push(t);
+  const cur=cycleAt(t);cur.used=true;GAME.steps++;GAME.stepAt.push(t);
+  GAME.cycles=GAME.cycles.filter(c=>c.s<=cur.s);   // 미리 만든 다음 분출은 버려 새 단계의 짧은 틈으로 다시 만든다
   if(GAME.steps>=3)GAME.doneAt=t;
   return 'ok';
  }
