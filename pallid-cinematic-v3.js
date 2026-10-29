@@ -16,6 +16,7 @@ const WHALE='M548,170 C528,200 522,270 532,322 C536,338 548,346 566,348 L1010,36
 const WHALE_TOP='M548,170 C551,161 560,154 574,150 C612,140 724,146 822,160 C884,168 940,178 1010,196';
 const IMPACT=[540,214]; // 고래 좌표계에서 작살이 꽂히는 지점(앞이마)
 const PIVOT=[760,340];
+const ZONE_Y=236,SWEEP=[566,880];   // 미니게임: 조준점이 오가는 이마 위 가로선(고래 좌표)
 
 // 오징어 빨판 흉터와 긁힌 자국: 고정 시드로 매번 같은 모양
 function seeded(n){let s=n;return ()=>((s=(s*16807)%2147483647)/2147483647);}
@@ -65,6 +66,7 @@ function harpoonHtml(){
   '<linearGradient id="w3Face" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#000" stop-opacity=".72"/><stop offset=".08" stop-color="#000" stop-opacity=".38"/><stop offset=".2" stop-color="#000" stop-opacity=".1"/><stop offset=".36" stop-color="#000" stop-opacity="0"/></linearGradient>'+
   '<radialGradient id="w3Moon"><stop stop-color="#e9ece2" stop-opacity=".55"/><stop offset=".18" stop-color="#c9d3cf" stop-opacity=".2"/><stop offset="1" stop-color="#9fb0b0" stop-opacity="0"/></radialGradient>'+
   '<radialGradient id="w3Lamp"><stop stop-color="#ffbf47" stop-opacity=".95"/><stop offset=".22" stop-color="#ffbf47" stop-opacity=".42"/><stop offset=".6" stop-color="#ffbf47" stop-opacity=".08"/><stop offset="1" stop-color="#ffbf47" stop-opacity="0"/></radialGradient>'+
+  '<radialGradient id="w3Zone"><stop stop-color="#ff8f73" stop-opacity=".6"/><stop offset=".6" stop-color="#c84a4f" stop-opacity=".25"/><stop offset="1" stop-color="#c84a4f" stop-opacity="0"/></radialGradient>'+
   '<radialGradient id="w3Flash"><stop stop-color="#fffdf0" stop-opacity=".95"/><stop offset=".3" stop-color="#e9efe6" stop-opacity=".45"/><stop offset="1" stop-color="#e9efe6" stop-opacity="0"/></radialGradient>'+
   '<filter id="w3Soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>'+
   '<filter id="w3Mist" x="-10%" y="-200%" width="120%" height="500%"><feGaussianBlur stdDeviation="14 6"/></filter>'+
@@ -114,6 +116,10 @@ function harpoonHtml(){
      [[0,90,2.6],[6,52,1.6],[-5,34,1.3]].map(([o,len,w])=>'<path class="w3-bleed" data-len="'+len+'" d="M'+(IMPACT[0]+o)+','+(IMPACT[1]+3)+' c'+(-1.5)+','+(len*.35).toFixed(0)+' 1.5,'+(len*.7).toFixed(0)+' -0.5,'+len+'" stroke="#2c0b11" stroke-width="'+w+'" stroke-linecap="round" fill="none" stroke-dasharray="'+len+'" stroke-dashoffset="'+len+'"/>').join('')+'</g>'+
    '</g>'+
    '<path d="'+WHALE_TOP+'" fill="none" stroke="#f4f5ec" stroke-opacity=".55" stroke-width="2.6" filter="url(#w3Rim)"/>'+
+   // 미니게임: 아물지 않은 상처(명중 구간)와 움직이는 조준점 — 고래와 함께 움직임
+   '<g class="w3-aimui" opacity="0"><ellipse class="w3-zone" cy="'+ZONE_Y+'" rx="30" ry="20" fill="url(#w3Zone)"/>'+
+    '<ellipse class="w3-zonering" cy="'+ZONE_Y+'" rx="30" ry="20" fill="none" stroke="#ffcf9a" stroke-opacity=".75" stroke-width="1.6" stroke-dasharray="5 5"/></g>'+
+   '<g class="w3-reticle" opacity="0"><circle r="12" fill="none" stroke="#f4f7ee" stroke-width="1.8"/><path d="M-20,0 H-8 M8,0 H20 M0,-20 V-8 M0,8 V20" stroke="#f4f7ee" stroke-width="1.8"/><circle r="1.8" fill="#f4f7ee"/></g>'+
   '</g>'+
 
   // 물에 잠긴 부분을 덮는 수면
@@ -123,6 +129,7 @@ function harpoonHtml(){
    '<ellipse class="w3-ring" cx="640" cy="'+(SEA+4)+'" rx="120" ry="7"/><ellipse class="w3-ring" cx="640" cy="'+(SEA+4)+'" rx="120" ry="7"/>'+
    '<path class="w3-surf" d="M524,'+(SEA+1)+' Q560,'+(SEA-4)+' 600,'+(SEA+1)+' T680,'+(SEA+1)+' T760,'+(SEA)+' T860,'+(SEA+1)+' T960,'+(SEA)+'" stroke-width="2.4"/></g>'+
 
+  '<ellipse class="w3-splash" rx="10" ry="3" fill="none" stroke="#e7efed" stroke-width="2" opacity="0"/>'+
   // 등불 빛이 수면에 비침
   '<ellipse class="w3-lampglint" cx="0" cy="'+(SEA+9)+'" rx="22" ry="3" fill="#ffbf47" filter="url(#w3Rim)" opacity="0"/>'+
   '<g clip-path="url(#w3AboveSea)"><g class="w3-boat">'+BOAT+'</g></g>'+
@@ -133,8 +140,8 @@ function harpoonHtml(){
   '<g mask="url(#w3OutsideWhale)"><g class="w3-harpoon" opacity="0">'+
    '<path d="M-104,0 L-10,0" stroke="#15191b" stroke-width="4" stroke-linecap="round"/>'+
    '<path d="M-104,-1.2 L-12,-1.2" stroke="#d3dcda" stroke-opacity=".55" stroke-width="1.1"/>'+
-   '<path d="M3,0 L-16,-6.5 L-11,0 L-16,6.5 Z" fill="#dfe6e3" stroke="#aebbb9" stroke-width="1" stroke-linejoin="round"/>'+
-   '<path d="M-12,-3 L-22,-9 M-12,3 L-22,9" stroke="#c5cfcc" stroke-width="1.6" stroke-linecap="round"/></g></g>'+
+   '<g class="w3-tip"><path d="M3,0 L-16,-6.5 L-11,0 L-16,6.5 Z" fill="#dfe6e3" stroke="#aebbb9" stroke-width="1" stroke-linejoin="round"/>'+
+   '<path d="M-12,-3 L-22,-9 M-12,3 L-22,9" stroke="#c5cfcc" stroke-width="1.6" stroke-linecap="round"/></g></g></g>'+
 
   // 명중 효과
   '<circle class="w3-flash" r="70" fill="url(#w3Flash)" opacity="0"/>'+
@@ -146,6 +153,8 @@ function harpoonHtml(){
  return '<div class="pallid-cine-v2 pallid-cine-v3 w3-harpoon-scene" role="img" aria-label="'+esc(title[0]+' · '+title[1])+'">'+svg+
   '<span class="cine-top" aria-hidden="true">창백의 향유고래 · '+esc(title[0])+'</span>'+
   '<span class="cine-bottom" aria-hidden="true">'+esc(title[1])+'</span>'+
+  '<span class="w3-hint" aria-hidden="true">조준점이 붉은 상처에 겹칠 때 화면을 누르세요 · 스페이스</span>'+
+  '<span class="w3-verdict" aria-hidden="true"></span>'+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
 }
 function esc(t){return String(t).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[ch]));}
@@ -165,6 +174,15 @@ const THROW_FROM=[0,0]; // 매 프레임 갱신 (작살잡이 손 위치)
 const DROPS=Array.from({length:22},(_,i)=>{const r=seeded(300+i);const a=Math.PI*(0.65+r()*0.75);const v=110+r()*190;return {vx:Math.cos(a)*v,vy:-Math.abs(Math.sin(a))*v*(0.7+r()*0.6),d:r()*0.08};});
 
 let start=0,lastSeen=0,seenTok=0;
+// 미니게임 상태 (pallid-harpoon-game.js가 켜고 끈다)
+const GAME=window.PallidHarpoonGame=window.PallidHarpoonGame||{active:false};
+function sweepX(t){const ph=((t/(GAME.period||2.4))%1+1)%1,tri=ph<.5?ph*2:2-ph*2;return SWEEP[0]+(SWEEP[1]-SWEEP[0])*tri;}
+GAME.throwNow=function(){
+ if(!GAME.active||GAME.throwAt!=null||!GAME.startAt)return null;
+ const t=(performance.now()-GAME.startAt)/1000,x=sweepX(t);
+ GAME.throwAt=t;GAME.aimLocal=[x,ZONE_Y];GAME.hit=Math.abs(x-GAME.zone)<=GAME.half;
+ return GAME.hit;
+};
 function frame(now){
  const el=document.querySelector('.w3-harpoon-scene');
  if(el&&el.isConnected){
@@ -173,7 +191,10 @@ function frame(now){
   if(now-lastSeen>900||tok!==seenTok){start=now;seenTok=tok;}   // 새로 열리거나 '다시 재생'일 때만 처음부터               // 새로 열릴 때만 처음부터, 재렌더에는 이어서
   if(paused)start+=now-lastSeen;
   lastSeen=now;
-  paint(el,((now-start)/1000)%LOOP);
+  if(GAME.active){
+   if(!GAME.startAt)GAME.startAt=now;
+   paint(el,(now-GAME.startAt)/1000,true);
+  }else paint(el,((now-start)/1000)%LOOP,false);
  }
  requestAnimationFrame(frame);
 }
@@ -182,40 +203,51 @@ function endAngle(hand,target){
  const p0=[hand[0]+30,hand[1]-14];
  return Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0])*180/Math.PI;
 }
-function paint(el,t){
+function paint(el,t,hold){
  const q=s=>el.querySelector(s),qa=s=>el.querySelectorAll(s);
+ // 시간표: 기본 반복 장면 / 미니게임(hold)에서는 던진 순간부터 시간을 잰다
+ const thrownAt=hold?(GAME.throwAt==null?Infinity:GAME.throwAt):T.fly[0];
+ const flyDur=hold?0.42:(T.fly[1]-T.fly[0]);
+ const arrive=thrownAt+flyDur,since=t-arrive;
+ const isHit=hold?!!GAME.hit:true;
+ const hit=isHit?since:-1;
+ const targetLocal=hold&&GAME.aimLocal?GAME.aimLocal:IMPACT;
  // 고래: 떠오름 → 숨 고름 → 명중 시 움찔 → 천천히 가라앉음
- const rise=outC((t-T.rise[0])/(T.rise[1]-T.rise[0]));
+ const rise=hold?1:outC((t-T.rise[0])/(T.rise[1]-T.rise[0]));
  let dy=78*(1-rise)+Math.sin(t*1.1)*2.2;
  let deg=-2.5*(1-rise)+Math.sin(t*.8+1)*.5;
- const hit=t-T.fly[1];
  let dx=0;
  if(hit>0){
   const k=Math.exp(-hit*4.2);
   dx+=Math.sin(hit*48)*5*k;dy+=Math.sin(hit*37+1)*3*k;deg+=1.8*Math.sin(Math.min(hit,0.6)*Math.PI/0.6)*(hit<0.6?1:0)+ .9*(1-Math.exp(-hit*2));
  }
- const sink=inOut((t-T.sink[0])/(T.sink[1]-T.sink[0]));
+ if(hold&&!isHit&&since>0){ // 빗나감: 고래가 몸을 비틀어 털어냄
+  const k=Math.exp(-since*2.5);dx+=Math.sin(since*22)*4*k;deg-=1.6*Math.sin(Math.min(since,0.9)*Math.PI/0.9)*(since<0.9?1:0);
+ }
+ const sink=hold?0:inOut((t-T.sink[0])/(T.sink[1]-T.sink[0]));
  dy+=86*sink;deg+=-3*sink;
  const M=whaleMatrix(dx,dy,deg),mat='matrix('+M.map(v=>v.toFixed(4)).join(' ')+')';
  q('.w3-whale').setAttribute('transform',mat);
  q('.w3-maskwhale').setAttribute('transform',mat);
  // 물줄기: 떠오를 때 진하고 점점 사라짐
  const run=q('.w3-runoff');
- run.style.opacity=(0.42*(1-clamp((t-1.0)/2.4))).toFixed(3);
+ run.style.opacity=hold?'0':(0.42*(1-clamp((t-1.0)/2.4))).toFixed(3);
  run.style.strokeDashoffset=(-t*120).toFixed(1);
  // 눈: 명중 직후 감겼다 뜸
  const lid=q('.w3-lid');
  const blink=hit>0&&hit<0.5?Math.sin(hit/0.5*Math.PI):0;
  lid.setAttribute('d','M736,298 Q748,'+(288+blink*11).toFixed(1)+' 760,298');
- // 상처와 피
- q('.w3-wound').style.opacity=hit>0?'1':'0';
+ // 상처와 피 (미니게임에서는 실제로 맞힌 자리)
+ const wound=q('.w3-wound');
+ wound.setAttribute('transform',hold?'translate('+(targetLocal[0]-IMPACT[0]).toFixed(1)+' '+(targetLocal[1]-IMPACT[1]).toFixed(1)+')':'');
+ wound.style.opacity=hit>0?'1':'0';
  qa('.w3-bleed').forEach((b,i)=>{const L=+b.dataset.len;b.style.strokeDashoffset=hit>0?(L-L*outC((hit-i*.25)/(2.6+i*.4))).toFixed(1):String(L);});
 
  // 거품: 떠오를 때 퍼지는 고리, 수면 경계의 물보라
  qa('.w3-ring').forEach((r,i)=>{
   const p=clamp((t-i*.55)/2.6);
   r.setAttribute('rx',(110+p*230).toFixed(1));r.setAttribute('ry',(6+p*12).toFixed(1));
-  r.style.strokeOpacity=((1-p)*.45*(p>0?1:0)).toFixed(3);r.style.strokeWidth=(2.4-p*1.6).toFixed(2);
+  r.style.strokeOpacity=hold?'0':((1-p)*.45*(p>0?1:0)).toFixed(3);r.style.strokeWidth=(2.4-p*1.6).toFixed(2);
  });
  const surf=q('.w3-surf');
  surf.setAttribute('transform','translate('+(dx*0.6).toFixed(1)+' '+(Math.sin(t*1.7)*1.2).toFixed(1)+')');
@@ -225,56 +257,75 @@ function paint(el,t){
  qa('.w3-mist').forEach((m,i)=>m.setAttribute('transform','translate('+(Math.sin(t*0.13+i*2)*50).toFixed(1)+' 0)'));
 
  // 배: 출렁임 + 작살을 던진 반동
- const throwK=t>T.fly[0]?Math.exp(-(t-T.fly[0])*3)*Math.sin((t-T.fly[0])*9):0;
+ const throwK=t>thrownAt?Math.exp(-(t-thrownAt)*3)*Math.sin((t-thrownAt)*9):0;
  const by=BOAT_AT[1]+Math.sin(t*1.6)*2.2+Math.sin(t*.7)*1.2;
  const broll=Math.sin(t*1.25+.6)*2.6-throwK*4;
  const bx=BOAT_AT[0]-throwK*3;
  q('.w3-boat').setAttribute('transform','translate('+bx.toFixed(2)+' '+by.toFixed(2)+') rotate('+broll.toFixed(2)+') scale('+BOAT_S+')');
- // 겨누기: 팔을 뒤로 젖혔다가 던짐
- const aim=clamp((t-T.aim[0])/(T.aim[1]-T.aim[0])),thrown=t>T.fly[0];
+ // 겨누기: 팔을 뒤로 젖혔다가 던짐 (미니게임에서는 겨눈 채 숨 고르기)
+ const thrown=t>thrownAt;
+ const aim=hold?clamp(t/0.6)*(0.92+0.08*Math.sin(t*2.2)):clamp((t-T.aim[0])/(T.aim[1]-T.aim[0]));
  const armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*3];
  q('.w3-arm').setAttribute('d','M29,-23 L'+armEnd[0].toFixed(1)+','+armEnd[1].toFixed(1));
- const lampK=0.86+Math.sin(t*7.3)*.05+Math.sin(t*12.9+1.7)*.04+(t>T.aim[0]&&t<T.fly[1]?.12:0);
+ const lampK=0.86+Math.sin(t*7.3)*.05+Math.sin(t*12.9+1.7)*.04+(!thrown&&(hold||t>T.aim[0])?.12:0);
  q('.w3-lampglow').style.opacity=lampK.toFixed(3);
  const br=broll*Math.PI/180,toWorld=p=>[bx+BOAT_S*(p[0]*Math.cos(br)-p[1]*Math.sin(br)),by+BOAT_S*(p[0]*Math.sin(br)+p[1]*Math.cos(br))];
  const lampW=toWorld([51,-18.5]);
  const lg=q('.w3-lampglint');lg.setAttribute('cx',lampW[0].toFixed(1));lg.style.opacity=(0.4*lampK).toFixed(3);
  const hand=toWorld(armEnd);
 
- // 작살: 손에서 포물선으로 날아가 고래 이마에 꽂힌 뒤 고래와 함께 움직임
+ // 작살: 손에서 포물선으로 날아가 꽂히거나(명중) 튕겨 물에 빠짐(빗나감)
  const hp=q('.w3-harpoon'),rope=q('.w3-rope');
- const target=apply(M,IMPACT);
- let pos,ang,show=0;
- if(t<T.fly[0]){
-  // 손에 쥔 상태
-  const a=-24-aim*14;pos=[hand[0]+Math.cos(a*Math.PI/180)*40,hand[1]+Math.sin(a*Math.PI/180)*40];ang=a;show=clamp((t-1.2)/0.4);
- }else if(t<T.fly[1]){
-  const u=(t-T.fly[0])/(T.fly[1]-T.fly[0]),e=u*(0.85+0.15*u);
+ hp.parentNode.setAttribute('mask',hold?'none':'url(#w3OutsideWhale)');
+ const target=apply(M,targetLocal);
+ const embed=hold?3:9;
+ let pos,ang,show=0,splashAt=null;
+ if(!thrown){
+  const a=-24-aim*14;pos=[hand[0]+Math.cos(a*Math.PI/180)*40,hand[1]+Math.sin(a*Math.PI/180)*40];ang=a;show=hold?1:clamp((t-1.2)/0.4);
+ }else if(t<arrive){
+  const u=(t-thrownAt)/flyDur,e=u*(0.85+0.15*u);
   const p0=[hand[0]+30,hand[1]-14];
   pos=[p0[0]+(target[0]-p0[0])*e,p0[1]+(target[1]-p0[1])*e-4*LIFT*e*(1-e)];
   const d=[target[0]-p0[0],(target[1]-p0[1])-4*LIFT*(1-2*e)];
   ang=Math.atan2(d[1],d[0])*180/Math.PI;show=1;
- }else{
+ }else if(isHit){
   const e=endAngle(hand,target);
-  pos=[target[0]+9*Math.cos(e*Math.PI/180),target[1]+9*Math.sin(e*Math.PI/180)];
+  pos=[target[0]+embed*Math.cos(e*Math.PI/180),target[1]+embed*Math.sin(e*Math.PI/180)];
   ang=e;show=1;
+  if(hold)pos=[target[0]-14*Math.cos(e*Math.PI/180),target[1]-14*Math.sin(e*Math.PI/180)];
+ }else{
+  // 빗나감: 단단한 외피에 튕겨 뒤로 돌며 떨어짐
+  const e=endAngle(hand,target),s2=since;
+  pos=[target[0]-70*s2,target[1]-150*s2+460*s2*s2];
+  ang=e+s2*520;
+  const land=(150+Math.sqrt(150*150+4*460*(SEA-target[1])))/(2*460);
+  splashAt={x:target[0]-70*land,s:s2-land};
+  show=s2<land?1:0;
  }
  hp.style.opacity=String(show);
+ q('.w3-tip').style.opacity=hold&&isHit&&since>0?'0':'1';   // 꽂힌 작살촉은 살 속에 숨김
  hp.setAttribute('transform','translate('+pos[0].toFixed(1)+' '+pos[1].toFixed(1)+') rotate('+ang.toFixed(2)+')');
  // 밧줄: 작살 꼬리 ↔ 배. 날아가는 동안 처지고, 꽂힌 뒤 팽팽해짐
  const ar=ang*Math.PI/180,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
  // 비행 궤적: 날아가는 동안 뒤로 남는 흐린 빛줄기
  const tr=q('.w3-trail');
- if(t>=T.fly[0]&&t<T.fly[1]+0.35){
+ if(t>=thrownAt&&t<arrive+0.35&&(isHit||t<arrive)){
   const back=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];
   tr.setAttribute('d','M'+back[0].toFixed(1)+','+back[1].toFixed(1)+' L'+tail[0].toFixed(1)+','+tail[1].toFixed(1));
-  tr.style.opacity=(t<T.fly[1]?0.45:0.45*(1-(t-T.fly[1])/0.35)).toFixed(3);
+  tr.style.opacity=(t<arrive?0.45:0.45*(1-(t-arrive)/0.35)).toFixed(3);
  }else tr.style.opacity='0';
  const anchor=toWorld([40,-9]);
- const slack=t<T.fly[0]?14:t<T.fly[1]?40:Math.max(3,26*Math.exp(-(t-T.fly[1])*2.5))+Math.sin(t*3)*2;
- const mid=[(tail[0]+anchor[0])/2,(tail[1]+anchor[1])/2+slack];
- rope.setAttribute('d','M'+anchor[0].toFixed(1)+','+anchor[1].toFixed(1)+' Q'+mid[0].toFixed(1)+','+mid[1].toFixed(1)+' '+tail[0].toFixed(1)+','+tail[1].toFixed(1));
- rope.style.opacity=String(t<T.fly[0]?0:0.9);
+ const slack=!thrown?14:t<arrive?40:isHit?Math.max(3,26*Math.exp(-since*2.5))+Math.sin(t*3)*2:40+since*60;
+ const ropeEnd=show?tail:[splashAt?splashAt.x:tail[0],SEA+2];
+ const mid=[(ropeEnd[0]+anchor[0])/2,(ropeEnd[1]+anchor[1])/2+slack];
+ rope.setAttribute('d','M'+anchor[0].toFixed(1)+','+anchor[1].toFixed(1)+' Q'+mid[0].toFixed(1)+','+mid[1].toFixed(1)+' '+ropeEnd[0].toFixed(1)+','+ropeEnd[1].toFixed(1));
+ rope.style.opacity=String(!thrown?0:0.9);
+ // 빗나간 작살이 물에 떨어진 자리
+ const sp=q('.w3-splash');
+ if(splashAt&&splashAt.s>0&&splashAt.s<1.2){
+  const k=splashAt.s/1.2;sp.setAttribute('cx',splashAt.x.toFixed(1));sp.setAttribute('cy',(SEA+3).toFixed(1));
+  sp.setAttribute('rx',(8+k*60).toFixed(1));sp.setAttribute('ry',(2.5+k*6).toFixed(1));sp.style.opacity=(0.7*(1-k)).toFixed(3);
+ }else sp.style.opacity='0';
 
  // 명중 섬광과 피·물보라
  const fl=q('.w3-flash');
@@ -289,8 +340,30 @@ function paint(el,t){
   d.style.opacity=(y>SEA?0:(1-s/1.4)).toFixed(3);
  });
 
+ // 미니게임 UI: 명중 구간(상처)과 조준점
+ const ui=q('.w3-aimui'),ret=q('.w3-reticle');
+ if(hold){
+  const half=GAME.half||30,zx=GAME.zone||700;
+  qa('.w3-zone,.w3-zonering').forEach(z=>{z.setAttribute('cx',zx.toFixed(1));z.setAttribute('rx',half.toFixed(1));z.setAttribute('ry',(half*0.7+6).toFixed(1));});
+  q('.w3-zonering').style.strokeDashoffset=(-t*12).toFixed(1);
+  const fade=thrown?clamp(1-(t-thrownAt)/0.6):1;
+  ui.style.opacity=(fade*(0.75+0.25*Math.sin(t*5))*clamp(t/0.4)).toFixed(3);
+  const rx=thrown?targetLocal[0]:sweepX(t);
+  const near=Math.abs(rx-zx)<=half;
+  ret.setAttribute('transform','translate('+rx.toFixed(1)+' '+ZONE_Y+')');
+  ret.style.opacity=(fade*clamp(t/0.4)).toFixed(3);
+  ret.querySelectorAll('circle,path').forEach(n=>{n.style.stroke=near?'#ffcf9a':'';n.style.fill=n.getAttribute('r')==='1.8'?(near?'#ffcf9a':''):'';});
+  el.classList.toggle('w3-aiming',!thrown);
+  const v=el.querySelector('.w3-verdict');
+  if(v){
+   const show2=since>0&&since<1.6;
+   v.textContent=show2?(isHit?'명중':'빗나감'):'';
+   v.className='w3-verdict'+(show2?(isHit?' hit':' miss'):'');
+  }
+ }else{ui.style.opacity='0';ret.style.opacity='0';el.classList.remove('w3-aiming');}
+
  // 루프 경계: 어둠으로 덮었다가 다시 걷힘
- const v=t<0.6?1-t/0.6:clamp((t-T.veilOut[0])/(T.veilOut[1]-T.veilOut[0]));
+ const v=hold?0:(t<0.6?1-t/0.6:clamp((t-T.veilOut[0])/(T.veilOut[1]-T.veilOut[0])));
  q('.w3-veil').style.opacity=(v*0.92).toFixed(3);
 }
 requestAnimationFrame(frame);
