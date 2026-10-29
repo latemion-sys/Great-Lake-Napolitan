@@ -152,7 +152,7 @@
    state.nav.transition=true;state.ruleResolved=true;
    completeLake(true,'호수의 경계를 건넜습니다.');return;
   }
-  const count=st.counters;
+  const count=st.counters,actualChoice=st.order[i];
   let next=opt.to||nextAmong(opt.toAny||[],st.step);
   if(opt.special==='lookTwice'){
    count.looks++;next=count.looks>=2?'scene4':'scene0';
@@ -175,7 +175,7 @@
   if(!def.nodes[next])return mermaidDeath015(id);
   const previous=st.step;
   enter(st,next);
-  dispatchAchievement142('choice',{lake:id,stage:previous,choice:st.order[i]});
+  dispatchAchievement142('choice',{lake:id,stage:previous,choice:actualChoice});
   if(state.normalMermaidDraw&&!state.mermaidResolved){
    state.mermaidResolved=true;
    beginBattle({type:'normal',name:'대호수의 인어',
