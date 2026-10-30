@@ -156,7 +156,7 @@ function resetGame(){GAME.startAt=0;GAME.steps=0;GAME.stepAt=[];GAME.failAt=-9;G
 GAME.reset=resetGame;
 function mkCycle(s0){
  const r=Math.random;
- const c={s:s0,rise:0.42+r()*0.2,high:0.4+r()*0.75,drain:0.38+r()*0.14,low:WINDOWS[Math.min(GAME.steps||0,2)]};
+ const c={s:s0,rise:0.42+r()*0.2,high:0.4+r()*0.75,drain:0.38+r()*0.14,low:WINDOWS[Math.min(GAME.steps||0,2)]*(window.CalamityMang?window.CalamityMang.ease():1)};
  c.end=c.s+c.rise+c.high+c.drain+c.low;c.open=c.s+c.rise+c.high+c.drain;
  return c;
 }

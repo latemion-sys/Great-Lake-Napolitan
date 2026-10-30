@@ -83,7 +83,7 @@ function pressKey(k){
 function doThrow(){
  if(!inMinigame()||HG.phase!=='aim'||HG.throwAt!=null||busy||timer||!HG.retPt||!HG.heartPt)return;
  const t=now(),[rx,ry]=HG.retPt,[hx,hy]=HG.heartPt;
- const hit=Math.hypot(rx-hx,ry-hy)<=(HG.radius||26);
+ const hit=Math.hypot(rx-hx,ry-hy)<=(HG.radius||26)*(window.CalamityMang?window.CalamityMang.ease():1);
  HG.throwAt=t;HG.aimPt=[rx,ry];HG.hit=hit;
  busy=true;
  const verdict=hit?'ok':(window.MinigameStrikes?MinigameStrikes.strike(HG):'retry');

@@ -55,10 +55,11 @@ function syncGame(){
  if(mode&&(G.mode!==mode||G.ref!==state.battle)){
   for(const k of Object.keys(G))if(k!=='resume')delete G[k];
   G.mode=mode;G.ref=state.battle;G.t0=performance.now();G.done=null;G.text='';
-  if(mode==='chase')Object.assign(G,{need:CHASE_NEED,win:CHASE_WIN,hits:0,misses:0,dir:null,pauseUntil:1.2,promptAt:null,lastHitAt:null,lastMissAt:null});
+  G.ease=(window.CalamityMang?window.CalamityMang.ease():1);
+  if(mode==='chase')Object.assign(G,{need:CHASE_NEED,win:CHASE_WIN*G.ease,hits:0,misses:0,dir:null,pauseUntil:1.2,promptAt:null,lastHitAt:null,lastMissAt:null});
   if(mode==='evade')Object.assign(G,{need:EVADE_NEED,ok:0,round:-1,phase:'ready',nextAt:1.0});
   if(mode==='final')Object.assign(G,{phase:'wait',breachAt:1.2+Math.random()*1.4,thrownAt:null,hit:null});
-  if(mode==='final'){G.win=FINAL_WIN;G.ti=G.breachAt+FINAL_CLOSE;G.th=G.ti+FINAL_FLIGHT;}
+  if(mode==='final'){G.win=FINAL_WIN*G.ease;G.ti=G.breachAt+FINAL_CLOSE;G.th=G.ti+FINAL_FLIGHT;}
   if(mode==='final'){G.trails=trailCount();G.blind=G.trails<3;}else G.trails=null;
  }
  if(!mode&&G.mode&&!G.timer){G.mode=null;G.ref=null;}
@@ -104,7 +105,7 @@ function finalPress(){
  if(G.mode!=='final'||G.done||G.thrownAt!=null)return;
  const t=now();
  if(G.blind){G.thrownAt=t;G.hit=false;G.arriveAt=t+FINAL_FLIGHT;setText('작살이 허공을 가릅니다 · 지나간 것은 잔상뿐이었습니다.');finish('fail',Math.max(G.th,t),0.3);G.fatal=false;updatePanel();return;}
- G.thrownAt=t;G.hit=Math.abs(t-G.ti)<=FINAL_WIN;
+ G.thrownAt=t;G.hit=Math.abs(t-G.ti)<=(G.win||FINAL_WIN);
  G.arriveAt=t+FINAL_FLIGHT;
  if(G.hit){
   // 명중: 작살이 교차점에 닿는 순간부터 사냥 성공 장면이 이어서 재생되도록 시작 시각을 넘겨 줌
@@ -128,7 +129,7 @@ function finalAutoMiss(t){
 /* ---------- 결과 처리 ---------- */
 function finish(kind,t,delay){
  G.done=kind;G.doneAt=t;busy=true;
- if(kind==='fail')G.fatal=(G.fails||0)+1>=2&&!(window.MinigameStrikes&&MinigameStrikes.noDeath());
+ if(kind==='fail')G.fatal=(G.fails||0)+1>=(window.MinigameStrikes?MinigameStrikes.limit():2)&&!(window.MinigameStrikes&&MinigameStrikes.noDeath());
  const wait={chase:{ok:1.1,fail:1.5},evade:{ok:1.9,fail:2.0},final:{ok:1.35,fail:2.3}}[G.mode][kind];
  const ms=Math.max(0,((delay!=null&&kind==='ok'?t+delay:t+wait)-now())*1000);
  const mode=G.mode;
@@ -188,11 +189,11 @@ function tick(){
    if(G.phase==='ready'&&t>=G.nextAt)evadeRound(t);
    else if(G.phase==='approach'&&t>=G.roundAt+EVADE_APPROACH)G.phase='wait';
    if((G.phase==='approach'||G.phase==='wait')&&t>=G.upAt)G.phase='up';
-   else if(G.phase==='up'&&t>G.upAt+EVADE_WIN)evadeFail(t,'late');
+   else if(G.phase==='up'&&t>G.upAt+EVADE_WIN*(G.ease||1))evadeFail(t,'late');
    else if(G.phase==='dodge'&&t>G.pressAt+1.9)evadeRound(t);
   }else if(G.mode==='final'){
    if(G.phase==='wait'&&t>=G.breachAt)G.phase='breach';
-   if(G.thrownAt==null&&t>G.ti+(G.blind?4:FINAL_WIN+.05))finalAutoMiss(t);
+   if(G.thrownAt==null&&t>G.ti+(G.blind?4:(G.win||FINAL_WIN)+.05))finalAutoMiss(t);
   }
  }
  requestAnimationFrame(tick);

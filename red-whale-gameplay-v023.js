@@ -8,14 +8,14 @@
    ① 내려가는 물   : 조우 화면 (사냥 / 회피) · 열기 ①
    ② 붉은 팔의 포위 : 스페이스·화면 누르기 연타로 조여 오는 팔을 떨쳐 냄 × 2
    ③ 여덟 팔 격퇴   : 솟아오르는 팔의 손을 눌러 쳐냄. 1개×8 → 2개×4 → 4개×2 → 8개×1
-   ④ 붉은 눈의 머리 : 동전 전투 1승 (기존 방식)
+   ④ 드러난 붉은 등 : 동전 전투 1승 (기존 방식)
    ⑤ 작살과 물의 귀환 : 리듬에 맞춰 열리고 닫히는 꼬리. 작살이 닿는 순간 열려 있어야 꽂힘
    미니게임마다 실패는 한 번까지: 첫 실패는 피해를 입고 다시, 두 번째 실패는 사망.
    고래 전투는 기존 'whale' 전투(유효 타격 4)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
 (function(){
 'use strict';
 const RED=2;
-const labels=['내려가는 물','붉은 팔의 포위','여덟 팔 격퇴','붉은 눈의 머리','작살과 물의 귀환'];
+const labels=['내려가는 물','붉은 팔의 포위','여덟 팔 격퇴','드러난 붉은 등','작살과 물의 귀환'];
 const BREATH={heatAt:1.6,minHeat:1.6,maxHeat:2.8,release:1.3,holdMax:6};
 // 숨 기록: state.redBreath023 = {done:[4], rec:['kept'|'inhaled'...]}
 function rb(){const r=state.redBreath023;return r&&Array.isArray(r.done)?r:null;}
@@ -58,7 +58,8 @@ function syncGame(){
  if(mode&&(G.mode!==mode||G.ref!==state.battle||(mode==='breath'&&G.wave!==wave))){
   for(const k of Object.keys(G))delete G[k];
   G.mode=mode;G.ref=state.battle;G.t0=performance.now();G.done=null;G.text='';
-  if(mode==='mash')Object.assign(G,{need:MASH.need,round:0,phase:'ready',gauge:MASH.start,limit:MASH.limit,startAt:1.2,pressTotal:0,okAt:null,failAt:null,lastPress:null});
+  G.ease=EASE();
+  if(mode==='mash')Object.assign(G,{need:MASH.need,round:0,phase:'ready',gauge:MASH.start,limit:MASH.limit*G.ease,startAt:1.2,pressTotal:0,okAt:null,failAt:null,lastPress:null});
   if(mode==='parry')Object.assign(G,{waveIdx:0,total:WAVES.length,cleared:0,parried:0,wave:null,nextAt:1.0});
   if(mode==='tail'){Object.assign(G,{flight:null,hitAt:null,opens:[2.0+Math.random()*.8],holding:false,holdAt:null,dried:dried()});G.openness=openness;G.tremble=tremble;}
   if(mode==='breath'){const h0=BREATH.heatAt+Math.random()*.6;Object.assign(G,{wave,heatAt:h0,heatEnd:h0+BREATH.minHeat+Math.random()*(BREATH.maxHeat-BREATH.minHeat),holding:false,result:null,inhaleAt:null,record:(rb()||{rec:[]}).rec.slice()});}
@@ -70,7 +71,7 @@ function hurt(h,m,msg){takeDamage(h,m);if(msg)log(msg);if(!safeCheck())return fa
 // 실패 처리: 첫 실패는 피해 후 다시, 두 번째 실패는 사망(테스트 페이지 '피해 무시'면 사망 대신 처음부터)
 function fail(h,m,logMsg,retryText,deathText){
  G.fails=(G.fails||0)+1;updateLives();
- if(G.fails>=2){
+ if(G.fails>=LIM()){
   if(window.__BLUE_NODEATH){G.fails=0;updateLives();log('[테스트] 사망 대신 기회를 되돌립니다.');setText(retryText);return true;}
   G.done='dead';busy=true;setText(deathText);
   G.timer=setTimeout(()=>{G.timer=null;busy=false;G.mode=null;log(logMsg+' 배와 선원들이 붉은 고래에게 시들어 버렸습니다.');die();},1900);
@@ -79,7 +80,9 @@ function fail(h,m,logMsg,retryText,deathText){
  setText(retryText+' · 남은 기회 1번');
  return hurt(h,m,logMsg);
 }
-function updateLives(){const e=document.getElementById('rwgLives');if(e)e.textContent=String(Math.max(0,2-(G.fails||0)));}
+function LIM(){return window.MinigameStrikes?MinigameStrikes.limit():2;}
+const EASE=()=>(window.CalamityMang?window.CalamityMang.ease():1);
+function updateLives(){const e=document.getElementById('rwgLives');if(e)e.textContent=String(Math.max(0,LIM()-(G.fails||0)));}
 function updateStatus(){const s=document.getElementById('rwgStatus');if(s)s.innerHTML=statusTags();}
 function statusTags(){const r=rb();return tag('선체 '+state.hull+' / 100')+' '+tag('정신력 '+state.mind+' / 100')+(r?' '+tag('지킨 숨 '+r.rec.filter(x=>x==='kept').length+' · 마른 숨 '+inhaledCount()+' / 4'):'');}
 function finish(after){
@@ -99,7 +102,7 @@ function mashComplete(t){
  else{G.phase='ready';G.startAt=t+1.4;G.gauge=MASH.start;setText('한 번 떨쳐 냈습니다 · 팔들이 다시 배를 움켜쥡니다. ('+G.round+' / '+G.need+')');}
 }
 function mashTick(t,dt){
- if(G.phase==='ready'&&t>=G.startAt){G.phase='go';G.deadline=t+MASH.limit;G.gauge=MASH.start;}
+ if(G.phase==='ready'&&t>=G.startAt){G.phase='go';G.deadline=t+G.limit;G.gauge=MASH.start;}
  if(G.phase!=='go')return;
  G.gauge=Math.max(0,G.gauge-MASH.decay*dt);
  if(t>G.deadline){
@@ -110,7 +113,7 @@ function mashTick(t,dt){
 /* ---------- ③ 팔 쳐내기 ---------- */
 function newWave(t){
  const n=WAVES[G.waveIdx],slots=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5).slice(0,n);
- G.wave={n,start:t,W:WAVE_TIME[n],arms:slots.map(s=>({slot:s,parriedAt:null})),clearAt:null,struckAt:null};
+ G.wave={n,start:t,W:WAVE_TIME[n]*(G.ease||1),arms:slots.map(s=>({slot:s,parriedAt:null})),clearAt:null,struckAt:null};
 }
 function parryPress(x,y){
  if(G.mode!=='parry'||G.done||!G.wave||G.wave.clearAt!=null||G.wave.struckAt!=null)return;
@@ -155,7 +158,7 @@ function breathEnd(result,t,msg){
 function breathTick(t){
  if(G.result)return;
  if(t>=G.heatAt+.15&&t<G.heatEnd&&!G.holding)return breathEnd('inhaled',t,G.held?'열기가 가시기 전에 숨을 들이쉬었습니다.':'열기가 덮쳐 왔을 때 숨을 참지 못했습니다.');
- if(t>=G.heatEnd&&G.holding&&t>G.heatEnd+BREATH.release)return breathEnd('inhaled',t,'너무 오래 참았습니다. 숨이 터지며 뜨거운 공기를 들이켰습니다.');
+ if(t>=G.heatEnd&&G.holding&&t>G.heatEnd+BREATH.release*(G.ease||1))return breathEnd('inhaled',t,'너무 오래 참았습니다. 숨이 터지며 뜨거운 공기를 들이켰습니다.');
 }
 function breathDown(){if(G.mode!=='breath'||G.result)return;G.holding=true;G.held=true;}
 function breathUp(){
@@ -166,8 +169,8 @@ function breathUp(){
 }
 /* ---------- ⑤ 꼬리 ---------- */
 function openness(t){
- let v=0;for(const o of G.opens||[]){const a=t-o;if(a<-.01||a>TAIL.rise+TAIL.openHold+TAIL.close)continue;
-  v=Math.max(v,a<TAIL.rise?a/TAIL.rise:a<TAIL.rise+TAIL.openHold?1:1-(a-TAIL.rise-TAIL.openHold)/TAIL.close);}
+ let v=0;const oh=TAIL.openHold*(G.ease||1);for(const o of G.opens||[]){const a=t-o;if(a<-.01||a>TAIL.rise+oh+TAIL.close)continue;
+  v=Math.max(v,a<TAIL.rise?a/TAIL.rise:a<TAIL.rise+oh?1:1-(a-TAIL.rise-oh)/TAIL.close);}
  return Math.max(0,Math.min(1,v));
 }
 function tremble(t){let v=0;for(const o of G.opens||[]){const a=o-t;if(a>0&&a<TAIL.telegraph)v=Math.max(v,1-a/TAIL.telegraph);}return v;}
@@ -220,7 +223,7 @@ function tailTick(t){
 let lastTick=0;
 function tick(nowMs){
  const dt=lastTick?Math.min(.1,(nowMs-lastTick)/1000):0;lastTick=nowMs;
- if(G.mode&&!G.done&&G.t0&&isRedBattle()){
+ if(G.mode&&!G.done&&G.t0&&(isRedBattle()||(G.mode==='breath'&&state.scene==='encounter'&&state.encounter===RED))){
   const t=now();
   if(G.mode==='mash')mashTick(t,dt);
   else if(G.mode==='parry')parryTick(t);
@@ -235,7 +238,7 @@ requestAnimationFrame(tick);
 function panel(stageNo,title,desc,small,body){
  return '<div class="inset warning rwg-panel"><div class="small">재앙의 고래 · '+esc(WHALES[RED].name)+' · '+stageNo+'단계</div><h2>'+title+'</h2>'+
   '<p>'+desc+'</p><p id="rwgStatus">'+statusTags()+'</p>'+
-  '<p>남은 기회 <b id="rwgLives">'+Math.max(0,2-(G.fails||0))+'</b> <span class="muted">(두 번 실패하면 사망)</span></p>'+
+  '<p>남은 기회 <b id="rwgLives">'+Math.max(0,LIM()-(G.fails||0))+'</b> <span class="muted">('+LIM()+'번 실패하면 사망)</span></p>'+
   '<div class="coinpanel"><div class="small">'+small+'</div>'+body+'<p id="rwgText">'+esc(G.text||'')+'</p></div></div>';
 }
 function gamePanel(mode){

@@ -12,15 +12,17 @@ const API=window.MinigameStrikes={
  LIMIT,
  noDeath,
  // 실패 한 번 기록 → 'retry' | 'dead' | 'reset'(테스트용)
+ // 5망을 두르면 실패를 한 번 더 허용
+ limit(){return LIMIT+(window.CalamityMang?window.CalamityMang.extraLife():0);},
  strike(obj){
   obj.fails=(obj.fails||0)+1;
-  if(obj.fails<LIMIT)return 'retry';
+  if(obj.fails<API.limit())return 'retry';
   if(noDeath()){obj.fails=0;if(typeof log==='function')log('[테스트] 사망 대신 기회를 되돌립니다.');return 'reset';}
   return 'dead';
  },
- left(obj){return Math.max(0,LIMIT-((obj&&obj.fails)||0));},
+ left(obj){return Math.max(0,API.limit()-((obj&&obj.fails)||0));},
  // 패널에 넣는 '남은 기회' 줄
- livesHtml(obj){return '<p class="mg-lives">남은 기회 <b class="mg-lives-n">'+API.left(obj)+'</b> <span class="muted">(첫 실패는 피해 후 다시 · 두 번째 실패는 사망)</span></p>';},
+ livesHtml(obj){return '<p class="mg-lives">남은 기회 <b class="mg-lives-n">'+API.left(obj)+'</b> <span class="muted">('+(API.limit()>LIMIT?'5망 · 실패 두 번까지 피해 후 다시 · 세 번째 실패는 사망':'첫 실패는 피해 후 다시 · 두 번째 실패는 사망')+')</span></p>';},
  refresh(obj){document.querySelectorAll('.mg-lives-n').forEach(n=>n.textContent=String(API.left(obj)));},
  // 사망 장면을 잠시 보여 준 뒤 사망 처리
  kill(message,delay){

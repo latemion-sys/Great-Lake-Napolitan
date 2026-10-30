@@ -19,7 +19,8 @@ const NARROW=[1,0.74,0.54],FASTER=[1,0.78,0.6];   // 1·2·3번째 작살: 원 �
 function difficulty(won){
  const p=combatChance();                       // 기존 동전 앞면 확률
  const k=Math.min(2,won==null?(state.battle?state.battle.won:0):won);
- return {p,half:(18+60*p)*NARROW[k],period:(2.2+1.6*p)*FASTER[k]};
+ const e=(window.CalamityMang?window.CalamityMang.ease():1);
+ return {p,half:(18+60*p)*NARROW[k]*e,period:(2.2+1.6*p)*FASTER[k]*e};
 }
 // 1단계 두 전투는 3번 맞혀야 끝난다
 if(typeof pallidStartBattle161==='function'){

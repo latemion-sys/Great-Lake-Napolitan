@@ -1,6 +1,6 @@
 /* 모든 것을 말리는 붉은 고래 · v3 다섯 장면
    window.RedWhaleV3 = {html(stage), stages, replayToken}
-   ① 말라붙는 호수 ② 붉은 팔의 포위 ③ 여덟 팔 격퇴 ④ 붉은 눈의 머리 ⑤ 작살과 물의 귀환(한 번 재생 후 멈춤) */
+   ① 말라붙는 호수 ② 붉은 팔의 포위 ③ 여덟 팔 격퇴 ④ 드러난 붉은 등 ⑤ 작살과 물의 귀환(한 번 재생 후 멈춤) */
 (function(){
 'use strict';
 const K=window.BlueWhaleV3Kit,R=window.RedWhaleV3Kit;
@@ -18,10 +18,10 @@ function redDefs(){
  '<linearGradient id="rwMud" gradientUnits="userSpaceOnUse" x1="0" y1="'+SEA+'" x2="0" y2="'+(SEA+40)+'"><stop stop-color="#7a6660"/><stop offset=".08" stop-color="#3a2a2a"/><stop offset=".5" stop-color="#1e1016"/><stop offset="1" stop-color="#160a10"/></linearGradient>'+
  // 열기의 아지랑이: 뒤틀림(숨을 참으면 잦아듦)
  '<filter id="rwHaze" x="-15%" y="-25%" width="130%" height="150%"><feTurbulence type="fractalNoise" baseFrequency=".011 .05" numOctaves="2" seed="5" result="n"/><feOffset class="rw-hzoff" in="n" dy="0" result="m"/><feDisplacementMap class="rw-hzmap" in="SourceGraphic" in2="m" scale="28" xChannelSelector="R" yChannelSelector="G"/></filter>'+
- // 끝내 전체가 드러나지 않는 몸: 두 눈 언저리 · 외투막 한 귀퉁이 / 물 위로 드러난 등 한 조각
+ // 끝내 전체가 드러나지 않는 몸: 물 위로 드러난 등 · 머리 끝자락 한 조각뿐 (눈은 보이지 않음)
  '<filter id="rwDis" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".02 .05" numOctaves="2" seed="9" result="n"/><feColorMatrix in="n" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  2.6 0 0 0 -.9" result="na"/><feComposite in="SourceGraphic" in2="na" operator="in"/></filter>'+
  '<radialGradient id="rwFragR"><stop stop-color="#fff"/><stop offset=".45" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
- '<mask id="rwHeadFrag" maskUnits="userSpaceOnUse" x="-320" y="-460" width="640" height="640"><g filter="url(#rwDis)"><ellipse cx="-134" cy="-8" rx="92" ry="66" fill="url(#rwFragR)"/><ellipse cx="134" cy="-8" rx="92" ry="66" fill="url(#rwFragR)"/><ellipse cx="-70" cy="-350" rx="150" ry="46" fill="url(#rwFragR)" opacity=".5"/></g></mask>'+
+ '<mask id="rwHeadFrag" maskUnits="userSpaceOnUse" x="-320" y="-460" width="640" height="640"><g filter="url(#rwDis)"><ellipse cx="0" cy="-330" rx="230" ry="96" fill="url(#rwFragR)"/><ellipse cx="-150" cy="-250" rx="70" ry="60" fill="url(#rwFragR)" opacity=".5"/></g></mask>'+
  '<mask id="rwBackFrag" maskUnits="userSpaceOnUse" x="-320" y="-460" width="640" height="640"><g filter="url(#rwDis)"><ellipse cx="10" cy="-340" rx="210" ry="80" fill="url(#rwFragR)"/></g></mask>'+
  '<linearGradient id="rwHeat" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#ff6a3a" stop-opacity=".22"/><stop offset="1" stop-color="#ff6a3a" stop-opacity="0"/></linearGradient>'+
  '<filter id="rwSteam" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>'+
@@ -167,7 +167,7 @@ const S0={title:'내려가는 물',loop:8.5,
   deep(el,bell(t,.2,1.4,3.2,4.6)*(.75+.25*Math.sin(tr*3)),480,SEA+150-60*seg(t,.2,2.4));
   wither(el,.5*seg(t,3.6,5.2));
   boatOnBed(el,tr,level,300,{});
-  // 먼 곳의 머리: 외투막과 두 눈만
+  // 먼 곳: 물 위로 잠깐 드러나는 붉은 등
   const fh=bell(t,5.0,6.0,7.4,8.2);
   const g=q('.rw-farhead');g.setAttribute('opacity',n3(fh*.9));
   g.querySelector('.rw-hd').setAttribute('transform','translate(720 '+n1(SEA+40-46*outC(seg(t,5,6.6)))+') scale(.16)');
@@ -277,10 +277,10 @@ const S2={title:'여덟 팔 격퇴',loop:8.6,
 };
 
 /* =========================================================
-   ④ 붉은 눈의 머리 — 문어 머리가 배 뒤에서 떠오르고 붉은 눈을 뜸
+   ④ 드러난 붉은 등 — 물 아래의 거대한 것이 떠올라 등의 끝자락만 물 위로 드러남
    ========================================================= */
-const S3={title:'붉은 눈의 머리',loop:8.5,
- caps:[[0,'물 아래가 새빨갛게 달아오릅니다.'],[1.2,'무언가가 물을 밀어내며 솟아오릅니다. 아지랑이 너머로는 형체가 잡히지 않습니다.'],[3.0,'어둠 속에서 깊이 박힌 두 눈만이 배를 내려다봅니다. 가로로 찢어진 동공 속에서 붉은 빛이 탑니다.'],[5.6,'보이지 않는 거대한 것이 배 쪽으로 몸을 기울입니다.']],
+const S3={title:'드러난 붉은 등',loop:8.5,
+ caps:[[0,'물 아래가 새빨갛게 달아오릅니다.'],[1.2,'무언가가 물을 밀어내며 솟아오릅니다. 아지랑이 너머로는 형체가 잡히지 않습니다.'],[3.0,'물 위로 드러난 것은 붉은 등의 끝자락뿐입니다. 그 아래가 얼마나 큰지 알 수 없습니다.'],[5.6,'물 아래의 거대한 것이 배 쪽으로 몸을 기울입니다. 물이 그쪽으로 쏠립니다.']],
  build(){
   return scenery()+
    '<g clip-path="url(#rwAboveBed)"><g class="rw-hz" filter="url(#rwHaze)"><g class="rw-hd"><g mask="url(#rwHeadFrag)">'+headMarkup()+'</g></g></g></g>'+
@@ -294,11 +294,10 @@ const S3={title:'붉은 눈의 머리',loop:8.5,
   const rise=outC(seg(t,.9,3.2)),lunge=inOut(seg(t,5.8,7.4));
   haze(el,.25+.6*seg(t,2.6,3.4)*(1-.4*lunge),tr);
   deep(el,bell(t,0,.4,1.4,2.6),600,SEA+60);
-  const hx=600,hy=SEA+300-353*rise+lunge*40,hs=.66+lunge*.22;
+  const hx=600,hy=SEA+420-200*rise+lunge*30,hs=.8+lunge*.12;
   const hd=q('.rw-hd');hd.setAttribute('transform','translate('+n1(hx-lunge*150)+' '+n1(hy+Math.sin(tr*.9)*4)+') scale('+n3(hs)+')');
   const look=[clamp((300-hx)/40,-9,0),6];
-  const blink=t>4.6&&t<4.8?1-Math.sin((t-4.6)/.2*Math.PI):1;
-  paintHead(hd,tr,{open:seg(t,2.6,3.2)*blink,dilate:1-.45*seg(t,3.4,4.2)+.6*lunge,look,glow:seg(t,2.6,3.4)+lunge*.5});
+  paintHead(hd,tr,{open:0,glow:0,look});
   // 양옆의 팔
   [[0,[130,SEA+90],-70,55,1],[1,[850,SEA+90],-112,-55,-1]].forEach(([i,b,a,e,sd])=>{
    const rr=seg(t,.4+i*.3,1.6+i*.3);
@@ -313,10 +312,10 @@ const S3={title:'붉은 눈의 머리',loop:8.5,
 };
 
 /* =========================================================
-   ⑤ 작살과 물의 귀환 — 두 눈 사이에 작살, 촉수가 늘어지고 머리가 가라앉으며 물이 다시 차오름
+   ⑤ 작살과 물의 귀환 — 붉은 등이 가라앉고 선미 뒤로 꼬리 끝이 열림, 작살이 핵을 꿰뚫으면 물이 다시 차오름
    ========================================================= */
 const S4={title:'작살과 물의 귀환',dur:11.5,
- caps:[[0,'두 눈이 물 아래로 가라앉습니다. 배 뒤쪽의 물이 들썩입니다.'],[1.6,'선미 뒤 아지랑이 속에서 새빨간 꼬리 끝이 솟아오릅니다.'],[3.0,'고래의 꼬리가 열립니다!'],[3.7,'작살잡이가 선미에서 몸을 돌려 열린 꼬리 한가운데를 겨눕니다.'],[4.6,'작살이 꼬리 속의 붉은 핵을 꿰뚫습니다.'],[6.2,'팔과 꼬리 끝이 무너지고 열기가 물러납니다. 물이 천천히 다시 차오릅니다.']],
+ caps:[[0,'붉은 등이 물 아래로 가라앉습니다. 배 뒤쪽의 물이 들썩입니다.'],[1.6,'선미 뒤 아지랑이 속에서 새빨간 꼬리 끝이 솟아오릅니다.'],[3.0,'고래의 꼬리가 열립니다!'],[3.7,'작살잡이가 선미에서 몸을 돌려 열린 꼬리 한가운데를 겨눕니다.'],[4.6,'작살이 꼬리 속의 붉은 핵을 꿰뚫습니다.'],[6.2,'팔과 꼬리 끝이 무너지고 열기가 물러납니다. 물이 천천히 다시 차오릅니다.']],
  build(){
   let sparks='<g class="rw-sparks" stroke="#ffd9c0" stroke-linecap="round" opacity="0">';
   const r=seeded(81);for(let i=0;i<20;i++){const a=r()*TAU;sparks+='<path data-a="'+n3(a)+'" data-v="'+n1(60+r()*150)+'" stroke-width="'+n1(1+r()*1.6)+'"/>';}
@@ -346,7 +345,7 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
   // 머리: 바닥 아래로 가라앉음
   const hsink=inOut(seg(t,0,1.6)),hd=q('.rw-hd');
   hd.style.display=hsink>=1?'none':'';
-  if(hsink<1){hd.setAttribute('transform','translate(600 '+n1(SEA-53+hsink*420)+') scale(.66)');paintHead(hd,tr,{open:1-hsink,glow:1-hsink,look:[-6,5]});}
+  if(hsink<1){hd.setAttribute('transform','translate(600 '+n1(SEA+220+hsink*260)+') scale(.8)');paintHead(hd,tr,{open:0,glow:0,look:[-6,5]});}
   // 꼬리: 선미 뒤에서 솟아 열림 → 작살 → 경련 → 무너짐
   const rise=outC(seg(t,1.5,3.0)),open=inOut(seg(t,3.0,3.6))*(1-.75*seg(t,HIT+.1,HIT+.6));
   const hit=t-HIT,limp=seg(t,HIT+.8,HIT+2.2),fall=inOut(seg(t,HIT+1.2,HIT+3.2));
@@ -564,7 +563,7 @@ function hudTail(el,t,g){
 /* ---------- 열기와 숨 (1~4단계 시작마다) ----------
    열기가 오면 물이 뱃전 아래로 내려가고 아지랑이가 모든 것을 일그러뜨린다.
    숨을 참는 동안에만 아지랑이가 잦아들어 그 단계의 조각이 보인다.
-   ① 멀리 드러났다 가라앉는 붉은 등 ② 더 가까이 떠오르는 등 ③ 물을 뚫고 나오는 팔 끝 ④ 어둠 속 두 눈 */
+   ① 멀리 드러났다 가라앉는 붉은 등 ② 더 가까이 떠오르는 등 ③ 물을 뚫고 나오는 팔 끝 ④ 바로 곁에서 솟는 붉은 등의 끝 */
 const BREATHCAP=['갑자기 뜨거워집니다. 숨을 들이쉬지 마십시오.','열기가 다시 덮쳐 옵니다. 숨을 들이쉬지 마십시오.','열기 속에서 물이 내려갑니다. 숨을 들이쉬지 마십시오.','어둠이 달아오릅니다. 숨을 들이쉬지 마십시오.'];
 function breathBuild(k){
  const head=(mask)=>'<g class="rw-farhead" clip-path="url(#rwAboveBed)"><g class="rw-hz" filter="url(#rwHaze)"><g class="rw-hd"><g mask="url(#'+mask+')">'+headMarkup()+'</g></g></g></g>';
@@ -584,9 +583,9 @@ function breathGame(el,t,tr,g){
  const show=heat;
  if(k===0||k===1||k===3){
   const hd=q('.rw-hd');
-  const P=k===0?[740,SEA+52-40*heat,.17]:k===1?[560,SEA+82-74*heat,.3]:[600,SEA+20-74*heat,.72];
+  const P=k===0?[740,SEA+52-40*heat,.17]:k===1?[560,SEA+82-74*heat,.3]:[600,SEA+330-130*heat,.8];
   hd.setAttribute('transform','translate('+P[0]+' '+n1(P[1]+Math.sin(tr*.9)*2)+') scale('+P[2]+')');
-  paintHead(hd,tr,{open:k===3?seg(t,hA+.2,hA+.8):0,glow:k===3?1.3:0,look:[-6,4]});
+  paintHead(hd,tr,{open:0,glow:0,look:[-6,4]});
   q('.rw-farhead').setAttribute('opacity',n3(show));
  }else{
   [[0,[600,SEA+70],-104,1],[1,[740,SEA+58],-82,-1],[2,[860,SEA+76],-96,-1]].forEach(([i,b,a,sd])=>{
