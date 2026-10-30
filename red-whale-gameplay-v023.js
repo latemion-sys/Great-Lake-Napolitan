@@ -4,7 +4,7 @@
    ③ 여덟 팔 격퇴   : 솟아오르는 팔의 손을 눌러 쳐냄. 1개×8 → 2개×4 → 4개×2 → 8개×1
    ④ 붉은 눈의 머리 : 동전 전투 1승 (기존 방식)
    ⑤ 작살과 물의 귀환 : 리듬에 맞춰 열리고 닫히는 꼬리. 작살이 닿는 순간 열려 있어야 꽂힘
-   실패하면 피해를 입고 그 판을 다시 함(사망은 선체·정신력이 0이 될 때만).
+   미니게임마다 실패는 한 번까지: 첫 실패는 피해를 입고 다시, 두 번째 실패는 사망.
    고래 전투는 기존 'whale' 전투(유효 타격 4)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
 (function(){
 'use strict';
@@ -13,7 +13,7 @@ const labels=['말라붙는 호수','붉은 팔의 포위','여덟 팔 격퇴','
 const MASH={need:2,limit:4.5,start:25,add:7.5,decay:20};
 const WAVES=[].concat(Array(8).fill(1),Array(4).fill(2),Array(2).fill(4),[8]);
 const WAVE_TIME={1:1.5,2:1.9,4:2.6,8:4.2};
-const TAIL={flight:.45,openHold:.5,rise:.15,close:.15,telegraph:.5};
+const TAIL={flight:.45,openHold:.9,rise:.15,close:.15,telegraph:.5};
 const G=window.RedHuntGame=window.RedHuntGame||{mode:null};
 
 function isRedBattle(){const b=state.battle;return state.scene==='battle'&&b&&b.type==='whale'&&b.index===RED;}
@@ -45,6 +45,19 @@ function syncGame(){
 }
 function setText(t){G.text=t;const el=document.getElementById('rwgText');if(el)el.textContent=t;}
 function hurt(h,m,msg){takeDamage(h,m);if(msg)log(msg);if(!safeCheck())return false;updateStatus();return true;}
+// 실패 처리: 첫 실패는 피해 후 다시, 두 번째 실패는 사망(테스트 페이지 '피해 무시'면 사망 대신 처음부터)
+function fail(h,m,logMsg,retryText,deathText){
+ G.fails=(G.fails||0)+1;updateLives();
+ if(G.fails>=2){
+  if(window.__BLUE_NODEATH){G.fails=0;updateLives();log('[테스트] 사망 대신 기회를 되돌립니다.');setText(retryText);return true;}
+  G.done='dead';busy=true;setText(deathText);
+  G.timer=setTimeout(()=>{G.timer=null;busy=false;G.mode=null;log(logMsg+' 배와 선원들이 붉은 고래에게 시들어 버렸습니다.');die();},1900);
+  return false;
+ }
+ setText(retryText+' · 남은 기회 1번');
+ return hurt(h,m,logMsg);
+}
+function updateLives(){const e=document.getElementById('rwgLives');if(e)e.textContent=String(Math.max(0,2-(G.fails||0)));}
 function updateStatus(){const s=document.getElementById('rwgStatus');if(s)s.innerHTML=statusTags();}
 function statusTags(){return tag('선체 '+state.hull+' / 100')+' '+tag('정신력 '+state.mind+' / 100');}
 function finish(after){
@@ -69,8 +82,7 @@ function mashTick(t,dt){
  G.gauge=Math.max(0,G.gauge-MASH.decay*dt);
  if(t>G.deadline){
   G.phase='ready';G.failAt=t;G.okAt=null;G.startAt=t+1.5;G.gauge=MASH.start;
-  setText('조여듭니다 · 선체가 비명을 지르며 휩니다. 다시 떨쳐 내십시오.');
-  hurt(9,4,'붉은 팔이 선체를 조였습니다. 빨판이 닿은 자리가 시들어 갑니다.');
+  if(!fail(9,4,'붉은 팔이 선체를 조였습니다. 빨판이 닿은 자리가 시들어 갑니다.','조여듭니다 · 선체가 비명을 지르며 휩니다. 다시 떨쳐 내십시오.','조여듭니다 · 선체가 부서지며 팔들이 배를 통째로 끌어내립니다.'))G.phase='dead';
  }
 }
 /* ---------- ③ 팔 쳐내기 ---------- */
@@ -93,8 +105,7 @@ function parryTick(t){
    if(G.cleared>=WAVES.length){setText('여덟 개의 팔을 모두 쳐냈습니다 · 팔 뒤에서 거대한 머리가 떠오릅니다.');finish(1.4);}
    else setText(W.n===8?'':'쳐냈습니다 · '+(WAVES.length-G.cleared)+'번 남았습니다.');}
   else if(t>W.start+W.W){W.struckAt=t;const miss=W.arms.filter(a=>a.parriedAt==null).length;
-   setText('놓쳤습니다 · 팔 '+miss+'개가 선체를 내리쳤습니다. 같은 공격이 다시 옵니다.');
-   hurt(Math.min(18,4*miss),Math.min(8,2*miss),'붉은 팔이 선체를 내리쳤습니다.');}
+   fail(Math.min(18,4*miss),Math.min(8,2*miss),'붉은 팔이 선체를 내리쳤습니다.','놓쳤습니다 · 팔 '+miss+'개가 선체를 내리쳤습니다. 같은 공격이 다시 옵니다.','놓쳤습니다 · 팔들이 선체를 박살 내며 선원들을 움켜쥡니다.');}
  }else if(W.clearAt!=null&&t>W.clearAt+.75&&!G.done){G.waveIdx++;G.wave=null;G.nextAt=t+.2;}
  else if(W.struckAt!=null&&t>W.struckAt+1.3){G.wave=null;G.nextAt=t+.1;}
  updateParryPanel();
@@ -110,7 +121,7 @@ function tremble(t){let v=0;for(const o of G.opens||[]){const a=o-t;if(a>0&&a<TA
 function tailPress(){
  if(G.mode!=='tail'||G.done||G.hitAt!=null)return;
  const t=now();if(t<1.2)return;
- if(G.flight&&t<G.flight.arrive+.9)return;
+ if(G.locked||(G.flight&&t<G.flight.arrive+.9))return;
  const arrive=t+TAIL.flight,hit=openness(arrive)>=.7;
  G.flight={at:t,arrive,hit,target:G.core?G.core.slice():null};
  if(hit){
@@ -121,8 +132,8 @@ function tailPress(){
   G.done='ok';busy=true;
   G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isRedBattle()){G.mode=null;return;}G.mode=null;resolveCoin(true);},(arrive-t+1.4)*1000);
  }else{
-  setText('닫힌 꽃잎에 튕겨 나갔습니다 · 꼬리가 열리는 순간을 노리십시오.');
-  setTimeout(()=>{if(G.mode==='tail'&&!G.done)hurt(3,5,'작살이 닫힌 꼬리에 튕겨 나갔습니다.');},TAIL.flight*1000);
+  G.locked=true;
+  setTimeout(()=>{G.locked=false;if(G.mode==='tail'&&!G.done)fail(3,5,'작살이 닫힌 꼬리에 튕겨 나갔습니다.','닫힌 꽃잎에 튕겨 나갔습니다 · 꼬리가 열리는 순간을 노리십시오.','닫힌 꽃잎에 튕겨 나갔습니다 · 팔들이 배를 덮칩니다.');},TAIL.flight*1000);
  }
 }
 function tailTick(t){
@@ -147,17 +158,18 @@ requestAnimationFrame(tick);
 function panel(stageNo,title,desc,small,body){
  return '<div class="inset warning rwg-panel"><div class="small">재앙의 고래 · '+esc(WHALES[RED].name)+' · '+stageNo+'단계</div><h2>'+title+'</h2>'+
   '<p>'+desc+'</p><p id="rwgStatus">'+statusTags()+'</p>'+
+  '<p>남은 기회 <b id="rwgLives">'+Math.max(0,2-(G.fails||0))+'</b> <span class="muted">(두 번 실패하면 사망)</span></p>'+
   '<div class="coinpanel"><div class="small">'+small+'</div>'+body+'<p id="rwgText">'+esc(G.text||'')+'</p></div></div>';
 }
 function gamePanel(mode){
  if(mode==='mash')return panel(2,'붉은 팔의 포위','빨판 달린 팔들이 배를 휘감아 조여 옵니다. 닿은 자리가 하얗게 시들어 갑니다. 힘껏 떨쳐 내십시오.',
-  '스페이스 / 이펙트 화면 / 아래 버튼을 연타 · 4.5초 안에 게이지를 끝까지 · 2번 떨쳐 내면 통과 · 실패하면 피해 후 다시',
+  '스페이스 / 이펙트 화면 / 아래 버튼을 연타 · 4.5초 안에 게이지를 끝까지 · 2번 떨쳐 내면 통과 · 첫 실패는 피해 후 다시, 두 번째 실패는 사망',
   '<button type="button" class="danger rwg-big" id="rwgAct">팔을 떨쳐 낸다 (연타)</button>');
  if(mode==='parry')return panel(3,'여덟 팔 격퇴','팔들이 하나, 둘, 넷, 그리고 여덟 개가 한꺼번에 솟아 배를 내리칩니다. 솟아오르는 팔의 손을 눌러 쳐내십시오.',
-  '이펙트 화면에서 팔의 손(둥근 표시)을 누르기 · 1개×8 → 2개×4 → 4개×2 → 8개 · 놓치면 피해 후 같은 공격 다시',
+  '이펙트 화면에서 팔의 손(둥근 표시)을 누르기 · 1개×8 → 2개×4 → 4개×2 → 8개 · 첫 실패는 피해 후 같은 공격 다시, 두 번째 실패는 사망',
   '<p>격퇴 <b id="rwgCount">'+(G.cleared||0)+' / '+WAVES.length+'</b></p>');
  if(mode==='tail')return panel(5,'작살과 물의 귀환','선미 뒤로 솟은 꼬리가 숨 쉬듯 열렸다 닫힙니다. 작살이 날아가는 동안 꼬리가 열리도록, 열리기 직전에 던지십시오.',
-  '꼬리가 떨리면 곧 열립니다 · 스페이스 / 이펙트 화면 / 아래 버튼 · 닫힌 꼬리에 맞으면 피해 후 다시',
+  '꼬리가 떨리면 곧 1초 동안 열립니다 · 스페이스 / 이펙트 화면 / 아래 버튼 · 첫 실패는 피해 후 다시, 두 번째 실패는 사망',
   '<button type="button" class="danger rwg-big" id="rwgAct">작살을 던진다</button>');
  return '';
 }
