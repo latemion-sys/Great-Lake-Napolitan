@@ -11,8 +11,7 @@
    [망 두르기] 선장 정신력 망1 5 · 망2 10 · 망3 25 · 망4 40 · 망5 50
      - 동전 앞면 확률 +3 · 6 · 9 · 12 · 15%p (인어 전투는 1개부터 두를 수 있음, 재앙 사냥의 동전 판정에도 적용)
      - 받는 피해: 4망 -15% · 5망 -30%
-     - 재앙의 고래(창백한 · 푸른 · 붉은): 특수 작살 + 망 3개 이상이어야 사냥 선택 가능.
-       4망 = 판정 여유 +20% / 5망 = 판정 여유 +35% · 미니게임마다 실패 한 번 더
+     - 재앙의 고래(창백한 · 푸른 · 붉은): 특수 작살 + 망 3개 이상이어야 사냥 선택 가능. 미니게임 판정 자체는 바꾸지 않는다.
    [특수 작살] 선장 5등급부터 300. 사냥 한 번에 손상, 정비 150. */
 (function(){
 'use strict';
@@ -105,8 +104,8 @@ if(typeof chooseRule==='function'){
 /* ---------- 다른 스크립트가 읽는 이점 ---------- */
 const API=window.CalamityMang={
  rings,
- ease(){const r=rings();return r>=5?1.35:r>=4?1.2:1;},
- extraLife(){return rings()>=5?1:0;},
+ ease(){return 1;},        // 미니게임 판정은 망과 무관
+ extraLife(){return 0;},
  guard(){const r=rings();return r>=5?.3:r>=4?.15:0;},
  captainMind:cm,hurt,ringCost,MAX_RINGS,MIN_RINGS
 };
@@ -214,9 +213,9 @@ function huntBlock(){
    '<p class="muted">재앙의 고래는 특수 작살에 신을 실어, 망을 '+MIN_RINGS+'개 이상 두른 손으로만 꿰뚫을 수 있습니다. 신과 망은 E.G.O를 개화한 선장만이 수련할 수 있습니다.</p>'+
    button('재앙의 고래를 사냥한다 (조건 부족)','mangHunt','0','danger',true);
  }else{
-  h+='<p>신을 끌어올려 특수 작살에 망을 몇 개 두를지 고르십시오. 고리가 하나 늘 때마다 정신적 부담이 거의 두 배가 됩니다. 4개부터는 사냥에 이점이 생깁니다.</p><p>'+
+  h+='<p>신을 끌어올려 특수 작살에 망을 몇 개 두를지 고르십시오. 고리가 하나 늘 때마다 정신적 부담이 거의 두 배가 됩니다. 4개부터는 받는 피해가 줄어듭니다.</p><p>'+
    tag('선장 정신력 '+cm()+' / 100')+' '+tag('개방한 망 '+shin()+' / '+MAX_RINGS)+'</p><div class="stack">'+
-   ringButtons('mangHunt',MIN_RINGS,n=>' · 동전 +'+Math.round(MERMAID_BONUS[n]*100)+'%p'+(n===4?' · 피해 -15% · 판정 여유 +20%':n===5?' · 피해 -30% · 판정 여유 +35% · 실패 한 번 더':''))+'</div>';
+   ringButtons('mangHunt',MIN_RINGS,n=>' · 동전 +'+Math.round(MERMAID_BONUS[n]*100)+'%p'+(n===4?' · 피해 -15%':n===5?' · 피해 -30%':''))+'</div>';
  }
  return h+'</div>';
 }
@@ -302,7 +301,7 @@ if(typeof pallidStatus161==='function'){
  const prevPS=pallidStatus161;
  pallidStatus161=function(){
   const r=rings();
-  return prevPS.apply(this,arguments)+(r?' '+tag('망 '+r+'개'+(r>=5?' · 피해 -30% · 판정 여유 +35% · 실패 +1':r>=4?' · 피해 -15% · 판정 여유 +20%':'')):'');
+  return prevPS.apply(this,arguments)+(r?' '+tag('망 '+r+'개'+' · 동전 +'+Math.round(MERMAID_BONUS[Math.min(5,r)]*100)+'%p'+(r>=5?' · 피해 -30%':r>=4?' · 피해 -15%':'')):'');
  };
 }
 
@@ -331,7 +330,10 @@ const prevShop=renderShop132;
 renderShop132=function(){
  migrate();
  const out=prevShop(),avail=inShop132()&&!judging(),h=harp(),v=cm(),rn=rests();
- let s='<div class="inset"><h3>'+REST.name+'</h3><p class="muted">인어를 마주치거나 선원이 인어가 되는 것을 보면 선장의 정신력이 깎입니다. 0이 되면 뒤틀릴지, E.G.O가 피어날지 판정합니다.</p>'+
+ let s='<div class="inset"><h3>'+REST.name+'</h3>'+
+  '<p>13구의 날개 <b>M사</b>가 파는 특이점 제품. 매끈하게 빛나는 이 돌을 몸에 지니면 정신이 한 가지에 모여 잡생각이 걷히고, 바깥에서 파고드는 정신 공격을 버텨 낼 수 있다. 공격을 받아 낼수록 빛이 탁해지다가 끝내 아무 힘도 없는 돌이 된다.</p>'+
+  '<p class="muted">항구에 들어오는 것은 집중을 돕는 정도의 하급품이라, 한 개로는 정신력 +'+REST.gain+'만큼만 버팁니다. 들어오는 물량이 적어 정박할 때마다 '+REST.max+'개까지만 팝니다. 포장은 반드시 귀마개를 쓰고 열 것. 맨 귀로 열면 물속으로 돌아가고 싶다는 충동에 사로잡힌다는 소문이 있습니다.</p>'+
+  '<p class="small muted">인어를 마주치거나 선원이 인어가 되는 것을 보면 선장의 정신력이 깎입니다. 0이 되면 뒤틀릴지, E.G.O가 피어날지 판정합니다.</p>'+
   tag('선장 정신력 '+v+' / 100')+' '+tag('이번 정박 구매 '+rn+' / '+REST.max)+'<div class="stack" style="margin-top:8px">'+
   button(REST.name+' 구매 · 선장 정신력 +'+REST.gain+' · '+unitMoney(REST.cost)+(rn>=REST.max?' (이번 정박에서는 더 살 수 없음)':v>=100?' (정신력 가득)':''),'capRest','','',!avail||rn>=REST.max||v>=100||state.gold<REST.cost)+
   '</div></div>';
