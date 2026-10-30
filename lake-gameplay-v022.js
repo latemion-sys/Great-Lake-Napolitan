@@ -23,7 +23,7 @@
  }
  function seed(st){
   const id=st.id,v=st.vars,dirs=['왼쪽','오른쪽'],full=['왼쪽','앞쪽','오른쪽'];
-  if([9,14,17,19,31,32,33,34,35,36,37,45,47,48].includes(id))v.N=([45,48].includes(id)?pick([3,4]):id===19||id===34||id===37||id===39||id===42?3:pick([2,3]));
+  if([9,14,17,19,31,32,33,34,35,36,37,45,47,48].includes(id))v.N=([45,48].includes(id)?pick([3,4]):id===19||id===39||id===42?3:pick([2,3]));
   if(id===39||id===42)v.N=3;
   if(id===36)v.N=pick([2,3]);
   if(id===46){v.M=2;v['건네는 것']=pick(['검은 고체','흰 액체']);}
@@ -60,7 +60,7 @@
   }
   if(id===22){
    const colors=shuffle(['붉은','푸른','노란']);v['빛1']=colors[0];v['빛2']=colors[1];
-   const names={'붉은,푸른':'보랏빛','붉은,노란':'주황빛','노란,푸른':'초록빛'};
+   const names={'붉은,푸른':'보랏빛','노란,붉은':'주황빛','노란,푸른':'초록빛'};
    v['섞인 빛']=names[[v['빛1'],v['빛2']].sort().join(',')]||'보랏빛';
   }
   if(id===26){
@@ -72,7 +72,7 @@
    const rest=['왼쪽','앞쪽','오른쪽'].filter(x=>x!==v['참 쪽']);
    v['다른 쪽1']=rest[0];v['다른 쪽2']=rest[1];
   }
-  if(id===31){v['낮은 쪽']=side();v['높은 쪽']=opposite(v['낮은 쪽']);v['반대쪽']=opposite(v['궤짝 쪽']);}
+  if(id===31){if(!v['낮은 쪽']){v['낮은 쪽']=side();v['높은 쪽']=opposite(v['낮은 쪽']);}v['반대쪽']=opposite(v['궤짝 쪽']);}
   if(id===32)v['말']=pick(['다 왔다.','앞을 봐.','조금만 더 왼쪽.']);
   if(id===33)v['쪽']=pick(['왼쪽','오른쪽','뒤쪽']);
   if(id===34){
@@ -116,6 +116,7 @@
   if(id===45)min=N+1;
   if(id===46)min=6;
   if(id===5)min=3;
+  if(id===41)min=4;
   st.turnLimit=min+rng(Math.max(1,7-min));
   let first=0;
   if(id===5||id===20)first=rng(defs.get(id).scenes.length);
@@ -196,7 +197,7 @@
    if(prior===0)next=pick([1,2]);
    else if(prior===1||prior===2){
     st.seen[prior]=true;st.count++;
-    next=st.count>=N?3:!st.seen[1]?1:!st.seen[2]?2:1+Math.floor(Math.random()*2);
+    next=st.count>=N?3:!st.seen[2]?2:1;
    }
   }else if(id===37&&prior<2){
    st.count++;next=st.count>=N?2:1-prior;
