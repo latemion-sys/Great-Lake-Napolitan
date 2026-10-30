@@ -18,7 +18,7 @@ let selected='common',mode='all',phrase='',visible=false,focusBefore=null;
 const owned=id=>state.achievements.includes(id);
 function card(a){
  const yes=owned(a.id);
- const hidden=!yes&&['legend','myth'].includes(a.tier);
+ const hidden=!yes&&(['legend','myth'].includes(a.tier)||(a.lakeMedal016&&a.tier==='hero'));
  const shown=yes||['common','rare'].includes(a.tier);
  return '<article class="ach-modal-item-161 '+(yes?'earned':'locked')+(hidden?' secret':'')+'" data-tier="'+escapeText(a.tier)+'">'+
   '<div class="ach-topline-161"><span>'+label[a.tier]+'</span><span class="ach-tag-161">'+(yes?'✓ 달성':'미달성')+'</span></div>'+
@@ -46,7 +46,7 @@ function draw(keepScroll){
   if(mode==='earned'&&!yes)return false;
   if(mode==='locked'&&yes)return false;
   if(!needle)return true;
-  if(!yes&&['legend','myth'].includes(a.tier))return false;
+  if(!yes&&(['legend','myth'].includes(a.tier)||(a.lakeMedal016&&a.tier==='hero')))return false;
   const searchable=yes||['common','rare'].includes(a.tier)?a.name+' '+(a.desc||''):a.name;
   return searchable.toLocaleLowerCase('ko-KR').includes(needle);
  });
