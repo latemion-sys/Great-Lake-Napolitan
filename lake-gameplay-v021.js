@@ -44,7 +44,7 @@ function seed(st){
 function initial(st){
  const id=st.id,N=st.vars.N,lim=st.turnLimit;
  if(id===5||id===20)return pick(Object.keys(defs.get(id).nodes));
- if(id===44)return pick(['scene0','scene1','scene2','scene3'].filter((_,i)=>i+1<=lim));
+ if(id===44)return pick(['scene0','scene1','scene2','scene3'].filter((_,i)=>4-i<=lim));
  if(id===36||id===37)return 'scene0';
  if([9,14,17].includes(id))return lim>=N+1?pick(id===17?['scene0','scene1','scene2']:['scene0','scene1']):id===17?'scene2':'scene1';
  if(id===38)return pick(lim>=4?['scene0','scene1','scene2']:['scene0','scene2']);
@@ -133,7 +133,7 @@ storyChoice014=function(i){
   const remaining=st.turnLimit-st.turns;
   const exitChance=Math.min(1,.22+st.count*.19);
   // 반복해 돌아갈수록 빈 물길이 나올 확률이 커지고, 남은 시간이 없으면 출구가 나온다.
-  next=remaining<=0||Math.random()<exitChance?'scene3':
+  next=remaining<=1||Math.random()<exitChance?'scene3':
    pick(['scene0','scene1','scene2'].filter(k=>k!==prev));
  }
  if(id===9){st.count++;next=st.count>=st.vars.N?'scene1':'scene0';}
