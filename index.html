@@ -430,7 +430,7 @@ LAKES.forEach((lake,i)=>{
 ['extra_voyage_16','extra_lake_16','extra_fishSold_16','extra_oilCollected_16','extra_coinHeads_16'].forEach(id=>{
  const a=ACH.find(x=>x.id===id);if(a)a.tier='legend';
 });
-WHALES.forEach((w,k)=>ACH.push({id:'whale_hunt_'+k,tier:'myth',name:'재앙 사냥 · '+w.name,desc:'해당 재앙을 사냥한다.'}));
+WHALES.forEach((w,k)=>ACH.push({id:'whale_hunt_'+k,tier:'myth',name:'재앙 사냥-???',desc:'해당 재앙을 사냥한다.'}));
 
 
 // V.0.1.4.2 업적 조건 재설계: 108개 반복 누적 조건을 모두 서로 다른 사건·상황으로 교체
