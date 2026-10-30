@@ -338,7 +338,8 @@ renderShop132=function(){
   button(REST.name+' 구매 · 선장 정신력 +'+REST.gain+' · '+unitMoney(REST.cost)+(rn>=REST.max?' (이번 정박에서는 더 살 수 없음)':v>=100?' (정신력 가득)':''),'capRest','','',!avail||rn>=REST.max||v>=100||state.gold<REST.cost)+
   '</div></div>';
  s+='<div class="inset"><h3>재앙 사냥 준비 · 특수 작살</h3>'+
-  '<p class="muted">창백한 · 푸른 · 붉은 고래는 특수 작살에 망을 '+MIN_RINGS+'개 이상 두른 손으로만 사냥할 수 있습니다.</p>'+
+  '<p>고래잡이들 사이에서 \'쪽빛 노인\'이라 불리는 늙은 사냥꾼의 무기를 본떠 항구 대장간이 짜 맞춘 발사대. 리벳으로 박은 금속판 수십 장을 겹쳐 만든 석궁 모양의 틀에, 사람 키보다 긴 미늘 작살을 걸어 쏜다. 노인은 홀로 쪽배를 몰아 모든 것을 꿰뚫는 청새치를 잡았고, 던질 때마다 작살에 망 세 개를 감았다고 한다.</p>'+
+  '<p class="muted">그래서 이 작살도 망을 '+MIN_RINGS+'개 이상 두른 손에서만 재앙의 고래(창백한 · 푸른 · 붉은)에게 박힙니다. 한 번 고래의 살을 물고 나면 미늘이 휘고 리벳이 헐거워져, 다음 사냥 전에 판을 다시 박아야 합니다(정비).</p>'+
   tag(HARPOON.name+' '+(h?(h.damaged?'손상됨':'정비됨'):'없음'))+'<div class="stack" style="margin-top:8px">';
  if(!h)s+=button(HARPOON.name+' 구매 · '+unitMoney(HARPOON.cost)+' · 선장 '+HARPOON.grade+'등급 이상','calHarpoonBuy','','primary',!avail||state.grade<HARPOON.grade||state.gold<HARPOON.cost);
  else s+=button('특수 작살 정비 · '+unitMoney(HARPOON.cost/2)+(h.damaged?'':' (정비 완료)'),'calHarpoonFix','','',!avail||!h.damaged||state.gold<HARPOON.cost/2);
@@ -362,9 +363,9 @@ document.addEventListener('click',function(e){
  if(!b||b.disabled||busy||!inShop132()||judging())return;
  const act=b.dataset.act;
  if(act==='calHarpoonBuy'&&!harp()&&state.grade>=HARPOON.grade&&state.gold>=HARPOON.cost){
-  state.gold-=HARPOON.cost;state.calamityHarpoon={damaged:false};log(HARPOON.name+'를 샀습니다. '+unitMoney(HARPOON.cost)+' 사용.');
+  state.gold-=HARPOON.cost;state.calamityHarpoon={damaged:false};log(HARPOON.name+'를 샀습니다. 겹겹이 박힌 리벳 판이 무겁게 손에 걸립니다. '+unitMoney(HARPOON.cost)+' 사용.');
  }else if(act==='calHarpoonFix'&&harp()&&harp().damaged&&state.gold>=HARPOON.cost/2){
-  state.gold-=HARPOON.cost/2;state.calamityHarpoon.damaged=false;log('휘고 이가 빠진 특수 작살을 정비했습니다. '+unitMoney(HARPOON.cost/2)+' 사용.');
+  state.gold-=HARPOON.cost/2;state.calamityHarpoon.damaged=false;log('휘어진 미늘을 펴고 헐거워진 리벳 판을 다시 박아 특수 작살을 정비했습니다. '+unitMoney(HARPOON.cost/2)+' 사용.');
  }else if(act==='capRest'){
   if(rests()>=REST.max||cm()>=100||state.gold<REST.cost)return;
   state.gold-=REST.cost;state.captainRest={v:state.voyage,n:rests()+1};heal(REST.gain);
