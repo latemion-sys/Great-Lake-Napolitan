@@ -134,7 +134,7 @@ function armPose(base,rise,o){
    ① 말라붙는 호수
    ========================================================= */
 const S0={title:'말라붙는 호수',loop:8.5,
- caps:[[0,'호수 깊은 곳에서 새빨간 무언가가 떠오릅니다.'],[1.6,'그것이 다가올수록 물이 시들어 갑니다. 김이 피어오릅니다.'],[3.6,'호수 바닥이 갈라지고, 배가 메마른 진흙 위에 얹힙니다.'],[5.4,'아득한 곳에서 붉은 눈 두 개가 떠오릅니다.']],
+ caps:[[0,'호수 깊은 곳에서 새빨간 무언가가 떠오릅니다.'],[1.6,'그것이 다가올수록 물이 시들어 갑니다. 김이 피어오릅니다.'],[3.6,'호수 바닥이 갈라지고, 배가 메마른 진흙 위에 얹힙니다.'],[5.4,'아득한 곳에서 섬 같은 머리와 붉게 타는 눈이 떠오릅니다.']],
  build(){
   return scenery()+
    '<g class="rw-farhead" opacity="0" clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g></g>'+
@@ -259,7 +259,7 @@ const S2={title:'여덟 팔 격퇴',loop:8.6,
    ④ 붉은 눈의 머리 — 문어 머리가 배 뒤에서 떠오르고 붉은 눈을 뜸
    ========================================================= */
 const S3={title:'붉은 눈의 머리',loop:8.5,
- caps:[[0,'갈라진 바닥 아래가 새빨갛게 달아오릅니다.'],[1.2,'거대한 몸이 바닥을 뚫고 솟아오릅니다.'],[3.0,'흰자 위의 붉은 눈동자가 배를 내려다봅니다.'],[5.6,'얼굴에서 늘어진 촉수가 꿈틀거리며 다가옵니다.']],
+ caps:[[0,'갈라진 바닥 아래가 새빨갛게 달아오릅니다.'],[1.2,'거대한 몸이 바닥을 뚫고 솟아오릅니다.'],[3.0,'깊이 박힌 작은 눈이 배를 내려다봅니다. 가로로 찢어진 동공 속에서 붉은 빛이 탑니다.'],[5.6,'굵은 팔뿌리가 진흙을 헤치며 머리를 밀어 올립니다.']],
  build(){
   return scenery()+
    '<g clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g></g>'+
@@ -276,7 +276,7 @@ const S3={title:'붉은 눈의 머리',loop:8.5,
   const hd=q('.rw-hd');hd.setAttribute('transform','translate('+n1(hx-lunge*150)+' '+n1(hy+Math.sin(tr*.9)*4)+') scale('+n3(hs)+')');
   const look=[clamp((300-hx)/40,-9,0),6];
   const blink=t>4.6&&t<4.8?1-Math.sin((t-4.6)/.2*Math.PI):1;
-  paintHead(hd,tr,{open:seg(t,2.6,3.2)*blink,dilate:1-.45*seg(t,3.4,4.2)+.6*lunge,look,glow:seg(t,2.6,3.4)+lunge*.5});
+  paintHead(hd,tr,{wet:rise*(1-seg(t,3.4,6.5)),open:seg(t,2.6,3.2)*blink,dilate:1-.45*seg(t,3.4,4.2)+.6*lunge,look,glow:seg(t,2.6,3.4)+lunge*.5});
   // 양옆의 팔
   [[0,[130,SEA+90],-70,55,1],[1,[850,SEA+90],-112,-55,-1]].forEach(([i,b,a,e,sd])=>{
    const rr=seg(t,.4+i*.3,1.6+i*.3);
