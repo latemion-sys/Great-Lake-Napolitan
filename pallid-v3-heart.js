@@ -284,7 +284,7 @@ function paint(el,t){
  if(keyFail>=0&&keyFail<0.8)sh+=4*Math.exp(-keyFail*5);
  q('.w6-root').setAttribute('transform','translate('+(Math.sin(t*59)*sh).toFixed(2)+' '+(Math.sin(t*41+1)*sh).toFixed(2)+')');
  // 반복 경계
- const v=hold?0:(t<0.6?1-t/0.6:clamp((t-T.loop[0])/(T.loop[1]-T.loop[0])));
+ const tt=(el._v0||(el._v0=performance.now()),(performance.now()-el._v0)/1000),v=hold?0:(tt<0.6?1-tt/0.6:.3*(t<0.6?1-t/0.6:clamp((t-T.loop[0])/(T.loop[1]-T.loop[0]))));
  q('.w6-veil').style.opacity=(v*0.95).toFixed(3);
  // 5단계 조준: 작은 심장에 맞추는 원과 상하좌우로 오가는 조준점
  const ui=q('.w6-aimui');

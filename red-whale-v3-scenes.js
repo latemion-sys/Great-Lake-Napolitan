@@ -174,7 +174,7 @@ const S0={title:'내려가는 물',loop:8.5,
   if(fh>0)paintHead(g.querySelector('.rw-hd'),tr,{open:seg(t,5.6,6.2),glow:1.4});
   haze(el,.2+.75*bell(t,5.4,6.0,7.0,7.8),tr);
   caption(el,this.caps,t);
-  veil(el,t<.6?1-t/.6:seg(t,7.9,8.5));
+  veil(el,tr<.6?1-tr/.6:.3*(t<.6?1-t/.6:seg(t,7.9,8.5)));   // 반복 경계는 검게 끊지 않고 살짝만 어두워짐
  }
 };
 
@@ -220,7 +220,7 @@ const S1={title:'붉은 팔의 포위',loop:8.5,
   ARMS2.forEach((A,i)=>{});
   paintDrops(ms,this._mp,ARMS2[0].base[0]+40,SEA+40,t-ARMS2[0].delay,320,520);
   caption(el,this.caps,t);
-  veil(el,t<.6?1-t/.6:seg(t,7.9,8.5));
+  veil(el,tr<.6?1-tr/.6:.3*(t<.6?1-t/.6:seg(t,7.9,8.5)));   // 반복 경계는 검게 끊지 않고 살짝만 어두워짐
  }
 };
 
@@ -272,7 +272,7 @@ const S2={title:'여덟 팔 격퇴',loop:8.6,
   const n=Math.max(0,Math.min(8,STRIKES.filter(S=>t>=S.at+.44).length));
   const b=q('.cine-bottom'),txt=n===0?'팔이 둘, 넷, 여덟. 전부 솟아오릅니다.':n<8?'작살잡이가 팔을 하나씩 쳐냅니다. 격퇴 '+n+' / 8':'여덟 번째 팔이 물러납니다. 격퇴 8 / 8';
   if(b&&b.textContent!==txt)b.textContent=txt;
-  veil(el,t<.5?1-t/.5:seg(t,8.0,8.6));
+  veil(el,tr<.6?1-tr/.6:.3*(t<.5?1-t/.5:seg(t,8.0,8.6)));   // 반복 경계는 검게 끊지 않고 살짝만 어두워짐
  }
 };
 
@@ -307,7 +307,7 @@ const S3={title:'드러난 붉은 등',loop:8.5,
   paintDrops(qa('.rw-mud circle'),this._mp,hx,SEA+30,t-1.0,300,420);
   boatOnBed(el,tr,1,300,{dy:Math.sin(tr*23)*lunge*1.5,lamp:.1});
   caption(el,this.caps,t);
-  veil(el,t<.6?1-t/.6:(t>7.3?.4+.6*seg(t,7.3,8.5):0));
+  veil(el,tr<.6?1-tr/.6:.3*(t<.6?1-t/.6:(t>7.3?.4+.6*seg(t,7.3,8.5):0)));   // 반복 경계는 검게 끊지 않고 살짝만 어두워짐
  }
 };
 

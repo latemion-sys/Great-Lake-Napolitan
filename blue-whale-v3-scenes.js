@@ -107,7 +107,7 @@ const S0={title:'수면의 절단',loop:7.5,
   // 멀리서 방향을 트는 지느러미
   const fu=seg(t,4.3,6.4);
   setUse(q('.bw-far'),mt(-160+1300*fu,SEA+15+Math.sin(t*5)*1,0,-.17,.17,500,0),bell(t,4.3,4.7,6.0,6.4)*.85);
-  veil(el,t<.6?1-t/.6:seg(t,6.9,7.5));
+  veil(el,tr<.6?1-tr/.6:.3*(t<.6?1-t/.6:seg(t,6.9,7.5)));   // 반복 경계는 검게 끊지 않고 살짝만 어두워짐
   caption(el,this.caps,t);
  }
 };
@@ -187,7 +187,7 @@ const S1={title:'초고속 관통',loop:7.5,
   paintRings(qa('.bw-rings ellipse'),210,s,280);
   if(!this._dp)this._dp=dropParams(30,8,-150,-30,90,280);
   paintDrops(qa('.bw-drops circle'),this._dp,230,SEA-12,s,240,380);
-  veil(el,t<.6?1-t/.6:seg(t,6.9,7.5));
+  veil(el,tr<.6?1-tr/.6:.3*(t<.6?1-t/.6:seg(t,6.9,7.5)));   // 반복 경계는 검게 끊지 않고 살짝만 어두워짐
   caption(el,this.caps,t);
  }
 };
@@ -385,7 +385,7 @@ const S3={title:'관통 회피',loop:7.5,
    if(a<=0){c.setAttribute('opacity','0');return;}
    const y=p.y+280*a*a+30*a;c.setAttribute('cx',n1(p.x+p.vx*a));c.setAttribute('cy',n1(y));c.setAttribute('opacity',y>SEA?'0':'.6');});
   paintRings(qa('.bw-rings ellipse'),X0+30,s-.3,300,.55);
-  veil(el,t<.6?1-t/.6:seg(t,6.9,7.5));
+  veil(el,tr<.6?1-tr/.6:.3*(t<.6?1-t/.6:seg(t,6.9,7.5)));   // 반복 경계는 검게 끊지 않고 살짝만 어두워짐
   caption(el,this.caps,t);
  }
 };
@@ -510,7 +510,7 @@ const S4={title:'최후의 교차',dur:9,
   hp.setAttribute('opacity',String(show));
   hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
   q('.bw-tip').style.opacity=t>=TH&&!PC.pass?'0':'1';
-  if(HL){HL.bury(hp,t>=TH&&PC.deep?10-PC.deep:null);if(PC.n>=3){const sk=q('.bw-sparks');if(sk)sk.setAttribute('opacity','0');}HL.paintHit(el,{s:t>=TH?t-TH:-1,p:P,ang:PC.pass?HL.passAngle(endAng):endAng,tier:PC.n,through:150});}
+  if(HL){HL.bury(hp,t>=TH&&PC.deep?10-PC.deep:null);if(PC.n>=3){const sk=q('.bw-sparks');if(sk)sk.setAttribute('opacity','0');}HL.paintHit(el,{s:t>=TH?t-TH:-1,p:P,ang:PC.pass?HL.passAngle(endAng):endAng,tier:PC.n,through:150,fade:.8});}
   const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
   const trl=q('.bw-trail');
   if(thrown&&t<TH+.3){const bk=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];trl.setAttribute('d','M'+n1(bk[0])+','+n1(bk[1])+' L'+n1(tail[0])+','+n1(tail[1]));trl.setAttribute('opacity',n3(t<TH?.45:.45*(1-(t-TH)/.3)));}

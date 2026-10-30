@@ -290,7 +290,7 @@ function paint(el,t,hold){
  if(hurt>=0&&hurt<1)sh+=6*Math.exp(-hurt*4);
  q('.w5-root').setAttribute('transform','translate('+(Math.sin(t*55)*sh).toFixed(2)+' '+(Math.sin(t*43+1)*sh).toFixed(2)+')');
  // 반복 경계
- const v=hold?0:(t<0.6?1-t/0.6:clamp((t-T.loop[0])/(T.loop[1]-T.loop[0])));
+ const tt=(el._v0||(el._v0=performance.now()),(performance.now()-el._v0)/1000),v=hold?0:(tt<0.6?1-tt/0.6:.3*(t<0.6?1-t/0.6:clamp((t-T.loop[0])/(T.loop[1]-T.loop[0]))));
  q('.w5-veil').style.opacity=(v*0.95).toFixed(3);
  // 미니게임 표시: 빠진 순간 통로가 빛남 · 휩쓸림 · 진행 칸
  const cue=q('.w5-cue');

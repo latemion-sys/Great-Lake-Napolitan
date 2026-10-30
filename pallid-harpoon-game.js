@@ -83,7 +83,7 @@ function doThrow(){
   const b=state.battle;
   newAttempt(b?(r?b.won+1:b.won):0);  // 다음 조준: 맞혔으면 한 단계 어렵게
   resolveCoin(r);                     // 기존 판정(피해·백화·진행)을 그대로 사용
- },r?1500:1750);
+ },r?1500+(window.CalamityMang&&CalamityMang.rings()>=3?(CalamityMang.rings()>=5?1100:700):0):1750);   // 망을 감은 명중은 이펙트가 끝까지 보이도록 조금 더 기다림
 }
 document.addEventListener('click',e=>{
  if(e.target.closest('#pallidThrowBtn')||(GAME.active&&e.target.closest('.w3-harpoon-scene')))doThrow();

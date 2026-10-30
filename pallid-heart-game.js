@@ -106,7 +106,7 @@ function doThrow(){
   log('작살이 빗나갔습니다. 거대한 심장의 박동이 몸을 흔듭니다.');
   resetAim();
   if(safeCheck())sync();
- },hit?1300:1500);
+ },hit?1300+(window.CalamityMang&&CalamityMang.rings()>=3?(CalamityMang.rings()>=5?1100:700):0):1500);   // 망을 감은 명중은 이펙트가 끝까지 보이도록 조금 더 기다림
 }
 
 document.addEventListener('keydown',e=>{

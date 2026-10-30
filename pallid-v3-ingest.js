@@ -264,7 +264,7 @@ function paint(el,t){
  rb.setAttribute('transform','translate('+((lx-480)*0.3).toFixed(1)+' 0) scale(1 '+(1+Math.sin(t*2.4)*0.015).toFixed(4)+')');
 
  // 반복 경계
- const lv=t<0.5?1-t/0.5:clamp((t-T.loop[0])/(T.loop[1]-T.loop[0]));
+ const tt=(el._v0||(el._v0=performance.now()),(performance.now()-el._v0)/1000),lv=tt<0.5?1-tt/0.5:.3*(t<0.5?1-t/0.5:clamp((t-T.loop[0])/(T.loop[1]-T.loop[0])));
  q('.w4-loopveil').style.opacity=(lv*0.95).toFixed(3);
 }
 requestAnimationFrame(frame);

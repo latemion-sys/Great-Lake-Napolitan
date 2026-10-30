@@ -372,7 +372,7 @@ function paint(el,t,hold){
  }else{ui.style.opacity='0';ret.style.opacity='0';el.classList.remove('w3-aiming');}
 
  // 루프 경계: 어둠으로 덮었다가 다시 걷힘
- const v=hold?0:(t<0.6?1-t/0.6:clamp((t-T.veilOut[0])/(T.veilOut[1]-T.veilOut[0])));
+ const tt=(el._v0||(el._v0=performance.now()),(performance.now()-el._v0)/1000),v=hold?0:(tt<0.6?1-tt/0.6:.3*(t<0.6?1-t/0.6:clamp((t-T.veilOut[0])/(T.veilOut[1]-T.veilOut[0]))));
  q('.w3-veil').style.opacity=(v*0.92).toFixed(3);
 }
 requestAnimationFrame(frame);
