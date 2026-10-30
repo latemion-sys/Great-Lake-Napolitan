@@ -13,7 +13,7 @@
 /* 미니게임 테스트 페이지
    - 실제 게임(index.html)을 그대로 불러와 쓰므로 게임이 바뀌면 이 페이지도 자동으로 최신이 된다.
    - 저장소를 메모리로 바꿔 진짜 저장 데이터·업적에는 손대지 않는다(새로고침하면 초기화).
-   - 위쪽 테스트 막대에서 1단계·3단계 미니게임으로 바로 들어간다. */
+   - 위쪽 테스트 막대에서 창백한 고래·푸른 고래 미니게임으로 바로 들어간다. */
 (function(){
 'use strict';
 var SHIM=[
@@ -46,10 +46,18 @@ var TOOLBAR=[
 '<button type="button" data-t="lure">1단계 · 상처에 작살(입 벌리기)</button>',
 '<button type="button" data-t="acid">3단계 · 위산 통과</button>',
 '<button type="button" data-t="heart">5단계 · 심장 파괴</button>',
+'</div><div class="row" style="margin-top:6px">',
+'<b style="color:#8fd6ff">푸른 고래</b>',
+'<button type="button" data-t="bEnc">1단계 · 조우</button>',
+'<button type="button" data-t="bPierce">2단계 · 초고속 관통</button>',
+'<button type="button" data-t="bMer">꿰뚫린 것들</button>',
+'<button type="button" data-t="bChase">3단계 · 추적</button>',
+'<button type="button" data-t="bEvade">4단계 · 관통 회피</button>',
+'<button type="button" data-t="bFinal">5단계 · 최후의 교차</button>',
 '<span style="width:10px"></span>',
 '<span style="font-size:12px;color:#c4d0dc">1단계 명중 확률 기준</span>',
 '<button type="button" data-p="0.1">10%</button><button type="button" data-p="0.25" class="on">25%</button><button type="button" data-p="0.5">50%</button>',
-'<label><input type="checkbox" id="mgtGod" checked> 피해 무시</label>',
+'<label><input type="checkbox" id="mgtGod" checked> 피해 무시(사망 대신 다시)</label>',
 '</div><div class="note">테스트 전용 페이지입니다. 진짜 저장 데이터와 업적에는 영향을 주지 않으며, 새로고침하면 처음 상태로 돌아갑니다. 1단계는 아군 전투력에 따라 난이도가 달라지므로 명중 확률 기준을 골라 바꿔 볼 수 있습니다.</div></div>'
 ].join('\n');
 
@@ -64,8 +72,17 @@ var CONTROL=[
 '  state.hull=100;state.mind=100;state.exposure=0;state.pallor155=0;state.pallidVictory162=false;',
 '  if(state.crew&&!state.crew.length)state.crew.push({id:99,role:"lower",condition:1});',
 ' }',
+' function blue(kind){',
+'  state.blueWhaleFinalStage=false;state.blueHunt=null;state.battle=null;if(window.BlueHuntGame){BlueHuntGame.mode=null;}tab="play";',
+'  if(kind==="bEnc"){state.encounter=1;state.scene="encounter";sync();return;}',
+'  var won={bPierce:0,bMer:1,bChase:1,bEvade:2,bFinal:3}[kind],ph={bPierce:"pierce",bChase:"chase",bEvade:"evade",bFinal:"final"}[kind];',
+'  var w={type:"whale",index:1,name:WHALES[1].name,power:WHALES[1].power,need:4,won:won,history:[],after:"whale"};',
+'  if(kind==="bMer"){state.blueHunt={phase:"mermaid",whale:w};state.scene="blueHunt";sync();return;}',
+'  state.battle=w;state.blueHunt={phase:ph};state.scene="battle";state.lastCoin=null;sync();',
+' }',
 ' function start(kind){',
 '  base();',
+'  if(kind.charAt(0)==="b"&&kind.length>2&&kind!=="bad"){blue(kind);var bx=document.querySelector(".bw3-scene");if(bx)bx.scrollIntoView({block:"center"});return;}',
 '  if(kind==="acid"){state.battle=null;state.pallidHunt161={phase:"stomach",ready:true};state.scene=PALLID_SCENE_161;tab="play";sync();}',
 '  else if(kind==="heart"){state.battle=null;state.pallidHunt161={phase:"heart",ready:true};state.scene=PALLID_SCENE_161;tab="play";if(window.PallidHeartGame)PallidHeartGame.active=false;pallidStartBattle161("pallidCore161","모든 것을 삼키는 창백한 고래 · 심장 속 심장",220,3);}',
 '  else{',
@@ -86,7 +103,7 @@ var CONTROL=[
 '   if(state.battle&&/pallid(Shell|Lure)161/.test(state.battle.type))start(state.battle.type==="pallidShell161"?"shell":"lure");}',
 ' });',
 ' // 피해 무시: 미니게임 판정은 그대로 두고 선체·정신·백화만 계속 채워 둔다',
-' setInterval(function(){if(!document.getElementById("mgtGod").checked||typeof state==="undefined")return;',
+' setInterval(function(){window.__BLUE_NODEATH=document.getElementById("mgtGod").checked;if(!document.getElementById("mgtGod").checked||typeof state==="undefined")return;',
 '  state.hull=100;state.mind=100;state.exposure=0;state.pallor155=0;},200);',
 ' setTimeout(closeModals,300);',
 '})();',

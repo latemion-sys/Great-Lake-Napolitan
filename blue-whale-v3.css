@@ -1,0 +1,30 @@
+/* 모든 것을 뚫는 푸른 고래 · 미니게임 표시 */
+.bw3-scene.bwg-on{cursor:pointer}
+.bw3-scene .bwg-hud{position:absolute;inset:0;z-index:6;pointer-events:none}
+.bw3-scene .bwg-hint{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);padding:5px 12px;border-radius:20px;background:#040a12cc;border:1px solid #8fd6ff55;color:#e3f3fb;font-size:12px;letter-spacing:.04em;white-space:nowrap;transition:border-color .1s,color .1s,box-shadow .1s}
+.bw3-scene .bwg-hint:empty{display:none}
+.bw3-scene .bwg-hint.now{border-color:#ffd59a;color:#fff1d8;box-shadow:0 0 16px #ffb36a88}
+.bw3-scene .bwg-verdict{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-size:30px;font-weight:700;letter-spacing:.3em;opacity:0;transition:opacity .2s;white-space:nowrap}
+.bw3-scene .bwg-verdict.on{opacity:1}
+.bw3-scene .bwg-verdict.good{color:#e9f8ff;text-shadow:0 0 18px #4fc6ff,0 2px 8px #000}
+.bw3-scene .bwg-verdict.bad{color:#f3c9c9;text-shadow:0 0 16px #8a2030,0 2px 8px #000}
+.bw3-scene .bwg-pips{position:absolute;top:12px;right:16px;display:flex;gap:6px}
+.bw3-scene .bwg-pips i{width:24px;height:8px;border-radius:4px;background:#040a12cc;border:1.5px solid #bfe6fbaa}
+.bw3-scene .bwg-pips i.good{background:#8fe0ff;border-color:#8fe0ff;box-shadow:0 0 8px #4fc6ff}
+.bw3-scene .bwg-pips i.bad{background:#d0505e;border-color:#ff9aa6;box-shadow:0 0 8px #d0505e}
+.bw3-scene .bwg-arrow{position:absolute;left:50%;top:34%;width:84px;height:84px;margin:-42px 0 0 -42px;opacity:0;transform:scale(.85);transition:opacity .08s,transform .08s}
+.bw3-scene .bwg-arrow.on{opacity:1;transform:scale(1)}
+.bw3-scene .bwg-arrow svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.bw3-scene .bwg-arrow .bwg-ring-bg{fill:#040a12cc;stroke:#ffffff22;stroke-width:4}
+.bw3-scene .bwg-arrow .bwg-ring{fill:none;stroke:#8fe0ff;stroke-width:4;stroke-linecap:round}
+.bw3-scene .bwg-arrow.late .bwg-ring{stroke:#ffb36a}
+.bw3-scene .bwg-arrow b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;color:#f2fbff;text-shadow:0 0 12px #4fc6ff}
+.bw3-scene .bwg-bar{position:absolute;left:50%;top:40px;transform:translateX(-50%);width:42%;height:9px;border-radius:5px;background:#040a12cc;border:1.5px solid #bfe6fb88;overflow:hidden}
+.bw3-scene .bwg-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2c83ca,#9aedff);box-shadow:0 0 10px #71dfff;transition:width .12s}
+.bw3-scene:not([data-stage="2"]) .bwg-arrow,.bw3-scene:not([data-stage="2"]) .bwg-bar{display:none}
+.bwg-meter{height:10px;border-radius:5px;background:#0b1622;border:1px solid #3d6683;overflow:hidden;margin:10px 0 6px}
+.bwg-meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2c83ca,#9aedff);transition:width .12s}
+.bwg-pad{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:360px;margin:8px auto}
+.bwg-pad .bwg-dir{font-size:30px;padding:14px 0;touch-action:manipulation;user-select:none}
+.bwg-panel #bwgAct{font-size:16px;padding:12px 22px;touch-action:manipulation}
+@media(max-width:620px){.bw3-scene .bwg-hint{font-size:10px;bottom:36px;white-space:normal;width:84%;text-align:center}.bw3-scene .bwg-verdict{font-size:22px}.bw3-scene .bwg-arrow{width:62px;height:62px;margin:-31px 0 0 -31px}.bw3-scene .bwg-arrow b{font-size:30px}.bw3-scene .bwg-bar{top:30px;width:56%}.bw3-scene .bwg-pips{top:9px;right:12px}}

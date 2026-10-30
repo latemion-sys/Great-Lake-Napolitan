@@ -215,8 +215,16 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
    d+=130*inOut(seg(tt,5.2,6.0))*(1-inOut(seg(tt,7.2,8.0)));
    return d;
   };
-  const X=tt=>700+55*Math.sin(w*tt)+18*Math.sin(w*3*tt+1);
-  const Y=tt=>SEA+40+dive(tt);
+  const g=el.dataset.game&&window.BlueHuntGame&&window.BlueHuntGame.mode==='chase'?window.BlueHuntGame:null;
+  let off=0,sink=0;
+  if(g){
+   const k=(g.hits||0)/(g.need||16),missK=g.lastMissAt!=null?Math.exp(-(t-g.lastMissAt)*1.4):0;
+   let target=110-170*k+60*(g.misses||0)+90*missK;
+   if(g.done==='fail'){target+=260*seg(t,g.doneAt,g.doneAt+1.2);sink=150*inOut(seg(t,g.doneAt+.2,g.doneAt+1.2));}
+   g._off=g._off==null?target:lerp(g._off,target,.08);off=g._off;
+  }
+  const X=tt=>700+off+55*Math.sin(w*tt)+18*Math.sin(w*3*tt+1);
+  const Y=tt=>SEA+40+(g?dive(tt)*.35+sink:dive(tt));
   const dy=(Y(t+.03)-Y(t-.03))/.06,deg=clamp(Math.atan2(dy,300)/RAD,-28,28);
   const nx=X(t),ny=Y(t);
   setUse(q('.bw-near'),mt(nx,ny,deg,-S,S,500,0),1);
@@ -257,7 +265,7 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
   const fu=seg(t,5.6,7.8);
   setUse(q('.bw-far'),mt(1080-560*fu,SEA+14+16*seg(t,7.2,7.8),-2,.15,.15,500,0),bell(t,5.6,6.0,7.3,7.8)*.8);
   veil(el,tr<.6?1-tr/.6:0);
-  caption(el,this.caps,t);
+  if(g)hudChase(el,t,g);else caption(el,this.caps,t);
  }
 };
 
@@ -350,6 +358,7 @@ const S4={title:'최후의 교차',dur:9,
     '<path class="bw-trail" fill="none" stroke="#e3ecea" stroke-width="2" stroke-linecap="round" filter="url(#bwRimF)" opacity="0"/>'+
     '<path class="bw-rope" fill="none" stroke="#8a9697" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
     '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g></g>'+
+   '<g fill="none"><circle class="bwg-tc" r="24" stroke="#e8f3f6" stroke-width="1.6" stroke-dasharray="5 4" opacity="0"/><circle class="bwg-cc" r="24" stroke="#cfeefd" stroke-width="2" opacity="0"/></g>'+
    '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+
    sparks+
    drops('bw-blood',22,72,'#1b0c16')+
@@ -442,29 +451,213 @@ const S4={title:'최후의 교차',dur:9,
  }
 };
 
+/* =========================================================
+   미니게임 표시 (blue-whale-gameplay-v021.js가 window.BlueHuntGame을 움직임)
+   ========================================================= */
+const GAMECAP={2:'고래가 꺾는 쪽으로 키를 돌리십시오.',3:'주둥이가 물살을 뚫고 솟는 순간에만 배를 트십시오.',4:'좁혀 오는 고리가 교차점에 겹치는 순간 작살을 던지십시오.'};
+function hud(el){const {q}=cacheQ(el);return {hint:q('.bwg-hint'),verdict:q('.bwg-verdict'),pips:q('.bwg-pips'),arrow:q('.bwg-arrow'),glyph:q('.bwg-arrow b'),ring:q('.bwg-ring'),bar:q('.bwg-bar i')};}
+function setTxt(n,t){if(n&&n.textContent!==t)n.textContent=t;}
+function setVerdict(n,t,cls){if(!n)return;setTxt(n,t);const c='bwg-verdict'+(t?' on '+(cls||''):'');if(n.className!==c)n.className=c;}
+function setPips(n,total,filled,cls){if(!n)return;const key=total+'/'+filled+'/'+cls;if(n.dataset.k===key)return;n.dataset.k=key;
+ let h='';for(let i=0;i<total;i++)h+='<i class="'+(i<filled?cls:'')+'"></i>';n.innerHTML=h;}
+const RING_C=2*Math.PI*26;
+function hudChase(el,t,g){
+ const u=hud(el);
+ if(g.dir&&!g.done){u.arrow.classList.add('on');setTxt(u.glyph,g.dir==='L'?'←':'→');
+  const p=clamp((t-g.promptAt)/(g.win||.7));u.ring.style.strokeDashoffset=n1(RING_C*p);u.arrow.classList.toggle('late',p>.65);}
+ else u.arrow.classList.remove('on','late');
+ u.bar.style.width=n1(100*(g.hits||0)/(g.need||16))+'%';
+ setPips(u.pips,2,g.misses||0,'bad');
+ const miss=g.lastMissAt!=null&&t-g.lastMissAt<.8&&!g.done;
+ setVerdict(u.verdict,g.done==='ok'?'추적 성공':g.done==='fail'?'놓쳤다':miss?'놓침':'',g.done==='ok'?'good':'bad');
+ setTxt(u.hint,t<1.2?'준비 · ← → 를 0.7초 안에':'← → · 화면 왼쪽 / 오른쪽 누르기');
+ caption(el,[[0,GAMECAP[2]]],0);
+}
+function hudEvade(el,t,g){
+ const u=hud(el);
+ setPips(u.pips,3,g.ok||0,'good');
+ const ph=g.phase;
+ setVerdict(u.verdict,ph==='pierced'?(g.failWhy==='early'?'너무 빠름':'늦음'):ph==='dodge'&&t-g.pressAt<1?'회피':'',ph==='pierced'?'bad':'good');
+ setTxt(u.hint,ph==='up'?'지금 · 스페이스 / 화면 누르기':ph==='pierced'?'':'기다리십시오 · 너무 일찍 틀면 꿰뚫립니다');
+ u.hint.classList.toggle('now',ph==='up');
+ caption(el,[[0,GAMECAP[3]]],0);
+}
+function hudFinal(el,t,g){
+ const u=hud(el);
+ const fin=g.done&&(g.hit?t>=g.th:t>=Math.max(g.th,g.thrownAt!=null?g.arriveAt:0));
+ setVerdict(u.verdict,fin?(g.hit?'명중':'빗나감'):'',g.hit?'good':'bad');
+ setTxt(u.hint,g.thrownAt!=null||g.autoMiss?'':t<g.breachAt?'단 한 번 · 고래가 솟구치길 기다리십시오':'지금 · 고리가 겹칠 때 스페이스 / 화면 누르기');
+ u.hint.classList.toggle('now',t>=g.breachAt&&g.thrownAt==null&&!g.autoMiss);
+ caption(el,[[0,GAMECAP[4]]],0);
+}
+// 배가 꿰뚫려 부서지는 모습
+function brokenBoat(el,t,ft,x){
+ const k=seg(t,ft,ft+.3);
+ const y=SEA-26*bell(t,ft,ft+.12,ft+.3,ft+.8)+52*inC(seg(t,ft+.5,ft+2));
+ const tw=boatPose(el,x,y,30*outC(k)+6*Math.sin((t-ft)*20)*Math.exp(-(t-ft)*4),[38,-24]);
+ const {q}=cacheQ(el);q('.bw-lampglow').style.opacity=n3(.9*(1-seg(t,ft+.05,ft+.35)));q('.bw-lampglint').style.opacity=n3(.3*(1-seg(t,ft,ft+.3)));
+ return tw;
+}
+/* ④ 회피 미니게임 */
+function evadeGame(el,t,tr,g){
+ const {q,qa}=cacheQ(el);
+ ambient(el,tr,0);
+ const S=.9,X0=470,ang=50,dx=-Math.cos(ang*RAD),dy=-Math.sin(ang*RAD),stopX=X0+56*1.9+50;
+ const ph=g.phase,rt=g.round>=0?t-g.roundAt:-1;
+ const at=k=>mt(X0+dx*k,SEA-40+dy*k,ang,S,S,-60,-4);
+ let k=null,underTf=null,underOp=0,lineOn=0,tipX=1400,emergeAt=null;
+ if(ph==='approach'||ph==='wait'){
+  tipX=lerp(1320,stopX,outC(rt/.9))+(ph==='wait'?Math.sin(t*30)*1.5:0);
+  underTf=mt(tipX,SEA+120,0,S,S,-60,-4);underOp=seg(rt,0,.4);lineOn=seg(rt,0,.25)*(ph==='wait'?.8+.2*Math.sin(t*20):1);
+ }else if(ph==='up'){k=-20+150*(t-g.upAt);emergeAt=g.upAt;}
+ else if(ph==='dodge'){const kp=-20+150*(g.pressAt-g.upAt);k=kp+2430*(t-g.pressAt);emergeAt=g.upAt;}
+ else if(ph==='pierced'){
+  const early=g.failWhy==='early',k0=early?-260:-20+150*.55;
+  k=Math.min(k0+1700*(t-g.failAt),260+60*(t-g.failAt));emergeAt=early?g.failAt+.1:g.upAt;
+ }
+ if(k!=null&&k<1400){underTf=at(k);underOp=1;}
+ setUse(q('.bw-under'),underTf||'',underTf?underOp:0);
+ setUse(q('.bw-front'),k!=null&&k<1400?at(k):'',k!=null&&k<1400?1:0);
+ const fast=ph==='dodge'||(ph==='pierced'&&t-g.failAt<.25);
+ qa('.bw-ghost').forEach(gh=>{const j=+gh.dataset.k;setUse(gh,k!=null?at(k-j*60):'',fast&&k!=null?(.28-j*.07):0);});
+ // 겨누는 선
+ const d='M'+n1(tipX)+','+(SEA+3)+' L'+(W+20)+','+(SEA+4);
+ q('.bw-line').setAttribute('d',d);q('.bw-lineglow').setAttribute('d',d);
+ q('.bw-line').setAttribute('opacity',n3(.85*lineOn));q('.bw-lineglow').setAttribute('opacity',n3(.6*lineOn));
+ const ug=q('.bw-uglow');ug.setAttribute('cx',n1(tipX+80));ug.setAttribute('cy',n1(SEA+44));ug.setAttribute('opacity',n3(lineOn));
+ const hp=q('.bw-hump');hp.setAttribute('cx',n1(tipX+20));hp.setAttribute('cy',n1(SEA+2));hp.setAttribute('opacity',n3(.55*lineOn));
+ // 물살을 뚫는 물보라
+ if(!evadeGame._bp)evadeGame._bp=dropParams(50,51,-160,-20,140,430);
+ paintDrops(qa('.bw-burst circle'),evadeGame._bp,X0+40,SEA,emergeAt!=null?t-emergeAt:-1,70,520);
+ // 배
+ const B=bob(tr);
+ if(ph==='pierced'){brokenBoat(el,t,g.failWhy==='early'?g.failAt+.25:g.failAt+.08,X0);}
+ else{
+  const pa=g.pressAt!=null&&ph==='dodge'?g.pressAt:null;
+  const sw=pa!=null?inOut(seg(t,pa,pa+.3))*(1-inOut(seg(t,pa+1.0,pa+1.85))):0;
+  const tc=pa!=null?pa+.85:null,s=tc!=null?t-tc:-1,j=jolt(s,1,8);
+  const roll=B.r-16*(pa!=null?bell(t,pa,pa+.12,pa+.35,pa+.8):0)+j*9;
+  const tw=boatPose(el,X0-230*sw-j*5,SEA+B.y,roll,[37,-30]);
+  lamp(el,tr,tw,ph==='up'?.15:0);
+ }
+ // 늦게 솟는 물기둥 · 비 · 물결
+ const base=ph==='dodge'?g.pressAt+.85:ph==='pierced'?g.failAt+.6:null,s=base!=null?t-base:-1;
+ const cs=qa('.bw-cols .bw-col');
+ paintCol(cs[0],X0+30,s,ph==='pierced'?200:260,44,-12,.5,2.0);
+ paintCol(cs[1],X0-20,s-.12,150,26,-24,.45,1.6);
+ paintCol(cs[2],X0+90,s-.2,130,24,14,.45,1.5);
+ qa('.bw-rain circle').forEach(c=>c.setAttribute('opacity','0'));
+ paintRings(qa('.bw-rings ellipse'),X0+30,s-.3,300,.55);
+ veil(el,ph==='pierced'?.9*seg(t,g.failAt+.6,g.failAt+2):t<.5?1-t/.5:0);
+ hudEvade(el,t,g);
+}
+/* ⑤ 최후의 교차 미니게임 */
+const FP=[600,215],FS=.8;
+function poseFinal(tt){const d=tt-1.75,vy=-150+900*d;return {x:FP[0]-700*d,y:FP[1]-150*d+450*d*d,deg:Math.atan2(-vy,700)/RAD};}
+function finalGame(el,t,tr,g){
+ const {q,qa}=cacheQ(el);
+ if(g.hit&&t>=g.th){
+  ['.bwg-tc','.bwg-cc'].forEach(s=>q(s).setAttribute('opacity','0'));
+  S4.paint(el,1.75+(t-g.th),tr);hudFinal(el,t,g);return;
+ }
+ ambient(el,tr,0);
+ const miss=g.done==='fail'&&t>g.th;
+ let E=poseFinal(1.75+(t-g.th)*.632);
+ const ib=g.th+.45;
+ if(miss){
+  const P0=poseFinal(1.75),u=inOut(seg(t,g.th,ib)),sink=60*inC(seg(t,ib+.5,ib+2));
+  E={x:lerp(P0.x,429,u),y:lerp(P0.y,177,u)+sink,deg:lerp(P0.deg,-32,u)};
+ }
+ const tf=mt(E.x,E.y,E.deg,FS,FS,EYE[0],EYE[1]);
+ const show=t>.2?1:0;
+ setUse(q('.bw-under'),tf,show);setUse(q('.bw-front'),tf,show);
+ const fast=t>g.breachAt&&t<g.th+(miss?.45:0);
+ qa('.bw-ghost').forEach(gh=>{const k=+gh.dataset.k,pp=poseFinal(1.75+(t-k*.035-g.th)*.632);setUse(gh,mt(pp.x,pp.y,pp.deg,FS,FS,EYE[0],EYE[1]),fast&&!miss?(.24-k*.06):0);});
+ setUse(q('.bw-carc'),'',0);
+ const ug=q('.bw-uglow');ug.setAttribute('cx',n1(E.x));ug.setAttribute('cy',n1(SEA+46));ug.setAttribute('opacity',n3(E.y>SEA+20&&t<g.breachAt+.2?seg(t,.2,.8):0));
+ // 배 · 작살잡이
+ const B=bob(tr),T0=g.thrownAt,thrown=T0!=null&&t>=T0;
+ const aim=clamp(t/.8),armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*4];
+ let tw;
+ if(miss&&t>=ib)tw=brokenBoat(el,t,ib,210);
+ else{tw=boatPose(el,210,SEA+B.y,B.r-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);lamp(el,tr,tw,!thrown?.12:0);}
+ const hand=tw(armEnd),p0=[hand[0]+30,hand[1]-14];
+ const hpn=q('.bw-harpoon');let pos,ang,showH=1;
+ if(!thrown){const a=-28-aim*16;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;showH=clamp((t-.2)/.4)*(miss&&t>=ib?0:1);}
+ else{
+  const fl=.4,u=(t-T0)/fl,L=30;
+  if(u<=1){const e=u;pos=[p0[0]+(FP[0]-p0[0])*e,p0[1]+(FP[1]-p0[1])*e-4*L*e*(1-e)];ang=Math.atan2((FP[1]-p0[1])-4*L*(1-2*e),FP[0]-p0[0])/RAD;}
+  else{const s2=t-T0-fl,vx=(FP[0]-p0[0])/fl,vy=(FP[1]-p0[1]+4*L)/fl;pos=[FP[0]+vx*s2*.8,FP[1]+vy*s2*.8+500*s2*s2];ang=Math.atan2(vy*.8+1000*s2,vx*.8)/RAD;if(pos[1]>SEA+10)showH=0;}
+ }
+ hpn.setAttribute('opacity',String(showH));
+ hpn.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
+ q('.bw-tip').style.opacity='1';
+ const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
+ const trl=q('.bw-trail');
+ if(thrown&&t<T0+.5){const bk=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];trl.setAttribute('d','M'+n1(bk[0])+','+n1(bk[1])+' L'+n1(tail[0])+','+n1(tail[1]));trl.setAttribute('opacity','.45');}
+ else trl.setAttribute('opacity','0');
+ const anchor=tw([40,-9]),mid=[(tail[0]+anchor[0])/2,(tail[1]+anchor[1])/2+(thrown?40:14)];
+ const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(tail[0])+','+n1(tail[1]));
+ rope.setAttribute('opacity',thrown&&showH?'.9':'0');
+ // 교차점과 좁혀 오는 고리
+ const tc=q('.bwg-tc'),cc=q('.bwg-cc');
+ const ringOn=T0==null&&!g.autoMiss;
+ tc.setAttribute('cx',FP[0]);tc.setAttribute('cy',FP[1]);cc.setAttribute('cx',FP[0]);cc.setAttribute('cy',FP[1]);
+ tc.setAttribute('opacity',ringOn?n3((.45+.25*Math.sin(t*5))*seg(t,.3,.9)):'0');
+ if(ringOn&&t>=g.breachAt){
+  const r=24+150*(1-(t-g.breachAt)/(g.ti-g.breachAt));
+  const near=Math.abs(t-g.ti)<=.12;
+  cc.setAttribute('r',n1(Math.max(2,r)));cc.setAttribute('opacity',r<4?'0':'.95');
+  cc.setAttribute('stroke',near?'#ffcf9a':'#cfeefd');cc.setAttribute('stroke-width',near?'3':'2');
+  tc.setAttribute('stroke',near?'#ffcf9a':'#e8f3f6');
+ }else cc.setAttribute('opacity','0');
+ // 꿰뚫림
+ const sp=qa('.bw-splash circle');
+ if(!finalGame._sp)finalGame._sp=dropParams(60,77,-170,-10,120,380);
+ paintDrops(sp,finalGame._sp,215,SEA-14,miss?t-ib:-1,60,520);
+ ['.bw-flash','.bw-sparks'].forEach(s=>q(s).setAttribute('opacity','0'));
+ qa('.bw-cols .bw-col').forEach(c=>paintCol(c,0,-1,1,1,0));
+ qa('.bw-blood circle,.bw-rings ellipse').forEach(c=>c.setAttribute('opacity','0'));
+ const shake=miss&&t>ib&&t<ib+.5?(1-(t-ib)/.5)*5:0;
+ q('.bw-root').setAttribute('transform',shake?'translate('+n1(Math.sin(t*90)*shake)+' '+n1(Math.cos(t*77)*shake*.6)+')':'');
+ veil(el,miss?.9*seg(t,ib+.5,ib+2.1):t<.5?1-t/.5:0);
+ hudFinal(el,t,g);
+}
+
 const SCENES=[S0,S1,S2,S3,S4];
 
-function html(stage){
- const i=Math.max(0,Math.min(4,Math.floor(+stage||0))),S=SCENES[i];
+function html(stage,opts){
+ const i=Math.max(0,Math.min(4,Math.floor(+stage||0))),S=SCENES[i],game=!!(opts&&opts.game&&GAMECAP[i]);
  const svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" preserveAspectRatio="xMidYMid slice">'+
   '<defs>'+commonDefs()+marlinDefs('bwm')+'</defs>'+
   S.build()+
   '<rect class="bw-veil" width="'+W+'" height="'+H+'" fill="#010306" opacity="1"/></svg>';
- return '<div class="pallid-cine-v2 bw3-scene" data-stage="'+i+'" role="img" aria-label="'+esc(NAME+' · '+(i+1)+'단계 '+S.title)+'">'+svg+
+ return '<div class="pallid-cine-v2 bw3-scene'+(game?' bwg-on':'')+'" data-stage="'+i+'"'+(game?' data-game="1"':'')+' role="img" aria-label="'+esc(NAME+' · '+(i+1)+'단계 '+S.title)+'">'+svg+
   '<span class="cine-top" aria-hidden="true">'+esc(NAME+' · '+S.title)+'</span>'+
-  '<span class="cine-bottom" aria-hidden="true">'+esc(S.caps[0][1])+'</span>'+
+  '<span class="cine-bottom" aria-hidden="true">'+esc(game?GAMECAP[i]:S.caps[0][1])+'</span>'+
+  (game?'<div class="bwg-hud" aria-hidden="true"><span class="bwg-hint"></span><span class="bwg-verdict"></span><span class="bwg-pips"></span>'+
+   '<span class="bwg-arrow"><svg viewBox="0 0 60 60"><circle class="bwg-ring-bg" cx="30" cy="30" r="26"/><circle class="bwg-ring" cx="30" cy="30" r="26" stroke-dasharray="'+n1(RING_C)+'"/></svg><b></b></span>'+
+   '<span class="bwg-bar"><i></i></span></div>':'')+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
 }
 
 /* ---------- 시간 ---------- */
 const API=window.BlueWhaleV3={html,stages:SCENES.map(s=>s.title),replayToken:0};
-let start=0,lastSeen=0,seenTok=-1,seenStage=-1,seenEl=null;
+let start=0,lastSeen=0,seenTok=-1,seenStage=-1,seenGame=false;
+const GAMEPAINT={2:(el,t,tr)=>S2.paint(el,t,tr),3:evadeGame,4:finalGame};
+const GAMEMODE={2:'chase',3:'evade',4:'final'};
 function frame(now){
  const el=document.querySelector('.bw3-scene');
  if(el&&el.isConnected){
-  const st=+el.dataset.stage,S=SCENES[st];
-  if(S){
-   if(now-lastSeen>900||API.replayToken!==seenTok||st!==seenStage){start=now;seenTok=API.replayToken;seenStage=st;}
+  const st=+el.dataset.stage,S=SCENES[st],g=window.BlueHuntGame;
+  const isGame=!!(el.dataset.game&&g&&g.t0&&g.mode===GAMEMODE[st]);
+  if(S&&isGame){
+   const t=(now-g.t0)/1000;
+   lastSeen=now;seenGame=true;seenStage=st;
+   try{GAMEPAINT[st](el,t,t,g);}catch(e){if(!el._bwErr){el._bwErr=1;console.warn('푸른 고래 미니게임',e);}}
+  }else if(S){
+   if(now-lastSeen>900||API.replayToken!==seenTok||st!==seenStage||seenGame){start=now;seenTok=API.replayToken;seenStage=st;seenGame=false;}
+   if(API.resume&&API.resume.stage===st&&!el.dataset.game){start=API.resume.start;API.resume=null;}
    if(el.closest('.is-paused'))start+=now-lastSeen;
    lastSeen=now;
    let tr=(now-start)/1000;
