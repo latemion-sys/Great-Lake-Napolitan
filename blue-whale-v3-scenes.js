@@ -265,7 +265,7 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
    ④ 관통 회피 — 물속의 푸른 선이 뱃머리 앞에 멈추고, 배를 틀자 주둥이가 그 자리를 꿰뚫고 솟구침
    ========================================================= */
 const S3={title:'관통 회피',loop:7.5,
- caps:[[0,'물속의 푸른 선이 뱃머리를 겨눕니다.'],[1.3,'선이 뱃머리 바로 앞에서 멈춥니다.'],[1.65,'키를 꺾어라!'],[2.05,'배가 있던 자리를 주둥이가 꿰뚫고 솟구칩니다.'],[2.9,'한참 늦게 그 자리에 물기둥이 솟습니다.']],
+ caps:[[0,'물속의 푸른 선이 뱃머리를 겨눕니다.'],[1.3,'선이 뱃머리 바로 앞에서 멈춥니다.'],[1.65,'키를 꺾어라!'],[2.05,'배가 있던 자리를 주둥이가 꿰뚫고 솟구칩니다.'],[3.1,'한참 늦게 그 자리에 물기둥이 솟습니다.']],
  build(){
   return sky()+
    '<g clip-path="url(#bwBelow)"><use class="bw-under" href="'+M+'" opacity="0"/></g>'+
@@ -291,12 +291,12 @@ const S3={title:'관통 회피',loop:7.5,
   const diveK=seg(t,1.75,2.0);
   const under=t<2.0;
   // 2) 솟구침: 주둥이 끝이 P를 지나 왼쪽 위로 (느린 화면 2.16~2.76)
-  const tau=warp(t,2.16,2.76,.1),k=-560+2430*(tau-1.95),erupt=tau>=1.95&&tau<2.62;
+  const tau=warp(t,2.29,2.95,.09),k=-560+2430*(tau-1.95),erupt=tau>=1.95&&tau<2.8;
   if(under&&!erupt){
    setUse(q('.bw-under'),mt(tipX,SEA+120+70*diveK,8*diveK,S,S,-60,-6),seg(t,.2,.6)*(1-diveK));
   }else setUse(q('.bw-under'),mt(P[0]+dx*k,P[1]+dy*k,ang,S,S,-60,-6),erupt?1:0);
   setUse(q('.bw-front'),mt(P[0]+dx*k,P[1]+dy*k,ang,S,S,-60,-6),erupt?1:0);
-  const slow=t>2.16&&t<2.76?1:0;
+  const slow=t>2.29&&t<2.95?1:0;
   qa('.bw-ghost').forEach(g=>{const j=+g.dataset.k,kk=k-j*60;setUse(g,mt(P[0]+dx*kk,P[1]+dy*kk,ang,S,S,-60,-6),erupt?(.28-j*.07)*(1-.8*slow):0);});
   // 겨누는 선
   const lineOn=bell(t,.25,.5,1.75,2.0);
@@ -308,7 +308,7 @@ const S3={title:'관통 회피',loop:7.5,
   const hp=q('.bw-hump');hp.setAttribute('cx',n1(tipX+20));hp.setAttribute('cy',n1(SEA+2));hp.setAttribute('opacity',n3(.55*lineOn));
   // 배: 급회전으로 왼쪽으로 빠짐
   const sw=inOut(seg(t,1.6,2.1)),B=bob(tr);
-  const tc=2.95,s=t-tc,j=jolt(s,1,8),heave=s>0?-12*Math.exp(-s*2)*Math.sin(s*5):0;
+  const tc=3.15,s=t-tc,j=jolt(s,1,8),heave=s>0?-12*Math.exp(-s*2)*Math.sin(s*5):0;
   const back=inOut(seg(t,4.4,6.6));
   const bx=X0-230*sw+60*back,roll=B.r-16*bell(t,1.6,1.78,2.05,2.6)+5*bell(t,2.05,2.3,2.6,3.0)+j*10;
   const tw=boatPose(el,bx-j*5,SEA+B.y+heave,roll,[37,-30]);
@@ -401,7 +401,7 @@ const S4={title:'최후의 교차',dur:9,
    const carcOn=t>tc+.9;
    if(carcOn){const C=carc(t,tr);host={x:C.x,y:C.y,deg:C.deg};hostS=[C.s,-C.s];hostO=[500,0];}
    const eye=carcOn?apply(host.x,host.y,host.deg,hostS[0],hostS[1],hostO[0],hostO[1],EYE[0],EYE[1]):[E.x,E.y];
-   ang=carcOn?host.deg+55:E.deg+rel;
+   ang=carcOn?host.deg+26:E.deg+rel;
    pos=[eye[0]-10*Math.cos(ang*RAD),eye[1]-10*Math.sin(ang*RAD)];show=1;
   }
   hp.setAttribute('opacity',String(show));
@@ -411,7 +411,7 @@ const S4={title:'최후의 교차',dur:9,
   const trl=q('.bw-trail');
   if(thrown&&t<TH+.3){const bk=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];trl.setAttribute('d','M'+n1(bk[0])+','+n1(bk[1])+' L'+n1(tail[0])+','+n1(tail[1]));trl.setAttribute('opacity',n3(t<TH?.45:.45*(1-(t-TH)/.3)));}
   else trl.setAttribute('opacity','0');
-  const anchor=tw([40,-9]),slack=!thrown?14:t<TH?40:Math.max(4,30*Math.exp(-(t-TH)*1.5))+Math.sin(tr*2.4)*3;
+  const anchor=tw([40,-9]),slack=!thrown?14:t<TH?40:(t>tc+.9?46+Math.sin(tr*1.1)*4:Math.max(4,30*Math.exp(-(t-TH)*1.5))+Math.sin(tr*2.4)*3);
   const mid=[(tail[0]+anchor[0])/2,(tail[1]+anchor[1])/2+slack];
   const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(tail[0])+','+n1(tail[1]));
   rope.setAttribute('opacity',thrown?'.9':'0');
@@ -428,12 +428,12 @@ const S4={title:'최후의 교차',dur:9,
   q('.bw-root').setAttribute('transform',shake?'translate('+n1(Math.sin(t*90)*shake)+' '+n1(Math.cos(t*77)*shake*.6)+')':'');
   // 추락: 거대한 물보라 · 물기둥 · 물결
   const cs=qa('.bw-cols .bw-col');
-  [[0,0,260,50,-10],[1,-150,170,30,-22],[2,170,200,34,16],[3,-290,120,22,-14],[4,330,130,22,18]].forEach(([i,ox,h,w,ln],n)=>paintCol(cs[i],cx+ox,sc-n*.06,h,w,ln,.5,2.1));
+  [[0,0,200,44,-10],[1,-150,125,28,-22],[2,170,150,30,16],[3,-290,90,20,-14],[4,330,100,20,18]].forEach(([i,ox,h,w,ln],n)=>paintCol(cs[i],cx+ox,sc-n*.06,h,w,ln,.5,2.1));
   if(!this._sp)this._sp=dropParams(60,75,-170,-10,160,460);
   paintDrops(qa('.bw-splash circle'),this._sp,cx,SEA-6,sc,320,460);
   paintRings(qa('.bw-rings ellipse'),cx,sc-.2,330,.6);
   // 뒤집혀 떠오른 사체: 빛이 점점 꺼짐
-  function carc(tt,trr){const u=outC(seg(tt,tc+.9,tc+4.2));return {x:cx+60+4*Math.sin(trr*.4),y:lerp(SEA+150,SEA+34,u)+2.5*Math.sin(trr*1.1),deg:7+1.2*Math.sin(trr*.7),s:.78};}
+  function carc(tt,trr){const u=outC(seg(tt,tc+.9,tc+4.2));return {x:cx+240+4*Math.sin(trr*.4),y:lerp(SEA+150,SEA+22,u)+2.5*Math.sin(trr*1.1),deg:9+1.2*Math.sin(trr*.7),s:.72};}
   const C=carc(t,tr),cu=q('.bw-carc');
   setUse(cu,mt(C.x,C.y,C.deg,C.s,-C.s,500,0),seg(t,tc+.8,tc+1.6));
   cu.style.setProperty('--bwglow',n3(.5*(1-seg(t,tc+1,tc+5))));

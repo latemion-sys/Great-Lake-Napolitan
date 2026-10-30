@@ -29,82 +29,122 @@ function apply(x,y,deg,sx,sy,ox,oy,px,py){
  return [x+lx*c-ly*s,y+lx*s+ly*c];
 }
 
-/* ---------- 청새치 고래 (왼쪽을 바라봄 · 주둥이 끝 -60,-6 · 몸 중심 500,0 · 꼬리 끝 1004,±184) ---------- */
-const BODY='M-60,-6 C40,-9 140,-12 214,-16 C246,-24 274,-46 318,-62 C385,-84 460,-93 545,-89 '+
- 'C655,-82 765,-50 848,-20 L878,-14 C902,-40 944,-112 1004,-184 C972,-124 950,-62 934,-6 Q931,0 934,6 '+
- 'C950,62 972,124 1004,184 C944,112 902,40 878,14 L848,20 C765,52 655,80 545,85 '+
- 'C445,89 362,76 312,54 C282,40 258,24 240,12 L226,6 C150,4 60,2 -60,-6 Z';
-const BACK='M214,-16 C246,-24 274,-46 318,-62 C385,-84 460,-93 545,-89 C655,-82 765,-50 848,-20';
-const SAIL='M316,-60 C332,-120 356,-196 396,-250 C404,-206 426,-154 476,-116 C534,-108 596,-102 660,-80 C566,-96 446,-100 316,-60 Z';
-const SAIL_EDGE='M316,-60 C332,-120 356,-196 396,-250 C404,-206 426,-154 476,-116 C534,-108 596,-102 660,-80';
-const RAYS=[[330,-66,350,-168],[346,-72,368,-212],[364,-77,390,-244],[386,-81,402,-200],[410,-84,422,-160],[440,-87,452,-128],[480,-89,500,-114],[530,-90,552,-106],[585,-89,608,-98]];
-const PEC='M322,30 C372,52 432,94 534,150 C472,102 422,70 380,46 C362,37 342,31 322,30 Z';
-const EYE=[268,-20];
+/* ---------- 날렵한 청새치 고래 (왼쪽을 바라봄 · 주둥이 끝 -60,-4 · 몸 중심 500,0 · 꼬리 끝 1015,±200) ---------- */
+// 몸통(윗턱·주둥이 제외): 아래턱 끝 → 머리 → 등 → 꼬리자루 → 초승달 꼬리 → 배 → 목
+const BODY='M232,-17 C262,-28 288,-44 322,-56 C368,-70 418,-75 480,-73 C580,-69 680,-52 770,-31 '+
+ 'C818,-20 852,-13 884,-10 L902,-9 C926,-34 962,-112 1015,-202 C992,-140 968,-64 948,-6 Q944,0 948,6 '+
+ 'C968,64 992,140 1015,202 C962,112 926,34 902,9 L884,10 C852,13 818,20 770,30 '+
+ 'C680,49 580,63 482,64 C410,64 350,52 306,34 C272,22 246,14 214,9 L202,6 C214,2 224,-6 232,-17 Z';
+const TAIL='M890,-9.5 L902,-9 C926,-34 962,-112 1015,-202 C992,-140 968,-64 948,-6 Q944,0 948,6 C968,64 992,140 1015,202 C962,112 926,34 902,9 L890,9.5 Z';
+const BACK='M232,-17 C262,-28 288,-44 322,-56 C368,-70 418,-75 480,-73 C580,-69 680,-52 770,-31 C818,-20 852,-13 884,-10';
+// 앞으로 길게 뻗은 윗턱(주둥이): 아래턱보다 훨씬 길고, 뿌리는 굵고 끝은 바늘처럼
+const BILL='M-60,-4 C10,-7 110,-11 190,-15 C212,-16 226,-18 238,-21 L246,-6 C232,-1 216,2 196,3 C110,4 10,1 -60,-2 Z';
+const BILL_TOP='M-60,-4 C10,-7 110,-11 190,-15 C212,-16 226,-18 238,-21';
+const BILL_LOW='M-60,-2 C10,1 110,4 196,3 C216,2 232,-1 246,-6';
+// 짧은 아래턱
+const JAW='M202,6 C222,3 246,1 272,4 C290,6 302,10 310,16 C290,20 262,20 236,16 C222,13 210,10 202,6 Z';
+const SAIL='M314,-52 C322,-106 342,-176 380,-234 C386,-190 402,-142 442,-102 C500,-94 560,-90 620,-80 '+
+ 'C660,-74 700,-62 742,-44 C660,-60 520,-82 314,-52 Z';
+const SAIL_EDGE='M314,-52 C322,-106 342,-176 380,-234 C386,-190 402,-142 442,-102 C500,-94 560,-90 620,-80 C660,-74 700,-62 742,-44';
+const PEC='M298,22 C346,34 414,64 510,112 C450,86 392,62 342,46 C324,40 308,32 298,22 Z';
+const EYE=[262,-15];
+
 function marlinDefs(p){
- const r=seeded(23);let stripes='',fine='',scars='';
- for(let x=380,i=0;x<=846;i++){
-  const w=Math.max(2.2,9-i*0.5)*(0.7+r()*0.6),len=60+r()*70,top=-104;
-  const d='M'+n1(x)+','+top+' C'+n1(x+5)+','+n1(top+len*.4)+' '+n1(x+10)+','+n1(top+len*.75)+' '+n1(x+13+r()*4)+','+n1(top+len);
-  const dash=Math.round(18+r()*30)+' '+Math.round(3+r()*7)+' '+Math.round(30+r()*40)+' '+Math.round(4+r()*10);
-  stripes+='<path d="'+d+'" stroke-width="'+n1(w)+'" stroke-dasharray="'+dash+'"/>';
+ const r=seeded(29);let bars='',fine='',scars='';
+ for(let x=352,i=0;x<=860;i++){
+  const top=-80,len=(62+r()*34)*(1-i*.025),w=Math.max(2,7.5-i*.33)*(0.75+r()*.5);
+  const d='M'+n1(x)+','+top+' C'+n1(x+4)+','+n1(top+len*.4)+' '+n1(x+8)+','+n1(top+len*.75)+' '+n1(x+11+r()*3)+','+n1(top+len);
+  const dash=Math.round(20+r()*26)+' '+Math.round(3+r()*6)+' '+Math.round(26+r()*40)+' '+Math.round(4+r()*8);
+  bars+='<path d="'+d+'" stroke-width="'+n1(w)+'" stroke-dasharray="'+dash+'"/>';
   fine+='<path d="'+d+'" stroke-dasharray="'+dash+'"/>';
-  x+=24+r()*16;
+  x+=26+r()*12;
  }
- // 오래된 상처: 옆구리를 길게 긁고 간 흰 자국
- [[420,-30,560,-46,640,-38],[470,20,560,10,660,22],[600,-58,690,-60,760,-44],[360,4,400,-6,450,-4]].forEach(a=>{
-  scars+='<path d="M'+a[0]+','+a[1]+' Q'+a[2]+','+a[3]+' '+a[4]+','+a[5]+'"/>';
- });
- const rays=RAYS.map(r=>'M'+r[0]+','+r[1]+' L'+r[2]+','+r[3]).join(' ');
+ [[400,-22,520,-36,610,-30],[450,18,540,10,640,20],[590,-48,670,-50,730,-36]].forEach(a=>{scars+='<path d="M'+a[0]+','+a[1]+' Q'+a[2]+','+a[3]+' '+a[4]+','+a[5]+'"/>';});
+ let rays='';
+ [[326,-58,338,-150],[338,-62,356,-196],[352,-66,378,-230],[370,-70,388,-188],[392,-72,404,-146],[418,-74,432,-112],[452,-74,470,-100],[494,-74,516,-94],[540,-72,562,-90],[590,-68,610,-82],[640,-62,662,-72],[690,-54,708,-58]].forEach(a=>{rays+='M'+a[0]+','+a[1]+' L'+a[2]+','+a[3]+' ';});
+ // 주둥이 표면의 거친 돌기(가는 점선)
+ let rough='';
+ for(let i=0;i<3;i++)rough+='<path d="M'+(-40+i*6)+','+n1(-4.6+i*.9)+' C40,'+n1(-7+i*.9)+' 120,'+n1(-10.5+i*1.3)+' 200,'+n1(-14+i*1.6)+'" stroke-dasharray="'+(2+i)+' '+(5+i*2)+'"/>';
  return ''+
- '<linearGradient id="'+p+'Skin" gradientUnits="userSpaceOnUse" x1="0" y1="-96" x2="0" y2="90">'+
-  '<stop stop-color="#071428"/><stop offset=".28" stop-color="#0f2f58"/><stop offset=".48" stop-color="#1c5288"/>'+
-  '<stop offset=".62" stop-color="#3a6790"/><stop offset=".78" stop-color="#71889c"/><stop offset="1" stop-color="#8d9ba7"/></linearGradient>'+
- '<linearGradient id="'+p+'Belly" gradientUnits="userSpaceOnUse" x1="0" y1="20" x2="0" y2="92"><stop stop-color="#020812" stop-opacity="0"/><stop offset="1" stop-color="#020812" stop-opacity=".7"/></linearGradient>'+
- '<linearGradient id="'+p+'Sail" gradientUnits="userSpaceOnUse" x1="0" y1="-250" x2="0" y2="-60">'+
-  '<stop stop-color="#14365e" stop-opacity=".78"/><stop offset=".55" stop-color="#0d2645" stop-opacity=".92"/><stop offset="1" stop-color="#081a33"/></linearGradient>'+
- '<linearGradient id="'+p+'Fin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#163d69"/><stop offset="1" stop-color="#091a31"/></linearGradient>'+
- '<linearGradient id="'+p+'Head" gradientUnits="userSpaceOnUse" x1="200" y1="0" x2="900" y2="0">'+
-  '<stop stop-color="#000" stop-opacity=".45"/><stop offset=".18" stop-color="#000" stop-opacity=".05"/><stop offset=".7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></linearGradient>'+
- '<radialGradient id="'+p+'Sheen" cx=".5" cy=".5" r=".5"><stop stop-color="#cfe9f7" stop-opacity=".28"/><stop offset="1" stop-color="#cfe9f7" stop-opacity="0"/></radialGradient>'+
- '<filter id="'+p+'Tex" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".75 .5" numOctaves="2" seed="11"/><feColorMatrix values="0 0 0 0 .02  0 0 0 0 .06  0 0 0 0 .12  0 0 0 -1.5 1.1"/></filter>'+
- '<filter id="'+p+'Glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.4"/></filter>'+
- '<filter id="'+p+'Rim" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="1.4"/></filter>'+
+ '<linearGradient id="'+p+'Skin" gradientUnits="userSpaceOnUse" x1="0" y1="-76" x2="0" y2="64">'+
+  '<stop stop-color="#04101f"/><stop offset=".22" stop-color="#0b2748"/><stop offset=".42" stop-color="#16467a"/>'+
+  '<stop offset=".55" stop-color="#2d6fa6"/><stop offset=".64" stop-color="#52819f"/><stop offset=".8" stop-color="#71899b"/><stop offset="1" stop-color="#3a4b59"/></linearGradient>'+
+ '<linearGradient id="'+p+'Band" gradientUnits="userSpaceOnUse" x1="0" y1="-30" x2="0" y2="20"><stop stop-color="#5fd0ff" stop-opacity="0"/><stop offset=".5" stop-color="#5fd0ff" stop-opacity=".22"/><stop offset="1" stop-color="#5fd0ff" stop-opacity="0"/></linearGradient>'+
+ '<linearGradient id="'+p+'Bill" gradientUnits="userSpaceOnUse" x1="0" y1="-20" x2="0" y2="4">'+
+  '<stop stop-color="#a9d8f2"/><stop offset=".25" stop-color="#4c87b8"/><stop offset=".6" stop-color="#173e68"/><stop offset="1" stop-color="#06142a"/></linearGradient>'+
+ '<linearGradient id="'+p+'BillFade" gradientUnits="userSpaceOnUse" x1="-60" y1="0" x2="250" y2="0"><stop stop-color="#000" stop-opacity=".35"/><stop offset=".5" stop-color="#000" stop-opacity="0"/></linearGradient>'+
+ '<linearGradient id="'+p+'Jaw" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="20"><stop stop-color="#2f557a"/><stop offset="1" stop-color="#74889a"/></linearGradient>'+
+ '<linearGradient id="'+p+'Sail" gradientUnits="userSpaceOnUse" x1="0" y1="-234" x2="0" y2="-52">'+
+  '<stop stop-color="#1c4d80" stop-opacity=".7"/><stop offset=".5" stop-color="#11335c" stop-opacity=".86"/><stop offset="1" stop-color="#071a33"/></linearGradient>'+
+ '<linearGradient id="'+p+'Fin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1d4b7c"/><stop offset="1" stop-color="#081830"/></linearGradient>'+
+ '<linearGradient id="'+p+'Tail" gradientUnits="userSpaceOnUse" x1="0" y1="-200" x2="0" y2="200"><stop stop-color="#1a4776"/><stop offset=".5" stop-color="#0a1f3b"/><stop offset="1" stop-color="#132f50"/></linearGradient>'+
+ '<linearGradient id="'+p+'Shade" gradientUnits="userSpaceOnUse" x1="200" y1="0" x2="910" y2="0">'+
+  '<stop stop-color="#000" stop-opacity=".25"/><stop offset=".12" stop-color="#000" stop-opacity="0"/><stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient>'+
+ '<linearGradient id="'+p+'Belly" gradientUnits="userSpaceOnUse" x1="0" y1="24" x2="0" y2="66"><stop stop-color="#020812" stop-opacity="0"/><stop offset="1" stop-color="#020812" stop-opacity=".6"/></linearGradient>'+
+ '<radialGradient id="'+p+'Sheen" cx=".5" cy=".5" r=".5"><stop stop-color="#d8eefa" stop-opacity=".3"/><stop offset="1" stop-color="#d8eefa" stop-opacity="0"/></radialGradient>'+
+ '<filter id="'+p+'Tex" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9 .45" numOctaves="2" seed="11"/><feColorMatrix values="0 0 0 0 .02  0 0 0 0 .06  0 0 0 0 .12  0 0 0 -1.6 1.12"/></filter>'+
+ '<filter id="'+p+'Glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter>'+
+ '<filter id="'+p+'Rim" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="1.2"/></filter>'+
  '<clipPath id="'+p+'Clip"><path d="'+BODY+'"/></clipPath>'+
- // 실제 고래
+ '<clipPath id="'+p+'BillClip"><path d="'+BILL+'"/></clipPath>'+
  '<g id="'+p+'M">'+
+  // 등지느러미(돛): 앞쪽이 높게 솟고 등을 따라 낮게 이어짐
   '<path d="'+SAIL+'" fill="url(#'+p+'Sail)"/>'+
-  '<path d="'+rays+'" fill="none" stroke="#7fc9f2" stroke-opacity=".3" stroke-width="1.3" stroke-linecap="round"/>'+
-  '<path d="'+SAIL_EDGE+'" fill="none" stroke="#bfe7ff" stroke-opacity=".38" stroke-width="1.6" filter="url(#'+p+'Rim)"/>'+
-  '<path d="M792,-38 L808,-64 L826,-30 Z M640,72 C662,98 678,116 694,122 C696,102 700,86 704,68 Z M770,44 L790,76 L808,38 Z" fill="#0b2140"/>'+
+  '<path d="'+rays+'" fill="none" stroke="#86ccf2" stroke-opacity=".32" stroke-width="1.1" stroke-linecap="round"/>'+
+  '<path d="'+SAIL_EDGE+'" fill="none" stroke="#c6e9ff" stroke-opacity=".4" stroke-width="1.3" filter="url(#'+p+'Rim)"/>'+
+  // 뒤쪽 작은 지느러미들
+  '<path d="M800,-24 L814,-44 L830,-20 Z M630,58 C648,80 662,98 676,104 C680,88 684,74 688,58 Z M786,26 L800,46 L814,22 Z" fill="#0a2040"/>'+
+  // 몸통
   '<path d="'+BODY+'" fill="url(#'+p+'Skin)"/>'+
+  '<path d="'+TAIL+'" fill="url(#'+p+'Tail)"/>'+
+  '<path d="M904,-9 C928,-34 964,-112 1015,-202" fill="none" stroke="#bfe4fa" stroke-opacity=".35" stroke-width="1.3" filter="url(#'+p+'Rim)"/>'+
   '<g clip-path="url(#'+p+'Clip)">'+
-   '<rect x="-70" y="-200" width="1090" height="400" filter="url(#'+p+'Tex)" opacity=".4"/>'+
-   '<g fill="none" stroke="#6fcaf5" stroke-linecap="round" filter="url(#'+p+'Glow)" style="opacity:var(--bwglow,1)"><g opacity=".42">'+stripes+'</g></g>'+
-   '<g fill="none" stroke="#cfeefd" stroke-width="1.1" stroke-linecap="round" style="opacity:var(--bwglow,1)"><g opacity=".3">'+fine+'</g></g>'+
-   '<g fill="none" stroke="#dfeef5" stroke-opacity=".13" stroke-width="1.6" stroke-linecap="round">'+scars+'</g>'+
-   '<rect x="-70" y="20" width="1090" height="80" fill="url(#'+p+'Belly)"/>'+
-   '<ellipse cx="540" cy="-78" rx="320" ry="24" fill="url(#'+p+'Sheen)"/>'+
-   '<path d="'+BODY+'" fill="url(#'+p+'Head)"/>'+
-   '<path d="M326,-56 C346,-24 350,14 332,48" fill="none" stroke="#040b16" stroke-opacity=".75" stroke-width="3.2"/>'+
-   '<path d="M334,-52 C352,-22 356,14 340,44" fill="none" stroke="#9bd4f2" stroke-opacity=".16" stroke-width="1.4"/>'+
-   '<path d="M344,-16 C450,-34 566,-24 684,-16 S824,-4 880,0" fill="none" stroke="#c4ebff" stroke-opacity=".22" stroke-width="1.4" stroke-dasharray="18 5 40 6"/>'+
-   '<path d="M228,6 C256,9 282,10 306,4" fill="none" stroke="#030912" stroke-opacity=".8" stroke-width="2.4"/>'+
-   '<path d="M852,-4 L884,-2 M852,6 L884,4" stroke="#061224" stroke-width="2.4"/>'+
+   '<rect x="180" y="-210" width="850" height="420" filter="url(#'+p+'Tex)" opacity=".42"/>'+
+   '<rect x="180" y="-30" width="720" height="50" fill="url(#'+p+'Band)" style="opacity:var(--bwglow,1)"/>'+
+   '<g fill="none" stroke="#6fcaf5" stroke-linecap="round" filter="url(#'+p+'Glow)" style="opacity:var(--bwglow,1)"><g opacity=".45">'+bars+'</g></g>'+
+   '<g fill="none" stroke="#d6f1fd" stroke-width="1" stroke-linecap="round" style="opacity:var(--bwglow,1)"><g opacity=".32">'+fine+'</g></g>'+
+   '<g fill="none" stroke="#dfeef5" stroke-opacity=".12" stroke-width="1.4" stroke-linecap="round">'+scars+'</g>'+
+   '<ellipse cx="520" cy="-62" rx="300" ry="18" fill="url(#'+p+'Sheen)"/>'+
+   '<rect x="180" y="20" width="710" height="60" fill="url(#'+p+'Belly)"/>'+
+   '<path d="'+BODY+'" fill="url(#'+p+'Shade)"/>'+
+   // 아가미 덮개
+   '<path d="M318,-50 C338,-20 342,12 324,40" fill="none" stroke="#030a15" stroke-opacity=".8" stroke-width="3"/>'+
+   '<path d="M326,-46 C344,-18 348,12 333,36" fill="none" stroke="#a6dbf5" stroke-opacity=".18" stroke-width="1.2"/>'+
+   '<path d="M300,-40 C316,-18 318,8 306,30" fill="none" stroke="#030a15" stroke-opacity=".35" stroke-width="1.6"/>'+
+   // 옆줄
+   '<path d="M340,-12 C450,-28 560,-20 680,-12 S830,-3 900,0" fill="none" stroke="#c9edff" stroke-opacity=".22" stroke-width="1.2" stroke-dasharray="16 5 38 6"/>'+
+   // 꼬리자루의 두 줄 용골
+   '<path d="M846,-4 L900,-3 M846,5 L900,4" stroke="#020a18" stroke-width="2.6" stroke-linecap="round"/>'+
   '</g>'+
-  '<path d="'+PEC+'" fill="url(#'+p+'Fin)" stroke="#7cc6ee" stroke-opacity=".28" stroke-width="1.2"/>'+
-  '<path d="M382,72 L402,124 L412,76 Z" fill="#0b2140"/>'+
-  // 창 같은 주둥이의 날과 등의 달빛
-  '<path d="M-60,-6 C40,-9 140,-12 214,-16" fill="none" stroke="#e6f8ff" stroke-opacity=".8" stroke-width="1.6"/>'+
-  '<path d="M-60,-6 C40,-9 140,-12 214,-16" fill="none" stroke="#5fd3ff" stroke-opacity=".6" stroke-width="5" filter="url(#'+p+'Glow)" style="opacity:var(--bwglow,1)"/>'+
-  '<path d="'+BACK+'" fill="none" stroke="#d3eefc" stroke-opacity=".45" stroke-width="2.2" filter="url(#'+p+'Rim)"/>'+
-  // 큰 눈
-  '<g><circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="15" fill="#06111f" stroke="#2c5d86" stroke-width="2"/>'+
-   '<circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="10.5" fill="#01040a"/>'+
-   '<circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="13" fill="none" stroke="#6fd6ff" stroke-opacity=".5" stroke-width="1.2" filter="url(#'+p+'Rim)" style="opacity:var(--bwglow,1)"/>'+
-   '<circle cx="'+(EYE[0]-3.5)+'" cy="'+(EYE[1]-3.5)+'" r="2" fill="#e8f6ff" opacity=".85"/></g>'+
+  // 아래턱(짧음) → 입선
+  '<path d="'+JAW+'" fill="url(#'+p+'Jaw)"/>'+
+  '<path d="M202,6 C230,4 262,5 296,12" fill="none" stroke="#02060d" stroke-opacity=".85" stroke-width="2.2" stroke-linecap="round"/>'+
+  // 앞으로 길게 뻗은 윗턱(주둥이)
+  '<path d="'+BILL+'" fill="url(#'+p+'Bill)"/>'+
+  '<g clip-path="url(#'+p+'BillClip)">'+
+   '<path d="'+BILL+'" fill="url(#'+p+'BillFade)"/>'+
+   '<g fill="none" stroke="#06142a" stroke-opacity=".45" stroke-width=".9">'+rough+'</g>'+
+  '</g>'+
+  '<path d="'+BILL_TOP+'" fill="none" stroke="#f0fbff" stroke-opacity=".9" stroke-width="1.4"/>'+
+  '<path d="'+BILL_TOP+'" fill="none" stroke="#62d4ff" stroke-opacity=".7" stroke-width="5" filter="url(#'+p+'Glow)" style="opacity:var(--bwglow,1)"/>'+
+  '<path d="'+BILL_LOW+'" fill="none" stroke="#01060d" stroke-opacity=".8" stroke-width="1"/>'+
+  // 윗턱 뿌리: 머리로 이어지는 굵은 마디와 콧구멍
+  '<path d="M238,-21 C252,-26 266,-32 282,-40" fill="none" stroke="#bfe6fb" stroke-opacity=".4" stroke-width="1.6" filter="url(#'+p+'Rim)"/>'+
+  '<path d="M226,-10 C240,-12 252,-12 266,-10" fill="none" stroke="#03101f" stroke-opacity=".55" stroke-width="1.4"/>'+
+  '<ellipse cx="240" cy="-15" rx="2.4" ry="1.4" fill="#02060d" opacity=".8"/>'+
+  // 가슴지느러미(낫 모양) · 배지느러미(가늘고 긴 끈)
+  '<path d="'+PEC+'" fill="url(#'+p+'Fin)" stroke="#86ccf2" stroke-opacity=".3" stroke-width="1"/>'+
+  '<path d="M332,44 C356,62 384,86 420,108" fill="none" stroke="#0a2040" stroke-width="3.2" stroke-linecap="round"/>'+
+  '<path d="M306,34 C350,52 410,64 482,64 C580,63 680,49 770,30 C818,20 852,13 884,10" fill="none" stroke="#8fc9e6" stroke-opacity=".16" stroke-width="1.4" filter="url(#'+p+'Rim)"/>'+
+  // 달빛을 받는 등선
+  '<path d="'+BACK+'" fill="none" stroke="#d6effc" stroke-opacity=".5" stroke-width="2" filter="url(#'+p+'Rim)"/>'+
+  // 눈: 크고 어두운 눈, 푸른 테
+  '<g><circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="12.5" fill="#06111f" stroke="#2c5d86" stroke-width="1.8"/>'+
+   '<circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="8.6" fill="#01040a"/>'+
+   '<circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="11" fill="none" stroke="#6fd6ff" stroke-opacity=".5" stroke-width="1.1" filter="url(#'+p+'Rim)" style="opacity:var(--bwglow,1)"/>'+
+   '<circle cx="'+(EYE[0]-3)+'" cy="'+(EYE[1]-3)+'" r="1.7" fill="#e8f6ff" opacity=".85"/></g>'+
  '</g>'+
- // 잔상용 단순 실루엣
- '<g id="'+p+'G"><path d="'+SAIL+'"/><path d="'+BODY+'"/></g>';
+ '<g id="'+p+'G"><path d="'+SAIL+'"/><path d="'+BODY+'"/><path d="'+BILL+'"/></g>';
 }
 
 /* ---------- 검은 쪽배 (창백한 고래 장면과 같은 실루엣, 오른쪽을 바라봄) ---------- */
