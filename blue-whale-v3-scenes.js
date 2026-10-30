@@ -448,7 +448,7 @@ const S4={title:'최후의 교차',dur:9,
     '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g></g>'+
    chartMarkup()+
    '<g fill="none"><circle class="bwg-tc" r="24" stroke="#e8f3f6" stroke-width="1.6" stroke-dasharray="5 4" opacity="0"/><circle class="bwg-cc" r="24" stroke="#cfeefd" stroke-width="2" opacity="0"/></g>'+
-   '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+
+   '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+(window.HarpoonLauncher?window.HarpoonLauncher.hitMarkup():'')+
    sparks+drops('bw-hitw',70,77)+
    drops('bw-blood',22,72,'#1b0c16')+
    columns('bw-cols',5)+
@@ -483,7 +483,7 @@ const S4={title:'최후의 교차',dur:9,
   {const hg=window.BlueHuntGame,n=hg&&hg.trails!=null?hg.trails:4;paintChart(el,t,n,seg(t,1.8,2.6));}
   // 배와 작살잡이
   const tc=unwarp(TH+.558,...HS),cx=P[0]-150*.558,sc=t-tc,B=bob(tr),j=jolt(sc-.3,1,8),heave=sc>.3?-13*Math.exp(-(sc-.3)*2)*Math.sin((sc-.3)*5):0;
-  const T0=1.1,thrown=t>=T0,aim=clamp(t/.8);const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());
+  const T0=1.1,thrown=t>=T0,aim=clamp(t/.8);const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const PC=HL?HL.pierce():{deep:0,pass:false,n:0};let hitP=null;
   const armEnd=own?HL.ARM:thrown?[38,-24]:[37-aim*12,-30-aim*4];
   const bx=210,tw=boatPose(el,bx-j*5,SEA+B.y+heave,B.r+j*10-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);
   lamp(el,tr,tw,!thrown?.12:0);
@@ -503,11 +503,14 @@ const S4={title:'최후의 교차',dur:9,
    if(carcOn){const C=carc(t,tr);host={x:C.x,y:C.y,deg:C.deg};hostS=[C.s,-C.s];hostO=[500,0];}
    const eye=carcOn?apply(host.x,host.y,host.deg,hostS[0],hostS[1],hostO[0],hostO[1],EYE[0],EYE[1]):[E.x,E.y];
    ang=carcOn?host.deg+26:E.deg+rel;
-   pos=[eye[0]-10*Math.cos(ang*RAD),eye[1]-10*Math.sin(ang*RAD)];show=1;
+   pos=[eye[0]-10*Math.cos(ang*RAD),eye[1]-10*Math.sin(ang*RAD)];show=1;hitP=eye;
+   if(PC.deep)pos=[pos[0]+PC.deep*Math.cos(ang*RAD),pos[1]+PC.deep*Math.sin(ang*RAD)];   // 4망: 몸통이 반쯤 파고듦
+   if(PC.pass){const s5=t-TH,pa=HL.passAngle(endAng),ea=pa*RAD,dd=10+s5*HL.PASS_SPEED;ang=pa;pos=[P[0]+Math.cos(ea)*dd,P[1]+Math.sin(ea)*dd];show=pos[0]<W+260&&pos[1]<H+260?1:0;hitP=P;} // 5망: 꿰뚫고 날아감
   }
   hp.setAttribute('opacity',String(show));
   hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
-  q('.bw-tip').style.opacity=t>=TH?'0':'1';
+  q('.bw-tip').style.opacity=t>=TH&&!PC.pass?'0':'1';
+  if(HL){HL.bury(hp,t>=TH&&PC.deep?10-PC.deep:null);if(PC.n>=3){const sk=q('.bw-sparks');if(sk)sk.setAttribute('opacity','0');}HL.paintHit(el,{s:t>=TH?t-TH:-1,p:P,ang:PC.pass?HL.passAngle(endAng):endAng,tier:PC.n,through:150});}
   const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
   const trl=q('.bw-trail');
   if(thrown&&t<TH+.3){const bk=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];trl.setAttribute('d','M'+n1(bk[0])+','+n1(bk[1])+' L'+n1(tail[0])+','+n1(tail[1]));trl.setAttribute('opacity',n3(t<TH?.45:.45*(1-(t-TH)/.3)));}
@@ -522,7 +525,7 @@ const S4={title:'최후의 교차',dur:9,
   fl.setAttribute('opacity',sh>0?n3(.8*Math.exp(-sh*2.6)):'0');fl.setAttribute('r',n1(24+46*clamp(sh*2)));
   if(!this._hw)this._hw=dropParams(70,79,-200,20,60,300);
   paintDrops(qa('.bw-hitw circle'),this._hw,P[0],P[1],(tau-TH)*1.2,8,420);
-  const sp=q('.bw-sparks');sp.setAttribute('opacity',sh>0&&sh<1.6?n3(1-sh/1.6):'0');
+  const sp=q('.bw-sparks');sp.setAttribute('opacity',PC.n<3&&sh>0&&sh<1.6?n3(1-sh/1.6):'0');
   if(!this._bl)this._bl=dropParams(22,74,-200,20,90,300);
   paintDrops(qa('.bw-blood circle'),this._bl,P[0],P[1],(tau-TH)*1.3,10,500);
   const shake=sh>0&&sh<.7?(1-sh/.7)*4:0;

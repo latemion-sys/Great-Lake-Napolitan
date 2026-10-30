@@ -143,5 +143,133 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.HarpoonLauncher={markup,flyMarkup,owned,launch,anchorLocal,handFor,rewind,PIVOT,ANGLE,LEFT,ARM,TIP,RELOAD};
+
+/* ---------- 망을 감은 작살이 명중했을 때 ----------
+   망 3개: 피부를 살짝 꿰뚫음  — 작은 빛 덩어리, 빛의 꽃잎, 고리 셋이 빛의 띠로 번짐, 빛방울
+   망 4개: 피부를 뚫고 작살 몸통이 반쯤 파고듦 — 큰 빛 덩어리, 상처를 따라 번져 맥동하는 빛줄기, 상처의 빛, 고리 넷
+   망 5개: 닿는 모든 것을 꿰뚫고 날아감 — 화면 섬광, 혜성 모양 빛의 굴, 반대편으로 피어나는 빛, 작살을 따라 나아가는 고리 다섯
+   선(stroke)이나 직선은 쓰지 않고, 모두 부드러운 그라데이션 면으로 그린다.
+   장면 좌표(960×540)에서 그린다. 각 장면이 매 프레임 paintHit(el,{s:명중 후 초, p:박힌 자리, ang:작살 방향(도), tier})를 부른다. */
+function seededR(n){let x=n>>>0||1;return ()=>((x=(x*1664525+1013904223)>>>0)/4294967296);}
+/* 선 대신 면으로: 부드러운 빛 덩어리 · 휘어진 빛의 꽃잎 · 곡선을 그리며 흩어지는 빛방울 · 번지는 빛의 띠 · 혜성 모양 빛의 굴 */
+const PETALS=8,DOTS=34;
+function petal(len,wid,curl){ // 통통하게 부풀었다가 끝이 둥글게 휘는 꽃잎 · 불꽃 혀 모양(면)
+ const l=len,w=wid,c=curl;
+ return 'M0,0 C'+n2(l*.08)+','+n2(-w*1.1)+' '+n2(l*.55)+','+n2(-w*1.35+c*.4)+' '+n2(l*.88)+','+n2(-w*.45+c*.9)+
+  ' Q'+n2(l*1.04)+','+n2(c)+' '+n2(l*.86)+','+n2(w*.35+c*.9)+
+  ' C'+n2(l*.55)+','+n2(w*1.25+c*.4)+' '+n2(l*.1)+','+n2(w*1.0)+' 0,0 Z';
+}
+let hitSerial=0;
+function hitMarkup(){
+ const r=seededR(97),id='hlx'+(++hitSerial);
+ let pet='',vein='';
+ for(let i=0;i<PETALS;i++){
+  const a=i/PETALS*360+(r()-.5)*22,len=.6+r()*.4,wid=.17+r()*.09,curl=(r()-.5)*.42;
+  pet+='<path transform="rotate('+n2(a)+')" d="'+petal(len,wid,curl)+'" fill="url(#'+id+'p)"/>';
+ }
+ for(let i=0;i<6;i++){ // 상처를 따라 번지는 빛 무늬(통통하게 휘어진 잎 모양의 면)
+  const a=i/6*360+(r()-.5)*36,len=.62+r()*.38;
+  vein+='<path transform="rotate('+n2(a)+')" d="'+petal(len,.22,(r()-.5)*.7)+'" fill="url(#'+id+'p)"/>';
+ }
+ let dots='';for(let i=0;i<DOTS;i++)dots+='<circle r="1" fill="url(#'+id+'d)" opacity="0"/>';
+ let rings='';for(let i=0;i<5;i++)rings+='<ellipse rx="1" ry="1" fill="url(#'+id+'r)" opacity="0"/>';
+ return '<g class="hl-hit" opacity="0" style="pointer-events:none">'+
+  '<defs>'+
+   '<radialGradient id="'+id+'g"><stop offset="0" stop-color="#fffdf4"/><stop offset=".18" stop-color="#fff0c8" stop-opacity=".9"/><stop offset=".45" stop-color="#ffd98a" stop-opacity=".38"/><stop offset="1" stop-color="#ffc66a" stop-opacity="0"/></radialGradient>'+
+   '<radialGradient id="'+id+'p" cx="0" cy=".5" r="1" fx="0" fy=".5"><stop offset="0" stop-color="#fffaf0"/><stop offset=".35" stop-color="#ffe7b0" stop-opacity=".85"/><stop offset="1" stop-color="#ffc66a" stop-opacity="0"/></radialGradient>'+
+   '<radialGradient id="'+id+'d"><stop offset="0" stop-color="#fffdf6"/><stop offset=".4" stop-color="#ffe2a0" stop-opacity=".75"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>'+
+   '<radialGradient id="'+id+'r"><stop offset=".55" stop-color="#ffd98a" stop-opacity="0"/><stop offset=".78" stop-color="#ffe9bd" stop-opacity=".55"/><stop offset=".88" stop-color="#fff7e2" stop-opacity=".95"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>'+
+   '<linearGradient id="'+id+'t" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fffbf0" stop-opacity=".95"/><stop offset=".25" stop-color="#ffe7b0" stop-opacity=".7"/><stop offset="1" stop-color="#ffc66a" stop-opacity="0"/></linearGradient>'+
+  '</defs>'+
+  '<rect class="hh-white" x="-100" y="-100" width="1200" height="800" fill="#fff6e0" opacity="0"/>'+
+  // 5망: 지나간 자리에 남는 혜성 모양 빛의 굴(앞으로 길게 뻗으며 가늘어짐)
+  '<path class="hh-tunnel" d="M-30,0 C-30,-16 0,-30 60,-24 C260,-14 700,-5 1500,0 C700,5 260,14 60,24 C0,30 -30,16 -30,0 Z" fill="url(#'+id+'t)" opacity="0"/>'+
+  '<circle class="hh-exit" r="1" fill="url(#'+id+'g)" opacity="0"/>'+
+  '<g class="hh-exitp" opacity="0">'+pet+'</g>'+
+  '<g class="hh-veins" opacity="0">'+vein+'</g>'+
+  '<circle class="hh-flash" r="1" fill="url(#'+id+'g)" opacity="0"/>'+
+  '<g class="hh-petals" opacity="0">'+pet+'</g>'+
+  '<g class="hh-rings">'+rings+'</g>'+
+  '<circle class="hh-wound" r="1" fill="url(#'+id+'g)" opacity="0"/>'+
+  '<g class="hh-dots">'+dots+'</g>'+
+ '</g>';
+}
+const outE=x=>1-Math.pow(1-Math.min(1,Math.max(0,x)),3);
+const DOTP=(()=>{const r=seededR(311);return Array.from({length:DOTS},(_,i)=>({fw:i<22,a:(i<22?(r()-.5)*1.5:r()*Math.PI*2),v:.55+r()*.45,curl:(r()-.5)*1.6,sz:.5+r()*.9,life:.55+r()*.5}));})();
+function passAngle(a){const d=a*RAD,dx=Math.cos(d),dy=Math.sin(d)*.3;return Math.atan2(dy,dx)/RAD;} // 5망: 거의 수평으로 곧장 꿰뚫고 나아감
+function paintHit(el,o){
+ const g=el&&el.querySelector('.hl-hit');if(!g)return;
+ const c=g._hh||(g._hh={white:g.querySelector('.hh-white'),tunnel:g.querySelector('.hh-tunnel'),exit:g.querySelector('.hh-exit'),exitp:g.querySelector('.hh-exitp'),
+  veins:g.querySelector('.hh-veins'),flash:g.querySelector('.hh-flash'),petals:g.querySelector('.hh-petals'),wound:g.querySelector('.hh-wound'),
+  rings:Array.from(g.querySelectorAll('.hh-rings ellipse')),dots:Array.from(g.querySelectorAll('.hh-dots circle'))});
+ const tier=o&&o.tier|0,s=o&&o.s;
+ if(!o||s==null||s<0||tier<3||s>3.4){if(g.getAttribute('opacity')!=='0')g.setAttribute('opacity','0');return;}
+ g.setAttribute('opacity','1');
+ const K=tier>=5?2:tier-3,x=o.p[0],y=o.p[1],a=o.ang,d=a*RAD,dx=Math.cos(d),dy=Math.sin(d);
+ const at=(tx,ty,rot,sx,sy)=>'translate('+n2(tx)+' '+n2(ty)+')'+(rot!=null?' rotate('+n2(rot)+')':'')+(sx!=null?' scale('+n2(Math.max(.001,sx))+(sy!=null?' '+n2(Math.max(.001,sy)):'')+')':'');
+ // 화면을 덮는 섬광
+ c.white.setAttribute('opacity',n2([0,.12,.6][K]*Math.exp(-s*[6,6,4.2][K])));
+ // 박힌 자리에서 피어나는 빛 덩어리
+ const R=[34,70,130][K]*(1+.4*outE(s*6));
+ c.flash.setAttribute('transform',at(x,y,null,R));c.flash.setAttribute('opacity',n2(Math.exp(-s*[4.2,3,2.2][K])));
+ // 빛의 꽃잎: 퍼지며 휘어 돌다 스러짐
+ const PL=[30,62,96][K]*(.25+.75*outE(s/.22)),pw=1+.6*outE(s/.4);
+ c.petals.setAttribute('transform',at(x,y,a+s*[40,30,22][K],PL,PL*pw));
+ c.petals.setAttribute('opacity',n2(Math.max(0,1-s/[.55,.75,.9][K])));
+ // 4망: 상처를 따라 번져 한동안 맥동하는 빛줄기 + 상처의 빛
+ if(K>=1){
+  const VL=[0,78,110][K]*outE(s/.35),vo=K===1?(s<1.8?.9*(.7+.3*Math.sin(s*9)):Math.max(0,.9-(s-1.8)/1.1)):Math.max(0,.9-s/1.2);
+  c.veins.setAttribute('transform',at(x,y,a+s*18,VL,VL*.8));c.veins.setAttribute('opacity',n2(vo));
+  const wr=[0,26,40][K]*(1+.12*Math.sin(s*8));
+  c.wound.setAttribute('transform',at(x,y,null,wr));c.wound.setAttribute('opacity',n2(Math.min(1,s*8)*(K===1?(s<2.4?1:Math.max(0,1-(s-2.4))):Math.max(0,1-s/1.5))));
+ }else{c.veins.setAttribute('opacity','0');c.wound.setAttribute('opacity','0');}
+ // 망의 고리: 부드러운 빛의 띠로 번짐. 5망은 작살을 따라 앞으로 나아감
+ c.rings.forEach((e,i)=>{
+  if(i>=tier){e.setAttribute('opacity','0');return;}
+  const si=s-i*.06;if(si<0){e.setAttribute('opacity','0');return;}
+  const ry=10+[36,66,124][K]*(1-Math.exp(-si*4))*(1+i*.15),rx=ry*.34,fwd=K===2?si*560+i*16:i*5;
+  e.setAttribute('cx',n2(x+dx*fwd));e.setAttribute('cy',n2(y+dy*fwd));e.setAttribute('rx',n2(rx));e.setAttribute('ry',n2(ry));
+  e.setAttribute('transform','rotate('+n2(a)+' '+n2(x+dx*fwd)+' '+n2(y+dy*fwd)+')');
+  e.setAttribute('opacity',n2(Math.max(0,1-si/[.7,.9,1.15][K])));
+ });
+ // 빛방울: 곡선을 그리며 흩어지고 작아짐 (5망은 앞쪽으로 쏠려 쏟아짐)
+ const SP=[60,120,230][K],fwdBias=[.2,.4,.9][K];
+ c.dots.forEach((e,i)=>{
+  const P=DOTP[i];if(i>=[18,26,34][K]){e.setAttribute('opacity','0');return;}
+  const k=s/P.life;if(k>=1){e.setAttribute('opacity','0');return;}
+  const ang=(P.fw?P.a*(1-fwdBias*.5):P.a)+P.curl*k,dist=SP*P.v*outE(k*1.4);
+  const lx=Math.cos(ang)*dist,ly=Math.sin(ang)*dist+40*k*k;          // 살짝 떨어지며 휨
+  e.setAttribute('cx',n2(x+lx*dx-ly*dy));e.setAttribute('cy',n2(y+lx*dy+ly*dx));
+  e.setAttribute('r',n2((3+[2,4,6][K]*P.sz)*(1-k*.7)));e.setAttribute('opacity',n2(1-k));
+ });
+ // 5망: 꿰뚫고 지나간 빛의 굴 + 반대편으로 피어나는 빛
+ if(K===2){
+  const len=Math.max(.05,1-s*.6);
+  c.tunnel.setAttribute('transform',at(x,y,a,1,len));c.tunnel.setAttribute('opacity',n2(Math.max(0,1-s/1.3)));
+  const th=o.through||140,ex=x+dx*th,ey=y+dy*th,se=s-.05;
+  c.exit.setAttribute('transform',at(ex,ey,null,se>0?100*(1+.4*outE(se*5)):1));c.exit.setAttribute('opacity',n2(se>0?Math.exp(-se*2.4):0));
+  const EL=se>0?110*(.3+.7*outE(se/.25)):1;
+  c.exitp.setAttribute('transform',at(ex,ey,a,EL,EL*.55));c.exitp.setAttribute('opacity',n2(se>0?Math.max(0,1-se/.9):0));
+ }else{['tunnel','exit','exitp'].forEach(k=>c[k].setAttribute('opacity','0'));}
+}
+/* 작살이 살 속에 묻힌 만큼 가리기: entryX(작살 자신의 좌표, 날 끝 = 3)보다 앞쪽을 잘라 낸다. null이면 해제 */
+let clipN=0;
+function bury(hg,entryX){
+ if(!hg)return;
+ if(entryX==null){if(hg.hasAttribute('clip-path'))hg.removeAttribute('clip-path');return;}
+ const svg=hg.ownerSVGElement;if(!svg)return;
+ if(!hg._clip||!hg._clip.isConnected){
+  const ns='http://www.w3.org/2000/svg',cp=document.createElementNS(ns,'clipPath'),rc=document.createElementNS(ns,'rect');
+  cp.setAttribute('id','hlBury'+(++clipN));rc.setAttribute('x','-400');rc.setAttribute('y','-60');rc.setAttribute('height','120');
+  cp.appendChild(rc);svg.appendChild(cp);hg._clip=cp;
+ }
+ hg._clip.firstChild.setAttribute('width',n2(Math.max(0,400+entryX)));
+ const v='url(#'+hg._clip.id+')';if(hg.getAttribute('clip-path')!==v)hg.setAttribute('clip-path',v);
+}
+function tier(){return rings();}
+// 망 개수에 따른 박힘: {deep: 기존보다 더 들어가는 길이, pass: 꿰뚫고 날아감}
+function pierce(){const n=rings();return n>=5?{pass:true,deep:0,n}:n>=4?{pass:false,deep:46,n}:{pass:false,deep:0,n};}
+const PASS_SPEED=1150;
+
+window.HarpoonLauncher={markup,flyMarkup,owned,launch,anchorLocal,handFor,rewind,hitMarkup,paintHit,passAngle,bury,tier,pierce,PASS_SPEED,PIVOT,ANGLE,LEFT,ARM,TIP,RELOAD};
 })();

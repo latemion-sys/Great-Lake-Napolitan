@@ -330,7 +330,7 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
    rwBoat()+
    '<path class="bw-rope" fill="none" stroke="#8a7d7a" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
    '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+
-   '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+sparks+
+   '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+sparks+(window.HarpoonLauncher?window.HarpoonLauncher.hitMarkup():'')+
    drops('rw-blood',26,83,'#1e0206')+drops('rw-mud',40,87,'#d9b8ae')+
    nearMist()+'</g>';
  },
@@ -367,30 +367,32 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
    paintGroundArm(el,'ka'+i,armPose(b,rr,{a:a+sd*f*30+Math.sin(tr*1.2+i)*4,e:e*(1-f*.5),wr:sd*(20+f*30),L1:160,L2:150,w:44,side:sd,grip:.3*(1-f),spread:1.2-f*.6}),b[1],rr>.02?1-seg(t,6.4,7.4):0);
   });
   // 배: 선미가 꼬리 쪽(왼쪽). 작살잡이가 몸을 돌려 선미 너머로 던짐
-  const turn=seg(t,3.5,3.8),thrown=t>=T0;const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());
+  const turn=seg(t,3.5,3.8),thrown=t>=T0;const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const PC=HL?HL.pierce():{deep:0,pass:false,n:0};
   const armEnd=own?HL.ARM:thrown?[16,-26]:turn>0?[29-turn*12,-30-turn*6]:[37,-30];
   const tw=boatOnBed(el,tr,level,380,{arm:armEnd,lamp:turn>0&&!thrown?.15:0,dr:thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0});
   const hand=own?HL.handFor(HL.launch(el,tw,{aim:HL.ANGLE+(HL.LEFT-HL.ANGLE)*turn,loaded:!thrown}),-24,-14):tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=50;
   const hp=q('.bw-harpoon');let pos,ang,show=0;
   if(turn>0&&!thrown){const a=180+28+turn*10;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=own?0:turn;}
   else if(thrown&&t<HIT){const u=(t-T0)/(HIT-T0),e=u*(.85+.15*u);pos=[p0[0]+(core[0]-p0[0])*e,p0[1]+(core[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((core[1]-p0[1])-4*LIFT*(1-2*e),core[0]-p0[0])/RAD;show=1;}
+  const endAng=Math.atan2((core[1]-p0[1])+4*LIFT,core[0]-p0[0])/RAD;
+  if(PC.pass&&thrown&&t>=HIT){const s5=t-HIT,pa=HL.passAngle(endAng),ea=pa*RAD;pos=[core[0]+Math.cos(ea)*s5*HL.PASS_SPEED,core[1]+Math.sin(ea)*s5*HL.PASS_SPEED];ang=pa;show=pos[0]>-260&&pos[1]<H+260?1:0;} // 5망: 꿰뚫고 날아감
   hp.setAttribute('opacity',String(show));
   if(pos)hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
   // 꼬리 핵에 박힌 작살(꼬리와 함께 움직임)
-  const endAng=Math.atan2((core[1]-p0[1])+4*LIFT,core[0]-p0[0])/RAD;
-  const st=q('.rw-stuck');st.setAttribute('opacity',t>=HIT?'1':'0');
+  const st=q('.rw-stuck');st.setAttribute('opacity',t>=HIT&&!PC.pass?'1':'0');
   const local=[tipL[0],tipL[1]];
-  st.setAttribute('transform','translate('+n1(local[0]*.9/.9)+' '+n1(local[1])+') rotate('+n1(endAng-(-fall*25+Math.sin(tr*1.3)*2*(1-limp)))+') scale(1.18)');
+  st.setAttribute('transform','translate('+n1(local[0]*.9/.9)+' '+n1(local[1])+') rotate('+n1(endAng-(-fall*25+Math.sin(tr*1.3)*2*(1-limp)))+')'+(PC.deep?' translate('+PC.deep+' 0)':'')+' scale(1.18)');   // 4망: 몸통이 반쯤 파고듦
   const stt=st.querySelector('.rw-tip');if(stt)stt.style.opacity='0';
+  if(HL){HL.bury(st,PC.deep?-6-PC.deep/1.18:null);if(PC.n>=3){const sk=q('.rw-sparks');if(sk)sk.setAttribute('opacity','0');}HL.paintHit(el,{s:t>=HIT?t-HIT:-1,p:core,ang:PC.pass?HL.passAngle(endAng):endAng,tier:PC.n,through:120});}
   const sAr=endAng*RAD,stTail=[core[0]-104*Math.cos(sAr),core[1]-104*Math.sin(sAr)];
-  const ropeEnd=t>=HIT?stTail:(pos?[pos[0]-104*Math.cos(ang*RAD),pos[1]-104*Math.sin(ang*RAD)]:p0);
+  const ropeEnd=t>=HIT&&!PC.pass?stTail:(pos?[pos[0]-104*Math.cos(ang*RAD),pos[1]-104*Math.sin(ang*RAD)]:p0);
   const anchor=tw(own?HL.anchorLocal(HL.LEFT):[-40,-9]),mid=[(ropeEnd[0]+anchor[0])/2,(ropeEnd[1]+anchor[1])/2+(t<HIT?40:Math.max(6,30*Math.exp(-(t-HIT))))];
   const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(ropeEnd[0])+','+n1(ropeEnd[1]));
   rope.setAttribute('opacity',thrown&&ropeEnd[1]<SEA+level*DROP+6?'.9':'0');
   // 명중
   const fl=q('.bw-flash');fl.setAttribute('cx',n1(core[0]));fl.setAttribute('cy',n1(core[1]));
   fl.setAttribute('opacity',hit>0?n3(Math.exp(-hit*2.6)):'0');fl.setAttribute('r',n1(40+90*clamp(hit*2)));
-  const sp=q('.rw-sparks');sp.setAttribute('opacity',hit>0&&hit<1.3?n3(1-hit/1.3):'0');
+  const sp=q('.rw-sparks');sp.setAttribute('opacity',PC.n<3&&hit>0&&hit<1.3?n3(1-hit/1.3):'0');
   if(hit>0)qa('.rw-sparks path').forEach(p=>{const a=+p.dataset.a,v=+p.dataset.v,d1=10+v*Math.min(hit,1)*.8,d2=d1+8+v*.1;
    p.setAttribute('d','M'+n1(core[0]+Math.cos(a)*d1)+','+n1(core[1]+Math.sin(a)*d1*.8)+' L'+n1(core[0]+Math.cos(a)*d2)+','+n1(core[1]+Math.sin(a)*d2*.8));});
   if(!this._bl)this._bl=dropParams(26,85,-200,20,80,260);

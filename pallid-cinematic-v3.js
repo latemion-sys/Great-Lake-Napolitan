@@ -147,7 +147,7 @@ function harpoonHtml(){
    '<path d="M-12,-3 L-22,-9 M-12,3 L-22,9" stroke="#c5cfcc" stroke-width="1.6" stroke-linecap="round"/></g>'+(window.HarpoonLauncher?window.HarpoonLauncher.flyMarkup():'')+'</g></g>'+
 
   // 명중 효과
-  '<circle class="w3-flash" r="70" fill="url(#w3Flash)" opacity="0"/>'+
+  '<circle class="w3-flash" r="70" fill="url(#w3Flash)" opacity="0"/>'+(window.HarpoonLauncher?window.HarpoonLauncher.hitMarkup():'')+
   '<g class="w3-spray">'+Array.from({length:22},(_,i)=>'<circle class="w3-drop" data-i="'+i+'" r="'+(i%3?2:3.2)+'" fill="'+(i%2===0?'#e6efec':'#2d0d14')+'" opacity="0"/>').join('')+'</g>'+
 
   '<g class="w3-mist near" filter="url(#w3Mist)"><rect x="-300" y="'+(SEA-16)+'" width="900" height="30" rx="15" fill="#d3dcdc" opacity=".08"/><rect x="420" y="'+(SEA-34)+'" width="900" height="26" rx="13" fill="#d3dcdc" opacity=".06"/></g>'+
@@ -276,6 +276,7 @@ function paint(el,t,hold){
  const lampW=toWorld([51,-18.5]);
  const lg=q('.w3-lampglint');lg.setAttribute('cx',lampW[0].toFixed(1));lg.style.opacity=(0.4*lampK).toFixed(3);
  const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:!thrown}),30,-14):toWorld(armEnd);
+ const PC=HL?HL.pierce():{deep:0,pass:false,n:0};let hitAng=null;
 
  // 작살: 손에서 포물선으로 날아가 꽂히거나(명중) 튕겨 물에 빠짐(빗나감)
  const hp=q('.w3-harpoon'),rope=q('.w3-rope');
@@ -294,8 +295,12 @@ function paint(el,t,hold){
  }else if(isHit){
   const e=endAngle(hand,target);
   pos=[target[0]+embed*Math.cos(e*Math.PI/180),target[1]+embed*Math.sin(e*Math.PI/180)];
-  ang=e;show=1;
+  ang=e;show=1;hitAng=e;
   if(hold)pos=[target[0]-14*Math.cos(e*Math.PI/180),target[1]-14*Math.sin(e*Math.PI/180)];
+  const back=hold?-14:embed;
+  if(PC.deep)pos=[pos[0]+PC.deep*Math.cos(e*Math.PI/180),pos[1]+PC.deep*Math.sin(e*Math.PI/180)];   // 4망: 몸통이 반쯤 파고듦
+  if(PC.pass){const pa=HL.passAngle(e),dd=back+since*HL.PASS_SPEED;ang=pa;hitAng=pa;pos=[target[0]+dd*Math.cos(pa*Math.PI/180),target[1]+dd*Math.sin(pa*Math.PI/180)];show=pos[0]<W+260&&pos[1]<H+260?1:0;} // 5망: 꿰뚫고 날아감
+  if(HL)HL.bury(hp,PC.pass?null:-(back+PC.deep));
  }else{
   // 빗나감: 단단한 외피에 튕겨 뒤로 돌며 떨어짐
   const e=endAngle(hand,target),s2=since;
@@ -306,7 +311,8 @@ function paint(el,t,hold){
   show=s2<land?1:0;
  }
  hp.style.opacity=String(show);
- q('.w3-tip').style.opacity=hold&&isHit&&since>0?'0':'1';   // 꽂힌 작살촉은 살 속에 숨김
+ q('.w3-tip').style.opacity=hold&&isHit&&since>0&&!PC.pass?'0':'1';
+ if(HL){if(!(isHit&&thrown&&t>=arrive))HL.bury(hp,null);HL.paintHit(el,{s:isHit&&t>=arrive?since:-1,p:target,ang:hitAng==null?0:hitAng,tier:PC.n,through:110});}   // 꽂힌 작살촉은 살 속에 숨김
  hp.setAttribute('transform','translate('+pos[0].toFixed(1)+' '+pos[1].toFixed(1)+') rotate('+ang.toFixed(2)+')');
  // 밧줄: 작살 꼬리 ↔ 배. 날아가는 동안 처지고, 꽂힌 뒤 팽팽해짐
  const ar=ang*Math.PI/180,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];

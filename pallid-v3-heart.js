@@ -118,7 +118,7 @@ function heartHtml(){
    '<circle class="w6-zone" r="24" fill="#ff9a7a" fill-opacity=".12" stroke="#ffcf9a" stroke-width="2" stroke-dasharray="6 6"/>'+
    '<g class="w6-ret" style="color:#f4f7ee"><circle r="13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M-22,0 H-9 M9,0 H22 M0,-22 V-9 M0,9 V22" stroke="currentColor" stroke-width="2"/><circle r="2" fill="currentColor"/></g>'+
   '</g>'+
-  '<circle class="w6-flash" r="80" fill="url(#w6Flash)" opacity="0"/>'+
+  '<circle class="w6-flash" r="80" fill="url(#w6Flash)" opacity="0"/>'+(window.HarpoonLauncher?window.HarpoonLauncher.hitMarkup():'')+
   '<g class="w6-spray">'+Array.from({length:18},(_,i)=>'<circle class="w6-drop" data-i="'+i+'" r="'+(i%3?2:3.2)+'" fill="'+(i%3===0?'#f2efe2':'#4a0a17')+'" opacity="0"/>').join('')+'</g>'+
   '<rect class="w6-dim" width="'+W+'" height="'+H+'" fill="#000" opacity="0" style="mix-blend-mode:multiply"/>'+
   '<rect class="w6-veil" width="'+W+'" height="'+H+'" fill="#020103" opacity="0"/>'+
@@ -246,16 +246,18 @@ function paint(el,t){
  const hp=q('.w6-harpoon'),rope=q('.w6-rope'),tr=q('.w6-trail');
  const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:t<F0}),30,-14):toWorld(armEnd),p0=[hand[0]+30,hand[1]-14],target=hold&&HG.aimPt?HG.aimPt:[sx-4,sy+2];
  const endA=Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0]);
+ const PC=HL?HL.pierce():{deep:0,pass:false,n:0};
  let pos,a,show=0;
  if(t<F0){const aa=(-24-aim*14)*Math.PI/180;pos=[hand[0]+Math.cos(aa)*40,hand[1]+Math.sin(aa)*40];a=aa;show=own?0:hold?1:clamp((t-T.aim[0]+0.4)/0.4);}
  else if(t<F1){const u2=(t-F0)/(F1-F0),e=u2*(0.85+0.15*u2);
   pos=[p0[0]+(target[0]-p0[0])*e,p0[1]+(target[1]-p0[1])*e-4*LIFT*e*(1-e)];
   a=Math.atan2((target[1]-p0[1])-4*LIFT*(1-2*e),target[0]-p0[0]);show=1;}
- else if(isHit){pos=[target[0]+10*Math.cos(endA),target[1]+10*Math.sin(endA)];a=endA;show=1;}
+ else if(isHit){const dd=PC.pass?10+since*HL.PASS_SPEED:10+PC.deep,ea=PC.pass?HL.passAngle(endA*180/Math.PI)*Math.PI/180:endA;pos=[target[0]+dd*Math.cos(ea),target[1]+dd*Math.sin(ea)];a=ea;show=PC.pass?(pos[0]<W+260&&pos[1]<H+260?1:0):1;} // 4망: 반쯤 파고듦 · 5망: 꿰뚫고 날아감
  else{ // 빗나감: 심장벽에 튕겨 돌며 피 웅덩이로 떨어짐
   pos=[target[0]-60*since,target[1]-130*since+460*since*since];a=endA+since*9;show=pos[1]<POOL?1:0;}
  hp.style.opacity=String(show);
  hp.setAttribute('transform','translate('+pos[0].toFixed(1)+' '+pos[1].toFixed(1)+') rotate('+(a*180/Math.PI).toFixed(2)+')');
+ if(HL){HL.bury(hp,isHit&&t>=F1&&!PC.pass?-(10+PC.deep):null);HL.paintHit(el,{s:isHit&&t>=F1?since:-1,p:target,ang:(PC.pass?HL.passAngle(endA*180/Math.PI):endA*180/Math.PI),tier:PC.n,through:90});}
  const tail=[pos[0]-104*Math.cos(a),pos[1]-104*Math.sin(a)];
  if(t>=F0&&t<F1+0.35&&(isHit||t<F1)){
   const back=[pos[0]-170*Math.cos(a),pos[1]-170*Math.sin(a)];
