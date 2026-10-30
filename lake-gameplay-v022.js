@@ -29,6 +29,7 @@
   if(id===36)v.N=pick([2,3]);
   if(id===46){v.M=2;v['건네는 것']=pick(['검은 고체','흰 액체']);}
   if(id===25||id===29)v.N=pick([2,3]);
+  if(id===25){v['N-1']=v.N-1;v['N+1']=v.N+1;v['똑 × N']=Array(v.N).fill('똑.').join(' ');}
   if(id===6||id===41){
    const ends=['갈라진','깨진','둥글게 닳은','멀쩡한'];
    v['끝']=pick(ends);v['다른 끝']=pick(ends.filter(x=>x!==v['끝']));
