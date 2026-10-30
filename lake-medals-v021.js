@@ -74,7 +74,7 @@ renderHelp=function(){return oldHelp()
 const oldPlay=renderPlay;
 renderPlay=function(){
  const page=oldPlay();
- return state.scene==='port'||state.scene==='start'?page.replaceAll('34개의 서로 다른 호수','48개의 서로 다른 호수').replaceAll('43개의 서로 다른 호수','48개의 서로 다른 호수'):page;
+ return state.scene==='port'||state.scene==='start'?page.replaceAll('34개의 서로 다른 호수','48개의 서로 다른 호수').replaceAll('43개의 서로 다른 호수','48개의 서로 다른 호수').replaceAll('44개의 서로 다른 호수','48개의 서로 다른 호수'):page;
 };
 try{localStorage.setItem(KEY,JSON.stringify(passes));}catch(e){}
 save();render();
