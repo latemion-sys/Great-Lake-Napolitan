@@ -2,33 +2,34 @@
    [선장 정신력] 0~100. 선원의 '정신 상태'와는 따로 선장 한 사람의 정신.
      - 인어를 조우하면 -5 (특이한 인어 · 고래 속 인어 -10), 선원이 인어가 되면 한 명당 -10.
      - 망을 두르거나 신과 망을 수련할 때도 선장 자신의 정신력을 쓴다.
-     - 항구 상점 '선장 휴식'으로 한 번에 +15, 정박할 때마다 최대 5번.
+     - 항구 상점 'M사 특제 월광석': 한 개 15만 안, 정신력 +15, 항구에 들를 때마다 최대 5개(최대 75만 안).
    [정신력 0 판정] 동전 판정. 뒤틀리면 그대로 엔딩, E.G.O를 개화하면 이름을 새긴다(비우면 '개화 E.G.O').
      - 이미 개화한 선장이 다시 0이 되면, E.G.O가 붙잡아 주면 버티고 아니면 뒤틀린다.
      - 재앙 사냥 도중에 0이 되면 사냥 단계가 끝난 뒤 판정한다.
    [신과 망] E.G.O를 개화한 뒤에만 항구 상점에서 수련을 시도할 수 있다. 신을 먼저 열고 망을 하나씩 연다.
      신 5 · 60% / 망1 10 · 50% / 망2 20 · 40% / 망3 40 · 30% / 망4 60 · 30% / 망5 80 · 30% (선장 정신력 소모, 실패해도 소모)
-   [망 두르기] 고리를 하나 더할 때마다 정신적 부담이 거의 두 배: 3 · 6 · 12 · 24 · 48 (누적 3 · 9 · 21 · 45 · 93)
-     - 인어와의 전투: 1개부터 두를 수 있음. 동전 앞면 확률 +8 · 14 · 20 · 25 · 30%p
+   [망 두르기] 선장 정신력 망1 5 · 망2 10 · 망3 25 · 망4 40 · 망5 50
+     - 동전 앞면 확률 +3 · 6 · 9 · 12 · 15%p (인어 전투는 1개부터 두를 수 있음, 재앙 사냥의 동전 판정에도 적용)
+     - 받는 피해: 4망 -15% · 5망 -30%
      - 재앙의 고래(창백한 · 푸른 · 붉은): 특수 작살 + 망 3개 이상이어야 사냥 선택 가능.
-       4망 = 받는 피해 -30% · 판정 여유 +20% / 5망 = 피해 -50% · 판정 여유 +35% · 미니게임마다 실패 한 번 더
+       4망 = 판정 여유 +20% / 5망 = 판정 여유 +35% · 미니게임마다 실패 한 번 더
    [특수 작살] 선장 5등급부터 300. 사냥 한 번에 손상, 정비 150. */
 (function(){
 'use strict';
 if(typeof renderPlay!=='function'||typeof huntWhale!=='function'||typeof renderShop132!=='function'||typeof beginBattle!=='function')return;
 const WHALES_OK=new Set([0,1,2]);
 const HARPOON={name:'재앙 사냥용 특수 작살',cost:300,grade:5};
-const RING_COST=[3,6,12,24,48];
+const RING_COST=[0,5,10,25,40,50];   // 두른 망 개수별 선장 정신력
 const SHIN_TRY={cost:5,p:.6};
 const MANG_TRY=[{cost:10,p:.5},{cost:20,p:.4},{cost:40,p:.3},{cost:60,p:.3},{cost:80,p:.3}];
 const MIN_RINGS=3,MAX_RINGS=5;
 const MERMAID_HIT={normal:5,special:10,blueMermaid:10,pallidMermaid161:10};
-const MERMAID_BONUS=[0,.08,.14,.2,.25,.3];
+const MERMAID_BONUS=[0,.03,.06,.09,.12,.15];
 const CREW_MERMAID_HIT=10;
-const REST={gain:15,max:5,cost:20};
-const BLOOM_P=.5,HOLD_P=.7,AFTER_MIND=30;
+const REST={gain:15,max:5,cost:15,name:'M사 특제 월광석'};
+const BLOOM_P=.5,HOLD_P=.75,AFTER_MIND=30;
 const EGO_DEFAULT='개화 E.G.O';
-const ringCost=n=>RING_COST.slice(0,n).reduce((a,b)=>a+b,0);
+const ringCost=n=>RING_COST[Math.max(0,Math.min(5,n|0))];
 
 /* ---------- 상태 ---------- */
 function cm(){const v=state.captainMind;return v==null||isNaN(v)?100:Math.max(0,Math.min(100,Math.round(v)));}
@@ -106,7 +107,7 @@ const API=window.CalamityMang={
  rings,
  ease(){const r=rings();return r>=5?1.35:r>=4?1.2:1;},
  extraLife(){return rings()>=5?1:0;},
- guard(){const r=rings();return r>=5?.5:r>=4?.3:0;},
+ guard(){const r=rings();return r>=5?.3:r>=4?.15:0;},
  captainMind:cm,hurt,ringCost,MAX_RINGS,MIN_RINGS
 };
 
@@ -215,17 +216,17 @@ function huntBlock(){
  }else{
   h+='<p>신을 끌어올려 특수 작살에 망을 몇 개 두를지 고르십시오. 고리가 하나 늘 때마다 정신적 부담이 거의 두 배가 됩니다. 4개부터는 사냥에 이점이 생깁니다.</p><p>'+
    tag('선장 정신력 '+cm()+' / 100')+' '+tag('개방한 망 '+shin()+' / '+MAX_RINGS)+'</p><div class="stack">'+
-   ringButtons('mangHunt',MIN_RINGS,n=>n===4?' · 피해 -30% · 판정 여유 +20%':n===5?' · 피해 -50% · 판정 여유 +35% · 실패 한 번 더':'')+'</div>';
+   ringButtons('mangHunt',MIN_RINGS,n=>' · 동전 +'+Math.round(MERMAID_BONUS[n]*100)+'%p'+(n===4?' · 피해 -15% · 판정 여유 +20%':n===5?' · 피해 -30% · 판정 여유 +35% · 실패 한 번 더':''))+'</div>';
  }
  return h+'</div>';
 }
 function mermaidBlock(){
  const b=state.battle;
- if(b.mang)return '<p>'+tag('망 '+b.mang+'개를 두름 · 앞면 확률 +'+Math.round(MERMAID_BONUS[b.mang]*100)+'%p'+(b.mang>=4?' · 받는 피해 -'+(b.mang>=5?50:30)+'%':''))+'</p>';
+ if(b.mang)return '<p>'+tag('망 '+b.mang+'개를 두름 · 앞면 확률 +'+Math.round(MERMAID_BONUS[b.mang]*100)+'%p'+(b.mang>=4?' · 받는 피해 -'+(b.mang>=5?30:15)+'%':''))+'</p>';
  if(!shin()||b.history.length)return '';
  return '<div class="inset" style="margin:10px 0"><div class="small">신과 망 · '+esc(state.egoName||EGO_DEFAULT)+'</div>'+
   '<p class="small muted">동전을 던지기 전에 망을 두를 수 있습니다. 두르지 않으려면 그대로 동전을 던지십시오. (선장 정신력 '+cm()+' / 100)</p><div class="stack">'+
-  ringButtons('mangMermaid',1,n=>' · 앞면 +'+Math.round(MERMAID_BONUS[n]*100)+'%p'+(n>=4?' · 피해 -'+(n>=5?50:30)+'%':''))+'</div></div>';
+  ringButtons('mangMermaid',1,n=>' · 앞면 +'+Math.round(MERMAID_BONUS[n]*100)+'%p'+(n>=4?' · 피해 -'+(n>=5?30:15)+'%':''))+'</div></div>';
 }
 
 /* ---------- 화면 ---------- */
@@ -279,12 +280,12 @@ document.addEventListener('click',function(e){
  }
 },true);
 
-/* 인어 전투: 망만큼 동전 앞면 확률 증가 */
+/* 망을 두른 동안: 동전 앞면 확률 증가 (인어 전투 · 재앙 사냥의 동전 판정) */
 if(typeof combatChance==='function'){
  const prevChance=combatChance;
  combatChance=function(){
   const base=prevChance.apply(this,arguments),r=rings();
-  if(r&&mermaidBattle())return Math.max(.025,Math.min(.975,base+MERMAID_BONUS[Math.min(5,r)]));
+  if(r&&state.scene==='battle'&&state.battle)return Math.max(.025,Math.min(.975,base+MERMAID_BONUS[Math.min(5,r)]));
   return base;
  };
 }
@@ -301,7 +302,7 @@ if(typeof pallidStatus161==='function'){
  const prevPS=pallidStatus161;
  pallidStatus161=function(){
   const r=rings();
-  return prevPS.apply(this,arguments)+(r?' '+tag('망 '+r+'개'+(r>=5?' · 피해 -50% · 판정 여유 +35% · 실패 +1':r>=4?' · 피해 -30% · 판정 여유 +20%':'')):'');
+  return prevPS.apply(this,arguments)+(r?' '+tag('망 '+r+'개'+(r>=5?' · 피해 -30% · 판정 여유 +35% · 실패 +1':r>=4?' · 피해 -15% · 판정 여유 +20%':'')):'');
  };
 }
 
@@ -319,7 +320,7 @@ renderSide=function(){
   '<div class="small muted" style="margin:2px 0 8px">'+bits.map(esc).join(' · ')+'</div>');
 };
 
-/* ---------- 항구: 휴식 · 특수 작살 · 신과 망 수련 ---------- */
+/* ---------- 항구: M사 특제 월광석 · 특수 작살 · 신과 망 수련 ---------- */
 function rests(){const r=state.captainRest;return r&&r.v===state.voyage?r.n|0:0;}
 function nextStep(){
  if(!state.shinOpen)return {label:'신 개방',cost:SHIN_TRY.cost,p:SHIN_TRY.p};
@@ -330,9 +331,9 @@ const prevShop=renderShop132;
 renderShop132=function(){
  migrate();
  const out=prevShop(),avail=inShop132()&&!judging(),h=harp(),v=cm(),rn=rests();
- let s='<div class="inset"><h3>선장의 휴식</h3><p class="muted">인어를 마주치거나 선원이 인어가 되는 것을 보면 선장의 정신력이 깎입니다. 0이 되면 뒤틀릴지, E.G.O가 피어날지 판정합니다.</p>'+
-  tag('선장 정신력 '+v+' / 100')+' '+tag('이번 정박 휴식 '+rn+' / '+REST.max)+'<div class="stack" style="margin-top:8px">'+
-  button('선장 휴식 · 정신력 +'+REST.gain+' · '+unitMoney(REST.cost)+(rn>=REST.max?' (이번 정박에서는 더 쉴 수 없음)':v>=100?' (정신력 가득)':''),'capRest','','',!avail||rn>=REST.max||v>=100||state.gold<REST.cost)+
+ let s='<div class="inset"><h3>'+REST.name+'</h3><p class="muted">인어를 마주치거나 선원이 인어가 되는 것을 보면 선장의 정신력이 깎입니다. 0이 되면 뒤틀릴지, E.G.O가 피어날지 판정합니다.</p>'+
+  tag('선장 정신력 '+v+' / 100')+' '+tag('이번 정박 구매 '+rn+' / '+REST.max)+'<div class="stack" style="margin-top:8px">'+
+  button(REST.name+' 구매 · 선장 정신력 +'+REST.gain+' · '+unitMoney(REST.cost)+(rn>=REST.max?' (이번 정박에서는 더 살 수 없음)':v>=100?' (정신력 가득)':''),'capRest','','',!avail||rn>=REST.max||v>=100||state.gold<REST.cost)+
   '</div></div>';
  s+='<div class="inset"><h3>재앙 사냥 준비 · 특수 작살</h3>'+
   '<p class="muted">창백한 · 푸른 · 붉은 고래는 특수 작살에 망을 '+MIN_RINGS+'개 이상 두른 손으로만 사냥할 수 있습니다.</p>'+
@@ -365,7 +366,7 @@ document.addEventListener('click',function(e){
  }else if(act==='capRest'){
   if(rests()>=REST.max||cm()>=100||state.gold<REST.cost)return;
   state.gold-=REST.cost;state.captainRest={v:state.voyage,n:rests()+1};heal(REST.gain);
-  log('항구에서 잠시 눈을 붙였습니다. 선장 정신력 +'+REST.gain+' ('+cm()+' / 100). '+unitMoney(REST.cost)+' 사용.');
+  log(REST.name+'을 샀습니다. 푸르스름한 빛을 들여다보는 동안 머릿속이 가라앉습니다. 선장 정신력 +'+REST.gain+' ('+cm()+' / 100). '+unitMoney(REST.cost)+' 사용.');
  }else if(act==='shinTry'){
   const st=nextStep();
   if(!state.egoBloomed||!st||cm()<st.cost)return;
