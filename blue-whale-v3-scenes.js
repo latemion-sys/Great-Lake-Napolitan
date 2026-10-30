@@ -5,7 +5,7 @@
 const K=window.BlueWhaleV3Kit;
 if(!K)return;
 const {W,H,SEA,clamp,outC,inC,inOut,seg,bell,lerp,n1,n3,TAU,RAD,seeded,esc,warp,mt,apply,
- marlinDefs,commonDefs,sky,sea,nearMist,boatMarkup,columns,curtain,paintCurtain,foam,paintFoam,whaleRef,setRef,drops,dropParams,paintDrops,cacheQ,ambient,boatPose,lamp,veil,caption,setUse,HARPOON,EYE}=K;
+ marlinDefs,commonDefs,sky,sea,nearMist,boatMarkup,columns,curtain,paintCurtain,foam,paintFoam,whaleRef,setRef,drops,dropParams,paintDrops,cacheQ,ambient,boatPose,lamp,veil,caption,setUse,HARPOON,EYE,gp,riftMarkup,paintRift}=K;
 const M='#bwmM',G='#bwmG';
 const NAME='모든 것을 뚫는 푸른 고래';
 const unwarp=(tau,s0,s1,d)=>tau<s0?tau:tau<s0+d?s0+(tau-s0)*(s1-s0)/d:tau-d+(s1-s0);
@@ -39,6 +39,12 @@ function paintSpeed(el,tr,op,dir){
 /* =========================================================
    ① 수면의 절단 — 지느러미가 수면을 가르고, 한참 뒤에 물이 갈라져 솟는다
    ========================================================= */
+// 갈라짐 경로(수면 위 점들): x0→x1, 깊이 z
+function lateral(x0,x1,z,step,wob,t){const p=[];for(let x=x0;x<=x1+.1;x+=step)p.push([x,z+(wob||0)*Math.sin(x*.013+(t||0)*.8)]);if(p.length<2)p.push([x1,z]);return p;}
+// 물벽 높이의 들쭉날쭉함 (0.3~1.2): 한 줄로 고르게 솟지 않게
+const hVar=(x,sd)=>{const a=.5+.5*Math.sin(x*.0093+sd),b=.5+.5*Math.sin(x*.0217+sd*2.3),c=.5+.5*Math.sin(x*.0571+sd*5.1);return .25+.95*clamp(Math.pow(a*.55+b*.3+c*.15,1.6)*1.5);};
+// 화면 x를 깊이 z의 바닥 X로 (갈라짐이 화면의 그 자리에 오도록)
+const gX=(sx,z)=>W/2+(sx-W/2)*z;
 const S0={title:'수면의 절단',loop:7.5,
  caps:[[0,'안개 낀 수면이 숨을 죽입니다.'],[1.2,'푸른 지느러미가 칼날처럼 수면을 긋고 지나갑니다.'],[2.7,'한참 늦게, 갈라진 물이 솟구쳐 배를 덮칩니다.'],[4.4,'저 멀리서 지느러미가 방향을 틉니다.']],
  build(){
@@ -47,13 +53,12 @@ const S0={title:'수면의 절단',loop:7.5,
    ghosts(3)+
    '<use class="bw-fin" href="'+M+'" opacity="0"/>'+
    sea()+
-   '<g fill="none" stroke-linecap="round"><path class="bw-cutglow" stroke="#4fc6ff" stroke-width="6" filter="url(#bwSoft)" opacity="0"/>'+
-   '<path class="bw-lip1" stroke="#eef7fa" stroke-width="1.2" stroke-dasharray="40 6 18 4" opacity="0"/><path class="bw-lip2" stroke="#c9dde6" stroke-width="1" stroke-dasharray="26 8 12 5" opacity="0"/></g>'+
    foam('bw-foam0',30)+
    '<ellipse class="bw-bow" rx="60" ry="5" fill="#e4f2f7" filter="url(#bwRimF)" opacity="0"/>'+
+   boatMarkup()+
+   riftMarkup('bw-rift0','back')+riftMarkup('bw-rift0','front')+
    curtain('bw-wall')+
    columns('bw-cols',4)+
-   boatMarkup()+
    rings(3)+
    drops('bw-drops',36,5)+
    nearMist();
@@ -78,20 +83,16 @@ const S0={title:'수면의 절단',loop:7.5,
   // 앞쪽 물살
   const bw=q('.bw-bow');bw.setAttribute('cx',n1(X-tipOff+40));bw.setAttribute('cy',n1(SEA+2));bw.setAttribute('opacity',on?'.4':'0');
   paintFoam(q('.bw-foam0'),on?X:480,on?260*S/.6:900,on?1:.6*bell(t,a,a+.1,4.2,5.2),9);
-  // 갈라진 수면: 지나간 자리부터 열렸다 닫힘
-  const cutOn=bell(t,a,a+.1,4.2,5.2);
-  if(cutOn>0){
-   const x0=Math.max(-40,X-tipOff);let d1='',d2='';
-   for(let x=x0;x<=1000;x+=24){
-    const s=t-passT(x),g=s>0?6*outC(s/.35)*(1-seg(s,1.1,2.6)):0;
-    const w=Math.sin(x*.05+t*3)*.8;
-    d1+=(d1?' L':'M')+n1(x)+','+n1(SEA+1-g+w);d2+=(d2?' L':'M')+n1(x)+','+n1(SEA+3+g*.6-w);
-   }
-   ['.bw-lip1','.bw-cutglow'].forEach(s=>{q(s).setAttribute('d',d1);});q('.bw-lip2').setAttribute('d',d2);
-   q('.bw-lip1').setAttribute('opacity',n3(.55*cutOn));q('.bw-lip2').setAttribute('opacity',n3(.35*cutOn));q('.bw-cutglow').setAttribute('opacity',n3(.14*cutOn));
-  }else ['.bw-lip1','.bw-lip2','.bw-cutglow'].forEach(s=>q(s).setAttribute('opacity','0'));
-  // 늦게 솟는 물기둥
-  paintCurtain(q('.bw-wall'),-40,1000,x=>colH(t-passT(x)-.3,70+30*Math.sin(x*.013+1)+25*Math.sin(x*.041),.42,1.6),3,t,1-seg(t,4.6,5.6));
+  // 갈라지는 호수: 지느러미가 지나간 자리부터 수면이 칼금처럼 열리고, 한참 늦게 양쪽 물벽이 솟았다 무너짐
+  // (배보다 조금 앞쪽 깊이 0.88을 지나감 — 먼 쪽 물벽이 솟으면 배를 가림)
+  {const Z=.88,path=lateral(-80,1060,Z,16),end=1-seg(t,4.6,5.6);
+   const sA=path.map(p=>t-passT(W/2+(p[0]-W/2)/Z)),rise=sA.map(s=>outC(seg(s,.3,1.0))*(1-inOut(seg(s,1.6,2.9))));
+   const o=sA.map((s,i)=>s>0?outC(clamp(s/.28))*(1-inOut(seg(s,1.9,3.1)))*end:0);
+   paintRift(el,'bw-rift0',{path,o,D:46,t,flow:0,glow:1,seed:2,
+    w:i=>14+30*rise[i],
+    H:i=>{const x=path[i][0],k=rise[i]*hVar(x,1.1);return [5+80*k+10*k*Math.sin(x*.041),2+26*k*hVar(x,4)];}});}
+  // 늦게 솟는 물기둥 (무너지는 물벽 끝의 물보라)
+  paintCurtain(q('.bw-wall'),-40,1000,x=>colH(t-passT(x)-.3,50+20*Math.sin(x*.013+1)+16*Math.sin(x*.041),.42,1.6)*.8,3,t,.32*(1-seg(t,4.6,5.6)));
   const r=seeded(77);
   qa('.bw-cols .bw-col').forEach(p=>{const i=+p.dataset.i,x=120+i*230+r()*60,h=130+r()*70,w=18+r()*10;
    paintCol(p,x,t-passT(x)-0.36-r()*.08,h,w,-14,.45,1.5);});
@@ -124,6 +125,7 @@ const S1={title:'초고속 관통',loop:7.5,
    '<ellipse class="bw-hump" rx="50" ry="4" fill="#dcecf2" filter="url(#bwRimF)" opacity="0"/>'+
    whaleRef('bw-ref')+foam('bw-foam1',30)+
    boatMarkup()+
+   riftMarkup('bw-rift1','back')+riftMarkup('bw-rift1','front')+
    curtain('bw-wall')+
    columns('bw-cols',4)+
    speedLines(16,31,120,SEA-6)+
@@ -165,7 +167,16 @@ const S1={title:'초고속 관통',loop:7.5,
    d.setAttribute('cx',n1(x));d.setAttribute('cy',n1(y));d.setAttribute('opacity',y>SEA?'0':n3(.8*(1-k/p.l)));});
   // 지나간 자리에서 늦게 솟는 물기둥 (중심이 지나간 시각 기준)
   const passReal=x=>unwarp(c0+cl*clamp((1000-x)/1500,0,1),s0,s1,sd);
-  paintCurtain(q('.bw-wall'),-40,1000,x=>colH(t-passReal(x+300)-.25,60+28*Math.sin(x*.011+2)+20*Math.sin(x*.037),.45,1.7),5,t,.85*(1-seg(t,4.8,5.8)));
+  paintCurtain(q('.bw-wall'),-40,1000,x=>colH(t-passReal(x+300)-.25,44+20*Math.sin(x*.011+2)+14*Math.sin(x*.037),.45,1.7),5,t,.32*(1-seg(t,4.8,5.8)));
+  // 갈라지는 호수: 물속에서 다가올 땐 머리 위 수면에 가는 금이 따라오고(빛나는 틈), 솟구쳐 지나간 뒤 양쪽 물벽이 크게 열림
+  {const Z=.86,path=lateral(-80,1080,Z,16),end=1-seg(t,4.8,5.8);
+   const passAt=x=>x>=540?.1+(1040-x)/500*(c0-.1):passReal(x+300);
+   const sx=path.map(p=>W/2+(p[0]-W/2)/Z),sA=sx.map(x=>t-passAt(x)),cross=sx.map(x=>x<540?1:clamp((1040-x)/500*.0+(t>c0?1:0)));
+   const rise=sA.map((s,i)=>cross[i]*outC(seg(s,.2,.95))*(1-inOut(seg(s,1.8,3.0))));
+   const o=sA.map(s=>s>0?outC(clamp(s/.22))*(1-inOut(seg(s,2.2,3.4)))*end:0);
+   paintRift(el,'bw-rift1',{path,o,D:50,t,flow:0,glow:1,seed:4,
+    w:i=>10+34*rise[i],
+    H:i=>{const x=path[i][0],k=rise[i]*hVar(x,2.3);return [6+84*k+8*k*Math.sin(x*.037),2+28*k*hVar(x,5.2)];}});}
   const r=seeded(13);
   qa('.bw-cols .bw-col').forEach(p=>{const i=+p.dataset.i,x=60+i*240+r()*70,h=150+r()*90,w=20+r()*12;
    paintCol(p,x,t-passReal(x+300)-.32-r()*.1,h,w,-18,.5,1.6);});
@@ -193,13 +204,7 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
   const r=seeded(57);let streaks='<g class="bw-streaks" stroke="#cfe3ea" stroke-linecap="round">';
   for(let i=0;i<26;i++){const y=SEA+6+Math.pow(r(),1.4)*(H-SEA-6),k=(y-SEA)/(H-SEA);streaks+='<path data-x="'+n1(r()*1100)+'" data-k="'+n3(k)+'" d="M0,'+n1(y)+' h'+n1(14+60*k)+'" stroke-width="'+n1(.8+k*1.6)+'" stroke-opacity="'+n3(.08+k*.16)+'"/>';}
   streaks+='</g>';
-  let lip='<g class="bw-lip" fill="#e6f4fa">';for(let i=0;i<56;i++)lip+='<circle data-i="'+i+'" r="'+n1(.6+Math.pow(r(),3)*2.2)+'" opacity="0"/>';lip+='</g>';
   const defs='<defs>'+
-   '<linearGradient id="bwTrF" gradientUnits="userSpaceOnUse" x1="0" y1="'+(SEA-78)+'" x2="0" y2="'+(SEA+34)+'">'+
-    '<stop stop-color="#bfe0ee" stop-opacity=".75"/><stop offset=".08" stop-color="#3d7799" stop-opacity=".92"/><stop offset=".25" stop-color="#143a56"/><stop offset=".5" stop-color="#081a2a"/><stop offset=".75" stop-color="#02070d"/><stop offset="1" stop-color="#010307"/></linearGradient>'+
-   '<linearGradient id="bwTrN" gradientUnits="userSpaceOnUse" x1="0" y1="'+(SEA+20)+'" x2="0" y2="'+(SEA+120)+'">'+
-    '<stop stop-color="#3a6680" stop-opacity=".9"/><stop offset=".12" stop-color="#16303f" stop-opacity=".95"/><stop offset=".3" stop-color="#0d1820" stop-opacity=".85"/><stop offset=".6" stop-color="#0a141c" stop-opacity=".35"/><stop offset="1" stop-color="#0a141c" stop-opacity="0"/></linearGradient>'+
-   '<linearGradient id="bwTrFloor" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#46bff8" stop-opacity="0"/><stop offset=".25" stop-color="#46bff8" stop-opacity=".9"/><stop offset="1" stop-color="#9fe6ff"/></linearGradient>'+
    '<linearGradient id="bwCrackG" gradientUnits="userSpaceOnUse" x1="600" y1="0" x2="960" y2="0"><stop stop-color="#e8f8ff"/><stop offset=".55" stop-color="#bfe9ff" stop-opacity=".55"/><stop offset="1" stop-color="#bfe9ff" stop-opacity="0"/></linearGradient>'+
    '<clipPath id="bwTrBoat"><rect width="'+W+'" height="'+(SEA+70)+'"/></clipPath>'+
   '</defs>';
@@ -209,23 +214,12 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
    sea()+
    whaleRef('bw-ref')+
    streaks+
-   // 먼 쪽 물벽 (안쪽 면이 어둠 속으로 꺼져 내려감)
-   '<path class="bw-tr-far" fill="url(#bwTrF)"/>'+
-   '<path class="bw-tr-run" fill="none" stroke="#a9dcf2" stroke-opacity=".16" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="18 10 6 12"/>'+
-   '<path class="bw-tr-farglow" fill="none" stroke="#e4f4fb" stroke-width="7" filter="url(#bwSoft)" opacity=".2"/>'+
-   '<path class="bw-tr-farlip" fill="none" stroke="#eef8fc" stroke-width="1.1" stroke-linecap="round"/>'+
-   // 틈 바닥의 푸른 궤적
-   '<g fill="none" stroke-linecap="round"><path class="bw-road-glow" stroke="#46bff8" stroke-width="12" filter="url(#bwSoft)"/>'+
-   '<path class="bw-road" stroke="#bdeeff" stroke-width="1.6" stroke-dasharray="26 14 8 14"/></g>'+
-   '<g class="bw-wake" fill="none" stroke="#e1eef3" stroke-linecap="round">'+[0,1,2,3,4].map(i=>'<path data-i="'+i+'" stroke-width="'+n1(2.2-i*.3)+'"/>').join('')+'</g>'+
+   riftMarkup('bw-rift','back')+
+   '<g clip-path="url(#bw-rift-clip)"><g class="bw-wake" fill="none" stroke="#e1eef3" stroke-linecap="round">'+[0,1,2,3,4].map(i=>'<path data-i="'+i+'" stroke-width="'+n1(2.2-i*.3)+'"/>').join('')+'</g></g>'+
    columns('bw-cols',4)+
-   boatMarkup().replace('url(#bwAbove)','url(#bwTrBoat)').replace('<g opacity=".24" mask','<g opacity="0" mask')+
+   boatMarkup().replace('url(#bwAbove)','url(#bw-rift-clip)').replace('<g opacity=".24" mask','<g opacity="0" mask')+
    drops('bw-bowspray',30,21)+
-   // 가까운 쪽 물벽
-   '<path class="bw-tr-near" fill="url(#bwTrN)"/>'+
-   '<path class="bw-tr-nearglow" fill="none" stroke="#d8eef8" stroke-width="5" filter="url(#bwSoft)" opacity=".22"/>'+
-   '<path class="bw-tr-nearlip" fill="none" stroke="#e3f1f7" stroke-opacity=".45" stroke-width=".9" stroke-linecap="round" stroke-dasharray="60 4 20 3"/>'+
-   lip+
+   riftMarkup('bw-rift','front')+
    // 주둥이 앞으로 먼저 갈라지는 수면
    '<g class="bw-crack" fill="none" stroke-linecap="round"><path class="bw-crack-g" stroke="#5fcfff" stroke-width="9" stroke-opacity=".45" filter="url(#bwSoft)"/>'+
    '<path class="bw-crack-d" stroke="#02070d" stroke-width="3" stroke-opacity=".7"/><path class="bw-crack-c" stroke="url(#bwCrackG)" stroke-width="1.2"/></g>'+
@@ -258,33 +252,16 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
   const nx=X(t),ny=Y(t);
   setUse(q('.bw-near'),mt(nx,ny,deg,-S,S,500,0),1);
   setRef(q('.bw-ref'),mt(nx,ny,deg,-S,S,500,0),.14);
-  const tail=apply(nx,ny,deg,-S,S,500,0,930,0),tip=apply(nx,ny,deg,-S,S,500,0,-60,-4);
+  const tail=apply(nx,ny,deg,-S,S,500,0,930,0);
   // 고래가 깊이 잠수하면 틈이 덜 벌어짐, 튀어 오르면 크게 벌어짐
   const under=clamp((ny-(SEA+60))/60),surge=clamp((SEA+40-ny)/70);
   const amp=(1-.55*under)*(1+.35*surge);
-  const tx=tail[0]-10;
-  const P=tr*FLOW;
-  const o=x=>rift(tx-x)*amp;
-  const hf=x=>{const k=o(x);return k*(66+8*Math.sin((x+P)/43)+4*Math.sin((x+P*1.3)/17)+7*Math.sin((x+P*.6)/97));};
-  const gap=x=>52*o(x),fl=x=>SEA+gap(x)*.6;
-  const hn=x=>{const k=o(x);return k*(7+3*Math.sin((x+P)/31+1)+2*Math.sin((x+P*1.2)/13));};
-  let far='',farLip='',near='',nearLip='',floor='';const xs=[];
-  for(let x=-24;x<tx;x+=12)xs.push(x);xs.push(tx);
-  xs.forEach((x,i)=>{const yF=SEA-hf(x),yB=SEA+gap(x),yN=SEA+gap(x)-hn(x);
-   farLip+=(i?' L':'M')+n1(x)+','+n1(yF);
-   nearLip+=(i?' L':'M')+n1(x)+','+n1(yN);
-   floor+=(i?' L':'M')+n1(x)+','+n1(fl(x)+1.2*Math.sin((x+P)/37));});
-  far=farLip;for(let i=xs.length-1;i>=0;i--)far+=' L'+n1(xs[i])+','+n1(fl(xs[i])+1);far+=' Z';
-  near=nearLip;for(let i=xs.length-1;i>=0;i--)near+=' L'+n1(xs[i])+','+n1(SEA+gap(xs[i])+110*o(xs[i]));near+=' Z';
-  let runs='';const rs=this._rs||(this._rs=(()=>{const r=seeded(73);return Array.from({length:34},()=>({x:r()*1100,l:.35+r()*.5,o:.2+r()*.5}));})());
-  rs.forEach(p=>{const x=((p.x-P*.85)%1100+1100)%1100-40;if(x>tx-6)return;const top=SEA-hf(x)+3,bot=fl(x);if(bot-top<8)return;runs+='M'+n1(x)+','+n1(top)+' Q'+n1(x-4)+','+n1(top+(bot-top)*.5)+' '+n1(x-2)+','+n1(top+(bot-top)*p.l);});
-  q('.bw-tr-run').setAttribute('d',runs||'M0,0');q('.bw-tr-run').style.strokeDashoffset=n1(-tr*60);
-  q('.bw-tr-far').setAttribute('d',far);q('.bw-tr-farlip').setAttribute('d',farLip);q('.bw-tr-farglow').setAttribute('d',farLip);
-  q('.bw-tr-near').setAttribute('d',near);q('.bw-tr-nearlip').setAttribute('d',nearLip);q('.bw-tr-nearglow').setAttribute('d',nearLip);
-  q('.bw-tr-nearlip').style.strokeDashoffset=n1(P*.9);q('.bw-tr-farlip').setAttribute('stroke-opacity',n3(.55+.2*surge));
-  q('.bw-road').setAttribute('d',floor);q('.bw-road-glow').setAttribute('d',floor);
-  q('.bw-road').style.strokeDashoffset=n1(P);
-  q('.bw-road').setAttribute('opacity',n3(.85-.3*under));q('.bw-road-glow').setAttribute('opacity',n3(.75-.3*under));
+  const tx=tail[0]-10,P=tr*FLOW;
+  // 배와 고래가 있는 거리(Z=1)를 따라 옆으로 길게 갈라짐: 먼 쪽 벽은 높이, 가까운 쪽은 낮게 밀려남
+  const path=lateral(-80,tx,1,14);
+  const o=path.map(p=>rift(tx-p[0])*amp);
+  paintRift(el,'bw-rift',{path,o,w:62,D:70,t:tr,flow:FLOW,glow:.8,seed:5,
+   H:i=>{const x=path[i][0];return [66+8*Math.sin((x+P)/43)+4*Math.sin((x+P*1.3)/17)+7*Math.sin((x+P*.6)/97),10+3*Math.sin((x+P)/31+1)+2*Math.sin((x+P*1.2)/13)];}});
   // 주둥이 앞의 금: 수면이 먼저 갈라져 수평선 쪽으로 뻗어 감
   const cx0=tx+50,flick=.75+.25*Math.sin(tr*13)*Math.sin(tr*7.7+1);
   let cr='';for(let x=cx0,i=0;x<=W+20;x+=16,i++){const j=((Math.sin(i*12.9898+Math.floor(tr*9)*.7)*43758.5453)%1+1)%1;cr+=(i?' L':'M')+n1(x)+','+n1(SEA+1.2+(j-.5)*1.6*(1-(x-cx0)/600));}
@@ -293,27 +270,20 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
   q('.bw-crack').setAttribute('opacity',n3((1-under*.6)*flick));
   // 흘러가는 수면의 거품
   qa('.bw-streaks path').forEach(p=>{const x0=+p.dataset.x,k=+p.dataset.k,x=((x0-P*(.55+1.7*k))%1100+1100)%1100-70;p.setAttribute('transform','translate('+n1(x)+' 0)');});
-  // 물벽 끝에서 흩날리는 물방울
-  if(!this._lp){const r=seeded(61);this._lp=Array.from({length:56},()=>({x:r()*1000,ph:r(),vy:30+r()*70,life:.5+r()*.6,side:r()<.6?0:1}));}
-  qa('.bw-lip circle').forEach(c=>{const p=this._lp[+c.dataset.i],k=((tr/p.life+p.ph)%1)*p.life;
-   const x=((p.x-P*.85+(tr/p.life+p.ph|0)*137)%1000+1000)%1000-20;
-   if(x>tx){c.setAttribute('opacity','0');return;}
-   const base=p.side?SEA+gap(x)-hn(x):SEA-hf(x),y=base-p.vy*k+260*k*k;
-   c.setAttribute('cx',n1(x-40*k));c.setAttribute('cy',n1(y));c.setAttribute('opacity',n3(o(x)*.8*(1-k/p.life)));});
   // 고래가 일으킨 물기둥이 뒤로 흘러와 배 양옆을 지나감
   const spawns=[.9,3.95,4.5,6.5];let bump=0;
   const bx=240+6*Math.sin(w*t),bow=bx+56*1.9;
   qa('.bw-cols .bw-col').forEach(p=>{const i=+p.dataset.i,sj=spawns[i],age=(((t-sj)%L)+L)%L;
    const sx=apply(X(sj),Y(sj),0,-S,S,500,0,880,0)[0],x=sx-FLOW*.85*age;
-   paintCol(p,x,age,i===1?190:130,22,10,.35,1.7);
+   paintCol(p,x,age,i===1?140:100,22,10,.35,1.7);
    const hh=colH(age,1,.35,1.7);bump+=Math.max(0,1-Math.abs(x-bow+20)/70)*hh;});
-  // 배: 갈라진 틈 안을 달림
-  const wl=fl(bx+50);
+  // 배: 갈라진 골 안쪽, 낮아진 물 위를 달림 (앞쪽 낮은 물벽에 뱃전 아래가 가려짐)
+  const ob=rift(tx-(bx+50))*amp,wl=SEA+7*ob;
   const pitch=-2.5+2.2*Math.sin(tr*3.1+.8)+1.2*Math.sin(tr*5.3);
   const by=wl+2.5*Math.sin(tr*3.1)+1.4*Math.sin(tr*5.3+1)-bump*5;
   const tw=boatPose(el,bx,by,pitch-bump*7,[38,-27]);
   lamp(el,tr,tw,0);
-  q('.bw-lampglint').setAttribute('cy',n1(wl+6));
+  q('.bw-lampglint').style.opacity='0';{const lr=q('.bw-lampref');if(lr)lr.setAttribute('opacity','0');}
   // 항적
   qa('.bw-wake path').forEach(p=>{const i=+p.dataset.i,x1=bx-40,yy=wl+3+i*2.2,len=120+i*70;
    p.setAttribute('d','M'+n1(x1)+','+n1(wl+2)+' Q'+n1(x1-len*.5)+','+n1(yy+2*Math.sin(tr*4+i))+' '+n1(x1-len)+','+n1(yy+i*1.2));
@@ -335,6 +305,17 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
 /* =========================================================
    ④ 관통 회피 — 물속의 푸른 선이 뱃머리 앞에 멈추고, 배를 틀자 주둥이가 그 자리를 꿰뚫고 솟구침
    ========================================================= */
+// ④ 갈라짐: 다가오는 선 위로 가는 틈 → 주둥이가 솟는 자리에서 크게 터져 열림
+function s3Rift(el,tipX,lineOn,ea,cx){
+ const Z=.95,path=lateral(-60,1060,Z,14);
+ const sx=path.map(p=>W/2+(p[0]-W/2)/Z);
+ const oa=sx.map(x=>lineOn*clamp((x-tipX)/50)*.6);
+ const ob=sx.map(x=>ea>0?outC(clamp(ea/.22))*Math.exp(-Math.pow((x-cx)/(70+90*outC(clamp(ea/.7))),2))*(1-inOut(seg(ea,1.4,2.8))):0);
+ const o=oa.map((a,i)=>Math.max(a,ob[i]));
+ paintRift(el,'bw-rift3',{path,o,D:44,t:ea>0?ea:0,flow:0,glow:1,seed:6,
+  w:i=>ob[i]>oa[i]?44:9,
+  H:i=>ob[i]>oa[i]?[96*(1-.35*seg(ea,.5,1.6)),40]:[7,3]});
+}
 const S3={title:'관통 회피',loop:7.5,
  caps:[[0,'물속의 푸른 선이 뱃머리를 겨눕니다.'],[1.3,'선이 뱃머리 바로 앞에서 멈춥니다.'],[1.65,'키를 꺾어라!'],[2.05,'배가 있던 자리를 주둥이가 꿰뚫고 솟구칩니다.'],[3.1,'한참 늦게 그 자리에 물기둥이 솟습니다.']],
  build(){
@@ -347,6 +328,7 @@ const S3={title:'관통 회피',loop:7.5,
    whaleRef('bw-ref')+foam('bw-foam3',30)+
    columns('bw-cols',3)+
    boatMarkup()+
+   riftMarkup('bw-rift3','back')+riftMarkup('bw-rift3','front')+
    '<g clip-path="url(#bwAbove)">'+ghosts(3)+'<use class="bw-front" href="'+M+'" opacity="0"/></g>'+
    curtain('bw-erupt','',4,20)+
    drops('bw-burst',50,33)+
@@ -382,6 +364,7 @@ const S3={title:'관통 회피',loop:7.5,
   q('.bw-line').setAttribute('opacity',n3(.85*lineOn*pulse));q('.bw-lineglow').setAttribute('opacity',n3(.6*lineOn*pulse));
   const ug=q('.bw-uglow');ug.setAttribute('cx',n1(tipX+80));ug.setAttribute('cy',n1(SEA+44));ug.setAttribute('opacity',n3(lineOn));
   const hp=q('.bw-hump');hp.setAttribute('cx',n1(tipX+20));hp.setAttribute('cy',n1(SEA+2));hp.setAttribute('opacity',n3(.55*lineOn));
+  s3Rift(el,tipX,lineOn,tau-2.12,X0+40);
   // 배: 급회전으로 왼쪽으로 빠짐
   const sw=inOut(seg(t,1.6,2.1)),B=bob(tr);
   const tc=3.15,s=t-tc,j=jolt(s,1,8),heave=s>0?-12*Math.exp(-s*2)*Math.sin(s*5):0;
@@ -410,6 +393,22 @@ const S3={title:'관통 회피',loop:7.5,
 /* =========================================================
    ⑤ 최후의 교차 — 아무것도 없는 허공에 먼저 던진 작살, 솟구친 고래가 그 지점을 지나감. 한 번 재생 후 멈춤
    ========================================================= */
+// ⑤ 갈라짐: 작살잡이가 겨누는 "물길의 끝"까지 수면에 먼저 금이 가고(오른쪽 먼 수면 → 교차점 아래),
+//   물속에서 돌진하는 고래가 지나간 자리부터 양쪽 물벽이 열림. 고래가 물 밖으로 날아오른 구간은 덜 열림.
+//   (ptt = 고래 자세 시각, 1.75에 교차점 · 고래 x는 시각에 비례)
+function s4Rift(el,ptt,t){
+ const N=30,path=[],sx=[];
+ for(let i=0;i<=N;i++){const u=i/N,x=1010-450*u,z=1.0-.12*u;sx.push(x);path.push([gX(x,z),z]);}
+ const post=ptt-1.75,front=lerp(1010,600,outC(seg(ptt,.25,1.15)));
+ const sA=sx.map(x=>ptt-(1.75+(600-x)/700));
+ const air=sx.map(x=>x<866?.45:1);
+ const rise=sA.map((s,i)=>outC(seg(s,.06,.45))*air[i]);
+ const fall=1-inOut(seg(post,.3,1.6));
+ const o=sx.map((x,i)=>Math.max(.42*clamp((x-front)/40),sA[i]>0?outC(clamp(sA[i]/.16)):0)*fall);
+ paintRift(el,'bw-rift4',{path,o,D:56,t,flow:0,glow:1,seed:8,
+  w:i=>16+34*rise[i],
+  H:i=>{const k=rise[i]*hVar(sx[i],3.3);return [16+80*k,5+30*k];}});
+}
 const S4={title:'최후의 교차',dur:9,
  caps:[[0,'작살잡이가 물길의 끝, 아무것도 없는 허공을 겨눕니다.'],[1.1,'작살이 먼저 날아갑니다.'],[1.7,'솟구친 고래가 정확히 그 지점을 지나갑니다.'],[3.2,'푸른 빛이 꺼져 갑니다. 거대한 몸이 뒤집혀 떠오릅니다.']],
  build(){
@@ -421,6 +420,7 @@ const S4={title:'최후의 교차',dur:9,
    whaleRef('bw-ref')+whaleRef('bw-cref')+foam('bw-foam4',34)+
    '<g clip-path="url(#bwBelow)"><ellipse class="bw-uglow" rx="170" ry="26" fill="url(#bwUnder)" opacity="0"/></g>'+
    boatMarkup()+
+   riftMarkup('bw-rift4','back')+riftMarkup('bw-rift4','front')+
    '<g clip-path="url(#bwAbove)">'+ghosts(3)+'<use class="bw-front" href="'+M+'" opacity="0"/>'+
     '<path class="bw-trail" fill="none" stroke="#e3ecea" stroke-width="2" stroke-linecap="round" filter="url(#bwRimF)" opacity="0"/>'+
     '<path class="bw-rope" fill="none" stroke="#8a9697" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
@@ -457,6 +457,7 @@ const S4={title:'최후의 교차',dur:9,
   const fast=tau>1.15&&tau<TH;
   qa('.bw-ghost').forEach(g=>{const k=+g.dataset.k,pp=pose(tau-k*.03);setUse(g,mt(pp.x,pp.y,pp.deg,S,S,EYE[0],EYE[1]),fast?(.26-k*.07):0);});
   const ug=q('.bw-uglow');ug.setAttribute('cx',n1(E.x));ug.setAttribute('cy',n1(SEA+46));ug.setAttribute('opacity',n3(tau<1.3?seg(t,.2,.8)*(E.y>SEA?1:0):0));
+  s4Rift(el,tau,t);
   // 배와 작살잡이
   const tc=unwarp(TH+.558,...HS),cx=P[0]-150*.558,sc=t-tc,B=bob(tr),j=jolt(sc-.3,1,8),heave=sc>.3?-13*Math.exp(-(sc-.3)*2)*Math.sin((sc-.3)*5):0;
   const T0=1.1,thrown=t>=T0,aim=clamp(t/.8);
@@ -600,6 +601,7 @@ function evadeGame(el,t,tr,g){
  q('.bw-line').setAttribute('opacity',n3(.85*lineOn));q('.bw-lineglow').setAttribute('opacity',n3(.6*lineOn));
  const ug=q('.bw-uglow');ug.setAttribute('cx',n1(tipX+80));ug.setAttribute('cy',n1(SEA+44));ug.setAttribute('opacity',n3(lineOn));
  const hp=q('.bw-hump');hp.setAttribute('cx',n1(tipX+20));hp.setAttribute('cy',n1(SEA+2));hp.setAttribute('opacity',n3(.55*lineOn));
+ s3Rift(el,tipX,lineOn,emergeAt!=null?t-emergeAt:-1,X0+40);
  // 물살을 뚫는 물보라
  if(!evadeGame._bp)evadeGame._bp=dropParams(50,51,-160,-20,140,430);
  paintDrops(qa('.bw-burst circle'),evadeGame._bp,X0+40,SEA,emergeAt!=null?t-emergeAt:-1,70,520);
@@ -651,6 +653,7 @@ function finalGame(el,t,tr,g){
  qa('.bw-ghost').forEach(gh=>{const k=+gh.dataset.k,pp=poseFinal(1.75+(t-k*.035-g.th)*sc);setUse(gh,mt(pp.x,pp.y,pp.deg,FS,FS,EYE[0],EYE[1]),fast&&!miss?(.24-k*.06):0);});
  setUse(q('.bw-carc'),'',0);
  const ug=q('.bw-uglow');ug.setAttribute('cx',n1(E.x));ug.setAttribute('cy',n1(SEA+46));ug.setAttribute('opacity',n3(E.y>SEA+20&&t<g.breachAt+.2?seg(t,.2,.8):0));
+ s4Rift(el,miss?1.75+(t-g.th)*.6:1.75+(t-g.th)*sc,t);
  // 배 · 작살잡이
  const B=bob(tr),T0=g.thrownAt,thrown=T0!=null&&t>=T0;
  const aim=clamp(t/.8),armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*4];

@@ -468,7 +468,105 @@ function caption(el,caps,t){
 }
 function setUse(node,tr,op){node.setAttribute('transform',tr);node.style.opacity=n3(op);}
 
+
+/* ---------- 갈라지는 호수 (수면 원근 모델) ----------
+   SEA 줄 = 배와 고래가 떠 있는 거리(깊이 Z=1)의 물높이. 진짜 지평선은 그보다 40px 위 안개 속에 있고,
+   카메라는 수면에서 40px 높이에 있다. 바닥 좌표 (X: Z=1에서의 화면 px, Z: 깊이) → 화면.
+   높이 h(px, Z=1 기준)는 거리에 반비례해 작아진다. 가로 700px = 깊이 1. */
+const R_HOR=SEA-40,R_CAM=40,R_VX=W/2,R_ZU=700;
+function gp(X,Z,h){Z=Math.max(.08,Z);return [R_VX+(X-R_VX)/Z,R_HOR+(R_CAM-(h||0))/Z];}
+const RIFT_DROPS=48;
+// 뒤쪽(먼 벽 · 바닥)과 앞쪽(가까운 벽 · 물방울)을 따로 깔아 그 사이에 배를 넣을 수 있게 함
+function riftMarkup(cls,part){
+ const wall=k=>'<g class="rf-wall rf-'+k+'"><path class="rf-a"/><path class="rf-b"/><path class="rf-abyss" fill="none" stroke="#3fb4f0" stroke-width="7" filter="url(#bwSoft)" opacity="0"/><path class="rf-hi" filter="url(#bwSoftS)"/>'+
+  '<path class="rf-run" fill="none" stroke="#b9e2f4" stroke-opacity=".15" stroke-width="1.1" stroke-linecap="round" stroke-dasharray="14 9 5 12"/>'+
+  '<path class="rf-mist" fill="none" stroke="#e4f4fb" stroke-width="9" filter="url(#bwSoft)" opacity=".09"/>'+
+  '<path class="rf-crest" fill="none" stroke="#eef8fc" stroke-width="1" stroke-linecap="round"/></g>';
+ if(part==='back')return '<defs><linearGradient id="'+cls+'-gf" gradientUnits="userSpaceOnUse" x1="0" y1="'+(SEA-110)+'" x2="0" y2="'+(SEA+8)+'"><stop stop-color="#3d82ab"/><stop offset=".22" stop-color="#1c4d70"/><stop offset=".5" stop-color="#0a2236"/><stop offset=".78" stop-color="#030b14"/><stop offset="1" stop-color="#000"/></linearGradient>'+
+  '<linearGradient id="'+cls+'-gn" gradientUnits="userSpaceOnUse" x1="0" y1="'+(SEA-40)+'" x2="0" y2="'+(SEA+30)+'"><stop stop-color="#33627e"/><stop offset=".35" stop-color="#14293a"/><stop offset="1" stop-color="#0b1720"/></linearGradient></defs>'+
+  '<clipPath id="'+cls+'-clip"><path class="rf-clip"/></clipPath><g class="'+cls+' rf-back" style="display:none"><g clip-path="url(#'+cls+'-clip)"><path class="rf-floor" fill="#01050a"/>'+
+  '<path class="rf-glow" fill="none" stroke="#46bff8" stroke-width="12" filter="url(#bwSoft)"/>'+
+  '<path class="rf-core" fill="none" stroke="#bdeeff" stroke-width="1.5" stroke-dasharray="26 14 8 14"/>'+wall('far')+'</g></g>';
+ let d='';const r=seeded(cls.length*31+7);for(let i=0;i<RIFT_DROPS;i++)d+='<circle r="'+n1(.6+Math.pow(r(),3)*2.2)+'" opacity="0"/>';
+ return '<g class="'+cls+' rf-front" style="display:none">'+wall('near')+'<g class="rf-drops" fill="#e6f4fa">'+d+'</g></g>';
+}
+function poly(a){let s='';for(let i=0;i<a.length;i++)s+=(i?' L':'M')+n1(a[i][0])+','+n1(a[i][1]);return s;}
+function lerp2(a,b,k){return [a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];}
+/* P = {path:[[X,Z],...], o:[0..1 각 점의 벌어짐], w:반폭(px), H:[먼 벽 높이, 가까운 벽 높이](px) 또는 각 점 배열 함수,
+        D:깊이(px), t, flow(px/s), glow, op, seed} */
+function paintRift(el,cls,P){
+ const {q}=cacheQ(el);
+ const back=q('.'+cls+'.rf-back'),front=q('.'+cls+'.rf-front');
+ const n=P.path.length,op=P.op==null?1:P.op;
+ let any=false;for(let i=0;i<n;i++)if(P.o[i]>.01){any=true;break;}
+ [back,front].forEach(g=>{if(g){const v=any&&op>0?'':'none';if(g.style.display!==v)g.style.display=v;}});
+ if(!any||op<=0)return;
+ back.setAttribute('opacity',n3(op));front.setAttribute('opacity',n3(op));
+ const c=back._rf||(back._rf={});
+ // 각 점의 법선(바닥 평면, 실제 거리 기준)
+ const L=[[],[]],geo=[];
+ for(let i=0;i<n;i++){
+  const a=P.path[Math.max(0,i-1)],b=P.path[Math.min(n-1,i+1)];
+  let dx=b[0]-a[0],dz=(b[1]-a[1])*R_ZU;const len=Math.hypot(dx,dz)||1;dx/=len;dz/=len;
+  const nx=-dz,nz=dx/R_ZU; // 법선 (X px, Z)
+  const o=P.o[i],p=P.path[i],w=(typeof P.w==='function'?P.w(i):P.w)*o;
+  const hs=typeof P.H==='function'?P.H(i):P.H;
+  for(let s=0;s<2;s++){const sg=s?-1:1,h=hs[s]*o,crW=w+10*o,outW=w+(30+h*.8)*o;
+   L[s].push({in:gp(p[0]+sg*nx*w,p[1]+sg*nz*w,-P.D*o),cr:gp(p[0]+sg*nx*crW,p[1]+sg*nz*crW,h),out:gp(p[0]+sg*nx*outW,p[1]+sg*nz*outW,0),zin:p[1]+sg*nz*w,zout:p[1]+sg*nz*outW,o});}
+  geo.push({fl:gp(p[0],p[1],-P.D*o*.92),o,z:p[1]});
+ }
+ // 어느 쪽이 먼 벽인가 (평균 깊이)
+ const zm=s=>L[s].reduce((m,e)=>m+e.zin,0)/n;
+ const farS=zm(0)>=zm(1)?0:1,sides=[[farS,back.querySelector('.rf-far')],[1-farS,front.querySelector('.rf-near')]];
+ const T=P.t||0,F=P.flow||0;
+ sides.forEach(([s,g])=>{
+  const E=L[s],e=g._e||(g._e={a:g.querySelector('.rf-a'),b:g.querySelector('.rf-b'),hi:g.querySelector('.rf-hi'),ab:g.querySelector('.rf-abyss'),run:g.querySelector('.rf-run'),mist:g.querySelector('.rf-mist'),crest:g.querySelector('.rf-crest')});
+  const IN=E.map(v=>v.in),CR=E.map(v=>v.cr),OUT=E.map(v=>v.out);
+  const inner=poly(IN.concat(CR.slice().reverse()))+' Z',outer=poly(CR.concat(OUT.slice().reverse()))+' Z';
+  // 카메라를 향한 면만 보임: 안쪽 면이 카메라 쪽이면 안쪽(물이 어둠으로 꺼지는 면), 아니면 바깥 비탈
+  const outerBehind=E.reduce((m,v)=>m+(v.zout-v.zin),0)>0;
+  e.a.setAttribute('d',outerBehind?inner:outer);e.b.setAttribute('d','M0,0');
+  e.a.setAttribute('fill','url(#'+cls+(outerBehind?'-gf)':'-gn)'));
+  // 앞면 윗부분의 빛: 마루에서 앞면 바닥 쪽으로 30%
+  const BASE=outerBehind?IN:OUT,HI=CR.map((p,i)=>lerp2(p,BASE[i],outerBehind?.1:.25));
+  // 깊은 틈에서 올라오는 푸른 빛이 안쪽 면 아래를 물들임
+  if(outerBehind){e.ab.setAttribute('d',poly(CR.map((p,i)=>lerp2(p,IN[i],.8))));e.ab.setAttribute('opacity',n3(.4*(P.glow==null?1:P.glow)));}else e.ab.setAttribute('opacity','0');
+  e.hi.setAttribute('d',poly(CR.concat(HI.slice().reverse()))+' Z');
+  e.hi.setAttribute('fill',outerBehind?'#9fd0ea':'#3c6a84');e.hi.setAttribute('opacity',outerBehind?'.28':'.35');
+  // 앞면을 타고 흘러내리는 물줄기
+  let run='';
+  if(!g._rs){const r=seeded((P.seed||3)+s*17);g._rs=Array.from({length:22},()=>({u:r(),l:.35+r()*.45,ph:r()}));}
+  g._rs.forEach(p=>{const fu=((p.u-(F*T)/(R_ZU*2))%1+1)%1,i=Math.min(n-2,Math.floor(fu*(n-1))),k=fu*(n-1)-i;
+   const o=E[i].o;if(o<.15)return;const top=lerp2(CR[i],CR[i+1],k),bot=lerp2(BASE[i],BASE[i+1],k),b2=lerp2(top,bot,p.l);
+   if(Math.abs(b2[1]-top[1])<6)return;run+='M'+n1(top[0])+','+n1(top[1]+2)+' L'+n1(b2[0])+','+n1(b2[1]);});
+  e.run.setAttribute('d',run||'M0,0');e.run.style.strokeDashoffset=n1(-T*55);
+  const crest=poly(CR);e.crest.setAttribute('d',crest);e.mist.setAttribute('d',crest);
+  e.crest.setAttribute('stroke-opacity',outerBehind?'.26':'.2');
+ });
+ // 뒤쪽(먼 벽 · 바닥)은 가까운 쪽 물벽이 수면과 만나는 선 아래로는 앞 수면에 가려짐
+ const nearS=1-farS,NO=L[nearS].map(v=>v.out);
+ const clipD=P.clipBack===false?'M-50,-50 H'+(W+50)+' V'+(H+50)+' H-50 Z':
+  'M'+n1(NO[0][0]-400)+',-50 L'+n1(NO[n-1][0]+400)+',-50 L'+n1(NO[n-1][0]+400)+','+n1(NO[n-1][1])+' '+poly(NO.slice().reverse()).replace('M','L')+' L'+n1(NO[0][0]-400)+','+n1(NO[0][1])+' Z';
+ const cp=el.querySelector('#'+cls+'-clip path');if(cp)cp.setAttribute('d',clipD);
+ // 바닥(어두운 틈)과 바닥의 푸른 궤적
+ const fl=poly(L[0].map(v=>v.in).concat(L[1].map(v=>v.in).reverse()))+' Z';
+ back.querySelector('.rf-floor').setAttribute('d',fl);
+ const gl=poly(geo.map(v=>v.fl));
+ const gg=back.querySelector('.rf-glow'),gc=back.querySelector('.rf-core');
+ gg.setAttribute('d',gl);gc.setAttribute('d',gl);gg.setAttribute('opacity',n3(.7*(P.glow==null?1:P.glow)));gc.setAttribute('opacity',n3(.85*(P.glow==null?1:P.glow)));
+ gc.style.strokeDashoffset=n1(T*F);
+ // 마루에서 흩날리는 물방울
+ const dr=front._d||(front._d=Array.from(front.querySelectorAll('.rf-drops circle')));
+ if(!front._dp){const r=seeded((P.seed||3)+99);front._dp=dr.map(()=>({u:r(),s:r()<.55?farS:1-farS,ph:r(),life:.5+r()*.6,vy:40+r()*80,vx:(r()-.5)*40}));}
+ dr.forEach((d,j)=>{const p=front._dp[j],k=((T/p.life+p.ph)%1),cyc=Math.floor(T/p.life+p.ph),u=(p.u+cyc*.37)%1;
+  const i=Math.min(n-2,Math.floor(u*(n-1))),f=u*(n-1)-i,E=L[p.s],o=E[i].o;
+  if(o<.2){d.setAttribute('opacity','0');return;}
+  const c0=lerp2(E[i].cr,E[i+1].cr,f),z=(geo[i].z+geo[i+1].z)/2,sc=1/Math.max(.2,z),kk=k*p.life;
+  d.setAttribute('cx',n1(c0[0]+(p.vx-F*.5)*kk*sc));d.setAttribute('cy',n1(c0[1]+(-p.vy*kk+300*kk*kk)*sc));d.setAttribute('r',n1((.6+p.ph*1.8)*Math.min(2.4,sc)));
+  d.setAttribute('opacity',n3(.75*o*(1-k)));});
+}
+
 window.BlueWhaleV3Kit={W,H,SEA,clamp,outC,inC,inOut,seg,bell,lerp,n1,n3,TAU,RAD,seeded,esc,warp,mt,apply,
  marlinDefs,marlinDefs2,commonDefs,sky,sea,nearMist,boatMarkup,columns,curtain,paintCurtain,plumeMarkup,paintPlume,foam,paintFoam,whaleRef,setRef,drops,dropParams,paintDrops,cacheQ,ambient,boatPose,lamp,veil,caption,setUse,
- BOAT,BOAT_S,HARPOON,EYE};
+ BOAT,BOAT_S,HARPOON,EYE,gp,riftMarkup,paintRift,R_HOR,R_CAM,R_ZU};
 })();
