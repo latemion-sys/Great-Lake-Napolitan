@@ -2,7 +2,7 @@
    ① 수면의 절단   : 조우 화면 (사냥 / 회피)
    ② 초고속 관통   : 동전 전투 1승
    └ 꿰뚫는 것에 꿰뚫린 것들 : 조우 글 → 인어 무리와 동전 전투 2승
-   ③ 푸른 항로 추적 : ← → 중 무작위 방향을 0.7초 안에 연타해 게이지를 채움. 2번 놓치면 고래가 달아남(사냥 실패)
+   ③ 푸른 항로 추적 : ← → 중 무작위 방향을 1.3초 안에 연타해 게이지를 채움. 2번 놓치면 고래가 달아남(사냥 실패)
    ④ 관통 회피     : 0.5~2초 중 무작위 순간에 물살에서 주둥이가 솟을 때 회피(스페이스·화면 누르기) × 3.
                      너무 이르거나 늦으면 꿰뚫리며 사망
    ⑤ 최후의 교차   : 단 한 번의 작살. 좁혀 오는 고리가 교차점에 겹칠 때 던짐. 빗나가면 꿰뚫리며 사망
@@ -11,9 +11,9 @@
 'use strict';
 const BLUE=1;
 const labels=['수면의 절단','초고속 관통','푸른 항로 추적','관통 회피','최후의 교차'];
-const CHASE_NEED=16,CHASE_WIN=0.7,CHASE_MISS=2;
-const EVADE_NEED=3,EVADE_APPROACH=0.9,EVADE_WIN=0.55;
-const FINAL_CLOSE=0.55,FINAL_WIN=0.12,FINAL_FLIGHT=0.4;
+const CHASE_NEED=12,CHASE_WIN=1.3,CHASE_MISS=2;
+const EVADE_NEED=3,EVADE_APPROACH=0.9,EVADE_WIN=0.7;
+const FINAL_CLOSE=0.85,FINAL_WIN=0.3,FINAL_FLIGHT=0.4;
 const G=window.BlueHuntGame=window.BlueHuntGame||{mode:null};
 
 function isBlueBattle(){const b=state.battle;return state.scene==='battle'&&b&&b.type==='whale'&&b.index===BLUE;}
@@ -46,7 +46,7 @@ function syncGame(){
   if(mode==='chase')Object.assign(G,{need:CHASE_NEED,win:CHASE_WIN,hits:0,misses:0,dir:null,pauseUntil:1.2,promptAt:null,lastHitAt:null,lastMissAt:null});
   if(mode==='evade')Object.assign(G,{need:EVADE_NEED,ok:0,round:-1,phase:'ready',nextAt:1.0});
   if(mode==='final')Object.assign(G,{phase:'wait',breachAt:1.2+Math.random()*1.4,thrownAt:null,hit:null});
-  if(mode==='final'){G.ti=G.breachAt+FINAL_CLOSE;G.th=G.ti+FINAL_FLIGHT;}
+  if(mode==='final'){G.win=FINAL_WIN;G.ti=G.breachAt+FINAL_CLOSE;G.th=G.ti+FINAL_FLIGHT;}
  }
  if(!mode&&G.mode&&!G.timer){G.mode=null;G.ref=null;}
 }
@@ -174,7 +174,7 @@ function statusTags(){return tag('선체 '+state.hull+' / 100')+' '+tag('정신�
 function chasePanel(){
  return '<div class="inset warning bwg-panel"><div class="small">재앙의 고래 · 모든 것을 뚫는 푸른 고래 · 3단계</div><h2>푸른 항로 추적</h2>'+
   '<p>고래가 남긴 빛나는 물길을 따라 전속력으로 쫓습니다. 고래가 꺾는 쪽으로 키를 돌리십시오.</p><p>'+statusTags()+'</p>'+
-  '<div class="coinpanel bwg-chase"><div class="small">화면에 뜬 방향(← / →)을 0.7초 안에 누르십시오 · 게이지를 채우면 통과 · 2번 놓치면 고래가 달아남</div>'+
+  '<div class="coinpanel bwg-chase"><div class="small">화면에 뜬 방향(← / →)을 1.3초 안에 누르십시오 · 게이지를 채우면 통과 · 2번 놓치면 고래가 달아남</div>'+
   '<div class="bwg-meter"><i id="bwgGauge"></i></div>'+
   '<p>추적 <b id="bwgCount">'+(G.hits||0)+' / '+CHASE_NEED+'</b> <span class="muted">놓침 <b id="bwgMiss">'+(G.misses||0)+' / '+CHASE_MISS+'</b></span></p>'+
   '<div class="bwg-pad"><button type="button" class="primary bwg-dir" data-bwdir="L">←</button><button type="button" class="primary bwg-dir" data-bwdir="R">→</button></div>'+
