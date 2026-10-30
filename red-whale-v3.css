@@ -1,0 +1,26 @@
+/* 모든 것을 말리는 붉은 고래 · 미니게임 표시 */
+.rw3-scene.rwg-on{cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.rw3-scene[data-stage="2"].rwg-on{cursor:crosshair}
+.rw3-scene .rwg-hud{position:absolute;inset:0;z-index:6;pointer-events:none}
+.rw3-scene .rwg-hint{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);padding:5px 12px;border-radius:20px;background:#12040acc;border:1px solid #ff9a8a55;color:#fbe6e0;font-size:12px;letter-spacing:.04em;white-space:nowrap;transition:border-color .1s,box-shadow .1s}
+.rw3-scene .rwg-hint:empty{display:none}
+.rw3-scene .rwg-hint.now{border-color:#ffd59a;color:#fff1d8;box-shadow:0 0 16px #ff7a4a88}
+.rw3-scene .rwg-verdict{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:30px;font-weight:700;letter-spacing:.3em;opacity:0;transition:opacity .2s;white-space:nowrap}
+.rw3-scene .rwg-verdict.on{opacity:1}
+.rw3-scene .rwg-verdict.good{color:#fff0e4;text-shadow:0 0 18px #ff8a5a,0 2px 8px #000}
+.rw3-scene .rwg-verdict.bad{color:#f3c9c9;text-shadow:0 0 16px #8a2030,0 2px 8px #000}
+.rw3-scene .rwg-pips{position:absolute;top:12px;right:16px;display:flex;gap:6px}
+.rw3-scene .rwg-pips i{width:24px;height:8px;border-radius:4px;background:#12040acc;border:1.5px solid #ffc8b8aa}
+.rw3-scene .rwg-pips i.good{background:#ffb08a;border-color:#ffb08a;box-shadow:0 0 8px #ff6a3a}
+.rw3-scene .rwg-count{position:absolute;top:12px;right:16px;padding:3px 10px;border-radius:12px;background:#12040acc;border:1px solid #ff9a8a55;color:#fbe6e0;font-size:12px}
+.rw3-scene .rwg-count:empty{display:none}
+.rw3-scene .rwg-bar,.rw3-scene .rwg-time{position:absolute;left:50%;transform:translateX(-50%);width:44%;border-radius:6px;background:#12040acc;overflow:hidden}
+.rw3-scene .rwg-bar{top:38px;height:12px;border:1.5px solid #ffc8b888}
+.rw3-scene .rwg-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8a0c1e,#ff6a3a);box-shadow:0 0 10px #ff6a3a}
+.rw3-scene .rwg-bar.hot i{background:linear-gradient(90deg,#ff6a3a,#ffd29a)}
+.rw3-scene .rwg-time{top:56px;height:4px;border:1px solid #ffc8b844}
+.rw3-scene .rwg-time i{display:block;height:100%;width:100%;background:#ffe2c8}
+.rw3-scene:not([data-stage="1"]) .rwg-bar,.rw3-scene:not([data-stage="1"]) .rwg-time,.rw3-scene:not([data-stage="1"]) .rwg-pips{display:none}
+.rw3-scene:not([data-stage="2"]) .rwg-count{display:none}
+.rwg-panel .rwg-big{font-size:17px;padding:14px 26px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+@media(max-width:620px){.rw3-scene .rwg-hint{font-size:10px;bottom:36px;white-space:normal;width:84%;text-align:center}.rw3-scene .rwg-verdict{font-size:22px}.rw3-scene .rwg-bar,.rw3-scene .rwg-time{width:58%}.rw3-scene .rwg-bar{top:30px}.rw3-scene .rwg-time{top:46px}.rw3-scene .rwg-pips,.rw3-scene .rwg-count{top:9px;right:12px}}

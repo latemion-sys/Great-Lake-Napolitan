@@ -114,7 +114,8 @@ function paintGroundArm(el,cls,o,groundY,vis){
  [hole,lip].forEach(e=>{e.setAttribute('cx',n1(o.x));e.setAttribute('cy',n1(groundY));e.setAttribute('rx',n1((o.w||42)*.85));e.setAttribute('ry',n1((o.w||42)*.22));});
  hole.setAttribute('opacity',n3(vis*.9));lip.setAttribute('opacity',n3(vis*.6));
  g.style.opacity=vis>0?'1':'0';
- if(vis>0)paintArm(g,o);
+ if(vis>0)return paintArm(g,o);
+ return null;
 }
 // 손목이 target을 향하도록 위팔 각도를 돌림
 function aimArm(o,target,k){
@@ -380,25 +381,195 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
  }
 };
 
+/* =========================================================
+   미니게임 표시 (red-whale-gameplay-v023.js가 window.RedHuntGame을 움직임)
+   ② 연타로 조이는 팔 떨쳐내기 · ③ 솟는 팔을 눌러 쳐내기 · ⑤ 꼬리가 열리는 순간에 작살 닿게 던지기
+   ========================================================= */
+const GAMECAP={1:'팔들이 배를 조여 옵니다. 연타해서 떨쳐 내십시오.',2:'솟아오르는 팔의 손을 눌러 쳐내십시오.',4:'꼬리가 열리는 순간에 작살이 닿도록 던지십시오.'};
+function rhud(el){const {q}=cacheQ(el);return {hint:q('.rwg-hint'),verdict:q('.rwg-verdict'),pips:q('.rwg-pips'),bar:q('.rwg-bar i'),time:q('.rwg-time i'),count:q('.rwg-count')};}
+function setTxt(n,t){if(n&&n.textContent!==t)n.textContent=t;}
+function setVerdict(n,t,cls){if(!n)return;setTxt(n,t);const c='rwg-verdict'+(t?' on '+(cls||''):'');if(n.className!==c)n.className=c;}
+function setPips(n,total,filled){if(!n)return;const k=total+'/'+filled;if(n.dataset.k===k)return;n.dataset.k=k;let h='';for(let i=0;i<total;i++)h+='<i class="'+(i<filled?'good':'')+'"></i>';n.innerHTML=h;}
+
+/* ② 연타: 게이지가 낮을수록 팔이 더 조임 */
+function mashGame(el,t,tr,g){
+ const {q,qa}=cacheQ(el);
+ paintBed(el,tr,1);
+ const okAge=g.okAt!=null?t-g.okAt:-1,failAge=g.failAt!=null?t-g.failAt:-1;
+ const recoil=okAge>=0?bell(okAge,0,.25,.75,1.2):0;
+ const regrab=okAge>=0?seg(okAge,.7,1.2):1;
+ const gauge=g.gauge||0,squeeze=clamp(1-gauge/100)*(1-recoil)+(failAge>=0&&failAge<1?.4*(1-failAge):0);
+ wither(el,.55+.45*clamp((g.pressTotal||0)/80+(1-gauge/100)*.3));
+ deep(el,0);
+ const shake=Math.sin(tr*47)*squeeze*1.8+(failAge>=0&&failAge<.6?Math.sin(tr*70)*4*(1-failAge/.6):0);
+ const tw=boatOnBed(el,tr,1,300,{dy:-20*squeeze+shake,dr:-6*squeeze+shake*.8,lamp:.1,arm:g.lastPress!=null&&t-g.lastPress<.12?[40,-34]:[37,-30]});
+ const gunL=tw([-40,-8]),gunR=tw([40,-8]);
+ ARMS2.forEach((A,i)=>{
+  const rise=(g.phase==='ready'?seg(t,.2+i*.15,.9+i*.15):1)*(1-recoil*.55)*(.45+.55*regrab);
+  const gr=clamp(A.grip*(.4+.6*squeeze)+.1*Math.sin(tr*2+i));
+  const o=armPose(A.base,rise,{a:A.a+Math.sin(tr*1.3+i)*3+(A.side>0?-1:1)*recoil*30,e:A.e-squeeze*10*A.side,wr:A.wr,L1:A.L1,L2:A.L2,w:A.w,side:A.side,grip:gr});
+  o.y-=squeeze*12;
+  if(i<2)aimArm(o,i===0?gunL:gunR,(1-recoil)*clamp(rise*1.2));
+  paintGroundArm(el,'ra'+i,o,A.base[1],rise>0?1:0);
+ });
+ if(!mashGame._mp)mashGame._mp=dropParams(40,12,-150,-30,90,260);
+ paintDrops(qa('.rw-mudspray circle'),mashGame._mp,300,SEA+40,okAge,320,520);
+ const u=rhud(el);
+ u.bar.style.width=n1(gauge)+'%';u.bar.parentNode.classList.toggle('hot',gauge>75);
+ const left=g.phase==='go'?clamp((g.deadline-t)/(g.limit||4.5)):g.phase==='ready'?1:0;
+ u.time.style.width=n1(100*left)+'%';
+ setPips(u.pips,g.need||2,g.round||0);
+ setVerdict(u.verdict,okAge>=0&&okAge<1?'떨쳐냄':failAge>=0&&failAge<1.2?'조여듦':g.done==='ok'?'떨쳐냄':'',okAge>=0||g.done==='ok'?'good':'bad');
+ setTxt(u.hint,g.phase==='ready'?'준비 · 스페이스 / 화면 누르기를 연타':g.phase==='go'?'연타! · 게이지를 끝까지 채우십시오':'');
+ caption(el,[[0,GAMECAP[1]]],0);
+ veil(el,t<.5?1-t/.5:0);
+}
+
+/* ③ 팔 쳐내기: 8개 자리 중 무작위로 솟아 배를 내리침 */
+const PSLOTS=[
+ {base:[80,SEA+62],side:1,hit:[248,SEA+46]},{base:[150,SEA+112],side:1,hit:[268,SEA+62]},
+ {base:[214,SEA+30],side:1,hit:[286,SEA+26]},{base:[30,SEA+22],side:1,hit:[236,SEA+24]},
+ {base:[462,SEA+112],side:-1,hit:[352,SEA+62]},{base:[540,SEA+52],side:-1,hit:[372,SEA+40]},
+ {base:[620,SEA+92],side:-1,hit:[392,SEA+56]},{base:[700,SEA+30],side:-1,hit:[382,SEA+20]}
+];
+function parryGame(el,t,tr,g){
+ const {q,qa}=cacheQ(el);
+ paintBed(el,tr,1);wither(el,1);deep(el,0);
+ const W=g.wave,pos=g.armPos||(g.armPos={});
+ let struckK=0;
+ PSLOTS.forEach((P,i)=>{
+  const a=W&&W.arms.find(x=>x.slot===i);
+  const ring=q('.rwg-t'+i);
+  if(!a){paintGroundArm(el,'pa'+i,{x:P.base[0],w:42},P.base[1],0);ring.setAttribute('opacity','0');delete pos[i];return;}
+  const p=(t-W.start)/W.W;
+  let rise=seg(p,0,.3),reach=inC(seg(p,.3,1)),back=0,vis=1;
+  if(a.parriedAt!=null){back=seg(t,a.parriedAt,a.parriedAt+.6);vis=1-seg(t,a.parriedAt+.45,a.parriedAt+.6);reach*=1-back;}
+  else if(W.struckAt!=null){const s=t-W.struckAt;reach=1+.15*bell(s,0,.1,.25,.5);back=seg(s,.6,1.2);vis=1-seg(s,1.0,1.2);if(s<.5)struckK=Math.max(struckK,1-s/.5);}
+  const raised=[P.base[0]+P.side*50,P.base[1]-250];
+  const tgt=[lerp(raised[0],P.hit[0],reach),lerp(raised[1],P.hit[1],reach)];
+  const o=armPose([P.base[0],P.base[1]+back*200],rise*(1-back*.6),{a:P.side>0?-60:-120,e:P.side*40,wr:P.side*(15+reach*25),L1:150,L2:140,w:42,side:P.side,grip:.15+reach*.5,spread:1.2-reach*.4});
+  aimArm(o,tgt,1);
+  const A=paintGroundArm(el,'pa'+i,o,P.base[1],vis);
+  // 누를 자리: 손바닥
+  if(A&&A.hand){pos[i]=A.hand;
+   const live=a.parriedAt==null&&W.struckAt==null&&rise>.2;
+   ring.setAttribute('transform','translate('+n1(A.hand[0])+' '+n1(A.hand[1])+')');
+   ring.setAttribute('opacity',live?'1':'0');
+   const rem=clamp(1-p),c=ring.querySelector('.rt-ring');c.style.strokeDashoffset=n1(214*(1-rem));c.setAttribute('stroke',rem<.3?'#ff7a5a':'#ffe2c8');
+  }else{ring.setAttribute('opacity','0');delete pos[i];}
+  // 쳐낸 섬광
+  const fl=q('.rwg-f'+i);
+  if(a.parriedAt!=null&&pos[i]){const k=t-a.parriedAt;fl.setAttribute('cx',n1(pos[i][0]));fl.setAttribute('cy',n1(pos[i][1]));fl.setAttribute('r',n1(20+50*clamp(k*2.5)));fl.setAttribute('opacity',n3(Math.max(0,1-k/.4)));}
+  else fl.setAttribute('opacity','0');
+ });
+ const shake=struckK*Math.sin(tr*60)*4;
+ const parrying=W&&W.arms.some(x=>x.parriedAt!=null&&t-x.parriedAt<.25);
+ boatOnBed(el,tr,1,305,{dr:shake,dx:shake,arm:parrying?[42,-36]:[37,-30],lamp:struckK*.3});
+ const u=rhud(el);
+ const total=g.total||15,done=g.cleared||0;
+ setTxt(u.count,'격퇴 '+(g.parried||0)+' · 남은 공격 '+(total-done));
+ const n=W?W.arms.length:0;
+ setVerdict(u.verdict,W&&W.clearAt!=null&&t-W.clearAt<.7?'격퇴':W&&W.struckAt!=null&&t-W.struckAt<1.1?'맞음':'',W&&W.clearAt!=null?'good':'bad');
+ setTxt(u.hint,!W?'준비 · 솟아오르는 팔의 손을 누르십시오':n===1?'팔 1개 · 손을 누르십시오':'팔 '+n+'개 · 전부 쳐내십시오');
+ caption(el,[[0,GAMECAP[2]]],0);
+ veil(el,t<.5?1-t/.5:0);
+}
+
+/* ⑤ 꼬리: 리듬에 맞춰 열리고 닫힘. 작살이 날아가는 동안 열려 있어야 꽂힘 */
+function tailGame(el,t,tr,g){
+ const {q,qa}=cacheQ(el);
+ if(g.hitAt!=null&&t>=g.hitAt){S4.paint(el,4.45+(t-g.hitAt),tr);hudTail(el,t,g);return;}
+ const TX=150,level=1;
+ paintBed(el,tr,level);wither(el,1);
+ q('.rw-hd').style.display='none';
+ const rise=outC(seg(t,0,1.2));
+ const open=g.openness?g.openness(t):0,trem=g.tremble?g.tremble(t):0;
+ const tg=q('.rw-tailg'),ty=SEA+60+(1-rise)*300;
+ const sway=Math.sin(tr*1.1)*14+Math.sin(tr*31)*trem*3;
+ tg.setAttribute('transform','translate('+TX+' '+n1(ty)+') rotate('+n1(Math.sin(tr*1.3)*2)+') scale(.85)');tg.style.opacity='1';
+ const tipL=paintTail(tg.querySelector('.rw-tail'),{h:210,open,pulse:.5+.5*Math.sin(tr*7)+trem*.6,sway,limp:0,t:tr});
+ const ang0=Math.sin(tr*1.3)*2*RAD,c0=Math.cos(ang0),s0=Math.sin(ang0);
+ const core=[TX+.85*(tipL[0]*c0-tipL[1]*s0),ty+.85*(tipL[0]*s0+tipL[1]*c0)];
+ g.core=core;
+ q('.rw-stuck').setAttribute('opacity','0');
+ const th=q('.rw-thole');th.setAttribute('cx',TX);th.setAttribute('cy',n1(SEA+60));th.setAttribute('opacity','.85');
+ [[0,[700,SEA+120],-118,-50,-1],[1,[880,SEA+80],-108,-55,-1]].forEach(([i,b,a,e,sd])=>{
+  paintGroundArm(el,'ka'+i,armPose(b,1,{a:a+Math.sin(tr*1.2+i)*4,e,wr:sd*20,L1:160,L2:150,w:44,side:sd,grip:.3,spread:1.2}),b[1],1);
+ });
+ // 작살잡이: 선미 쪽으로 돌아서서 겨눔 → 던짐
+ const F=g.flight,T0=F?F.at:null,thrown=F&&t>=T0;
+ const recover=F&&F.hit===false?seg(t,F.arrive+.4,F.arrive+.9):0;
+ const armEnd=thrown&&recover<1?[16,-26]:[17,-36];
+ const tw=boatOnBed(el,tr,level,380,{arm:armEnd,lamp:.12,dr:thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0});
+ const hand=tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=40;
+ const hp=q('.bw-harpoon');let pos,ang,show=1;
+ if(!thrown||recover>=1){const a=180+40;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=F&&F.hit===false?recover:1;}
+ else if(t<F.arrive){const u=(t-T0)/(F.arrive-T0),e=u;const c=F.target||core;pos=[p0[0]+(c[0]-p0[0])*e,p0[1]+(c[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((c[1]-p0[1])-4*LIFT*(1-2*e),c[0]-p0[0])/RAD;}
+ else{ // 닫힌 꽃잎에 튕겨 떨어짐
+  const s=t-F.arrive,c=F.target||core;pos=[c[0]+60*s,c[1]-120*s+520*s*s];ang=-150+s*600;show=pos[1]<SEA+60?1:0;}
+ hp.setAttribute('opacity',String(show));
+ hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
+ const anchor=tw([-40,-9]),ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
+ const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1((tail[0]+anchor[0])/2)+','+n1((tail[1]+anchor[1])/2+40)+' '+n1(tail[0])+','+n1(tail[1]));
+ rope.setAttribute('opacity',thrown&&show?'.9':'0');
+ // 튕김 불꽃
+ const fl=q('.bw-flash');
+ if(F&&F.hit===false&&t>=F.arrive&&t<F.arrive+.4){const c=F.target||core;fl.setAttribute('cx',n1(c[0]));fl.setAttribute('cy',n1(c[1]));fl.setAttribute('r','36');fl.setAttribute('opacity',n3(.7*(1-(t-F.arrive)/.4)));}
+ else fl.setAttribute('opacity','0');
+ q('.rw-sparks').setAttribute('opacity','0');
+ qa('.rw-blood circle,.rw-mud circle').forEach(c=>c.setAttribute('opacity','0'));
+ q('.rw-root').setAttribute('transform','');
+ hudTail(el,t,g);
+ veil(el,t<.5?1-t/.5:0);
+}
+function hudTail(el,t,g){
+ const u=rhud(el),F=g.flight;
+ setVerdict(u.verdict,F&&t>=F.arrive&&t<F.arrive+1.2?(F.hit?'명중':'튕겨 나감'):'',F&&F.hit?'good':'bad');
+ setTxt(u.hint,g.hitAt!=null?'':F&&t<F.arrive?'':t<1.2?'꼬리가 솟아오릅니다':'꼬리가 열리는 순간에 닿도록 · 스페이스 / 화면 누르기');
+ u.hint.classList.toggle('now',!!(g.tremble&&g.tremble(t)>.2&&!(F&&t<F.arrive)));
+ caption(el,[[0,GAMECAP[4]]],0);
+}
+
+// 게임 화면용 장면 구성
+const GBUILD={
+ 1:()=>scenery()+bed()+steam(10)+'<g class="rw-backarms">'+groundArm('ra2')+groundArm('ra3')+'</g>'+rwBoat()+'<g class="rw-frontarms">'+groundArm('ra0')+groundArm('ra1')+'</g>'+drops('rw-mudspray',40,9,'#5a2a22')+nearMist(),
+ 2:()=>{let arms='',tg='',fl='';
+  PSLOTS.forEach((_,i)=>{arms+=groundArm('pa'+i);
+   tg+='<g class="rwg-t'+i+'" opacity="0"><circle r="40" fill="#1a0206" fill-opacity=".25" stroke="#ffe2c8" stroke-opacity=".35" stroke-width="2"/><circle class="rt-ring" r="34" fill="none" stroke="#ffe2c8" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="214" transform="rotate(-90)"/><circle r="5" fill="#ffe2c8"/></g>';
+   fl+='<circle class="rwg-f'+i+'" r="30" fill="url(#bwFlash)" opacity="0" style="mix-blend-mode:screen"/>';});
+  const order=[3,0,2,1,7,5,6,4];
+  return scenery()+bed()+steam(8)+'<g>'+order.slice(0,4).map(i=>groundArm('pa'+i)).join('')+'</g>'+rwBoat()+'<g>'+order.slice(4).map(i=>groundArm('pa'+i)).join('')+'</g>'+fl+'<g class="rwg-targets">'+tg+'</g>'+nearMist();},
+ 4:()=>S4.build()
+};
+const GAMEPAINT={1:mashGame,2:parryGame,4:tailGame};
+const GAMEMODE={1:'mash',2:'parry',4:'tail'};
+
 const SCENES=[S0,S1,S2,S3,S4];
-function html(stage){
- const i=Math.max(0,Math.min(4,Math.floor(+stage||0))),S=SCENES[i];
+function html(stage,opts){
+ const i=Math.max(0,Math.min(4,Math.floor(+stage||0))),S=SCENES[i],game=!!(opts&&opts.game&&GAMECAP[i]);
  const svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" preserveAspectRatio="xMidYMid slice">'+
-  '<defs>'+commonDefs()+headDefs()+tailDefs()+redDefs()+'</defs>'+S.build()+
+  '<defs>'+commonDefs()+headDefs()+tailDefs()+redDefs()+'</defs>'+(game?GBUILD[i]():S.build())+
   '<rect class="bw-veil" width="'+W+'" height="'+H+'" fill="#030103" opacity="1"/></svg>';
- return '<div class="pallid-cine-v2 rw3-scene" data-stage="'+i+'" role="img" aria-label="'+esc(NAME+' · '+(i+1)+'단계 '+S.title)+'">'+svg+
+ return '<div class="pallid-cine-v2 rw3-scene'+(game?' rwg-on':'')+'" data-stage="'+i+'"'+(game?' data-game="1"':'')+' role="img" aria-label="'+esc(NAME+' · '+(i+1)+'단계 '+S.title)+'">'+svg+
   '<span class="cine-top" aria-hidden="true">'+esc(NAME+' · '+S.title)+'</span>'+
-  '<span class="cine-bottom" aria-hidden="true">'+esc(S.caps[0][1])+'</span>'+
+  '<span class="cine-bottom" aria-hidden="true">'+esc(game?GAMECAP[i]:S.caps[0][1])+'</span>'+
+  (game?'<div class="rwg-hud" aria-hidden="true"><span class="rwg-hint"></span><span class="rwg-verdict"></span><span class="rwg-pips"></span><span class="rwg-count"></span>'+
+   '<span class="rwg-bar"><i></i></span><span class="rwg-time"><i></i></span></div>':'')+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
 }
 const API=window.RedWhaleV3={html,stages:SCENES.map(s=>s.title),replayToken:0};
-let start=0,lastSeen=0,seenTok=-1,seenStage=-1;
+let start=0,lastSeen=0,seenTok=-1,seenStage=-1,seenGame=false;
 function frame(now){
  const el=document.querySelector('.rw3-scene');
  if(el&&el.isConnected){
-  const st=+el.dataset.stage,S=SCENES[st];
-  if(S){
-   if(now-lastSeen>900||API.replayToken!==seenTok||st!==seenStage){start=now;seenTok=API.replayToken;seenStage=st;}
+  const st=+el.dataset.stage,S=SCENES[st],g=window.RedHuntGame;
+  const isGame=!!(el.dataset.game&&g&&g.t0&&g.mode===GAMEMODE[st]);
+  if(S&&isGame){
+   const t=(now-g.t0)/1000;lastSeen=now;seenGame=true;seenStage=st;
+   try{GAMEPAINT[st](el,t,t,g);}catch(e){if(!el._rwErr){el._rwErr=1;console.warn('붉은 고래 미니게임',e);}}
+  }else if(S){
+   if(now-lastSeen>900||API.replayToken!==seenTok||st!==seenStage||seenGame){start=now;seenTok=API.replayToken;seenStage=st;seenGame=false;}
+   if(API.resume&&API.resume.stage===st&&!el.dataset.game){start=API.resume.start;API.resume=null;}
    if(el.closest('.is-paused'))start+=now-lastSeen;
    lastSeen=now;
    let tr=(now-start)/1000;
