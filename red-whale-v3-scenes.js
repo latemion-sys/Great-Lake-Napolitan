@@ -259,7 +259,7 @@ const S2={title:'여덟 팔 격퇴',loop:8.6,
    ④ 붉은 눈의 머리 — 문어 머리가 배 뒤에서 떠오르고 붉은 눈을 뜸
    ========================================================= */
 const S3={title:'붉은 눈의 머리',loop:8.5,
- caps:[[0,'갈라진 바닥 아래가 새빨갛게 달아오릅니다.'],[1.2,'거대한 몸이 바닥을 뚫고 솟아오릅니다.'],[3.0,'깊이 박힌 작은 눈이 배를 내려다봅니다. 가로로 찢어진 동공 속에서 붉은 빛이 탑니다.'],[5.6,'굵은 팔뿌리가 진흙을 헤치며 머리를 밀어 올립니다.']],
+ caps:[[0,'갈라진 바닥 아래가 새빨갛게 달아오릅니다.'],[1.2,'거대한 몸이 바닥을 뚫고 솟아오릅니다.'],[3.0,'깊이 박힌 작은 눈이 배를 내려다봅니다. 가로로 찢어진 동공 속에서 붉은 빛이 탑니다.'],[5.6,'거대한 머리가 진흙을 밀어내며 배 쪽으로 몸을 기울입니다.']],
  build(){
   return scenery()+
    '<g clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g></g>'+
@@ -272,11 +272,11 @@ const S3={title:'붉은 눈의 머리',loop:8.5,
   paintBed(el,tr,1);wither(el,1);
   const rise=outC(seg(t,.9,3.2)),lunge=inOut(seg(t,5.8,7.4));
   deep(el,bell(t,0,.4,1.4,2.6),600,SEA+60);
-  const hx=600,hy=SEA+250-350*rise+lunge*60,hs=.56+lunge*.3;
+  const hx=600,hy=SEA+300-353*rise+lunge*40,hs=.66+lunge*.22;
   const hd=q('.rw-hd');hd.setAttribute('transform','translate('+n1(hx-lunge*150)+' '+n1(hy+Math.sin(tr*.9)*4)+') scale('+n3(hs)+')');
   const look=[clamp((300-hx)/40,-9,0),6];
   const blink=t>4.6&&t<4.8?1-Math.sin((t-4.6)/.2*Math.PI):1;
-  paintHead(hd,tr,{wet:rise*(1-seg(t,3.4,6.5)),open:seg(t,2.6,3.2)*blink,dilate:1-.45*seg(t,3.4,4.2)+.6*lunge,look,glow:seg(t,2.6,3.4)+lunge*.5});
+  paintHead(hd,tr,{open:seg(t,2.6,3.2)*blink,dilate:1-.45*seg(t,3.4,4.2)+.6*lunge,look,glow:seg(t,2.6,3.4)+lunge*.5});
   // 양옆의 팔
   [[0,[130,SEA+90],-70,55,1],[1,[850,SEA+90],-112,-55,-1]].forEach(([i,b,a,e,sd])=>{
    const rr=seg(t,.4+i*.3,1.6+i*.3);
@@ -323,7 +323,7 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
   // 머리: 바닥 아래로 가라앉음
   const hsink=inOut(seg(t,0,1.6)),hd=q('.rw-hd');
   hd.style.display=hsink>=1?'none':'';
-  if(hsink<1){hd.setAttribute('transform','translate(600 '+n1(SEA-100+hsink*420)+') scale(.6)');paintHead(hd,tr,{open:1-hsink,glow:1-hsink,look:[-6,5]});}
+  if(hsink<1){hd.setAttribute('transform','translate(600 '+n1(SEA-53+hsink*420)+') scale(.66)');paintHead(hd,tr,{open:1-hsink,glow:1-hsink,look:[-6,5]});}
   // 꼬리: 선미 뒤에서 솟아 열림 → 작살 → 경련 → 무너짐
   const rise=outC(seg(t,1.5,3.0)),open=inOut(seg(t,3.0,3.6))*(1-.75*seg(t,HIT+.1,HIT+.6));
   const hit=t-HIT,limp=seg(t,HIT+.8,HIT+2.2),fall=inOut(seg(t,HIT+1.2,HIT+3.2));

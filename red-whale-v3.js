@@ -139,7 +139,7 @@ function paintArm(g,o){
 const MANTLE='M-150,-24 C-206,-80 -238,-168 -214,-244 C-200,-288 -176,-302 -156,-328 C-114,-388 -32,-412 40,-398 C98,-388 134,-362 162,-328 C188,-298 216,-282 224,-226 C238,-140 212,-70 160,-24 Z';
 const HEAD='M-186,-4 C-206,-44 -176,-78 -124,-82 C-62,-90 62,-90 124,-82 C176,-78 206,-44 186,-4 C176,42 134,74 72,88 C30,96 -30,96 -72,88 C-134,74 -176,42 -186,-4 Z';
 const EYES=[[-134,-8],[134,-8]];
-const ROOTS=(()=>{const r=seeded(33);return [-150,-92,-34,34,92,150].map((x,i)=>({x,y:58+Math.abs(x)*.12,len:150+r()*60,w:74-Math.abs(x)*.12,ang:90+x*.42+(r()-.5)*8,ph:r()*TAU}));})();
+const ROOTS=(()=>{const r=seeded(33);return [-150,-92,-34,34,92,150].map((x,i)=>({x,y:58+Math.abs(x)*.12,len:150+r()*60,w:74-Math.abs(x)*.12,ang:90+x*.26+(r()-.5)*8,ph:r()*TAU}));})();
 function headDefs(){
  return ''+
  '<linearGradient id="rwArmSkin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d42638"/><stop offset=".45" stop-color="#8a0c1e"/><stop offset="1" stop-color="#2a020a"/></linearGradient>'+
@@ -227,8 +227,8 @@ function paintHead(g,t,o){
  const c=g._rh||(g._rh={roots:Array.from(g.querySelectorAll('.rh-root')),eyes:Array.from(g.querySelectorAll('.rw-eye')),weeds:Array.from(g.querySelectorAll('.rh-weed')),run:g.querySelector('.rh-runoff')});
  c.roots.forEach(n=>{
   const f=ROOTS[+n.dataset.i],sp=[],ws=[],N=10;let ang=f.ang,p=[f.x,f.y];sp.push(p);
-  for(let j=1;j<=N;j++){const u=j/N;ang+=(Math.sin(t*.9+f.ph+u*2.5)*5*(1-limp)+(f.x<0?1:-1)*u*4.5+limp*(f.x<0?-2:2));p=pol(p,ang,f.len/N);sp.push(p);}
-  for(let j=0;j<=N;j++)ws.push(f.w*(1-Math.pow(j/N,.8)*.88));
+  for(let j=1;j<=N;j++){const u=j/N;ang+=(Math.sin(t*.9+f.ph+u*2.5)*4*(1-limp)+(f.x<0?1:-1)*u*3+limp*(f.x<0?-2:2));p=pol(p,ang,f.len/N);sp.push(p);}
+  for(let j=0;j<=N;j++)ws.push(f.w*(1-j/N*.75));
   const T=tube(sp,ws);
   const b=n._b||(n._b=n.querySelector('.rr-b')),rm=n._r||(n._r=n.querySelector('.rr-r'));
   b.setAttribute('d',T.d);rm.setAttribute('d',catmull((f.x<0?T.R:T.L).slice(1,-2)));
