@@ -488,7 +488,7 @@ const S4={title:'최후의 교차',dur:9,
   const bx=210,tw=boatPose(el,bx-j*5,SEA+B.y+heave,B.r+j*10-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);
   lamp(el,tr,tw,!thrown?.12:0);
   // 작살: 손 → 비어 있는 교차점 P(먼저 도착) → 고래 눈에 박혀 함께 움직임
-  const hand=own?HL.handFor(HL.launch(el,tw,{loaded:!thrown||t-T0>HL.RELOAD}),30,-14):tw(armEnd),p0=[hand[0]+30,hand[1]-14],LIFT=50;
+  const hand=own?HL.handFor(HL.launch(el,tw,{loaded:!thrown}),30,-14):tw(armEnd),p0=[hand[0]+30,hand[1]-14],LIFT=50;
   const hp=q('.bw-harpoon');let pos,ang,show=0;
   const endAng=Math.atan2((P[1]-p0[1])+4*LIFT,P[0]-p0[0])/RAD;
   // 고래 기준 작살의 붙은 자리(눈)와 상대 각도
@@ -512,7 +512,7 @@ const S4={title:'최후의 교차',dur:9,
   const trl=q('.bw-trail');
   if(thrown&&t<TH+.3){const bk=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];trl.setAttribute('d','M'+n1(bk[0])+','+n1(bk[1])+' L'+n1(tail[0])+','+n1(tail[1]));trl.setAttribute('opacity',n3(t<TH?.45:.45*(1-(t-TH)/.3)));}
   else trl.setAttribute('opacity','0');
-  const anchor=tw([40,-9]),slack=!thrown?14:t<TH?40:(t>tc+.9?46+Math.sin(tr*1.1)*4:Math.max(4,30*Math.exp(-(t-TH)*1.5))+Math.sin(tr*2.4)*3);
+  const anchor=tw(own?HL.anchorLocal():[40,-9]),slack=!thrown?14:t<TH?40:(t>tc+.9?46+Math.sin(tr*1.1)*4:Math.max(4,30*Math.exp(-(t-TH)*1.5))+Math.sin(tr*2.4)*3);
   const mid=[(tail[0]+anchor[0])/2,(tail[1]+anchor[1])/2+slack];
   const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(tail[0])+','+n1(tail[1]));
   rope.setAttribute('opacity',thrown?'.9':'0');
@@ -686,7 +686,7 @@ function finalGame(el,t,tr,g){
  let tw;
  if(miss&&t>=ib&&!blind)tw=brokenBoat(el,t,ib,210,g.fatal);
  else{tw=boatPose(el,210,SEA+B.y,B.r-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);lamp(el,tr,tw,!thrown?.12:0);}
- const hand=own?HL.handFor(HL.launch(el,tw,{loaded:!thrown||t-T0>HL.RELOAD}),30,-14):tw(armEnd),p0=[hand[0]+30,hand[1]-14];
+ const hand=own?HL.handFor(HL.launch(el,tw,{loaded:!thrown}),30,-14):tw(armEnd),p0=[hand[0]+30,hand[1]-14];
  const hpn=q('.bw-harpoon');let pos,ang,showH=1;
  if(!thrown){const a=-28-aim*16;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;showH=own?0:clamp((t-.2)/.4)*(miss&&t>=ib?0:1);}
  else{
@@ -701,7 +701,7 @@ function finalGame(el,t,tr,g){
  const trl=q('.bw-trail');
  if(thrown&&t<T0+.5){const bk=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];trl.setAttribute('d','M'+n1(bk[0])+','+n1(bk[1])+' L'+n1(tail[0])+','+n1(tail[1]));trl.setAttribute('opacity','.45');}
  else trl.setAttribute('opacity','0');
- const anchor=tw([40,-9]),mid=[(tail[0]+anchor[0])/2,(tail[1]+anchor[1])/2+(thrown?40:14)];
+ const anchor=tw(own?HL.anchorLocal():[40,-9]),mid=[(tail[0]+anchor[0])/2,(tail[1]+anchor[1])/2+(thrown?40:14)];
  const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(tail[0])+','+n1(tail[1]));
  rope.setAttribute('opacity',thrown&&showH?'.9':'0');
  // 교차점과 좁혀 오는 고리

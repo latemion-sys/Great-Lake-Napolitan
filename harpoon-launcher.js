@@ -3,7 +3,8 @@
      배 그림(BOAT) 문자열 안에 들어가므로 배 · 사람과 같은 흔들림 · 반사 · 가림을 그대로 따른다.
    - 리벳으로 박은 금속판을 겹친 석궁 모양의 틀, 사람 키보다 긴 미늘 작살. 받침대 위에서 돌아가 선미 쪽으로도 겨눈다.
    - 망을 두르면(CalamityMang.rings()) 작살날 끝에서부터 달빛 색의 따스한 둥근 고리가 하나씩 감긴다.
-     · 특수 작살이 있으면: 발사대에 걸린 작살에 감기고, 그 작살이 고리째 발사된다. 쏜 뒤에는 새 작살을 걸고 다시 감는다.
+     · 특수 작살이 있으면: 발사대에 걸린 작살에 감기고, 그 작살이 고리째 발사된다. 밧줄은 발사대 틀에 매여 있고,
+       다음에 쏠 때는 그 밧줄로 감아 들인 같은 작살이 틀에 다시 걸린다(새로 생기지 않음).
      · 특수 작살이 없으면: 발사대 없이 손에 든 일반 작살에 감아 던진다.
    좌표: 배의 원점(수면에 닿는 선체 중앙), 오른쪽이 뱃머리. 작살잡이는 x 22~32, 머리 (27,-30.5). */
 (function(){
@@ -17,6 +18,7 @@ const FLY=[-4,-11.5,-19,-26.5,-34];             // 날아가는 작살(장면 �
 const WIND=.72,GAP=.42;                          // 고리 하나가 감기는 시간 · 다음 고리까지 간격
 const RELOAD=1.1;                                // 쏜 뒤 새 작살을 거는 데 걸리는 시간(초)
 
+const n2=v=>Math.round(v*100)/100;
 function owned(){try{return typeof state!=='undefined'&&!!state&&!!state.calamityHarpoon;}catch(e){return false;}}
 function ringSet(rx,ry,gw,cw){
  let s='';
@@ -65,19 +67,26 @@ function flyMarkup(){return '<g class="hl-fly">'+ringSet(3.1,8,5.8,1.6)+'</g>';}
 
 /* ---------- 장면에서 쓰는 도우미 ----------
    own=HarpoonLauncher.owned()이면: 팔은 ARM, 손 작살은 숨기고, launch()가 돌려주는 날 끝 위치에서 작살을 출발시킨다. */
-const loadState=new WeakMap();
+// 장면 종류별 장전 상태: 쏜 뒤(장전 X)에서 다시 장전되면, 새 작살이 생기는 대신 밧줄로 감아 들인 작살이 틀 앞에서 미끄러져 들어와 걸린다
+const reel=new Map();
+const REEL=.6;
 function launch(el,toWorld,o){
- const opt=o||{},a=opt.aim==null?ANGLE:opt.aim,loaded=opt.loaded!==false;
+ const opt=o||{},a=opt.aim==null?ANGLE:opt.aim,loaded=opt.loaded!==false,now=performance.now();
+ const key=String(el.className||'scene').split(' ')[0];
+ const st=reel.get(key)||{loaded:true,at:-1e9,seen:0};
+ if(loaded&&st.loaded===false&&now-st.seen<4000)st.at=now;
+ st.loaded=loaded;st.seen=now;reel.set(key,st);
+ const k=Math.min(1,(now-st.at)/(REEL*1000)),off=loaded?54*Math.pow(1-k,3):0;
  el.querySelectorAll('.hl-aim').forEach(g=>{if(g._a!==a){g._a=a;g.setAttribute('transform',aimTf(a));}});
  el.querySelectorAll('.hl-load').forEach(g=>{
-  const was=loadState.get(g);
-  if(was===false&&loaded)rewind(performance.now());
-  loadState.set(g,loaded);
   const v=loaded?'1':'0';if(g.getAttribute('opacity')!==v)g.setAttribute('opacity',v);
+  const tf=off>.05?'translate('+n2(off)+' 0)':'';if((g.getAttribute('transform')||'')!==tf){if(tf)g.setAttribute('transform',tf);else g.removeAttribute('transform');}
  });
  const d=a*RAD;
  return toWorld([PIVOT[0]+Math.cos(d)*TIP,PIVOT[1]+Math.sin(d)*TIP]);
 }
+// 밧줄이 매인 곳: 발사대 틀 앞쪽(배 좌표)
+function anchorLocal(aim){const d=(aim==null?ANGLE:aim)*RAD;return [PIVOT[0]+Math.cos(d)*7,PIVOT[1]+Math.sin(d)*7];}
 // 손 작살을 쓰는 원래 코드에 넘길 '손 위치': 원래 코드가 손에서 [dx,dy]만큼 떨어진 곳을 출발점으로 쓰므로 그만큼 되돌린다
 function handFor(muzzle,dx,dy){return [muzzle[0]-dx,muzzle[1]-dy];}
 
@@ -94,7 +103,6 @@ function sync(now){
  shown=n;
  return n;
 }
-const n2=v=>Math.round(v*100)/100;
 function paintRings(list,n,now,times,G){
  const t=now/1000;let lit=0;
  list.forEach((g,i)=>{
@@ -135,5 +143,5 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-window.HarpoonLauncher={markup,flyMarkup,owned,launch,handFor,rewind,PIVOT,ANGLE,LEFT,ARM,TIP,RELOAD};
+window.HarpoonLauncher={markup,flyMarkup,owned,launch,anchorLocal,handFor,rewind,PIVOT,ANGLE,LEFT,ARM,TIP,RELOAD};
 })();

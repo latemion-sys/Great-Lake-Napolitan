@@ -60,7 +60,8 @@
   '<path d="M3,0 L-16,-6.5 L-11,0 L-16,6.5 Z" fill="#dfe6e3" stroke="#aebbb9" stroke-width="1" stroke-linejoin="round"/>'+
   '<path d="M-12,-3 L-22,-9 M-12,3 L-22,9" stroke="#c5cfcc" stroke-width="1.6" stroke-linecap="round"/>'+
   (window.HarpoonLauncher?window.HarpoonLauncher.flyMarkup():'')+'</g></g>'+
-  '<ellipse class="lfx-splash" rx="1" ry="1" fill="none" stroke="#cfe3e6" stroke-width="1.2" opacity="0"/>';
+  '<ellipse class="lfx-splash" rx="1" ry="1" fill="none" stroke="#cfe3e6" stroke-width="1.2" opacity="0"/>'+
+  '<path class="lfx-rope" fill="none" stroke="#8a9697" stroke-opacity=".8" stroke-width=".9" opacity="0"/>';
 
  // 너울: 큰 물결 위에 작은 물결 두 겹을 얹는다. 배는 이 곡선을 그대로 탄다.
  function surf(x,t,a){
@@ -83,7 +84,7 @@
  }
 
  function panel(lake,def,crew){
-  const B=crew?BOAT_CREW:BOAT;
+  const B=BOAT_CREW;   // 재앙 고래 조우 장면과 같은 배: 작살잡이 + (특수 작살이 있으면) 발사대
   const th=Object.assign({},DEFAULT_THEME,FX.theme(lake,def)||{});
   entryFor(lake);
   const v='--lfx-boat:'+th.boat+';--lfx-rim:'+th.rim+';--lfx-crest:'+th.crest+';--lfx-swell:'+th.swell+';--lfx-lamp:'+th.lamp+';--lfx-lamp-core:'+th.lampCore;
@@ -113,7 +114,7 @@
    '<ellipse class="lfx-glint" rx="18" ry="2.8" fill="'+th.lamp+'" filter="url(#lfxGlint)"/>'+
    '<g class="lfx-ripples"><path class="lfx-ripple"/><path class="lfx-ripple"/></g>'+
    '<g clip-path="url(#lfxAbove)"><g class="lfx-boat">'+B+'</g></g>'+
-   '<path class="lfx-crest"/>'+(crew?SHOT:'')+
+   '<path class="lfx-crest"/>'+SHOT+
    '</svg>'+
    '<span class="lfx-corner"></span><span class="lfx-grain"></span><span class="lfx-vignette"></span>'+
    '<span class="lfx-top">'+esc(title)+'</span>'+
@@ -191,27 +192,42 @@
   mist.setAttribute('transform','translate('+(Math.sin(t*0.07)*60).toFixed(1)+' 0)');
  }
  // 인어 전투: 동전을 던지면 특수 작살은 발사대에서 쏘고, 없으면 손으로 던진다. 망이 있으면 고리째 날아간다.
- const FLIGHT=.85;
+ // 작살은 밧줄로 이어져 있어, 물에 떨어진 뒤 밧줄을 감아 같은 작살을 되찾는다(새로 생기지 않음).
+ const FLIGHT=.85,SINK=.5,REEL_IN=.9;
  function paintShot(el,now,x,y,roll,s,t,a){
   const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned()),r=roll*Math.PI/180;
   const toWorld=p=>[x+s*(p[0]*Math.cos(r)-p[1]*Math.sin(r)),y+s*(p[0]*Math.sin(r)+p[1]*Math.cos(r))];
   const age=FX.shotAt!=null?(now-FX.shotAt)/1000:99;
-  const flying=age<FLIGHT+.3;
-  const shot=el.querySelector('.lfx-shot'),sp=el.querySelector('.lfx-splash'),arm=el.querySelector('.lfx-boat .lfx-arm');
-  let p0,armEnd;
-  if(own){p0=HL.launch(el,toWorld,{loaded:age>FLIGHT+HL.RELOAD});armEnd=HL.ARM;}
-  else{const sw=age<.22?age/.22:1;armEnd=flying?[25+13*sw,-33+9*sw]:[33,-31];p0=toWorld([38,-33]);}
+  const back=FLIGHT+.18+SINK,done=back+REEL_IN;           // 감기 시작 · 다 감음
+  const out=age<done;
+  const shot=el.querySelector('.lfx-shot'),sp=el.querySelector('.lfx-splash'),arm=el.querySelector('.lfx-boat .lfx-arm'),rope=el.querySelector('.lfx-rope');
+  let p0,armEnd,anchor,restAng;
+  if(own){p0=HL.launch(el,toWorld,{loaded:!out});armEnd=HL.ARM;anchor=toWorld(HL.anchorLocal());restAng=HL.ANGLE+roll;}
+  else{const sw=age<.22?age/.22:1;armEnd=age<FLIGHT+.3?[25+13*sw,-33+9*sw]:[33,-31];p0=toWorld([39,-35]);anchor=toWorld([40,-9]);restAng=-34+roll;}
   if(arm)arm.setAttribute('d','M29,-23 L'+armEnd[0].toFixed(1)+','+armEnd[1].toFixed(1));
-  const tx=x+250,ty=surf(tx,t,a)+3,L=34;
-  let pos=null,ang=0,show=0;
+  const tx=x+250,ty=surf(tx,t,a)+3,L=34,SC=.48;
+  let pos=null,ang=restAng,show=own?0:1,under=false;
   if(age<FLIGHT){const u=age/FLIGHT;pos=[p0[0]+(tx-p0[0])*u,p0[1]+(ty-p0[1])*u-4*L*u*(1-u)];ang=Math.atan2((ty-p0[1])-4*L*(1-2*u),tx-p0[0])*180/Math.PI;show=1;}
-  else if(age<FLIGHT+.18){const k=(age-FLIGHT)/.18;pos=[tx+10*k,ty+10*k];ang=40;show=1-k;}
-  else if(!own&&age>FLIGHT+1.1){pos=[p0[0]+6,p0[1]+2];ang=-34;show=Math.min(1,(age-FLIGHT-1.1)/.4);} // 새 작살을 손에 듦
-  if(!own&&FX.shotAt==null){pos=[p0[0]+6,p0[1]+2];ang=-34;show=1;}
+  else if(age<back){const k=Math.min(1,(age-FLIGHT)/.18);pos=[tx+10*k,ty+10*k];ang=40;show=1-k;under=true;}
+  else if(age<done){ // 밧줄을 감아 끌어올림: 물속에서 나와 틀(손)로 돌아옴
+   const k=(age-back)/REEL_IN,e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,from=[tx+10,ty+4];
+   pos=[from[0]+(p0[0]-from[0])*e,from[1]+(p0[1]-from[1])*e-18*Math.sin(Math.PI*e)];
+   ang=restAng;show=Math.min(1,k*4)*(own&&k>.92?Math.max(0,(1-k)/.08):1);
+  }
+  else if(!own)pos=p0;
+  if(!own&&!out)pos=p0;
   shot.setAttribute('opacity',show.toFixed(2));
   if(pos)shot.setAttribute('transform','translate('+pos[0].toFixed(1)+' '+pos[1].toFixed(1)+') rotate('+ang.toFixed(1)+')');
-  const sa=age-FLIGHT;
+  // 밧줄: 발사대 틀(또는 뱃전) ↔ 작살 꼬리
+  if(out&&pos){
+   const ar=ang*Math.PI/180,tail=under?[tx,ty+1]:[pos[0]-104*SC*Math.cos(ar),pos[1]-104*SC*Math.sin(ar)];
+   const sag=age<FLIGHT?22:age<back?16:6*(1-(age-back)/REEL_IN);
+   rope.setAttribute('d','M'+anchor[0].toFixed(1)+','+anchor[1].toFixed(1)+' Q'+((anchor[0]+tail[0])/2).toFixed(1)+','+((anchor[1]+tail[1])/2+sag).toFixed(1)+' '+tail[0].toFixed(1)+','+tail[1].toFixed(1));
+   rope.setAttribute('opacity','.85');
+  }else rope.setAttribute('opacity','0');
+  const sa=age-FLIGHT,sb=age-back;
   if(sa>0&&sa<1.2){sp.setAttribute('cx',tx.toFixed(1));sp.setAttribute('cy',(ty+1).toFixed(1));sp.setAttribute('rx',(4+sa*40).toFixed(1));sp.setAttribute('ry',(1.2+sa*6).toFixed(1));sp.setAttribute('opacity',(.7*(1-sa/1.2)).toFixed(2));}
+  else if(sb>0&&sb<.6){sp.setAttribute('cx',(tx+10).toFixed(1));sp.setAttribute('cy',(ty+1).toFixed(1));sp.setAttribute('rx',(3+sb*22).toFixed(1));sp.setAttribute('ry',(1+sb*3).toFixed(1));sp.setAttribute('opacity',(.5*(1-sb/.6)).toFixed(2));}
   else sp.setAttribute('opacity','0');
  }
  document.addEventListener('click',e=>{

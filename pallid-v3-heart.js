@@ -244,7 +244,7 @@ function paint(el,t){
 
  // 작살
  const hp=q('.w6-harpoon'),rope=q('.w6-rope'),tr=q('.w6-trail');
- const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:t<F0||t-F0>HL.RELOAD}),30,-14):toWorld(armEnd),p0=[hand[0]+30,hand[1]-14],target=hold&&HG.aimPt?HG.aimPt:[sx-4,sy+2];
+ const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:t<F0}),30,-14):toWorld(armEnd),p0=[hand[0]+30,hand[1]-14],target=hold&&HG.aimPt?HG.aimPt:[sx-4,sy+2];
  const endA=Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0]);
  let pos,a,show=0;
  if(t<F0){const aa=(-24-aim*14)*Math.PI/180;pos=[hand[0]+Math.cos(aa)*40,hand[1]+Math.sin(aa)*40];a=aa;show=own?0:hold?1:clamp((t-T.aim[0]+0.4)/0.4);}
@@ -262,7 +262,7 @@ function paint(el,t){
   tr.setAttribute('d','M'+back[0].toFixed(1)+','+back[1].toFixed(1)+' L'+tail[0].toFixed(1)+','+tail[1].toFixed(1));
   tr.style.opacity=(t<F1?0.5:0.5*(1-(t-F1)/0.35)).toFixed(3);
  }else tr.style.opacity='0';
- const anchor=toWorld([40,-9]);
+ const anchor=toWorld(own?HL.anchorLocal():[40,-9]);
  const slack=t<F1?36:isHit?Math.max(3,22*Math.exp(-hit*2.5))+Math.sin(t*3)*2:36+since*50;
  rope.setAttribute('d','M'+anchor[0].toFixed(1)+','+anchor[1].toFixed(1)+' Q'+((tail[0]+anchor[0])/2).toFixed(1)+','+((tail[1]+anchor[1])/2+slack).toFixed(1)+' '+tail[0].toFixed(1)+','+tail[1].toFixed(1));
  rope.style.opacity=String(t<F0?0:0.9);

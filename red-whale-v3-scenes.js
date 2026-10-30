@@ -370,7 +370,7 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
   const turn=seg(t,3.5,3.8),thrown=t>=T0;const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());
   const armEnd=own?HL.ARM:thrown?[16,-26]:turn>0?[29-turn*12,-30-turn*6]:[37,-30];
   const tw=boatOnBed(el,tr,level,380,{arm:armEnd,lamp:turn>0&&!thrown?.15:0,dr:thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0});
-  const hand=own?HL.handFor(HL.launch(el,tw,{aim:HL.ANGLE+(HL.LEFT-HL.ANGLE)*turn,loaded:!thrown||t-T0>HL.RELOAD}),-24,-14):tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=50;
+  const hand=own?HL.handFor(HL.launch(el,tw,{aim:HL.ANGLE+(HL.LEFT-HL.ANGLE)*turn,loaded:!thrown}),-24,-14):tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=50;
   const hp=q('.bw-harpoon');let pos,ang,show=0;
   if(turn>0&&!thrown){const a=180+28+turn*10;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=own?0:turn;}
   else if(thrown&&t<HIT){const u=(t-T0)/(HIT-T0),e=u*(.85+.15*u);pos=[p0[0]+(core[0]-p0[0])*e,p0[1]+(core[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((core[1]-p0[1])-4*LIFT*(1-2*e),core[0]-p0[0])/RAD;show=1;}
@@ -384,7 +384,7 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
   const stt=st.querySelector('.rw-tip');if(stt)stt.style.opacity='0';
   const sAr=endAng*RAD,stTail=[core[0]-104*Math.cos(sAr),core[1]-104*Math.sin(sAr)];
   const ropeEnd=t>=HIT?stTail:(pos?[pos[0]-104*Math.cos(ang*RAD),pos[1]-104*Math.sin(ang*RAD)]:p0);
-  const anchor=tw([-40,-9]),mid=[(ropeEnd[0]+anchor[0])/2,(ropeEnd[1]+anchor[1])/2+(t<HIT?40:Math.max(6,30*Math.exp(-(t-HIT))))];
+  const anchor=tw(own?HL.anchorLocal(HL.LEFT):[-40,-9]),mid=[(ropeEnd[0]+anchor[0])/2,(ropeEnd[1]+anchor[1])/2+(t<HIT?40:Math.max(6,30*Math.exp(-(t-HIT))))];
   const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(ropeEnd[0])+','+n1(ropeEnd[1]));
   rope.setAttribute('opacity',thrown&&ropeEnd[1]<SEA+level*DROP+6?'.9':'0');
   // 명중
@@ -525,7 +525,7 @@ function tailGame(el,t,tr,g){
  const recover=F&&F.hit===false?seg(t,F.arrive+.4,F.arrive+.9):0;
  const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const armEnd=own?HL.ARM:thrown&&recover<1?[16,-26]:[17,-36];
  const tw=boatOnBed(el,tr,level,380,{arm:armEnd,lamp:.12,dr:thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0});
- const hand=own?HL.handFor(HL.launch(el,tw,{aim:HL.LEFT,loaded:!thrown||t-T0>HL.RELOAD}),-24,-14):tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=40;
+ const hand=own?HL.handFor(HL.launch(el,tw,{aim:HL.LEFT,loaded:!thrown||recover>=1}),-24,-14):tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=40;
  const hp=q('.bw-harpoon');let pos,ang,show=1;
  if(!thrown||recover>=1){const a=180+40;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=own?0:F&&F.hit===false?recover:1;}
  else if(F.crumble){ // 숨이 마른 채 던진 작살: 날아가다 하얗게 말라 부서짐
@@ -536,7 +536,7 @@ function tailGame(el,t,tr,g){
   const s=t-F.arrive,c=F.target||core;pos=[c[0]+60*s,c[1]-120*s+520*s*s];ang=-150+s*600;show=pos[1]<SEA+60?1:0;}
  hp.setAttribute('opacity',String(show));
  hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
- const anchor=tw([-40,-9]),ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
+ const anchor=tw(own?HL.anchorLocal(HL.LEFT):[-40,-9]),ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
  const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1((tail[0]+anchor[0])/2)+','+n1((tail[1]+anchor[1])/2+40)+' '+n1(tail[0])+','+n1(tail[1]));
  rope.setAttribute('opacity',thrown&&show?'.9':'0');
  // 튕김 불꽃
