@@ -117,7 +117,7 @@ var CONTROL=[
 '   if(state.battle&&/pallid(Shell|Lure)161/.test(state.battle.type))start(state.battle.type==="pallidShell161"?"shell":"lure");}',
 ' });',
 ' // 피해 무시: 미니게임 판정은 그대로 두고 선체·정신·백화만 계속 채워 둔다',
-' setInterval(function(){window.__BLUE_NODEATH=document.getElementById("mgtGod").checked;if(!document.getElementById("mgtGod").checked||typeof state==="undefined")return;',
+' setInterval(function(){window.__BLUE_NODEATH=window.__MINIGAME_NODEATH=document.getElementById("mgtGod").checked;if(!document.getElementById("mgtGod").checked||typeof state==="undefined")return;',
 '  state.hull=100;state.mind=100;state.exposure=0;state.pallor155=0;},200);',
 ' setTimeout(closeModals,300);',
 '})();',

@@ -2,10 +2,11 @@
    ① 수면의 절단   : 조우 화면 (사냥 / 회피)
    ② 초고속 관통   : 동전 전투 1승
    └ 꿰뚫는 것에 꿰뚫린 것들 : 조우 글 → 인어 무리와 동전 전투 2승
-   ③ 푸른 항로 추적 : ← → 중 무작위 방향을 0.9초 안에 연타해 게이지를 채움. 2번 놓치면 고래가 달아남(사냥 실패)
+   ③ 푸른 항로 추적 : ← → 중 무작위 방향을 0.9초 안에 연타해 게이지를 채움. 2번 놓치면 추적 실패
    ④ 관통 회피     : 0.5~2초 중 무작위 순간에 물살에서 주둥이가 솟을 때 회피(스페이스·화면 누르기) × 3.
                      너무 이르거나 늦으면 꿰뚫리며 사망
    ⑤ 최후의 교차   : 단 한 번의 작살. 좁혀 오는 고리가 교차점에 겹칠 때 던짐. 빗나가면 꿰뚫리며 사망
+   미니게임마다 실패는 한 번까지: 첫 실패는 피해 후 다시, 두 번째 실패는 사망 (minigame-strikes.js).
    고래 전투는 기존 'whale' 전투(유효 타격 4)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
 (function(){
 'use strict';
@@ -113,6 +114,7 @@ function finalAutoMiss(t){
 /* ---------- 결과 처리 ---------- */
 function finish(kind,t,delay){
  G.done=kind;G.doneAt=t;busy=true;
+ if(kind==='fail')G.fatal=(G.fails||0)+1>=2&&!(window.MinigameStrikes&&MinigameStrikes.noDeath());
  const wait={chase:{ok:1.1,fail:1.5},evade:{ok:1.9,fail:2.0},final:{ok:1.35,fail:2.3}}[G.mode][kind];
  const ms=Math.max(0,((delay!=null&&kind==='ok'?t+delay:t+wait)-now())*1000);
  const mode=G.mode;
@@ -128,22 +130,28 @@ function resolveMinigame(mode,kind){
   resolveCoin(true);         // 유효 타격 +1 (마지막이면 사냥 성공 → 5단계 장면)
   return;
  }
- if(mode==='chase'){
-  takeDamage(8,6);
-  log('푸른 고래가 물길 끝으로 사라졌습니다. 추적에 실패했습니다.');
-  G.mode=null;state.battle=null;state.blueHunt=null;
-  if(!safeCheck())return;
-  afterWhale(BLUE);
+ // 실패: 첫 번째는 피해 후 다시, 두 번째는 사망
+ const verdict=window.MinigameStrikes?MinigameStrikes.strike(G):'dead';
+ if(verdict==='dead'){
+  log(mode==='chase'?'물길 끝에서 방향을 튼 푸른 고래가 배를 정면으로 꿰뚫었습니다.':'푸른 고래의 주둥이가 선체와 선원들을 한꺼번에 꿰뚫었습니다.');
+  G.mode=null;state.blueHunt=null;
+  die();
   return;
  }
- // 회피·최후의 교차 실패: 꿰뚫리며 사망
- if(noDeath()){
-  log('[테스트] 꿰뚫렸지만 사망 대신 다시 시작합니다.');
-  G.mode=null;render();return;
- }
- log('푸른 고래의 주둥이가 선체와 선원들을 한꺼번에 꿰뚫었습니다.');
- G.mode=null;state.blueHunt=null;
- die();
+ const dmg={chase:[8,6],evade:[14,6],final:[14,6]}[mode];
+ takeDamage(dmg[0],dmg[1]);
+ log(mode==='chase'?'푸른 고래를 놓칠 뻔했습니다. 물길을 다시 쫓습니다.':mode==='evade'?'주둥이가 선체를 스치고 지나갔습니다. 아직 버팁니다.':'작살이 빗나가고 고래가 선체를 들이받았습니다. 아직 버팁니다.');
+ if(!safeCheck())return;
+ retryMode(mode);
+ render();
+}
+function retryMode(mode){
+ const t=now();
+ G.done=null;G.fatal=false;G.timer=null;
+ if(mode==='chase'){Object.assign(G,{hits:0,misses:0,dir:null,pauseUntil:t+1.2,promptAt:null,lastHitAt:null,lastMissAt:null,_off:null});setText('다시 쫓습니다 · 남은 기회 1번.');}
+ if(mode==='evade'){Object.assign(G,{phase:'ready',nextAt:t+1.2,pressAt:null,failAt:null,failWhy:null});setText('배를 다시 바로잡았습니다 · 남은 기회 1번.');}
+ if(mode==='final'){const b=t+1.2+Math.random()*1.4;Object.assign(G,{phase:'wait',breachAt:b,ti:b+FINAL_CLOSE,th:b+FINAL_CLOSE+FINAL_FLIGHT,thrownAt:null,hit:null,autoMiss:false,arriveAt:null});setText('고래가 다시 물속으로 사라졌습니다 · 남은 기회 1번.');}
+ if(window.MinigameStrikes)MinigameStrikes.refresh(G);
 }
 function setText(t){G.text=t;const el=document.getElementById('bwgText');if(el)el.textContent=t;}
 
@@ -174,25 +182,28 @@ function statusTags(){return tag('선체 '+state.hull+' / 100')+' '+tag('정신�
 function chasePanel(){
  return '<div class="inset warning bwg-panel"><div class="small">재앙의 고래 · 모든 것을 뚫는 푸른 고래 · 3단계</div><h2>푸른 항로 추적</h2>'+
   '<p>고래가 남긴 빛나는 물길을 따라 전속력으로 쫓습니다. 고래가 꺾는 쪽으로 키를 돌리십시오.</p><p>'+statusTags()+'</p>'+
-  '<div class="coinpanel bwg-chase"><div class="small">화면에 뜬 방향(← / →)을 0.9초 안에 누르십시오 · 게이지를 채우면 통과 · 2번 놓치면 고래가 달아남</div>'+
+  '<div class="coinpanel bwg-chase"><div class="small">화면에 뜬 방향(← / →)을 0.9초 안에 누르십시오 · 게이지를 채우면 통과 · 2번 놓치면 추적 실패</div>'+
   '<div class="bwg-meter"><i id="bwgGauge"></i></div>'+
   '<p>추적 <b id="bwgCount">'+(G.hits||0)+' / '+CHASE_NEED+'</b> <span class="muted">놓침 <b id="bwgMiss">'+(G.misses||0)+' / '+CHASE_MISS+'</b></span></p>'+
   '<div class="bwg-pad"><button type="button" class="primary bwg-dir" data-bwdir="L">←</button><button type="button" class="primary bwg-dir" data-bwdir="R">→</button></div>'+
+  (window.MinigameStrikes?MinigameStrikes.livesHtml(G):'')+
   '<p id="bwgText">'+esc(G.text||'키보드 ← → 또는 위 버튼, 이펙트 화면 왼쪽·오른쪽을 눌러도 됩니다.')+'</p></div></div>';
 }
 function evadePanel(){
  return '<div class="inset warning bwg-panel"><div class="small">재앙의 고래 · 모든 것을 뚫는 푸른 고래 · 4단계</div><h2>관통 회피</h2>'+
   '<p>물속의 푸른 선이 뱃머리를 겨눕니다. 주둥이가 물살을 뚫고 솟는 순간에만 배를 틀 수 있습니다. 너무 이르거나 늦으면 그대로 꿰뚫립니다.</p><p>'+statusTags()+'</p>'+
-  '<div class="coinpanel bwg-evade"><div class="small">물살에서 주둥이가 솟는 순간 · 스페이스 / 화면 누르기 / 아래 버튼 · 3번 피하면 통과 · 실패하면 사망</div>'+
+  '<div class="coinpanel bwg-evade"><div class="small">물살에서 주둥이가 솟는 순간 · 스페이스 / 화면 누르기 / 아래 버튼 · 3번 피하면 통과</div>'+
   '<p>회피 <b id="bwgCount">'+(G.ok||0)+' / '+EVADE_NEED+'</b></p>'+
   '<button type="button" class="danger" id="bwgAct">배를 튼다</button>'+
+  (window.MinigameStrikes?MinigameStrikes.livesHtml(G):'')+
   '<p id="bwgText">'+esc(G.text||'아직 누르지 마십시오. 주둥이가 솟을 때까지 기다리십시오.')+'</p></div></div>';
 }
 function finalPanel(){
  return '<div class="inset warning bwg-panel"><div class="small">재앙의 고래 · 모든 것을 뚫는 푸른 고래 · 5단계</div><h2>최후의 교차</h2>'+
   '<p>고래가 마지막으로 솟구칩니다. 작살은 단 한 번. 고래가 지나갈 허공에 먼저 던져야 합니다.</p><p>'+statusTags()+'</p>'+
-  '<div class="coinpanel bwg-final"><div class="small">좁혀 오는 고리가 교차점 원에 겹치는 순간 · 스페이스 / 화면 누르기 / 아래 버튼 · 단 한 번 · 빗나가면 사망</div>'+
+  '<div class="coinpanel bwg-final"><div class="small">좁혀 오는 고리가 교차점 원에 겹치는 순간 · 스페이스 / 화면 누르기 / 아래 버튼 · 명중하면 사냥 성공</div>'+
   '<button type="button" class="danger" id="bwgAct">작살을 던진다</button>'+
+  (window.MinigameStrikes?MinigameStrikes.livesHtml(G):'')+
   '<p id="bwgText">'+esc(G.text||'고래가 솟구칠 때까지 숨을 고르십시오.')+'</p></div></div>';
 }
 function updatePanel(){

@@ -491,8 +491,9 @@ function hudFinal(el,t,g){
  caption(el,[[0,GAMECAP[4]]],0);
 }
 // 배가 꿰뚫려 부서지는 모습
-function brokenBoat(el,t,ft,x){
+function brokenBoat(el,t,ft,x,fatal){
  const k=seg(t,ft,ft+.3);
+ if(!fatal){const rec=seg(t,ft+.6,ft+1.6);const tw0=boatPose(el,x,SEA-20*bell(t,ft,ft+.12,ft+.3,ft+.8),(16*outC(k)+6*Math.sin((t-ft)*20)*Math.exp(-(t-ft)*4))*(1-rec),[38,-24]);lamp(el,t,tw0,.2*Math.sin((t-ft)*40)*(1-rec));return tw0;}
  const y=SEA-26*bell(t,ft,ft+.12,ft+.3,ft+.8)+52*inC(seg(t,ft+.5,ft+2));
  const tw=boatPose(el,x,y,30*outC(k)+6*Math.sin((t-ft)*20)*Math.exp(-(t-ft)*4),[38,-24]);
  const {q}=cacheQ(el);q('.bw-lampglow').style.opacity=n3(.9*(1-seg(t,ft+.05,ft+.35)));q('.bw-lampglint').style.opacity=n3(.3*(1-seg(t,ft,ft+.3)));
@@ -531,7 +532,7 @@ function evadeGame(el,t,tr,g){
  paintDrops(qa('.bw-burst circle'),evadeGame._bp,X0+40,SEA,emergeAt!=null?t-emergeAt:-1,70,520);
  // 배
  const B=bob(tr);
- if(ph==='pierced'){brokenBoat(el,t,g.failWhy==='early'?g.failAt+.25:g.failAt+.08,X0);}
+ if(ph==='pierced'){brokenBoat(el,t,g.failWhy==='early'?g.failAt+.25:g.failAt+.08,X0,g.fatal);}
  else{
   const pa=g.pressAt!=null&&ph==='dodge'?g.pressAt:null;
   const sw=pa!=null?inOut(seg(t,pa,pa+.3))*(1-inOut(seg(t,pa+1.0,pa+1.85))):0;
@@ -548,7 +549,7 @@ function evadeGame(el,t,tr,g){
  paintCol(cs[2],X0+90,s-.2,130,24,14,.45,1.5);
  qa('.bw-rain circle').forEach(c=>c.setAttribute('opacity','0'));
  paintRings(qa('.bw-rings ellipse'),X0+30,s-.3,300,.55);
- veil(el,ph==='pierced'?.9*seg(t,g.failAt+.6,g.failAt+2):t<.5?1-t/.5:0);
+ veil(el,ph==='pierced'&&g.fatal?.9*seg(t,g.failAt+.6,g.failAt+2):t<.5?1-t/.5:0);
  hudEvade(el,t,g);
 }
 /* ⑤ 최후의 교차 미니게임 */
@@ -580,7 +581,7 @@ function finalGame(el,t,tr,g){
  const B=bob(tr),T0=g.thrownAt,thrown=T0!=null&&t>=T0;
  const aim=clamp(t/.8),armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*4];
  let tw;
- if(miss&&t>=ib)tw=brokenBoat(el,t,ib,210);
+ if(miss&&t>=ib)tw=brokenBoat(el,t,ib,210,g.fatal);
  else{tw=boatPose(el,210,SEA+B.y,B.r-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);lamp(el,tr,tw,!thrown?.12:0);}
  const hand=tw(armEnd),p0=[hand[0]+30,hand[1]-14];
  const hpn=q('.bw-harpoon');let pos,ang,showH=1;
@@ -621,7 +622,7 @@ function finalGame(el,t,tr,g){
  qa('.bw-blood circle,.bw-rings ellipse').forEach(c=>c.setAttribute('opacity','0'));
  const shake=miss&&t>ib&&t<ib+.5?(1-(t-ib)/.5)*5:0;
  q('.bw-root').setAttribute('transform',shake?'translate('+n1(Math.sin(t*90)*shake)+' '+n1(Math.cos(t*77)*shake*.6)+')':'');
- veil(el,miss?.9*seg(t,ib+.5,ib+2.1):t<.5?1-t/.5:0);
+ veil(el,miss&&g.fatal?.9*seg(t,ib+.5,ib+2.1):t<.5?1-t/.5:0);
  hudFinal(el,t,g);
 }
 

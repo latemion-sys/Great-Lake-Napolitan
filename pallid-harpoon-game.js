@@ -4,7 +4,8 @@
    화면을 누르거나 스페이스(또는 '작살 던지기' 버튼)로 던진다.
    명중 = 유효 타격(동전 앞면), 빗나감 = 백화 진행(동전 뒷면)과 같은 결과.
    난이도: 아군 전투력이 높을수록 명중 구간이 넓고 조준점이 느리다.
-   3번 명중해야 통과하며, 맞힐 때마다 명중 원이 좁아지고 조준점이 빨라진다. */
+   3번 명중해야 통과하며, 맞힐 때마다 명중 원이 좁아지고 조준점이 빨라진다.
+   빗나감은 한 번까지: 첫 빗나감은 기존처럼 반격(피해·백화), 두 번째 빗나감은 사망 (minigame-strikes.js). */
 (function(){
 'use strict';
 const GAME=window.PallidHarpoonGame;
@@ -34,7 +35,7 @@ function newAttempt(won){
 function syncGame(){
  const on=inMinigame();
  if(on&&(!GAME.active||battleRef!==state.battle)){
-  GAME.active=true;GAME.startAt=0;battleRef=state.battle;lastText='';newAttempt();
+  GAME.active=true;GAME.startAt=0;battleRef=state.battle;lastText='';GAME.fails=0;newAttempt();
  }
  if(!on&&GAME.active){GAME.active=false;GAME.throwAt=null;battleRef=null;}
 }
@@ -52,6 +53,7 @@ pallidBattlePanel161=function(b){
   '<p>명중: <b>'+b.won+' / '+b.need+'</b> <span class="muted">(맞힐 때마다 원이 좁아지고 조준점이 빨라집니다)</span></p>'+
   '<div class="coinpanel harpoon-game"><div class="small">조준점이 붉은 상처에 겹칠 때 던지십시오 · 명중: 타격 성공 · 빗나감: 백화 진행</div>'+
   '<p>명중 구간 <b>'+zone+'</b> · 조준점 속도 <b>'+speed+'</b> <span class="muted">(아군 전투력 '+crewPower()+'에 따라 달라집니다)</span></p>'+
+  (window.MinigameStrikes?MinigameStrikes.livesHtml(GAME):'')+
   '<p id="harpoonText">'+esc(lastText||'이펙트 화면을 누르거나 스페이스 키, 또는 아래 버튼으로 작살을 던지십시오.')+'</p>'+
   '<button type="button" class="primary" id="pallidThrowBtn"'+(GAME.throwAt!=null?' disabled':'')+'>작살 던지기</button></div>'+
   '<div class="stack" style="margin-top:12px">'+button('전투를 포기하고 도주한다','flee')+'</div>'+
@@ -64,7 +66,15 @@ function doThrow(){
  const r=GAME.throwNow();
  if(r==null)return;
  busy=true;
- lastText=r?'명중 · 작살이 아물지 않은 상처에 깊이 박혔습니다.':'빗나감 · 작살이 단단한 외피에 튕겨 물속으로 떨어졌습니다.';
+ const verdict=r?'ok':(window.MinigameStrikes?MinigameStrikes.strike(GAME):'retry');
+ lastText=r?'명중 · 작살이 아물지 않은 상처에 깊이 박혔습니다.':verdict==='dead'?'빗나감 · 두 번째 실패입니다. 창백한 고래의 입이 배를 통째로 덮칩니다.':'빗나감 · 작살이 단단한 외피에 튕겨 물속으로 떨어졌습니다. 남은 기회 1번.';
+ if(window.MinigameStrikes)MinigameStrikes.refresh(GAME);
+ if(verdict==='dead'){
+  const t0=document.getElementById('harpoonText');if(t0)t0.textContent=lastText;
+  const b0=document.getElementById('pallidThrowBtn');if(b0)b0.disabled=true;
+  MinigameStrikes.kill('작살이 빗나가는 사이, 창백한 고래가 배와 선원들을 통째로 삼켰습니다.',1.9);
+  return;
+ }
  const t=document.getElementById('harpoonText');if(t)t.textContent=lastText;
  const btn=document.getElementById('pallidThrowBtn');if(btn)btn.disabled=true;
  timer=setTimeout(()=>{
