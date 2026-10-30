@@ -82,7 +82,7 @@ function victoryHtml(){
    '</g>'+
    '<g class="w7-harpoon">'+
     '<path d="M-104,0 L-10,0" stroke="#15191b" stroke-width="4" stroke-linecap="round"/>'+
-    '<path d="M-104,-1.2 L-12,-1.2" stroke="#ffd9b0" stroke-opacity=".55" stroke-width="1.1"/></g>'+
+    '<path d="M-104,-1.2 L-12,-1.2" stroke="#ffd9b0" stroke-opacity=".55" stroke-width="1.1"/>'+(window.HarpoonLauncher?window.HarpoonLauncher.flyMarkup():'')+'</g>'+
    '<g class="w7-shards">'+SHARDS.map((s,i)=>'<path class="w7-shard" data-i="'+i+'" d="'+s.d+'" fill="'+(i%3?'#d9ddd1':'#9aa298')+'" stroke="#f6f8ee" stroke-opacity=".5" stroke-width=".8" opacity="0"/>').join('')+'</g>'+
    '<circle class="w7-burst" cx="'+SC[0].toFixed(1)+'" cy="'+SC[1].toFixed(1)+'" r="40" fill="none" stroke="#f6f8ee" opacity="0" filter="url(#w7Glow)"/>'+
   '</g>'+

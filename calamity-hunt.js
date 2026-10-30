@@ -74,6 +74,7 @@ function heal(n){state.captainMind=Math.min(100,cm()+n);}
 /* 인어 조우 */
 const prevBegin=beginBattle;
 beginBattle=function(b){
+ if(window.GREAT_LAKE_FX)window.GREAT_LAKE_FX.shotAt=null;   // 새 전투: 아직 쏘지 않음
  const out=prevBegin.apply(this,arguments);
  if(b&&MERMAID_HIT[b.type]!=null){hurt(MERMAID_HIT[b.type],'인어와 마주쳤습니다.');sync();}
  return out;
@@ -244,9 +245,11 @@ renderPlay=function(){
   return html.replace(/<button[^>]*data-act="huntWhale"[^>]*>[^<]*<\/button>/,'')+huntBlock();
  }
  if(plainMermaid()&&!inCalamity()){
-  const blk=mermaidBlock();
-  if(blk&&html.indexOf('<div class="coinpanel"')>=0)return html.replace('<div class="coinpanel"',blk+'<div class="coinpanel"');
-  return html+blk;
+  const blk=mermaidBlock(),FX=window.GREAT_LAKE_FX,sea=FX&&typeof FX.battlePanel==='function'?FX.battlePanel():'';
+  let out=html;
+  if(sea&&out.indexOf('</h2>')>=0)out=out.replace('</h2>','</h2>'+sea);
+  if(blk&&out.indexOf('<div class="coinpanel"')>=0)return out.replace('<div class="coinpanel"',blk+'<div class="coinpanel"');
+  return out+blk;
  }
  return html;
 };
@@ -338,7 +341,7 @@ renderShop132=function(){
   button(REST.name+' 구매 · 선장 정신력 +'+REST.gain+' · '+unitMoney(REST.cost)+(rn>=REST.max?' (이번 정박에서는 더 살 수 없음)':v>=100?' (정신력 가득)':''),'capRest','','',!avail||rn>=REST.max||v>=100||state.gold<REST.cost)+
   '</div></div>';
  s+='<div class="inset"><h3>재앙 사냥 준비 · 특수 작살</h3>'+
-  '<p>고래잡이들 사이에서 \'쪽빛 노인\'이라 불리는 늙은 사냥꾼의 무기를 본떠 항구 대장간이 짜 맞춘 발사대. 리벳으로 박은 금속판 수십 장을 겹쳐 만든 석궁 모양의 틀에, 사람 키보다 긴 미늘 작살을 걸어 쏜다. 노인은 홀로 쪽배를 몰아 모든 것을 꿰뚫는 청새치를 잡았고, 던질 때마다 작살에 망 세 개를 감았다고 한다.</p>'+
+  '<p>고래잡이들 사이에서 먼 옛날 전설로 불리는 \'쪽빛 노인\'이라 불리는 특색 해결사이자 고래잡이의 무기를 본떠 항구 대장간이 어떻게든 따라해 만든 전용 발사대. 리벳으로 박은 금속판 수십 장을 겹쳐 만든 석궁 모양의 틀에, 사람 키보다 긴 미늘 작살을 걸어 쏜다. 노인은 홀로 쪽배를 몰며 모든 것을 꿰뚫는 청새치를 잡았고, 던질 때마다 작살에 망이라 불리우는 고리 세 개를 감았다고 한다.</p>'+
   '<p class="muted">그래서 이 작살도 망을 '+MIN_RINGS+'개 이상 두른 손에서만 재앙의 고래(창백한 · 푸른 · 붉은)에게 박힙니다. 한 번 고래의 살을 물고 나면 미늘이 휘고 리벳이 헐거워져, 다음 사냥 전에 판을 다시 박아야 합니다(정비).</p>'+
   tag(HARPOON.name+' '+(h?(h.damaged?'손상됨':'정비됨'):'없음'))+'<div class="stack" style="margin-top:8px">';
  if(!h)s+=button(HARPOON.name+' 구매 · '+unitMoney(HARPOON.cost)+' · 선장 '+HARPOON.grade+'등급 이상','calHarpoonBuy','','primary',!avail||state.grade<HARPOON.grade||state.gold<HARPOON.cost);

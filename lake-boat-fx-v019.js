@@ -48,6 +48,20 @@
   '<rect x="'+(LAMP[0]-2.6)+'" y="'+(LAMP[1]-3)+'" width="5.2" height="6.2" rx="1.2" class="lfx-lamp"/>'+
   '<path d="M'+(LAMP[0]-3.4)+','+(LAMP[1]-3.2)+' L'+(LAMP[0]+3.4)+','+(LAMP[1]-3.2)+' M'+(LAMP[0]-2.6)+','+(LAMP[1]+3.4)+' L'+(LAMP[0]+2.6)+','+(LAMP[1]+3.4)+'" class="lfx-mast thin"/>';
 
+ // 전투 장면용: 작살잡이와 쪽빛 노인의 작살을 본뜬 발사대를 태운 배
+ const BOAT_CREW=BOAT+
+  (window.HarpoonLauncher?window.HarpoonLauncher.markup({dark:'var(--lfx-boat,#040608)'}):'')+
+  '<g><path d="M22,-8 L23,-21 Q23,-26 27,-27 Q31,-26 31,-21 L32,-8 Z" class="lfx-hull"/><circle cx="27" cy="-30.5" r="3.4" class="lfx-hull"/>'+
+  '<path d="M29,-23 L37,-27" class="lfx-mast lfx-arm" style="stroke-width:2.2"/></g>';
+ // 전투 장면: 쏘거나 던진 작살(장면 좌표) + 물보라
+ const SHOT='<g class="lfx-shot" opacity="0"><g transform="scale(.48)">'+
+  '<path d="M-104,0 L-10,0" stroke="#15191b" stroke-width="4" stroke-linecap="round"/>'+
+  '<path d="M-104,-1.2 L-12,-1.2" stroke="#d3dcda" stroke-opacity=".55" stroke-width="1.1"/>'+
+  '<path d="M3,0 L-16,-6.5 L-11,0 L-16,6.5 Z" fill="#dfe6e3" stroke="#aebbb9" stroke-width="1" stroke-linejoin="round"/>'+
+  '<path d="M-12,-3 L-22,-9 M-12,3 L-22,9" stroke="#c5cfcc" stroke-width="1.6" stroke-linecap="round"/>'+
+  (window.HarpoonLauncher?window.HarpoonLauncher.flyMarkup():'')+'</g></g>'+
+  '<ellipse class="lfx-splash" rx="1" ry="1" fill="none" stroke="#cfe3e6" stroke-width="1.2" opacity="0"/>';
+
  // 너울: 큰 물결 위에 작은 물결 두 겹을 얹는다. 배는 이 곡선을 그대로 탄다.
  function surf(x,t,a){
   return SEA
@@ -68,13 +82,14 @@
   return d;
  }
 
- function panel(lake,def){
+ function panel(lake,def,crew){
+  const B=crew?BOAT_CREW:BOAT;
   const th=Object.assign({},DEFAULT_THEME,FX.theme(lake,def)||{});
   entryFor(lake);
   const v='--lfx-boat:'+th.boat+';--lfx-rim:'+th.rim+';--lfx-crest:'+th.crest+';--lfx-swell:'+th.swell+';--lfx-lamp:'+th.lamp+';--lfx-lamp-core:'+th.lampCore;
   const title='21-'+String(lake.id).padStart(2,'0')+(def&&def.name?' · '+def.name:'');
   let far='';for(let i=0;i<3;i++)far+='<path class="lfx-far" data-i="'+i+'" style="stroke-opacity:'+(0.3-i*0.06).toFixed(2)+';stroke-width:'+(1.4+i*0.5).toFixed(1)+'"/>';
-  return '<div class="lakefx" aria-hidden="true" data-lake="'+lake.id+'" data-bob="'+th.bob+'" data-drift="'+th.drift+'" style="'+v+'">'+
+  return '<div class="lakefx" aria-hidden="true"'+(crew?' data-battle="1"':'')+' data-lake="'+lake.id+'" data-bob="'+th.bob+'" data-drift="'+th.drift+'" style="'+v+'">'+
    '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice" focusable="false">'+
    '<defs>'+
     '<linearGradient id="lfxSky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="'+th.skyTop+'"/><stop offset=".55" stop-color="'+th.skyMid+'"/><stop offset="1" stop-color="'+th.skyHorizon+'"/></linearGradient>'+
@@ -94,11 +109,11 @@
    '<path class="lfx-water" fill="url(#lfxSea)"/>'+
    '<rect y="'+(SEA-10)+'" width="'+W+'" height="'+(H-SEA+10)+'" fill="url(#lfxHatch)" opacity=".4" clip-path="url(#lfxBelow)"/>'+
    '<g class="lfx-fars">'+far+'</g>'+
-   '<g clip-path="url(#lfxBelow)"><g class="lfx-reflection" filter="url(#lfxSoft)">'+BOAT+'</g></g>'+
+   '<g clip-path="url(#lfxBelow)"><g class="lfx-reflection" filter="url(#lfxSoft)">'+B+'</g></g>'+
    '<ellipse class="lfx-glint" rx="18" ry="2.8" fill="'+th.lamp+'" filter="url(#lfxGlint)"/>'+
    '<g class="lfx-ripples"><path class="lfx-ripple"/><path class="lfx-ripple"/></g>'+
-   '<g clip-path="url(#lfxAbove)"><g class="lfx-boat">'+BOAT+'</g></g>'+
-   '<path class="lfx-crest"/>'+
+   '<g clip-path="url(#lfxAbove)"><g class="lfx-boat">'+B+'</g></g>'+
+   '<path class="lfx-crest"/>'+(crew?SHOT:'')+
    '</svg>'+
    '<span class="lfx-corner"></span><span class="lfx-grain"></span><span class="lfx-vignette"></span>'+
    '<span class="lfx-top">'+esc(title)+'</span>'+
@@ -171,9 +186,40 @@
   glint.setAttribute('cx',lx.toFixed(1));glint.setAttribute('cy',(surf(lx,t,a)+6).toFixed(1));
   glint.style.opacity=(0.42*flick*enter).toFixed(3);
 
+  if(el.dataset.battle)paintShot(el,now,x,y,roll,s,t,a);
   const mist=el.querySelector('.lfx-mist');
   mist.setAttribute('transform','translate('+(Math.sin(t*0.07)*60).toFixed(1)+' 0)');
  }
+ // 인어 전투: 동전을 던지면 특수 작살은 발사대에서 쏘고, 없으면 손으로 던진다. 망이 있으면 고리째 날아간다.
+ const FLIGHT=.85;
+ function paintShot(el,now,x,y,roll,s,t,a){
+  const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned()),r=roll*Math.PI/180;
+  const toWorld=p=>[x+s*(p[0]*Math.cos(r)-p[1]*Math.sin(r)),y+s*(p[0]*Math.sin(r)+p[1]*Math.cos(r))];
+  const age=FX.shotAt!=null?(now-FX.shotAt)/1000:99;
+  const flying=age<FLIGHT+.3;
+  const shot=el.querySelector('.lfx-shot'),sp=el.querySelector('.lfx-splash'),arm=el.querySelector('.lfx-boat .lfx-arm');
+  let p0,armEnd;
+  if(own){p0=HL.launch(el,toWorld,{loaded:age>FLIGHT+HL.RELOAD});armEnd=HL.ARM;}
+  else{const sw=age<.22?age/.22:1;armEnd=flying?[25+13*sw,-33+9*sw]:[33,-31];p0=toWorld([38,-33]);}
+  if(arm)arm.setAttribute('d','M29,-23 L'+armEnd[0].toFixed(1)+','+armEnd[1].toFixed(1));
+  const tx=x+250,ty=surf(tx,t,a)+3,L=34;
+  let pos=null,ang=0,show=0;
+  if(age<FLIGHT){const u=age/FLIGHT;pos=[p0[0]+(tx-p0[0])*u,p0[1]+(ty-p0[1])*u-4*L*u*(1-u)];ang=Math.atan2((ty-p0[1])-4*L*(1-2*u),tx-p0[0])*180/Math.PI;show=1;}
+  else if(age<FLIGHT+.18){const k=(age-FLIGHT)/.18;pos=[tx+10*k,ty+10*k];ang=40;show=1-k;}
+  else if(!own&&age>FLIGHT+1.1){pos=[p0[0]+6,p0[1]+2];ang=-34;show=Math.min(1,(age-FLIGHT-1.1)/.4);} // 새 작살을 손에 듦
+  if(!own&&FX.shotAt==null){pos=[p0[0]+6,p0[1]+2];ang=-34;show=1;}
+  shot.setAttribute('opacity',show.toFixed(2));
+  if(pos)shot.setAttribute('transform','translate('+pos[0].toFixed(1)+' '+pos[1].toFixed(1)+') rotate('+ang.toFixed(1)+')');
+  const sa=age-FLIGHT;
+  if(sa>0&&sa<1.2){sp.setAttribute('cx',tx.toFixed(1));sp.setAttribute('cy',(ty+1).toFixed(1));sp.setAttribute('rx',(4+sa*40).toFixed(1));sp.setAttribute('ry',(1.2+sa*6).toFixed(1));sp.setAttribute('opacity',(.7*(1-sa/1.2)).toFixed(2));}
+  else sp.setAttribute('opacity','0');
+ }
+ document.addEventListener('click',e=>{
+  const b=e.target&&e.target.closest&&e.target.closest('button[data-act="coin"]');
+  if(!b||b.disabled||busy||!document.querySelector('.lakefx[data-battle]'))return;
+  FX.shotAt=performance.now();
+ },true);
+
  requestAnimationFrame(frame);
  // 화면이 다시 그려진 직후(브라우저가 그리기 전)에 바로 한 번 칠해, 빈 수면이 한 프레임 비치지 않게 한다.
  new MutationObserver(()=>{
@@ -182,5 +228,11 @@
  }).observe(document.body,{childList:true,subtree:true});
 
  if(state.scene==='event')render();
+ // 인어 전투 화면에 같은 바다와 배(작살잡이 · 발사대 포함)를 그린다
+ FX.battlePanel=function(){
+  try{const lake=activeLake();if(!lake)return '';
+   const def=(typeof SCRIPTED_LAKE_MAP_015!=='undefined'&&SCRIPTED_LAKE_MAP_015.get(lake.id))||lake;
+   return panel(lake,def,true);}catch(e){return '';}
+ };
  window.GREAT_LAKE_PATCH_019={boat:true};
 })();

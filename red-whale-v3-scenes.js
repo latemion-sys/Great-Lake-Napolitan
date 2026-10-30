@@ -367,12 +367,12 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
    paintGroundArm(el,'ka'+i,armPose(b,rr,{a:a+sd*f*30+Math.sin(tr*1.2+i)*4,e:e*(1-f*.5),wr:sd*(20+f*30),L1:160,L2:150,w:44,side:sd,grip:.3*(1-f),spread:1.2-f*.6}),b[1],rr>.02?1-seg(t,6.4,7.4):0);
   });
   // 배: 선미가 꼬리 쪽(왼쪽). 작살잡이가 몸을 돌려 선미 너머로 던짐
-  const turn=seg(t,3.5,3.8),thrown=t>=T0;
-  const armEnd=thrown?[16,-26]:turn>0?[29-turn*12,-30-turn*6]:[37,-30];
+  const turn=seg(t,3.5,3.8),thrown=t>=T0;const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());
+  const armEnd=own?HL.ARM:thrown?[16,-26]:turn>0?[29-turn*12,-30-turn*6]:[37,-30];
   const tw=boatOnBed(el,tr,level,380,{arm:armEnd,lamp:turn>0&&!thrown?.15:0,dr:thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0});
-  const hand=tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=50;
+  const hand=own?HL.handFor(HL.launch(el,tw,{aim:HL.ANGLE+(HL.LEFT-HL.ANGLE)*turn,loaded:!thrown||t-T0>HL.RELOAD}),-24,-14):tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=50;
   const hp=q('.bw-harpoon');let pos,ang,show=0;
-  if(turn>0&&!thrown){const a=180+28+turn*10;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=turn;}
+  if(turn>0&&!thrown){const a=180+28+turn*10;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=own?0:turn;}
   else if(thrown&&t<HIT){const u=(t-T0)/(HIT-T0),e=u*(.85+.15*u);pos=[p0[0]+(core[0]-p0[0])*e,p0[1]+(core[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((core[1]-p0[1])-4*LIFT*(1-2*e),core[0]-p0[0])/RAD;show=1;}
   hp.setAttribute('opacity',String(show));
   if(pos)hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
@@ -523,11 +523,11 @@ function tailGame(el,t,tr,g){
  // 작살잡이: 선미 쪽으로 돌아서서 겨눔 → 던짐
  const F=g.flight,T0=F?F.at:null,thrown=F&&t>=T0;
  const recover=F&&F.hit===false?seg(t,F.arrive+.4,F.arrive+.9):0;
- const armEnd=thrown&&recover<1?[16,-26]:[17,-36];
+ const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const armEnd=own?HL.ARM:thrown&&recover<1?[16,-26]:[17,-36];
  const tw=boatOnBed(el,tr,level,380,{arm:armEnd,lamp:.12,dr:thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0});
- const hand=tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=40;
+ const hand=own?HL.handFor(HL.launch(el,tw,{aim:HL.LEFT,loaded:!thrown||t-T0>HL.RELOAD}),-24,-14):tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=40;
  const hp=q('.bw-harpoon');let pos,ang,show=1;
- if(!thrown||recover>=1){const a=180+40;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=F&&F.hit===false?recover:1;}
+ if(!thrown||recover>=1){const a=180+40;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=own?0:F&&F.hit===false?recover:1;}
  else if(F.crumble){ // 숨이 마른 채 던진 작살: 날아가다 하얗게 말라 부서짐
   const u=clamp((t-T0)/(F.arrive-T0)),c=F.target||core;pos=[p0[0]+(c[0]-p0[0])*u,p0[1]+(c[1]-p0[1])*u-4*LIFT*u*(1-u)];ang=Math.atan2((c[1]-p0[1])-4*LIFT*(1-2*u),c[0]-p0[0])/RAD;show=1-seg(u,.35,.7);
   if(!g._cr){g._cr=pos;}if(u<.5)g._cr=pos;}

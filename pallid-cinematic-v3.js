@@ -50,6 +50,7 @@ const BOAT=
  '<path d="M45,-8 L45,-25 L51,-25 L51,-22" stroke="#030405" stroke-width="1.6" fill="none"/>'+
  '<rect x="48.4" y="-21.5" width="5.2" height="6.2" rx="1.2" fill="#ffe39a" stroke="#ffbf47" stroke-width=".8"/>'+
  // 작살잡이: 뱃머리 쪽에 선 사람 실루엣
+ (window.HarpoonLauncher?window.HarpoonLauncher.markup():'')+
  '<g class="w3-thrower"><path d="M22,-8 L23,-21 Q23,-26 27,-27 Q31,-26 31,-21 L32,-8 Z" fill="#030405"/>'+
  '<circle cx="27" cy="-30.5" r="3.4" fill="#030405"/>'+
  '<path class="w3-arm" d="M29,-23 L37,-30" stroke="#030405" stroke-width="2.2" stroke-linecap="round"/></g>';
@@ -143,7 +144,7 @@ function harpoonHtml(){
    '<path d="M-104,0 L-10,0" stroke="#15191b" stroke-width="4" stroke-linecap="round"/>'+
    '<path d="M-104,-1.2 L-12,-1.2" stroke="#d3dcda" stroke-opacity=".55" stroke-width="1.1"/>'+
    '<g class="w3-tip"><path d="M3,0 L-16,-6.5 L-11,0 L-16,6.5 Z" fill="#dfe6e3" stroke="#aebbb9" stroke-width="1" stroke-linejoin="round"/>'+
-   '<path d="M-12,-3 L-22,-9 M-12,3 L-22,9" stroke="#c5cfcc" stroke-width="1.6" stroke-linecap="round"/></g></g></g>'+
+   '<path d="M-12,-3 L-22,-9 M-12,3 L-22,9" stroke="#c5cfcc" stroke-width="1.6" stroke-linecap="round"/></g>'+(window.HarpoonLauncher?window.HarpoonLauncher.flyMarkup():'')+'</g></g>'+
 
   // 명중 효과
   '<circle class="w3-flash" r="70" fill="url(#w3Flash)" opacity="0"/>'+
@@ -267,14 +268,14 @@ function paint(el,t,hold){
  // 겨누기: 팔을 뒤로 젖혔다가 던짐 (미니게임에서는 겨눈 채 숨 고르기)
  const thrown=t>thrownAt;
  const aim=hold?clamp(t/0.6)*(0.92+0.08*Math.sin(t*2.2)):clamp((t-T.aim[0])/(T.aim[1]-T.aim[0]));
- const armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*3];
+ const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const armEnd=own?HL.ARM:thrown?[38,-24]:[37-aim*12,-30-aim*3];
  q('.w3-arm').setAttribute('d','M29,-23 L'+armEnd[0].toFixed(1)+','+armEnd[1].toFixed(1));
  const lampK=0.86+Math.sin(t*7.3)*.05+Math.sin(t*12.9+1.7)*.04+(!thrown&&(hold||t>T.aim[0])?.12:0);
  q('.w3-lampglow').style.opacity=lampK.toFixed(3);
  const br=broll*Math.PI/180,toWorld=p=>[bx+BOAT_S*(p[0]*Math.cos(br)-p[1]*Math.sin(br)),by+BOAT_S*(p[0]*Math.sin(br)+p[1]*Math.cos(br))];
  const lampW=toWorld([51,-18.5]);
  const lg=q('.w3-lampglint');lg.setAttribute('cx',lampW[0].toFixed(1));lg.style.opacity=(0.4*lampK).toFixed(3);
- const hand=toWorld(armEnd);
+ const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:!thrown||t-thrownAt>HL.RELOAD}),30,-14):toWorld(armEnd);
 
  // 작살: 손에서 포물선으로 날아가 꽂히거나(명중) 튕겨 물에 빠짐(빗나감)
  const hp=q('.w3-harpoon'),rope=q('.w3-rope');
@@ -283,7 +284,7 @@ function paint(el,t,hold){
  const embed=hold?3:9;
  let pos,ang,show=0,splashAt=null;
  if(!thrown){
-  const a=-24-aim*14;pos=[hand[0]+Math.cos(a*Math.PI/180)*40,hand[1]+Math.sin(a*Math.PI/180)*40];ang=a;show=hold?1:clamp((t-1.2)/0.4);
+  const a=-24-aim*14;pos=[hand[0]+Math.cos(a*Math.PI/180)*40,hand[1]+Math.sin(a*Math.PI/180)*40];ang=a;show=own?0:hold?1:clamp((t-1.2)/0.4);
  }else if(t<arrive){
   const u=(t-thrownAt)/flyDur,e=u*(0.85+0.15*u);
   const p0=[hand[0]+30,hand[1]-14];

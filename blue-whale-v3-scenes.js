@@ -483,17 +483,17 @@ const S4={title:'최후의 교차',dur:9,
   {const hg=window.BlueHuntGame,n=hg&&hg.trails!=null?hg.trails:4;paintChart(el,t,n,seg(t,1.8,2.6));}
   // 배와 작살잡이
   const tc=unwarp(TH+.558,...HS),cx=P[0]-150*.558,sc=t-tc,B=bob(tr),j=jolt(sc-.3,1,8),heave=sc>.3?-13*Math.exp(-(sc-.3)*2)*Math.sin((sc-.3)*5):0;
-  const T0=1.1,thrown=t>=T0,aim=clamp(t/.8);
-  const armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*4];
+  const T0=1.1,thrown=t>=T0,aim=clamp(t/.8);const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());
+  const armEnd=own?HL.ARM:thrown?[38,-24]:[37-aim*12,-30-aim*4];
   const bx=210,tw=boatPose(el,bx-j*5,SEA+B.y+heave,B.r+j*10-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);
   lamp(el,tr,tw,!thrown?.12:0);
   // 작살: 손 → 비어 있는 교차점 P(먼저 도착) → 고래 눈에 박혀 함께 움직임
-  const hand=tw(armEnd),p0=[hand[0]+30,hand[1]-14],LIFT=50;
+  const hand=own?HL.handFor(HL.launch(el,tw,{loaded:!thrown||t-T0>HL.RELOAD}),30,-14):tw(armEnd),p0=[hand[0]+30,hand[1]-14],LIFT=50;
   const hp=q('.bw-harpoon');let pos,ang,show=0;
   const endAng=Math.atan2((P[1]-p0[1])+4*LIFT,P[0]-p0[0])/RAD;
   // 고래 기준 작살의 붙은 자리(눈)와 상대 각도
   const rel=endAng-pose(TH).deg;
-  if(!thrown){const a=-28-aim*16;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=clamp((t-.2)/.4);}
+  if(!thrown){const a=-28-aim*16;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=own?0:clamp((t-.2)/.4);}
   else if(t<TH){const u=(t-T0)/(TH-T0),e=u*(.85+.15*u);
    pos=[p0[0]+(P[0]-p0[0])*e,p0[1]+(P[1]-p0[1])*e-4*LIFT*e*(1-e)];
    ang=Math.atan2((P[1]-p0[1])-4*LIFT*(1-2*e),P[0]-p0[0])/RAD;show=1;}
@@ -682,13 +682,13 @@ function finalGame(el,t,tr,g){
  paintChart(el,t,ntr,miss?seg(t,g.th,g.th+.8):0);
  // 배 · 작살잡이
  const B=bob(tr),T0=g.thrownAt,thrown=T0!=null&&t>=T0;
- const aim=clamp(t/.8),armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*4];
+ const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const aim=clamp(t/.8),armEnd=own?HL.ARM:thrown?[38,-24]:[37-aim*12,-30-aim*4];
  let tw;
  if(miss&&t>=ib&&!blind)tw=brokenBoat(el,t,ib,210,g.fatal);
  else{tw=boatPose(el,210,SEA+B.y,B.r-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);lamp(el,tr,tw,!thrown?.12:0);}
- const hand=tw(armEnd),p0=[hand[0]+30,hand[1]-14];
+ const hand=own?HL.handFor(HL.launch(el,tw,{loaded:!thrown||t-T0>HL.RELOAD}),30,-14):tw(armEnd),p0=[hand[0]+30,hand[1]-14];
  const hpn=q('.bw-harpoon');let pos,ang,showH=1;
- if(!thrown){const a=-28-aim*16;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;showH=clamp((t-.2)/.4)*(miss&&t>=ib?0:1);}
+ if(!thrown){const a=-28-aim*16;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;showH=own?0:clamp((t-.2)/.4)*(miss&&t>=ib?0:1);}
  else{
   const fl=.4,u=(t-T0)/fl,L=30;
   if(u<=1){const e=u;pos=[p0[0]+(FP[0]-p0[0])*e,p0[1]+(FP[1]-p0[1])*e-4*L*e*(1-e)];ang=Math.atan2((FP[1]-p0[1])-4*L*(1-2*e),FP[0]-p0[0])/RAD;}

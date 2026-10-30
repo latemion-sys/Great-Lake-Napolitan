@@ -113,7 +113,7 @@ function heartHtml(){
   '<g class="w6-harpoon" opacity="0">'+
    '<path d="M-104,0 L-10,0" stroke="#15191b" stroke-width="4" stroke-linecap="round"/>'+
    '<path d="M-104,-1.2 L-12,-1.2" stroke="#ffd9b0" stroke-opacity=".55" stroke-width="1.1"/>'+
-   '<path d="M3,0 L-16,-6.5 L-11,0 L-16,6.5 Z" fill="#efe6dc" stroke="#bfae9e" stroke-width="1" stroke-linejoin="round"/></g>'+
+   '<path d="M3,0 L-16,-6.5 L-11,0 L-16,6.5 Z" fill="#efe6dc" stroke="#bfae9e" stroke-width="1" stroke-linejoin="round"/>'+(window.HarpoonLauncher?window.HarpoonLauncher.flyMarkup():'')+'</g>'+
   '<g class="w6-aimui" opacity="0">'+
    '<circle class="w6-zone" r="24" fill="#ff9a7a" fill-opacity=".12" stroke="#ffcf9a" stroke-width="2" stroke-dasharray="6 6"/>'+
    '<g class="w6-ret" style="color:#f4f7ee"><circle r="13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M-22,0 H-9 M9,0 H22 M0,-22 V-9 M0,9 V22" stroke="currentColor" stroke-width="2"/><circle r="2" fill="currentColor"/></g>'+
@@ -215,7 +215,7 @@ function paint(el,t){
  q('.w6-boat').setAttribute('transform','translate('+bx.toFixed(2)+' '+by.toFixed(2)+') rotate('+broll.toFixed(2)+') scale('+BOAT_S+')');
  const br=broll*Math.PI/180,toWorld=p=>[bx+BOAT_S*(p[0]*Math.cos(br)-p[1]*Math.sin(br)),by+BOAT_S*(p[0]*Math.sin(br)+p[1]*Math.cos(br))];
  const aim=hold?clamp(t/0.6)*(0.92+0.08*Math.sin(t*2.2)):clamp((t-T.aim[0])/(T.aim[1]-T.aim[0])),thrown=t>F0;
- const armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*3];
+ const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const armEnd=own?HL.ARM:thrown?[38,-24]:[37-aim*12,-30-aim*3];
  q('.w3-arm').setAttribute('d','M29,-23 L'+armEnd[0].toFixed(1)+','+armEnd[1].toFixed(1));
  const lampK=0.86+Math.sin(t*7.3)*.05+Math.sin(t*12.9+1.7)*.04;
  q('.w3-lampglow').style.opacity=lampK.toFixed(3);
@@ -244,10 +244,10 @@ function paint(el,t){
 
  // 작살
  const hp=q('.w6-harpoon'),rope=q('.w6-rope'),tr=q('.w6-trail');
- const hand=toWorld(armEnd),p0=[hand[0]+30,hand[1]-14],target=hold&&HG.aimPt?HG.aimPt:[sx-4,sy+2];
+ const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:t<F0||t-F0>HL.RELOAD}),30,-14):toWorld(armEnd),p0=[hand[0]+30,hand[1]-14],target=hold&&HG.aimPt?HG.aimPt:[sx-4,sy+2];
  const endA=Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0]);
  let pos,a,show=0;
- if(t<F0){const aa=(-24-aim*14)*Math.PI/180;pos=[hand[0]+Math.cos(aa)*40,hand[1]+Math.sin(aa)*40];a=aa;show=hold?1:clamp((t-T.aim[0]+0.4)/0.4);}
+ if(t<F0){const aa=(-24-aim*14)*Math.PI/180;pos=[hand[0]+Math.cos(aa)*40,hand[1]+Math.sin(aa)*40];a=aa;show=own?0:hold?1:clamp((t-T.aim[0]+0.4)/0.4);}
  else if(t<F1){const u2=(t-F0)/(F1-F0),e=u2*(0.85+0.15*u2);
   pos=[p0[0]+(target[0]-p0[0])*e,p0[1]+(target[1]-p0[1])*e-4*LIFT*e*(1-e)];
   a=Math.atan2((target[1]-p0[1])-4*LIFT*(1-2*e),target[0]-p0[0]);show=1;}
