@@ -1,11 +1,11 @@
-/* Uploaded revision (7): lake-only scripting and 43 authored locations. */
+/* Uploaded revision (8): restore 44 lake scripts and priority scene judgement. */
 (function(){
 'use strict';
 const data=window.GREAT_LAKE_SCRIPT_DATA_021;
-if(!Array.isArray(data)||data.length!==43)throw Error('Lake source 7 missing');
+if(!Array.isArray(data)||data.length!==44)throw Error('Lake source 8 missing');
 const defs=new Map(data.map(x=>[x.id,x]));
-const added=[34,35,36,37,38,39,41,42,43];
-const custom=new Set([9,14,17,...added]);
+const added=[34,35,36,37,38,39,41,42,43,44];
+const custom=new Set([5,9,14,17,20,...added]);
 const pick=a=>a[rng(a.length)];
 const swap=x=>x==='왼쪽'?'오른쪽':'왼쪽';
 const fill=(s,v)=>String(s).replace(/\{([^}]+)\}/g,(_,k)=>v[k]??'{'+k+'}');
@@ -26,7 +26,7 @@ for(const d of data){
  const lake=LAKE_BY_ID157.get(d.id);
  if(!lake)throw Error('Lake not registered: '+d.id);
  Object.assign(lake,{name:d.name,hex:d.hex,mermaid:true,storyNo:'21-'+String(d.id).padStart(2,'0')});
- RULES[lake.rule].truth=()=>pick(d.hints);
+ RULES[lake.rule].truth=()=>d.hints.length?pick(d.hints):'';
 }
 function seed(st){
  const v=st.vars,id=st.id;
@@ -43,6 +43,8 @@ function seed(st){
 }
 function initial(st){
  const id=st.id,N=st.vars.N,lim=st.turnLimit;
+ if(id===5||id===20)return pick(Object.keys(defs.get(id).nodes));
+ if(id===44)return pick(['scene0','scene1','scene2','scene3'].filter((_,i)=>i+1<=lim));
  if(id===36||id===37)return 'scene0';
  if([9,14,17].includes(id))return lim>=N+1?pick(id===17?['scene0','scene1','scene2']:['scene0','scene1']):id===17?'scene2':'scene1';
  if(id===38)return pick(lim>=4?['scene0','scene1','scene2']:['scene0','scene2']);
@@ -126,6 +128,14 @@ storyChoice014=function(i){
  }
  const prev=st.step;
  let next=opt.to||pick(opt.toAny||[]);
+ if(id===5&&prev!=='scene3'){
+  st.count++;
+  const remaining=st.turnLimit-st.turns;
+  const exitChance=Math.min(1,.22+st.count*.19);
+  // 반복해 돌아갈수록 빈 물길이 나올 확률이 커지고, 남은 시간이 없으면 출구가 나온다.
+  next=remaining<=0||Math.random()<exitChance?'scene3':
+   pick(['scene0','scene1','scene2'].filter(k=>k!==prev));
+ }
  if(id===9){st.count++;next=st.count>=st.vars.N?'scene1':'scene0';}
  if(id===14){
   st.seen[st.vars['색']===st.vars['우리 색']?'same':'diff']=true;
@@ -177,7 +187,7 @@ const beforeRendered=renderScriptedLake015;
 renderScriptedLake015=function(){
  const lake=activeLake(),st=state.lakeStory;
  if(!lake||!custom.has(lake.id)||!st?.scriptVersion021)return beforeRendered();
- const def=defs.get(lake.id),node=def.nodes[st.step],title='21-'+String(lake.id).padStart(2,'0')+' · '+def.name;
+ const def=defs.get(lake.id),node=def.nodes[st.step],title=lake.id===8?'':'21-'+String(lake.id).padStart(2,'0')+' · '+def.name;
  return '<div class="inset" style="border-top:4px solid '+def.hex+'">'+
  '<div class="between"><h2>'+esc(title)+'</h2>'+tag('창작 구역')+'</div>'+
  '<p class="muted">'+esc(fill(def.description,st.vars))+'</p>'+
@@ -186,6 +196,11 @@ renderScriptedLake015=function(){
  '<h3>발생 사건</h3><p>'+esc(st.sceneText)+'</p><div class="stack">'+
  st.order.map((j,k)=>button('▸ '+fill(node.choices[j].text,st.vars),'storyChoice',String(k),'')).join('')+
  '</div></div>';
+};
+const oldRouteRender021=renderPlay;
+renderPlay=function(){
+ const html=oldRouteRender021();
+ return state.scene==='route'?html.replaceAll('제008호',''):html;
 };
 if(state.scene==='event'&&custom.has(state.current)&&!state.lakeStory?.scriptVersion021)
  state.lakeStory=makeStory014(LAKE_BY_ID157.get(state.current));
