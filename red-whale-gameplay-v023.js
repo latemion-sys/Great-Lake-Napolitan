@@ -21,12 +21,8 @@ function stage(){
  return null;
 }
 function sceneMarkup(n){
- return '<section class="redwhale-game'+(n===4?' redwhale-finale':'')+'" aria-label="새빨간 고래 이펙트 '+(n+1)+'단계">'+
- '<div class="redwhale-headline"><b>'+(n+1)+' · '+labels[n]+'</b><span>RED CALAMITY / 0'+(n+1)+'</span></div>'+
- '<div class="redwhale-screen"><canvas id="redWhaleCanvas023" width="1024" height="576" role="img" aria-label="'+labels[n]+' 연출"></canvas>'+
- '<div class="redwhale-caption">'+details[n]+'</div></div>'+
- '<div class="redwhale-bottom"><p>'+details[n]+'</p>'+
- '<button type="button" class="redwhale-replay" data-act="redWhaleReplay023">연출 다시 보기 ↻</button></div></section>';
+ // v3: 문어+크툴루 머리, 빨판 달린 사람 팔의 SVG 시네마틱 (red-whale-v3.js / red-whale-v3-scenes.js)
+ return window.RedWhaleV3?window.RedWhaleV3.html(n):'';
 }
 const previousPlay=renderPlay;
 renderPlay=function(){
@@ -35,7 +31,7 @@ renderPlay=function(){
  if(n===4){
   return sceneMarkup(4)+
    '<div class="inset"><h2>'+esc(WHALES[RED].name)+' · 사냥 성공</h2>'+
-   '<p>거대한 작살이 새빨간 고래의 머리에 꽂혔습니다. 여덟 팔이 힘을 잃고, 메말랐던 호수에 물이 다시 차오릅니다.</p>'+
+   '<p>거대한 작살이 붉은 고래의 두 눈 사이에 꽂혔습니다. 붉은 눈동자가 빛을 잃고, 빨판 달린 팔들이 힘없이 무너집니다. 머리가 가라앉자 말라붙었던 호수에 물이 다시 차오릅니다.</p>'+
    '<p class="muted">전리품과 사냥 업적은 기존 판정대로 지급되었습니다.</p>'+
    button('사냥을 마치고 항해 계속하기','redWhaleContinue023','','primary')+
    '</div>';
@@ -51,23 +47,11 @@ resolveCoin=function(win){
  if(success&&state.scene==='dead')state.redWhaleFinal023=false;
  return result;
 };
-const previousRender=render;
-render=function(){
- const result=previousRender();
- const canvas=document.getElementById('redWhaleCanvas023');
- const n=stage();
- if(canvas&&n!==null&&window.RedWhaleCinematic)
-  window.RedWhaleCinematic.mount(canvas,n);
- else if(window.RedWhaleCinematic)
-  window.RedWhaleCinematic.stop();
- return result;
-};
 document.addEventListener('click',function(e){
  const b=e.target?.closest?.('button[data-act]');
  if(!b||b.disabled||busy)return;
  if(b.dataset.act==='redWhaleReplay023'){
-  const canvas=document.getElementById('redWhaleCanvas023'),n=stage();
-  if(canvas&&n!==null)window.RedWhaleCinematic?.mount(canvas,n);
+  if(window.RedWhaleV3)window.RedWhaleV3.replayToken++;
  }
  if(b.dataset.act==='redWhaleContinue023'&&state.redWhaleFinal023&&state.scene!=='dead'){
   state.redWhaleFinal023=false;

@@ -1,85 +1,83 @@
 <!doctype html>
-<html lang="ko"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>새빨간 고래 · 5단계 시네마틱 미리보기</title>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>모든 것을 말리는 붉은 고래 · 5단계 이펙트 미리보기</title>
+<link rel="stylesheet" href="./pallid-cinematic-v2.css?v=01513">
 <style>
-:root{color-scheme:dark}*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 50% -15%,#4d2028,#170a10 48%,#08070a);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#f8e7e1;line-height:1.65}
-main{max-width:1170px;margin:auto;padding:26px 16px 65px}
-small{color:#f3a999;letter-spacing:.19em;font-size:11px;font-weight:700}
-h1{margin:5px 0 10px;font-size:clamp(26px,3.5vw,39px);letter-spacing:-.05em;line-height:1.3}p{color:#dac1b9;margin:0 0 20px;font-size:14px}
-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0 0 13px}
-nav button{min-height:83px;padding:12px;background:#281319;border:1px solid #663942;border-radius:11px;text-align:left;color:#e7d2ce;cursor:pointer}
-nav button:hover{background:#401a21}nav button[aria-pressed=true]{background:linear-gradient(135deg,#7c2631,#3f141c);border-color:#f99c8c;box-shadow:inset 0 -3px #ef877e;color:white}
-nav .number{display:block;color:#eeb9a6;letter-spacing:.1em;font-size:11px;font-weight:800;margin-bottom:5px}
-nav .name{display:block;font-weight:700;font-size:13px;line-height:1.4}
-.screen{position:relative;border:1px solid #914c4e;border-radius:13px;overflow:hidden;background:#17090d;aspect-ratio:16/9;box-shadow:0 17px 42px #0007}
-.screen canvas{display:block;width:100%;height:100%}
-.screen:after{content:"";pointer-events:none;position:absolute;inset:0;box-shadow:inset 0 0 75px #000b}
-.redwhale-caption{position:absolute;left:22px;right:22px;bottom:25px;color:#fff1e9;font-size:14px;font-weight:700;text-shadow:0 2px 12px black,0 1px 3px black;z-index:1}
-.corner{position:absolute;z-index:1;left:20px;top:15px;color:#ffb8ae;font-size:11px;letter-spacing:.16em;text-shadow:0 2px 10px #000}
-.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:15px 1px}
-.toolbar strong{font-size:19px}
-.actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.actions button{border:1px solid #8e4a4a;border-radius:8px;padding:9px 14px;color:#ffe6df;background:#57252b;cursor:pointer;font-size:12px}
-.actions button:hover{background:#79313a}
-.actions label{font-size:12px;color:#e4c0b7;display:flex;align-items:center;gap:6px;margin-left:6px}
-input{accent-color:#ff776a}
-.detail{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:11px}
-.detail article{border:1px solid #5b323a;background:#26131a;border-radius:11px;padding:15px}
-.detail span{display:block;color:#ffbaaa;font-size:11px;letter-spacing:.13em;margin-bottom:6px}
-.detail p{font-size:13px;margin:0}
-.note{margin:17px 0 0;color:#b9a8a7;font-size:12px}
-.note a{color:#ffb7a7}
-@media(max-width:730px){nav{grid-template-columns:repeat(3,minmax(0,1fr))}.detail{grid-template-columns:1fr}}
-@media(max-width:440px){main{padding:15px 9px 40px}nav{gap:5px}nav button{min-height:65px;padding:8px}nav .name{font-size:11px}.redwhale-caption{font-size:10px;left:9px;bottom:10px}.corner{font-size:9px;left:9px;top:8px}}
-</style></head><body><main>
-<header><small>THE GREAT LAKE · SCARLET CALAMITY / EFFECT PREVIEW</small><h1>모든 것을 마르게 하는 새빨간 고래</h1>
-<p>수면이 낮아지는 순간부터 여덟 개의 팔, 붉은 눈의 문어 머리, 거대한 작살과 물의 귀환까지. 다섯 장면을 직접 선택해 살펴볼 수 있는 본편용 이펙트 미리보기입니다.</p></header>
-<nav id="stages" aria-label="다섯 단계">
-<button data-stage="0" aria-pressed="true"><span class="number">01 / DRY</span><span class="name">말라붙는 호수</span></button>
-<button data-stage="1" aria-pressed="false"><span class="number">02 / WRAP</span><span class="name">붉은 팔의 포위</span></button>
-<button data-stage="2" aria-pressed="false"><span class="number">03 / PARRY</span><span class="name">여덟 팔 격퇴</span></button>
-<button data-stage="3" aria-pressed="false"><span class="number">04 / GAZE</span><span class="name">붉은 눈의 머리</span></button>
-<button data-stage="4" aria-pressed="false"><span class="number">05 / STRIKE</span><span class="name">작살과 물의 귀환</span></button>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{background:radial-gradient(ellipse at 45% 0%,#3a1f24,#140b0e 49%,#0a0607 100%);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#e7eef3;line-height:1.65;margin:0}
+main{max-width:1110px;margin:auto;padding:36px 18px 72px}
+h1{font-size:29px;letter-spacing:-.04em;margin:6px 0 8px}
+p{margin:5px 0 15px}.eyebrow{font-size:12px;letter-spacing:.18em;color:#a9c9dc}
+.subtitle{color:#b1c2d0;font-size:14px}
+.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:23px 0 12px}
+button{font:inherit;cursor:pointer;font-size:13px;line-height:1.5;background:#15243a;color:#b8cddc;padding:12px;border:1px solid #3c5470;border-radius:10px}
+button:hover{background:#233c58}
+button:focus-visible{outline:3px solid #9fd2ef;outline-offset:2px}
+.tabs button[aria-pressed="true"]{color:#f6fbff;background:#24506e;border-color:#8fcbea;box-shadow:inset 0 -3px #6fb7dd}
+.viewer{background:linear-gradient(120deg,#152536,#111c2a);border:1px solid #415a72;border-radius:17px;padding:19px;box-shadow:0 24px 70px #0005}
+#stage .pallid-cine-v2{margin:0;height:clamp(270px,47vw,485px);border-color:#6f8ea6}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:13px;margin-top:15px;flex-wrap:wrap}
+.meta h2{font-size:19px;letter-spacing:-.03em;margin:0 0 2px}
+.meta p{font-size:13px;color:#a0b7c7;margin:0}
+.actions{display:flex;gap:7px}
+.actions button{padding:9px 14px;white-space:nowrap}
+.actions .primary{background:#2c5b7a;color:white;border-color:#73a9c9}
+.help{margin-top:16px;font-size:12px;color:#8ea6b8}
+.load-error{padding:20px;color:#ffcbc4;background:#421c24;border:1px solid #a94d57;border-radius:12px}
+@media(max-width:650px){main{padding:21px 11px 50px}.tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.tabs button{padding:8px 5px;font-size:11px}.viewer{padding:10px}.actions button{font-size:12px}h1{font-size:23px}#stage .pallid-cine-v2{height:clamp(200px,60vw,275px)}}
+</style>
+</head>
+<body>
+<main>
+<div class="eyebrow">대호수 · 모든 것을 말리는 붉은 고래 · 시네마틱</div>
+<h1>사냥 이펙트 실시간 미리보기</h1>
+<p class="subtitle">다섯 장면을 골라 보고, 멈추거나 처음부터 다시 재생할 수 있습니다. 실제 게임에서는 조우와 전투 진행에 맞춰 자동으로 바뀝니다.</p>
+<nav class="tabs" id="scene-tabs" aria-label="장면 선택">
+<button type="button" data-stage="0" aria-pressed="true">1 · 말라붙는 호수</button>
+<button type="button" data-stage="1" aria-pressed="false">2 · 붉은 팔의 포위</button>
+<button type="button" data-stage="2" aria-pressed="false">3 · 여덟 팔 격퇴</button>
+<button type="button" data-stage="3" aria-pressed="false">4 · 붉은 눈의 머리</button>
+<button type="button" data-stage="4" aria-pressed="false">5 · 작살과 물의 귀환</button>
 </nav>
-<section class="screen"><canvas id="movie" width="1024" height="576" aria-label="새빨간 고래 5단계 애니메이션" role="img"></canvas><span id="scene-tag" class="corner">01 / DRYING SHORE</span><div class="redwhale-caption">수면이 내려간다. 선체 아래에 마른 바닥이 드러난다.</div></section>
-<div class="toolbar"><strong id="scene-title">1 · 말라붙는 호수</strong><div class="actions">
-<button id="replay" type="button">↻ 다시 보기</button><button id="next" type="button">다음 단계 ›</button>
-<label><input id="auto" type="checkbox"> 자동으로 다음 단계</label></div></div>
-<div class="detail"><article><span>이펙트 연출</span><p id="fx">수면이 서서히 낮아지고, 드러난 바닥에 균열이 번집니다.</p></article>
-<article><span>사냥 단계와 연결</span><p id="role">붉은 고래를 처음 발견하는 장면입니다.</p></article></div>
-<p class="note">이 페이지와 본편은 같은 이펙트 파일을 사용합니다. 장면을 고르면 해당 단계가 처음부터 재생됩니다. <a href="./">대호수 본편으로 돌아가기</a></p>
+<section class="viewer" aria-label="이펙트 영상">
+<div id="stage" aria-live="off"></div>
+<div class="controls">
+<div class="meta"><h2 id="scene-title">말라붙는 호수</h2><p id="scene-desc"></p></div>
+<div class="actions">
+<button class="primary" id="replay" type="button">처음부터 재생 ↻</button>
+<button id="pause" type="button" aria-pressed="false">일시 정지</button>
+</div>
+</div>
+</section>
+<p class="help">1~4단계는 반복 재생되고, 5단계(사냥 성공)는 한 번 재생된 뒤 마지막 장면에 멈춥니다. 게임에서는 조우 → 전투 1·2·3번째 공격 → 사냥 성공 순서로 나옵니다.</p>
 </main>
-<script src="./red-whale-cinematic-v023.js?v=0230"></script>
+<script src="./blue-whale-v3.js?v=bwmg1030c"></script>
+<script src="./red-whale-v3.js?v=rw1030"></script>
+<script src="./red-whale-v3-scenes.js?v=rw1030"></script>
 <script>
 (function(){
 'use strict';
-const titles=['말라붙는 호수','붉은 팔의 포위','여덟 팔 격퇴','붉은 눈의 머리','작살과 물의 귀환'];
-const tags=['DRYING SHORE','ENCIRCLING ARMS','EIGHT PARRIES','THE RED GAZE','HARPOON / WATER RETURNS'];
-const descriptions=[
- ['수면이 서서히 낮아지고, 드러난 바닥에 균열이 번집니다.','붉은 고래와 처음 조우하는 순간입니다.'],
- ['빨판이 달린 굵은 문어 팔들이 물 위로 솟아올라 선체 주위를 감쌉니다.','사냥 개시. 선박을 붙잡은 팔의 압박을 보여 줍니다.'],
- ['총 여덟 개의 팔이 배를 향해 공격하고, 작살과 무기로 하나씩 쳐냅니다.','여덟 팔을 차례로 저지하는 격전입니다.'],
- ['두족류와 크툴루를 닮은 거대한 문어 머리, 붉은 눈이 나타납니다.','팔 뒤에 있던 붉은 고래의 본체가 직접 공격합니다.'],
- ['거대한 작살이 머리를 관통합니다. 동시에 호수의 물이 다시 차오릅니다.','최종 사냥 성공과 호수의 복원을 함께 보여 줍니다.']
-];
-const buttons=[...document.querySelectorAll('button[data-stage]')],canvas=document.getElementById('movie');
-let stage=0,lastChange=performance.now();
-function show(n){
- stage=(n+5)%5;lastChange=performance.now();
- buttons.forEach((b,i)=>b.setAttribute('aria-pressed',i===stage?'true':'false'));
- document.getElementById('scene-title').textContent=(stage+1)+' · '+titles[stage];
- document.getElementById('scene-tag').textContent=String(stage+1).padStart(2,'0')+' / '+tags[stage];
- document.getElementById('fx').textContent=descriptions[stage][0];
- document.getElementById('role').textContent=descriptions[stage][1];
- window.RedWhaleCinematic.mount(canvas,stage);
+var lib=window.RedWhaleV3,stage=document.getElementById('stage'),title=document.getElementById('scene-title'),desc=document.getElementById('scene-desc'),pause=document.getElementById('pause');
+var DESC=['붉은 열기에 호수가 말라붙고, 배가 갈라진 진흙 위에 얹힙니다.','빨판이 늘어선 사람의 팔들이 바닥에서 솟아 배를 움켜쥡니다.','여덟 개의 팔이 차례로 덮쳐 오고, 작살잡이가 하나씩 쳐냅니다.','문어와 크툴루를 합친 거대한 머리가 떠올라 붉은 눈을 뜹니다.','두 눈 사이에 작살이 박히고, 머리가 가라앉으며 물이 다시 차오릅니다.'];
+var active=0,playing=true;
+function display(i){
+ active=i;stage.innerHTML=lib.html(i);
+ stage.classList.toggle('is-paused',!playing);
+ title.textContent=lib.stages[i];desc.textContent=DESC[i];
+ document.querySelectorAll('#scene-tabs [data-stage]').forEach(function(b){b.setAttribute('aria-pressed',String(+b.dataset.stage===i));});
 }
-document.getElementById('stages').addEventListener('click',e=>{const b=e.target.closest('[data-stage]');if(b)show(Number(b.dataset.stage));});
-document.getElementById('replay').addEventListener('click',()=>show(stage));
-document.getElementById('next').addEventListener('click',()=>show(stage+1));
-document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')show(stage+1);if(e.key==='ArrowLeft')show(stage-1);});
-setInterval(()=>{if(document.getElementById('auto').checked&&performance.now()-lastChange>=7000)show(stage+1);},240);
-show(0);
+if(!lib){stage.innerHTML='<div class="load-error">애니메이션 파일을 불러오지 못했습니다. 새로고침해 주세요.</div>';return;}
+document.getElementById('scene-tabs').addEventListener('click',function(e){var b=e.target.closest('[data-stage]');if(b){lib.replayToken++;display(+b.dataset.stage);}});
+document.getElementById('replay').addEventListener('click',function(){lib.replayToken++;playing=true;pause.textContent='일시 정지';pause.setAttribute('aria-pressed','false');display(active);});
+pause.addEventListener('click',function(){playing=!playing;stage.classList.toggle('is-paused',!playing);pause.textContent=playing?'일시 정지':'계속 재생';pause.setAttribute('aria-pressed',String(!playing));});
+display(0);
 })();
-</script></body></html>
+</script>
+</body>
+</html>
