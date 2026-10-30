@@ -47,9 +47,9 @@ const SAIL='M314,-52 C322,-106 342,-176 380,-234 C386,-190 402,-142 442,-102 C50
  'C660,-74 700,-62 742,-44 C660,-60 520,-82 314,-52 Z';
 const SAIL_EDGE='M314,-52 C322,-106 342,-176 380,-234 C386,-190 402,-142 442,-102 C500,-94 560,-90 620,-80 C660,-74 700,-62 742,-44';
 const PEC='M298,22 C346,34 414,64 510,112 C450,86 392,62 342,46 C324,40 308,32 298,22 Z';
-const EYE=[262,-15];
+const EYE=[264,-11];
 
-function marlinDefs(p){
+function marlinDefsOld(p){
  const r=seeded(29);let bars='',fine='',scars='';
  for(let x=352,i=0;x<=860;i++){
   const top=-80,len=(62+r()*34)*(1-i*.025),w=Math.max(2,7.5-i*.33)*(0.75+r()*.5);
@@ -267,6 +267,165 @@ function marlinDefs2(p){
  '<g id="'+p+'G"><path d="'+SAIL+'"/><path d="'+BODY+'"/><path d="'+BILL+'"/></g>';
 }
 
+/* ---------- 실제 청새치 구조로 다시 그린 푸른 고래 ---------- */
+const BODY4='M236,-17 C252,-26 272,-38 296,-50 C318,-60 340,-67 372,-73 C410,-79 452,-79 500,-76 C590,-70 680,-54 760,-34 '+
+ 'C810,-22 850,-13 888,-9 L902,-8 C928,-40 964,-120 1016,-204 C994,-140 972,-66 950,-5 Q946,0 950,5 '+
+ 'C972,66 994,140 1016,204 C964,120 928,40 902,8 L888,9 C850,13 810,22 760,34 '+
+ 'C690,52 600,66 500,70 C430,72 370,64 322,48 C288,36 262,24 240,14 L204,7 C218,2 228,-8 236,-17 Z';
+const BACK4='M236,-17 C252,-26 272,-38 296,-50 C318,-60 340,-67 372,-73 C410,-79 452,-79 500,-76 C590,-70 680,-54 760,-34 C810,-22 850,-13 888,-9';
+const BELLY4='M240,14 C262,24 288,36 322,48 C370,64 430,72 500,70 C600,66 690,52 760,34 C810,22 850,13 888,9';
+const TAIL4='M886,-9 L902,-8 C928,-40 964,-120 1016,-204 C994,-140 972,-66 950,-5 Q946,0 950,5 C972,66 994,140 1016,204 C964,120 928,40 902,8 L886,9 Z';
+// 둥근 주둥이(윗턱): 뿌리 반두께 8 → 끝 1.2
+const BILL4='M-60,-4.2 C20,-6.5 120,-10 196,-14.5 C214,-15.6 228,-17 240,-20 L244,-4 C230,-1 214,1 196,2 C120,3.5 20,0 -60,-1.8 Z';
+const BILL_TOP4='M-60,-4.2 C20,-6.5 120,-10 196,-14.5 C214,-15.6 228,-17 240,-20';
+const BILL_LOW4='M-60,-1.8 C20,0 120,3.5 196,2 C214,1 230,-1 244,-4';
+// 짧고 뾰족한 아래턱
+const JAW4='M198,5 C214,2 236,0 262,2 C282,4 298,8 310,14 C292,19 266,19 242,15 C224,12 210,9 198,5 Z';
+// 첫째 등지느러미: 앞 뾰족한 돛(몸 높이보다 낮음) → 등을 따라 낮게
+const D14='M338,-66 C342,-96 352,-128 368,-160 C372,-140 382,-118 404,-98 C420,-90 440,-88 470,-88 C540,-86 610,-78 680,-62 C700,-58 716,-54 728,-50 C650,-64 520,-80 338,-66 Z';
+const D1_EDGE4='M338,-66 C342,-96 352,-128 368,-160 C372,-140 382,-118 404,-98 C420,-90 440,-88 470,-88 C540,-86 610,-78 680,-62 C700,-58 716,-54 728,-50';
+const D24='M792,-26 C798,-36 806,-46 812,-52 C814,-42 820,-32 832,-22 Z';
+const A14='M676,48 C688,66 700,84 708,102 C714,86 724,66 738,44 Z';
+const A24='M792,24 C798,34 806,44 812,50 C814,40 820,30 832,20 Z';
+// 길고 좁은 낫 모양 가슴지느러미 · 실 같은 배지느러미
+const PEC4='M316,26 C352,40 410,66 490,104 C440,76 396,56 352,44 C334,38 322,32 316,26 Z';
+const PEL4='M360,58 C372,74 390,92 414,108';
+const EYE4=[264,-11];
+function marlinBody4(p){
+ const WM=window.WhaleMarks||{veins:()=>({thick:'',thin:''}),rakes:()=>'',wounds:()=>'',teeth:()=>'',harpoons:()=>''};
+ const r=seeded(43);
+ // 코발트 세로 줄 15줄: 점과 짧은 막대
+ let stripes='';
+ for(let i=0;i<15;i++){
+  const x=356+i*33+r()*6,top=-74+i*i*.22+i*1.2,len=(84-i*2.4)*(0.85+r()*.3);
+  for(let y=top+4;y<top+len;){const bar=r()<.55,h=bar?7+r()*9:2.6+r()*1.6,w=bar?3.8-i*.1:3+r()*1.4;
+   stripes+=bar?'<rect x="'+n1(x+(y-top)*.08-w/2)+'" y="'+n1(y)+'" width="'+n1(w)+'" height="'+n1(h)+'" rx="'+n1(w/2)+'" opacity="'+n1(1-(y-top)/len*.8)+'"/>':
+    '<circle cx="'+n1(x+(y-top)*.08)+'" cy="'+n1(y+h/2)+'" r="'+n1(w/2)+'" opacity="'+n1(1-(y-top)/len*.8)+'"/>';
+   y+=h+2.5+r()*4;}
+ }
+ // 그물 모양 옆줄 (육각 격자, 옅게)
+ let net='';
+ for(let row=0;row<3;row++)for(let x=330+row*9;x<860;x+=18){const y=-6+row*9-(x-330)*.008;
+  net+='M'+n1(x)+','+n1(y)+' l9,-5 l9,5 l0,9 ';}
+ // 등지느러미 가시줄
+ let rays='';
+ [[342,-66,348,-104],[348,-67,356,-130],[354,-68,366,-156],[364,-70,376,-134],[376,-72,388,-112],[392,-74,404,-98],[420,-76,428,-90],[450,-77,458,-89],[490,-76,498,-88],[540,-73,548,-85],[590,-68,598,-79],[640,-61,648,-69],[690,-53,698,-58]].forEach(a=>{rays+='M'+a[0]+','+a[1]+' L'+a[2]+','+a[3]+' ';});
+ // 고래 공통 질감
+ const v=WM.veins(41,[[380,-40,6,150],[520,4,-4,160],[640,-30,6,130],[330,10,24,90],[720,10,-8,110]]);
+ const rk=[[430,-56,6,120,3],[610,22,-8,90,2],[730,-34,10,70,3]];
+ const skin='<g fill="none" stroke-linecap="round">'+
+  '<path d="'+v.thick+'" stroke="#c9e8fb" stroke-opacity=".2" stroke-width="1.5"/>'+
+  '<path d="'+v.thin+'" stroke="#f1f8ff" stroke-opacity=".16" stroke-width=".8"/>'+
+  '<g stroke="#02070d" stroke-opacity=".45" stroke-width="2.6" transform="translate(0 1.4)">'+WM.rakes(5,rk)+'</g>'+
+  '<g stroke="#e2eff6" stroke-opacity=".3" stroke-width="1.4">'+WM.rakes(5,rk)+'</g>'+
+ '</g>'+WM.wounds([[530,-38,10,40],[676,12,-12,32]],{lip:'#c9a3a6',core:'#1c0710'});
+ // 작은 줄 같은 이빨 (실제 청새치는 위아래 턱에 줄칼 같은 잔이빨이 있음) → 비뚤게
+ const tUp=[],tLo=[];for(let x=206;x<=292;x+=7.5){const yy=4+(x-200)*.045;tUp.push([x,yy,false,1.8+((x*7)%5)*.5]);tLo.push([x+3.5,yy+2.4,true,1.4+((x*3)%4)*.45]);}
+ const teeth='<g opacity=".7">'+WM.teeth(tUp,9,{fill:'#a9a48f',edge:'#0b1622'})+WM.teeth(tLo,11,{fill:'#9a9581',edge:'#0b1622'})+'</g>';
+ const harp=WM.harpoons([[560,-73,-126,86,false,[-10,70]],[704,-48,-140,48,true,null],[812,-24,-152,60,false,[-6,60]]],{w:5.4,hole:3.6,wood:'#7a7064',ring:'#cfe6f2',blood:'#2a0a14',hi:'#e8dcc4'});
+ return ''+
+ '<linearGradient id="'+p+'Skin" gradientUnits="userSpaceOnUse" x1="0" y1="-80" x2="0" y2="72">'+
+  '<stop stop-color="#040b16"/><stop offset=".2" stop-color="#0b2448"/><stop offset=".4" stop-color="#174c84"/><stop offset=".53" stop-color="#2b6fae"/>'+
+  '<stop offset=".62" stop-color="#6593ba"/><stop offset=".72" stop-color="#aabdcc"/><stop offset=".87" stop-color="#93a3b0"/><stop offset="1" stop-color="#4d5b67"/></linearGradient>'+
+ '<linearGradient id="'+p+'Vol" gradientUnits="userSpaceOnUse" x1="0" y1="-80" x2="0" y2="72"><stop stop-color="#fff" stop-opacity="0"/><stop offset=".08" stop-color="#e6f4ff" stop-opacity=".22"/><stop offset=".22" stop-color="#fff" stop-opacity="0"/><stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient>'+
+ '<linearGradient id="'+p+'Len" gradientUnits="userSpaceOnUse" x1="236" y1="0" x2="900" y2="0"><stop stop-color="#000" stop-opacity=".3"/><stop offset=".1" stop-color="#000" stop-opacity="0"/><stop offset=".72" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></linearGradient>'+
+ '<linearGradient id="'+p+'Bill" gradientUnits="userSpaceOnUse" x1="0" y1="-20" x2="0" y2="3"><stop stop-color="#9cc7e0"/><stop offset=".25" stop-color="#3d6e98"/><stop offset=".6" stop-color="#14304f"/><stop offset="1" stop-color="#050e1c"/></linearGradient>'+
+ '<linearGradient id="'+p+'BillFade" gradientUnits="userSpaceOnUse" x1="-60" y1="0" x2="240" y2="0"><stop stop-color="#000" stop-opacity=".45"/><stop offset=".55" stop-color="#000" stop-opacity="0"/></linearGradient>'+
+ '<linearGradient id="'+p+'Jaw" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="19"><stop stop-color="#3a5b78"/><stop offset="1" stop-color="#a9b6c0"/></linearGradient>'+
+ '<linearGradient id="'+p+'D14" gradientUnits="userSpaceOnUse" x1="0" y1="-160" x2="0" y2="-64"><stop stop-color="#1b4a7c" stop-opacity=".8"/><stop offset=".45" stop-color="#0d2c52" stop-opacity=".92"/><stop offset="1" stop-color="#050f20"/></linearGradient>'+
+ '<linearGradient id="'+p+'Fin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#262a35"/><stop offset=".6" stop-color="#151a24"/><stop offset="1" stop-color="#0a0e16"/></linearGradient>'+
+ '<linearGradient id="'+p+'Pec" gradientUnits="userSpaceOnUse" x1="316" y1="26" x2="490" y2="104"><stop stop-color="#1c3550" stop-opacity=".95"/><stop offset=".7" stop-color="#131c2a" stop-opacity=".85"/><stop offset="1" stop-color="#0c121c" stop-opacity=".7"/></linearGradient>'+
+ '<linearGradient id="'+p+'Tail" gradientUnits="userSpaceOnUse" x1="0" y1="-204" x2="0" y2="204"><stop stop-color="#2a4766" stop-opacity=".8"/><stop offset=".28" stop-color="#16263c"/><stop offset=".5" stop-color="#070d18"/><stop offset=".72" stop-color="#16263c"/><stop offset="1" stop-color="#2a4766" stop-opacity=".75"/></linearGradient>'+
+ '<linearGradient id="'+p+'TailX" gradientUnits="userSpaceOnUse" x1="886" y1="0" x2="1016" y2="0"><stop stop-color="#000" stop-opacity=".5"/><stop offset=".5" stop-color="#000" stop-opacity="0"/></linearGradient>'+
+ '<radialGradient id="'+p+'Sheen" cx=".5" cy=".5" r=".5"><stop stop-color="#e2f2fb" stop-opacity=".3"/><stop offset="1" stop-color="#e2f2fb" stop-opacity="0"/></radialGradient>'+
+ '<filter id="'+p+'Tex" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9 .45" numOctaves="2" seed="11"/><feColorMatrix values="0 0 0 0 .02  0 0 0 0 .06  0 0 0 0 .12  0 0 0 -1.6 1.12"/></filter>'+
+ '<filter id="'+p+'Rim" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="1.2"/></filter>'+
+ '<filter id="'+p+'Glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter>'+
+ '<clipPath id="'+p+'Clip"><path d="'+BODY4+'"/></clipPath>'+
+ '<clipPath id="'+p+'BillClip"><path d="'+BILL4+'"/></clipPath>'+
+ '<g id="'+p+'M">'+
+  // 첫째 등지느러미 (검푸른 막 · 가시줄)
+  '<path d="'+D14+'" fill="url(#'+p+'D14)"/>'+
+  '<path d="'+rays+'" fill="none" stroke="#02070f" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>'+
+  '<path d="'+rays+'" fill="none" stroke="#8fc4e8" stroke-opacity=".16" stroke-width=".7" stroke-linecap="round" transform="translate(1.2 0)"/>'+
+  '<path d="'+D1_EDGE4+'" fill="none" stroke="#bfe0f4" stroke-opacity=".32" stroke-width="1.2" filter="url(#'+p+'Rim)"/>'+
+  // 둘째 등 · 뒷지느러미 (갈색 도는 검정)
+  '<path d="'+D24+' '+A14+' '+A24+'" fill="url(#'+p+'Fin)" stroke="#5d6b7a" stroke-opacity=".25" stroke-width=".8"/>'+
+  // 몸통
+  '<path d="'+BODY4+'" fill="url(#'+p+'Skin)"/>'+
+  '<path d="'+TAIL4+'" fill="url(#'+p+'Tail)"/><path d="'+TAIL4+'" fill="url(#'+p+'TailX)"/>'+
+  '<path d="M904,-10 C930,-42 966,-120 1016,-204" fill="none" stroke="#c6e4f6" stroke-opacity=".35" stroke-width="1.3" filter="url(#'+p+'Rim)"/>'+
+  '<path d="M912,-12 L992,-172 M922,-10 L978,-122 M912,12 L988,164 M922,10 L972,112" fill="none" stroke="#02070f" stroke-opacity=".3" stroke-width=".9"/>'+
+  '<g clip-path="url(#'+p+'Clip)">'+
+   '<rect x="200" y="-90" width="720" height="180" filter="url(#'+p+'Tex)" opacity=".26"/>'+
+   // 세로 줄 (코발트) — 죽어 갈수록 흐려지게 --bwglow에 묶음
+   '<g fill="#6fb8ea" style="opacity:var(--bwglow,.6)"><g opacity=".95">'+stripes+'</g></g>'+
+   '<g fill="#bfe4fb" opacity=".16" transform="translate(-.8 -.8)">'+stripes+'</g>'+
+   // 옆줄 그물
+   '<path d="'+net+'" fill="none" stroke="#d6ecf8" stroke-opacity=".09" stroke-width=".8"/>'+
+   '<rect x="200" y="-90" width="720" height="170" fill="url(#'+p+'Vol)"/>'+
+   '<path d="'+BODY4+'" fill="url(#'+p+'Len)"/>'+
+   '<ellipse cx="540" cy="-64" rx="280" ry="16" fill="url(#'+p+'Sheen)"/>'+
+   skin+
+   // 아가미뚜껑과 앞아가미뚜껑
+   '<path d="M322,-58 C340,-28 344,10 328,44" fill="none" stroke="#030a15" stroke-opacity=".75" stroke-width="2.8"/>'+
+   '<path d="M330,-54 C347,-26 350,10 337,40" fill="none" stroke="#b6dcf2" stroke-opacity=".16" stroke-width="1.1"/>'+
+   '<path d="M298,-44 C312,-22 314,6 304,28" fill="none" stroke="#030a15" stroke-opacity=".32" stroke-width="1.6"/>'+
+   // 꼬리자루 양옆 두 줄 용골
+   '<path d="M842,-4 C862,-5 880,-4.6 902,-3.4 M842,4 C862,5 880,4.6 902,3.4" fill="none" stroke="#02070f" stroke-opacity=".6" stroke-width="2.2" stroke-linecap="round"/>'+
+   '<path d="M842,-6.2 C862,-7 880,-6.6 900,-5.6" fill="none" stroke="#a9cce2" stroke-opacity=".22" stroke-width=".9"/>'+
+  '</g>'+
+  // 아래턱 · 입선 · 잔이빨
+  '<path d="'+JAW4+'" fill="url(#'+p+'Jaw)"/>'+
+  teeth+
+  '<path d="M198,5 C226,3 262,4 304,9" fill="none" stroke="#02060d" stroke-opacity=".85" stroke-width="2" stroke-linecap="round"/>'+
+  // 둥근 주둥이
+  '<path d="'+BILL4+'" fill="url(#'+p+'Bill)"/>'+
+  '<g clip-path="url(#'+p+'BillClip)"><path d="'+BILL4+'" fill="url(#'+p+'BillFade)"/>'+
+   '<path d="M-40,-3 C60,-5.5 140,-8.5 220,-13" fill="none" stroke="#06142a" stroke-opacity=".4" stroke-width=".9" stroke-dasharray="2 5"/></g>'+
+  '<path d="'+BILL_TOP4+'" fill="none" stroke="#eaf6ff" stroke-opacity=".8" stroke-width="1.3"/>'+
+  '<path d="'+BILL_TOP4+'" fill="none" stroke="#62d4ff" stroke-opacity=".6" stroke-width="5" filter="url(#'+p+'Glow)" style="opacity:var(--bwglow,.6)"/>'+
+  '<path d="'+BILL_LOW4+'" fill="none" stroke="#01060d" stroke-opacity=".75" stroke-width="1"/>'+
+  // 이마에서 주둥이로 이어지는 마루 · 콧구멍
+  '<path d="M240,-20 C254,-27 270,-36 290,-47" fill="none" stroke="#c6e6fa" stroke-opacity=".38" stroke-width="1.5" filter="url(#'+p+'Rim)"/>'+
+  '<ellipse cx="246" cy="-14" rx="2.2" ry="1.3" fill="#02060d" opacity=".75"/>'+
+  // 가슴지느러미 · 배지느러미
+  '<path d="'+PEC4+'" fill="url(#'+p+'Pec)"/>'+
+  '<path d="M316,26 C352,40 410,66 490,104" fill="none" stroke="#cfe6f4" stroke-opacity=".3" stroke-width="1.1"/>'+
+  '<path d="'+PEL4+'" fill="none" stroke="#141a24" stroke-width="2.6" stroke-linecap="round"/>'+
+  '<path d="M320,40 C360,54 420,64 480,68 C580,68 680,54 760,34" fill="none" stroke="#d6e6ee" stroke-opacity=".14" stroke-width="1.4" filter="url(#'+p+'Rim)"/>'+
+  // 박힌 작살
+  harp+
+  // 젖은 광택 · 달빛 받는 등선
+  '<path d="M246,-22 C290,-46 340,-66 410,-75 C520,-82 640,-64 760,-36" fill="none" stroke="url(#bwSpec)" stroke-width="6" stroke-linecap="round" opacity=".45" filter="url(#bwB1)"/>'+
+  '<path d="'+BACK4+'" fill="none" stroke="#d6effc" stroke-opacity=".45" stroke-width="1.8" filter="url(#'+p+'Rim)"/>'+
+  // 텅 빈 새까만 눈 (크고 둥근 물고기 눈, 반사광 없음)
+  '<g><circle cx="'+EYE4[0]+'" cy="'+EYE4[1]+'" r="14" fill="#081a2c" opacity=".45"/>'+
+   '<circle cx="'+EYE4[0]+'" cy="'+EYE4[1]+'" r="11" fill="#0b1d2e"/>'+
+   '<circle cx="'+EYE4[0]+'" cy="'+EYE4[1]+'" r="8.4" fill="#000"/>'+
+   '<circle cx="'+EYE4[0]+'" cy="'+EYE4[1]+'" r="11" fill="none" stroke="#4a5d6c" stroke-opacity=".5" stroke-width=".9"/>'+
+   '<path d="M'+(EYE4[0]-8)+','+(EYE4[1]-6)+' A10,10 0 0 1 '+(EYE4[0]+5)+','+(EYE4[1]-9.5)+'" fill="none" stroke="#8a9aa6" stroke-opacity=".3" stroke-width="1.2"/></g>'+
+ '</g>'+
+ '<g id="'+p+'G"><path d="'+D14+'"/><path d="'+BODY4+'"/><path d="'+BILL4+'"/></g>';
+}
+
+/* 끝내 전체가 드러나지 않는 고래: 주둥이 · 눈 언저리 · 등지느러미 끝 · 꼬리 끝만 남고 나머지는 물빛으로 흩어진다.
+   그 뒤로는 지나간 자리에 남는 옅은 빛줄기(잔상)만 */
+function fragDefs(p){
+ const R=(cx,cy,rx,ry,o)=>'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="url(#'+p+'FragR)"'+(o!=null?' opacity="'+o+'"':'')+'/>';
+ return '<radialGradient id="'+p+'FragR"><stop stop-color="#fff"/><stop offset=".45" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
+  '<linearGradient id="'+p+'FragB" gradientUnits="userSpaceOnUse" x1="-80" y1="0" x2="300" y2="0"><stop stop-color="#fff"/><stop offset=".72" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'+
+  '<filter id="'+p+'Dis" x="-10%" y="-30%" width="120%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".03 .07" numOctaves="2" seed="7" result="n"/>'+
+   '<feColorMatrix in="n" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  2.8 0 0 0 -.95" result="na"/><feComposite in="SourceGraphic" in2="na" operator="in"/></filter>'+
+  '<filter id="'+p+'Streak" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="38 3"/></filter>'+
+  '<mask id="'+p+'Frag" maskUnits="userSpaceOnUse" x="-120" y="-280" width="1220" height="560"><g filter="url(#'+p+'Dis)">'+
+   '<rect x="-90" y="-40" width="390" height="70" fill="url(#'+p+'FragB)"/>'+
+   R(272,-12,62,52)+R(370,-138,44,42)+R(1002,-184,40,54)+R(1002,184,40,54)+R(540,-72,130,12,.45)+
+  '</g></mask>'+
+  '<g id="'+p+'F"><use href="#'+p+'G" fill="#5fc0f0" opacity=".1" filter="url(#'+p+'Streak)"/><use href="#'+p+'M" mask="url(#'+p+'Frag)"/></g>';
+}
+function marlinDefs(p){return marlinBody4(p)+fragDefs(p);}
+
 /* ---------- 검은 쪽배 (창백한 고래 장면과 같은 실루엣, 오른쪽을 바라봄) ---------- */
 const BOAT=
  '<circle cx="51" cy="-18.5" r="30" class="bw-lampglow" fill="url(#bwLamp)"/>'+
@@ -357,7 +516,7 @@ function boatMarkup(cls){
   '<g clip-path="url(#bwAbove)"><g class="bw-boat'+(cls?' '+cls:'')+'">'+BOAT+'</g></g>';
 }
 // 고래의 수면 반사 (물 위로 나온 부분만 잔물결에 끊겨 비침)
-function whaleRef(cls,href){return '<g class="'+cls+'" opacity="0" mask="url(#bwRipple)"><use href="'+(href||'#bwmM')+'"/></g>';}
+function whaleRef(cls,href){return '<g class="'+cls+'" opacity="0" mask="url(#bwRipple)"><use href="'+(href||'#bwmF')+'"/></g>';}
 function setRef(node,tf,op){if(!node)return;node.firstChild.setAttribute('transform','translate(0 '+(2*SEA)+') scale(1 -1) '+tf);node.setAttribute('opacity',n3(op));}
 // 물보라: 흐린 물안개 입자 여러 개를 겹쳐 부피감 있게 (아래는 짙고 위로 흩어짐)
 function plumeMarkup(n){

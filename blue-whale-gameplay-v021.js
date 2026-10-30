@@ -6,6 +6,10 @@
    ④ 관통 회피     : 0.5~2초 중 무작위 순간에 물살에서 주둥이가 솟을 때 회피(스페이스·화면 누르기) × 3.
                      너무 이르거나 늦으면 꿰뚫리며 사망
    ⑤ 최후의 교차   : 단 한 번의 작살. 좁혀 오는 고리가 교차점에 겹칠 때 던짐. 빗나가면 꿰뚫리며 사망
+   특수 조건「궤적이 겹치는 허공」: 고래의 몸은 끝까지 보이지 않는다. 보이는 것은 이미 지나간 곧은 궤적뿐.
+     궤적 ① 사냥을 시작하면(수면을 가른 선) ② 초고속 관통을 첫 동전에 맞히면 ③ 추적을 다시 하지 않고 넘기면 ④ 회피를 다시 하지 않고 넘기면
+     해도에 한 줄씩 그어진다. 3줄 이상이면 5단계에서 선들이 겹치는 허공(교차점)이 보이고, 2줄 이하면 겨눌 곳이 없어
+     작살이 잔상을 지나가고 고래는 사라진다(사냥 실패 · 사망 아님).
    미니게임마다 실패는 한 번까지: 첫 실패는 피해 후 다시, 두 번째 실패는 사망 (minigame-strikes.js).
    고래 전투는 기존 'whale' 전투(유효 타격 4)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
 (function(){
@@ -16,6 +20,13 @@ const CHASE_NEED=12,CHASE_WIN=0.9,CHASE_MISS=2;
 const EVADE_NEED=3,EVADE_APPROACH=0.9,EVADE_WIN=0.6;
 const FINAL_CLOSE=0.6,FINAL_WIN=0.2,FINAL_FLIGHT=0.4;
 const G=window.BlueHuntGame=window.BlueHuntGame||{mode:null};
+const TRAIL_TEXT={1:'수면을 가르고 지나간 첫 선',2:'배 앞을 가로지른 잔상의 선',3:'호수를 갈라 놓은 물길의 방향',4:'솟구친 주둥이의 각도'};
+function trailsOf(h){return h&&Array.isArray(h.trails)?h.trails:null;}
+function trailCount(){const t=trailsOf(hunt());return t?t.length:4;}   // 예전 저장 · 테스트는 모두 읽은 것으로
+function drawer(){return state.crew&&state.crew.some(c=>c.role==='navigator')?'1등 항해사가':'선장이';}
+function addTrail(n){const h=hunt();if(!h)return;if(!Array.isArray(h.trails))h.trails=[];if(h.trails.includes(n))return;h.trails.push(n);
+ log(drawer()+' '+TRAIL_TEXT[n]+'을 해도에 긋습니다. (궤적 '+h.trails.length+' / 4)');}
+function loseTrail(n){log(TRAIL_TEXT[n]+'이 흐트러져 해도에 남지 않았습니다.');}
 
 function isBlueBattle(){const b=state.battle;return state.scene==='battle'&&b&&b.type==='whale'&&b.index===BLUE;}
 function hunt(){return state.blueHunt||null;}
@@ -48,6 +59,7 @@ function syncGame(){
   if(mode==='evade')Object.assign(G,{need:EVADE_NEED,ok:0,round:-1,phase:'ready',nextAt:1.0});
   if(mode==='final')Object.assign(G,{phase:'wait',breachAt:1.2+Math.random()*1.4,thrownAt:null,hit:null});
   if(mode==='final'){G.win=FINAL_WIN;G.ti=G.breachAt+FINAL_CLOSE;G.th=G.ti+FINAL_FLIGHT;}
+  if(mode==='final'){G.trails=trailCount();G.blind=G.trails<3;}else G.trails=null;
  }
  if(!mode&&G.mode&&!G.timer){G.mode=null;G.ref=null;}
 }
@@ -91,6 +103,7 @@ function evadePress(){
 function finalPress(){
  if(G.mode!=='final'||G.done||G.thrownAt!=null)return;
  const t=now();
+ if(G.blind){G.thrownAt=t;G.hit=false;G.arriveAt=t+FINAL_FLIGHT;setText('작살이 허공을 가릅니다 · 지나간 것은 잔상뿐이었습니다.');finish('fail',Math.max(G.th,t),0.3);G.fatal=false;updatePanel();return;}
  G.thrownAt=t;G.hit=Math.abs(t-G.ti)<=FINAL_WIN;
  G.arriveAt=t+FINAL_FLIGHT;
  if(G.hit){
@@ -107,6 +120,7 @@ function finalPress(){
 }
 function finalAutoMiss(t){
  G.hit=false;G.thrownAt=null;G.autoMiss=true;
+ if(G.blind){setText('겨눌 곳을 찾지 못했습니다 · 푸른 잔상이 배 곁을 스쳐 사라집니다.');finish('fail',G.th,0.3);G.fatal=false;updatePanel();return;}
  setText('작살을 던지지 못했습니다 · 고래가 교차점을 지나 배를 향합니다.');
  finish('fail',G.th,0.3);updatePanel();
 }
@@ -123,6 +137,14 @@ function finish(kind,t,delay){
 function resolveMinigame(mode,kind){
  if(!isBlueBattle()){G.mode=null;return;}
  const h=hunt()||(state.blueHunt={phase:mode});
+ if(mode==='final'&&G.blind){
+  // 궤적이 모자라 겨눌 곳이 없었다: 고래는 사라지고 사냥은 끝난다(사망 아님)
+  log('작살은 허공의 잔상을 그대로 지나갔습니다. 푸른 고래는 지나간 자리로만 남았습니다. 해도의 선이 모자랐습니다.');
+  G.mode=null;state.blueHunt=null;state.battle=null;
+  afterWhale(BLUE);
+  return;
+ }
+ if(kind==='ok'&&(mode==='chase'||mode==='evade')){const n=mode==='chase'?3:4;if(G.fails)loseTrail(n);else addTrail(n);}
  if(kind==='ok'){
   h.phase=mode==='chase'?'evade':mode==='evade'?'final':'done';
   G.mode=null;
@@ -170,7 +192,7 @@ function tick(){
    else if(G.phase==='dodge'&&t>G.pressAt+1.9)evadeRound(t);
   }else if(G.mode==='final'){
    if(G.phase==='wait'&&t>=G.breachAt)G.phase='breach';
-   if(G.thrownAt==null&&t>G.ti+FINAL_WIN+.05)finalAutoMiss(t);
+   if(G.thrownAt==null&&t>G.ti+(G.blind?4:FINAL_WIN+.05))finalAutoMiss(t);
   }
  }
  requestAnimationFrame(tick);
@@ -178,7 +200,7 @@ function tick(){
 requestAnimationFrame(tick);
 
 /* ---------- 화면 ---------- */
-function statusTags(){return tag('선체 '+state.hull+' / 100')+' '+tag('정신력 '+state.mind+' / 100');}
+function statusTags(){const t=trailsOf(hunt());return tag('선체 '+state.hull+' / 100')+' '+tag('정신력 '+state.mind+' / 100')+(t?' '+tag('해도의 궤적 '+t.length+' / 4'):'');}
 function chasePanel(){
  return '<div class="inset warning bwg-panel"><div class="small">재앙의 고래 · 모든 것을 뚫는 푸른 고래 · 3단계</div><h2>푸른 항로 추적</h2>'+
   '<p>고래가 남긴 빛나는 물길을 따라 전속력으로 쫓습니다. 고래가 꺾는 쪽으로 키를 돌리십시오.</p><p>'+statusTags()+'</p>'+
@@ -199,9 +221,13 @@ function evadePanel(){
   '<p id="bwgText">'+esc(G.text||'아직 누르지 마십시오. 주둥이가 솟을 때까지 기다리십시오.')+'</p></div></div>';
 }
 function finalPanel(){
+ const n=trailCount(),blind=n<3;
  return '<div class="inset warning bwg-panel"><div class="small">재앙의 고래 · 모든 것을 뚫는 푸른 고래 · 5단계</div><h2>최후의 교차</h2>'+
-  '<p>고래가 마지막으로 솟구칩니다. 작살은 단 한 번. 고래가 지나갈 허공에 먼저 던져야 합니다.</p><p>'+statusTags()+'</p>'+
-  '<div class="coinpanel bwg-final"><div class="small">좁혀 오는 고리가 교차점 원에 겹치는 순간 · 스페이스 / 화면 누르기 / 아래 버튼 · 명중하면 사냥 성공</div>'+
+  (blind
+   ?'<p>그것은 보이지 않습니다. 해도에 그어진 궤적은 '+n+'줄뿐이라 선들이 겹치는 곳이 없습니다. 어디에 던져도 잔상만 지나갈 것입니다.</p>'
+   :'<p>그것은 끝내 보이지 않습니다. 그것은 휘지 않습니다. 해도의 선 '+n+'줄이 겹치는 허공, 아무것도 없는 그 한 점에 작살을 먼저 던져야 합니다.</p>')+
+  '<p>'+statusTags()+'</p>'+
+  '<div class="coinpanel bwg-final"><div class="small">'+(blind?'겨눌 곳 없이 던질 수는 있습니다 · 작살은 잔상을 지나가고 고래는 사라집니다':'선들이 겹치는 교차점 원에 좁혀 오는 고리가 겹치는 순간 · 스페이스 / 화면 누르기 / 아래 버튼 · 명중하면 사냥 성공')+'</div>'+
   '<button type="button" class="danger" id="bwgAct">작살을 던진다</button>'+
   (window.MinigameStrikes?MinigameStrikes.livesHtml(G):'')+
   '<p id="bwgText">'+esc(G.text||'고래가 솟구칠 때까지 숨을 고르십시오.')+'</p></div></div>';
@@ -225,7 +251,7 @@ renderPlay=function(){
  if(stage===4&&!isBlueBattle()){
   return blueMarkup(4)+
    '<div class="inset"><h2>'+esc(WHALES[BLUE].name)+' · 사냥 성공</h2>'+
-   '<p>먼저 던진 작살이 고래가 지나갈 자리를 정확히 꿰뚫었습니다. 물기둥이 걷히고, 푸른 빛이 꺼진 거대한 몸이 뒤집힌 채 떠오릅니다.</p>'+
+   '<p>먼저 던진 작살이 아무것도 없던 허공에서 멈췄습니다. 그 자리에서 푸른 빛과 피가 쏟아집니다. 물기둥이 걷힌 뒤 떠오른 것은 부러진 주둥이 끝과 지느러미 조각뿐입니다. 그 몸이 어떻게 생겼는지는 끝내 아무도 보지 못했습니다.</p>'+
    '<p class="muted">고래 사냥 전리품과 업적은 기존 사냥 결과대로 지급되었습니다.</p>'+
    button('사냥을 마치고 항해 계속하기','blueWhaleContinue021','','primary')+
    '</div>';
@@ -252,7 +278,7 @@ const oldHunt=huntWhale;
 huntWhale=function(){
  const blue=state.scene==='encounter'&&state.encounter===BLUE;
  const r=oldHunt.apply(this,arguments);
- if(blue&&isBlueBattle()){state.battle.need=4;state.blueHunt={phase:'pierce'};sync();}
+ if(blue&&isBlueBattle()){state.battle.need=4;state.blueHunt={phase:'pierce',trails:[]};addTrail(1);sync();}
  return r;
 };
 const oldResolve=resolveCoin;
@@ -275,10 +301,14 @@ resolveCoin=function(win){
  if(final)state.blueWhaleFinalStage=true;
  // 2단계(초고속 관통) 첫 타격 성공 → 꿰뚫린 것들과 조우
  const toMermaid=blue&&win&&b.won===0&&(!state.blueHunt||state.blueHunt.phase==='pierce');
+ const firstTry=blue&&b.won===0&&(!state.blueHunt||state.blueHunt.phase==='pierce')&&!(b.history&&b.history.length);
+ const carry=trailsOf(state.blueHunt);
+ if(blue&&b.won===0&&state.blueHunt&&state.blueHunt.phase==='pierce'&&!win&&!state.blueHunt.lost2){state.blueHunt.lost2=true;loseTrail(2);}
+ if(firstTry&&win)addTrail(2);
  const result=oldResolve(win);
  if(final&&state.scene==='dead')state.blueWhaleFinalStage=false;
  if(toMermaid&&isBlueBattle()&&state.battle.won===1){
-  state.blueHunt={phase:'mermaid',whale:state.battle};
+  state.blueHunt={phase:'mermaid',whale:state.battle,trails:carry||trailsOf(state.blueHunt)||undefined};
   state.battle=null;state.scene='blueHunt';
   sync();
  }

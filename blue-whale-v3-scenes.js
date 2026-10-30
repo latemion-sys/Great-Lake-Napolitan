@@ -6,7 +6,7 @@ const K=window.BlueWhaleV3Kit;
 if(!K)return;
 const {W,H,SEA,clamp,outC,inC,inOut,seg,bell,lerp,n1,n3,TAU,RAD,seeded,esc,warp,mt,apply,
  marlinDefs,commonDefs,sky,sea,nearMist,boatMarkup,columns,curtain,paintCurtain,foam,paintFoam,whaleRef,setRef,drops,dropParams,paintDrops,cacheQ,ambient,boatPose,lamp,veil,caption,setUse,HARPOON,EYE,gp,riftMarkup,paintRift}=K;
-const M='#bwmM',G='#bwmG';
+const M='#bwmF',G='#bwmG';
 const NAME='모든 것을 뚫는 푸른 고래';
 const unwarp=(tau,s0,s1,d)=>tau<s0?tau:tau<s0+d?s0+(tau-s0)*(s1-s0)/d:tau-d+(s1-s0);
 // 움직임 번짐: 고래 뒤로 아주 옅게 번지는 한 겹 (예전의 푸른 잔상 여러 겹 대신)
@@ -116,7 +116,7 @@ const S0={title:'수면의 절단',loop:7.5,
    ② 초고속 관통 — 물속 빛줄기, 수면을 뚫고 솟구친 청새치가 배 앞을 가로지름(느린 화면)
    ========================================================= */
 const S1={title:'초고속 관통',loop:7.5,
- caps:[[0,'물속에서 푸른 빛줄기가 다가옵니다.'],[1.2,'창 같은 주둥이가 수면을 뚫고 솟구칩니다.'],[1.55,'거대한 몸이 배 앞을 가로지릅니다.'],[2.5,'지나간 자리에서 물이 한참 늦게 솟구칩니다.']],
+ caps:[[0,'물속에서 푸른 빛줄기가 다가옵니다.'],[1.2,'창 같은 주둥이가 수면을 뚫고 솟구칩니다.'],[1.55,'보이지 않는 것이 배 앞을 가로지릅니다. 주둥이 끝만 번뜩입니다.'],[2.5,'지나간 자리에서 물이 한참 늦게 솟구칩니다.']],
  build(){
   return sky()+
    '<g clip-path="url(#bwBelow)"><use class="bw-under" href="'+M+'" opacity="0"/></g>'+
@@ -409,8 +409,29 @@ function s4Rift(el,ptt,t){
   w:i=>16+34*rise[i],
   H:i=>{const k=rise[i]*hVar(sx[i],3.3);return [16+80*k,5+30*k];}});
 }
+// ⑤ 해도의 궤적: 1~4단계에서 읽어 낸 곧은 선들이 교차점(허공의 한 점)에서 겹친다
+const TRAIL_ANG=[-6,17,35,-25];
+function chartMarkup(){
+ let s='<g class="bw-chart" fill="none" stroke-linecap="round" opacity="0">';
+ TRAIL_ANG.forEach((a,i)=>{const c=Math.cos(a*RAD),d=Math.sin(a*RAD),P=[600,215],A=[P[0]-c*900,P[1]-d*900],B=[P[0]+c*900,P[1]+d*900],dd='M'+n1(A[0])+','+n1(A[1])+' L'+n1(B[0])+','+n1(B[1]);
+  s+='<g class="bw-tl" data-i="'+i+'"><path d="'+dd+'" stroke="#5fc8f5" stroke-width="5" filter="url(#bwSoft)" opacity=".35"/><path class="bw-tlc" d="'+dd+'" stroke="#d8f3ff" stroke-width="1.1" stroke-dasharray="16 9"/></g>';});
+ return s+'<circle class="bw-tx" cx="600" cy="215" r="5" fill="#e8f8ff" opacity="0"/></g>';
+}
+function paintChart(el,t,n,out){
+ const {q,qa}=cacheQ(el);
+ const g=q('.bw-chart');if(!g)return;
+ g.setAttribute('opacity',n3(seg(t,.1,.7)*(1-(out||0))));
+ const blind=n<3;
+ qa('.bw-tl').forEach(l=>{const i=+l.dataset.i,have=i<n;
+  // 궤적이 모자라면 선들이 한 점에 모이지 않고 어긋난 채 흔들림
+  if(blind){const a=TRAIL_ANG[i]*RAD,o=(i%2?-1:1)*(70+30*i)+6*Math.sin(t*1.7+i);l.setAttribute('transform','translate('+n1(-Math.sin(a)*o)+' '+n1(Math.cos(a)*o)+') rotate('+n1(3*Math.sin(t*.9+i*2))+' 600 215)');}
+  else if(l.hasAttribute('transform'))l.removeAttribute('transform');
+  l.setAttribute('opacity',n3(have?seg(t,.15+i*.18,.55+i*.18):.1));
+  const c=l._c||(l._c=l.querySelector('.bw-tlc'));c.setAttribute('stroke-dasharray',have?'16 9':'3 16');c.style.strokeDashoffset=n1(-t*30);});
+ const x=q('.bw-tx');if(x)x.setAttribute('opacity',n>=3?n3(seg(t,1,1.4)*(.6+.4*Math.sin(t*5))):'0');
+}
 const S4={title:'최후의 교차',dur:9,
- caps:[[0,'작살잡이가 물길의 끝, 아무것도 없는 허공을 겨눕니다.'],[1.1,'작살이 먼저 날아갑니다.'],[1.7,'솟구친 고래가 정확히 그 지점을 지나갑니다.'],[3.2,'푸른 빛이 꺼져 갑니다. 거대한 몸이 뒤집혀 떠오릅니다.']],
+ caps:[[0,'해도의 선들이 겹치는 곳, 아무것도 없는 허공을 겨눕니다.'],[1.1,'작살이 먼저 날아갑니다.'],[1.7,'솟구친 고래가 정확히 그 지점을 지나갑니다.'],[3.2,'푸른 빛이 꺼져 갑니다. 떠오르는 것은 부러진 주둥이와 지느러미 조각뿐입니다.']],
  build(){
   const sparks='<g class="bw-sparks" opacity="0"></g>';
   return '<g class="bw-root">'+sky()+
@@ -425,6 +446,7 @@ const S4={title:'최후의 교차',dur:9,
     '<path class="bw-trail" fill="none" stroke="#e3ecea" stroke-width="2" stroke-linecap="round" filter="url(#bwRimF)" opacity="0"/>'+
     '<path class="bw-rope" fill="none" stroke="#8a9697" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
     '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g></g>'+
+   chartMarkup()+
    '<g fill="none"><circle class="bwg-tc" r="24" stroke="#e8f3f6" stroke-width="1.6" stroke-dasharray="5 4" opacity="0"/><circle class="bwg-cc" r="24" stroke="#cfeefd" stroke-width="2" opacity="0"/></g>'+
    '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+
    sparks+drops('bw-hitw',70,77)+
@@ -458,6 +480,7 @@ const S4={title:'최후의 교차',dur:9,
   qa('.bw-ghost').forEach(g=>{const k=+g.dataset.k,pp=pose(tau-k*.03);setUse(g,mt(pp.x,pp.y,pp.deg,S,S,EYE[0],EYE[1]),fast?(.26-k*.07):0);});
   const ug=q('.bw-uglow');ug.setAttribute('cx',n1(E.x));ug.setAttribute('cy',n1(SEA+46));ug.setAttribute('opacity',n3(tau<1.3?seg(t,.2,.8)*(E.y>SEA?1:0):0));
   s4Rift(el,tau,t);
+  {const hg=window.BlueHuntGame,n=hg&&hg.trails!=null?hg.trails:4;paintChart(el,t,n,seg(t,1.8,2.6));}
   // 배와 작살잡이
   const tc=unwarp(TH+.558,...HS),cx=P[0]-150*.558,sc=t-tc,B=bob(tr),j=jolt(sc-.3,1,8),heave=sc>.3?-13*Math.exp(-(sc-.3)*2)*Math.sin((sc-.3)*5):0;
   const T0=1.1,thrown=t>=T0,aim=clamp(t/.8);
@@ -556,10 +579,11 @@ function hudEvade(el,t,g){
 function hudFinal(el,t,g){
  const u=hud(el);
  const fin=g.done&&(g.hit?t>=g.th:t>=Math.max(g.th,g.thrownAt!=null?g.arriveAt:0));
- setVerdict(u.verdict,fin?(g.hit?'명중':'빗나감'):'',g.hit?'good':'bad');
- setTxt(u.hint,g.thrownAt!=null||g.autoMiss?'':t<g.breachAt?'단 한 번 · 고래가 솟구치길 기다리십시오':'지금 · 고리가 겹칠 때 스페이스 / 화면 누르기');
+ const blind=g.trails!=null&&g.trails<3;
+ setVerdict(u.verdict,fin?(g.hit?'명중':blind?'잔상':'빗나감'):'',g.hit?'good':'bad');
+ setTxt(u.hint,g.thrownAt!=null||g.autoMiss?'':blind?'겨눌 점이 없습니다 · 궤적이 모자랍니다':t<g.breachAt?'단 한 번 · 선들이 겹치는 허공을 보십시오':'지금 · 고리가 겹칠 때 스페이스 / 화면 누르기');
  u.hint.classList.toggle('now',t>=g.breachAt&&g.thrownAt==null&&!g.autoMiss);
- caption(el,[[0,GAMECAP[4]]],0);
+ caption(el,[[0,blind?'선들이 한 점에 모이지 않습니다. 어디를 겨눠야 할지 알 수 없습니다.':GAMECAP[4]]],0);
 }
 // 배가 꿰뚫려 부서지는 모습
 function brokenBoat(el,t,ft,x,fatal){
@@ -654,11 +678,13 @@ function finalGame(el,t,tr,g){
  setUse(q('.bw-carc'),'',0);
  const ug=q('.bw-uglow');ug.setAttribute('cx',n1(E.x));ug.setAttribute('cy',n1(SEA+46));ug.setAttribute('opacity',n3(E.y>SEA+20&&t<g.breachAt+.2?seg(t,.2,.8):0));
  s4Rift(el,miss?1.75+(t-g.th)*.6:1.75+(t-g.th)*sc,t);
+ const ntr=g.trails!=null?g.trails:4,blind=ntr<3;
+ paintChart(el,t,ntr,miss?seg(t,g.th,g.th+.8):0);
  // 배 · 작살잡이
  const B=bob(tr),T0=g.thrownAt,thrown=T0!=null&&t>=T0;
  const aim=clamp(t/.8),armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*4];
  let tw;
- if(miss&&t>=ib)tw=brokenBoat(el,t,ib,210,g.fatal);
+ if(miss&&t>=ib&&!blind)tw=brokenBoat(el,t,ib,210,g.fatal);
  else{tw=boatPose(el,210,SEA+B.y,B.r-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);lamp(el,tr,tw,!thrown?.12:0);}
  const hand=tw(armEnd),p0=[hand[0]+30,hand[1]-14];
  const hpn=q('.bw-harpoon');let pos,ang,showH=1;
@@ -680,7 +706,7 @@ function finalGame(el,t,tr,g){
  rope.setAttribute('opacity',thrown&&showH?'.9':'0');
  // 교차점과 좁혀 오는 고리
  const tc=q('.bwg-tc'),cc=q('.bwg-cc');
- const ringOn=T0==null&&!g.autoMiss;
+ const ringOn=T0==null&&!g.autoMiss&&!blind;
  tc.setAttribute('cx',FP[0]);tc.setAttribute('cy',FP[1]);cc.setAttribute('cx',FP[0]);cc.setAttribute('cy',FP[1]);
  tc.setAttribute('opacity',ringOn?n3((.45+.25*Math.sin(t*5))*seg(t,.3,.9)):'0');
  if(ringOn&&t>=g.breachAt){
@@ -693,13 +719,13 @@ function finalGame(el,t,tr,g){
  // 꿰뚫림
  const sp=qa('.bw-splash circle');
  if(!finalGame._sp)finalGame._sp=dropParams(60,77,-170,-10,120,380);
- paintDrops(sp,finalGame._sp,215,SEA-14,miss?t-ib:-1,60,520);
+ paintDrops(sp,finalGame._sp,215,SEA-14,miss&&!blind?t-ib:-1,60,520);
  ['.bw-flash','.bw-sparks'].forEach(s=>q(s).setAttribute('opacity','0'));
  qa('.bw-cols .bw-col').forEach(c=>paintCol(c,0,-1,1,1,0));
  qa('.bw-blood circle,.bw-rings ellipse').forEach(c=>c.setAttribute('opacity','0'));
- const shake=miss&&t>ib&&t<ib+.5?(1-(t-ib)/.5)*5:0;
+ const shake=miss&&!blind&&t>ib&&t<ib+.5?(1-(t-ib)/.5)*5:0;
  q('.bw-root').setAttribute('transform',shake?'translate('+n1(Math.sin(t*90)*shake)+' '+n1(Math.cos(t*77)*shake*.6)+')':'');
- veil(el,miss&&g.fatal?.9*seg(t,ib+.5,ib+2.1):t<.5?1-t/.5:0);
+ veil(el,miss&&g.fatal&&!blind?.9*seg(t,ib+.5,ib+2.1):t<.5?1-t/.5:0);
  hudFinal(el,t,g);
 }
 
