@@ -5,17 +5,18 @@
 const K=window.BlueWhaleV3Kit;
 if(!K)return;
 const {W,H,SEA,clamp,outC,inC,inOut,seg,bell,lerp,n1,n3,TAU,RAD,seeded,esc,warp,mt,apply,
- marlinDefs,commonDefs,sky,sea,nearMist,boatMarkup,columns,curtain,paintCurtain,drops,dropParams,paintDrops,cacheQ,ambient,boatPose,lamp,veil,caption,setUse,HARPOON,EYE}=K;
+ marlinDefs,commonDefs,sky,sea,nearMist,boatMarkup,columns,curtain,paintCurtain,foam,paintFoam,whaleRef,setRef,drops,dropParams,paintDrops,cacheQ,ambient,boatPose,lamp,veil,caption,setUse,HARPOON,EYE}=K;
 const M='#bwmM',G='#bwmG';
 const NAME='모든 것을 뚫는 푸른 고래';
 const unwarp=(tau,s0,s1,d)=>tau<s0?tau:tau<s0+d?s0+(tau-s0)*(s1-s0)/d:tau-d+(s1-s0);
-function ghosts(n,extra){let s='<g filter="url(#bwStreak)" fill="#62c8f4"'+(extra||'')+'>';for(let k=1;k<=n;k++)s+='<use class="bw-ghost" data-k="'+k+'" href="'+G+'" opacity="0"/>';return s+'</g>';}
+// 움직임 번짐: 고래 뒤로 아주 옅게 번지는 한 겹 (예전의 푸른 잔상 여러 겹 대신)
+function ghosts(n,extra){return '<g filter="url(#bwSmear)" fill="#9fd4ef"'+(extra||'')+'><g opacity=".55"><use class="bw-ghost" data-k="1" href="'+G+'" opacity="0"/></g></g>';}
 function rings(n){let s='<g class="bw-rings" fill="none" stroke="#dbe9ee">';for(let i=0;i<n;i++)s+='<ellipse data-i="'+i+'" rx="1" ry="1" opacity="0"/>';return s+'</g>';}
 function paintRings(nodes,x,age,max,gap){
  nodes.forEach(r=>{const i=+r.dataset.i,a=age-i*(gap||.45),p=clamp(a/2.6);
   if(a<=0||p>=1){r.setAttribute('opacity','0');return;}
   r.setAttribute('cx',n1(x));r.setAttribute('cy',n1(SEA+5));r.setAttribute('rx',n1(30+p*(max||260)));r.setAttribute('ry',n1(3+p*13));
-  r.setAttribute('stroke-width',n1(2.2-p*1.6));r.setAttribute('opacity',n3((1-p)*.5));});
+  r.setAttribute('stroke-width',n1(1.6-p*1.2));r.setAttribute('opacity',n3((1-p)*.28));});
 }
 // 물기둥 하나: 나이(age)에 따라 솟았다 무너짐
 function colH(age,h,rise,fall){if(age<=0)return 0;if(age<rise)return h*outC(age/rise);return h*(1-inC((age-rise)/fall));}
@@ -28,11 +29,7 @@ function paintCol(node,x,age,h,w,lean,rise,fall){
 }
 function bob(tr){return {y:Math.sin(tr*1.6)*2.2+Math.sin(tr*.7)*1.2,r:Math.sin(tr*1.25+.6)*2.6};}
 function jolt(s,amp,f){return s>0?amp*Math.exp(-s*2)*Math.sin(s*(f||10)):0;}
-function speedLines(n,seed,y0,y1){
- const r=seeded(seed);let s='<g class="bw-speed" stroke="#cfeefd" stroke-linecap="round" opacity="0">';
- for(let i=0;i<n;i++){const y=y0+r()*(y1-y0),x=r()*W,l=60+r()*160;s+='<path data-x="'+n1(x)+'" data-l="'+n1(l)+'" d="M'+n1(x)+','+n1(y)+' h'+n1(l)+'" stroke-width="'+n1(.6+r()*1.2)+'" stroke-opacity="'+n3(.12+r()*.25)+'"/>';}
- return s+'</g>';
-}
+function speedLines(){return '<g class="bw-speed" opacity="0"></g>';}
 function paintSpeed(el,tr,op,dir){
  const {q,qa}=cacheQ(el),g=q('.bw-speed');g.setAttribute('opacity',n3(op));
  if(op<=0)return;
@@ -50,8 +47,9 @@ const S0={title:'수면의 절단',loop:7.5,
    ghosts(3)+
    '<use class="bw-fin" href="'+M+'" opacity="0"/>'+
    sea()+
-   '<g fill="none" stroke-linecap="round"><path class="bw-cutglow" stroke="#4fc6ff" stroke-width="8" filter="url(#bwSoft)" opacity="0"/>'+
-   '<path class="bw-lip1" stroke="#e2f6ff" stroke-width="1.6" opacity="0"/><path class="bw-lip2" stroke="#86d8ff" stroke-width="1.2" opacity="0"/></g>'+
+   '<g fill="none" stroke-linecap="round"><path class="bw-cutglow" stroke="#4fc6ff" stroke-width="6" filter="url(#bwSoft)" opacity="0"/>'+
+   '<path class="bw-lip1" stroke="#eef7fa" stroke-width="1.2" stroke-dasharray="40 6 18 4" opacity="0"/><path class="bw-lip2" stroke="#c9dde6" stroke-width="1" stroke-dasharray="26 8 12 5" opacity="0"/></g>'+
+   foam('bw-foam0',30)+
    '<ellipse class="bw-bow" rx="60" ry="5" fill="#e4f2f7" filter="url(#bwRimF)" opacity="0"/>'+
    curtain('bw-wall')+
    columns('bw-cols',4)+
@@ -78,7 +76,8 @@ const S0={title:'수면의 절단',loop:7.5,
    return a+u*dur;
   }
   // 앞쪽 물살
-  const bw=q('.bw-bow');bw.setAttribute('cx',n1(X-tipOff+40));bw.setAttribute('cy',n1(SEA+2));bw.setAttribute('opacity',on?'.55':'0');
+  const bw=q('.bw-bow');bw.setAttribute('cx',n1(X-tipOff+40));bw.setAttribute('cy',n1(SEA+2));bw.setAttribute('opacity',on?'.4':'0');
+  paintFoam(q('.bw-foam0'),on?X:480,on?260*S/.6:900,on?1:.6*bell(t,a,a+.1,4.2,5.2),9);
   // 갈라진 수면: 지나간 자리부터 열렸다 닫힘
   const cutOn=bell(t,a,a+.1,4.2,5.2);
   if(cutOn>0){
@@ -89,7 +88,7 @@ const S0={title:'수면의 절단',loop:7.5,
     d1+=(d1?' L':'M')+n1(x)+','+n1(SEA+1-g+w);d2+=(d2?' L':'M')+n1(x)+','+n1(SEA+3+g*.6-w);
    }
    ['.bw-lip1','.bw-cutglow'].forEach(s=>{q(s).setAttribute('d',d1);});q('.bw-lip2').setAttribute('d',d2);
-   q('.bw-lip1').setAttribute('opacity',n3(.8*cutOn));q('.bw-lip2').setAttribute('opacity',n3(.6*cutOn));q('.bw-cutglow').setAttribute('opacity',n3(.55*cutOn));
+   q('.bw-lip1').setAttribute('opacity',n3(.55*cutOn));q('.bw-lip2').setAttribute('opacity',n3(.35*cutOn));q('.bw-cutglow').setAttribute('opacity',n3(.14*cutOn));
   }else ['.bw-lip1','.bw-lip2','.bw-cutglow'].forEach(s=>q(s).setAttribute('opacity','0'));
   // 늦게 솟는 물기둥
   paintCurtain(q('.bw-wall'),-40,1000,x=>colH(t-passT(x)-.3,70+30*Math.sin(x*.013+1)+25*Math.sin(x*.041),.42,1.6),3,t,1-seg(t,4.6,5.6));
@@ -123,6 +122,7 @@ const S1={title:'초고속 관통',loop:7.5,
    sea()+
    '<g clip-path="url(#bwBelow)"><ellipse class="bw-uglow" rx="170" ry="26" fill="url(#bwUnder)" opacity="0"/></g>'+
    '<ellipse class="bw-hump" rx="50" ry="4" fill="#dcecf2" filter="url(#bwRimF)" opacity="0"/>'+
+   whaleRef('bw-ref')+foam('bw-foam1',30)+
    boatMarkup()+
    curtain('bw-wall')+
    columns('bw-cols',4)+
@@ -148,6 +148,8 @@ const S1={title:'초고속 관통',loop:7.5,
   const tr0=mt(P.x,P.y,P.d,S,S,500,0);
   setUse(q('.bw-under'),tr0,(before?seg(t,.1,.5):crossing?1:0));
   setUse(q('.bw-front'),tr0,crossing?1:0);
+  setRef(q('.bw-ref'),tr0,crossing?.16:0);
+  paintFoam(q('.bw-foam1'),crossing?Math.max(60,P.x+380):900,300,crossing?1:Math.max(0,1-(t-2.4)/1.6),11);
   const slow=t>s0&&t<s1?1:0;
   qa('.bw-ghost').forEach(g=>{const k=+g.dataset.k,pp=pose(tau-k*.022);setUse(g,mt(pp.x,pp.y,pp.d,S,S,500,0),crossing?(.26-k*.05)*(1-.75*slow):0);});
   // 물속 빛과 수면의 물살
@@ -163,7 +165,7 @@ const S1={title:'초고속 관통',loop:7.5,
    d.setAttribute('cx',n1(x));d.setAttribute('cy',n1(y));d.setAttribute('opacity',y>SEA?'0':n3(.8*(1-k/p.l)));});
   // 지나간 자리에서 늦게 솟는 물기둥 (중심이 지나간 시각 기준)
   const passReal=x=>unwarp(c0+cl*clamp((1000-x)/1500,0,1),s0,s1,sd);
-  paintCurtain(q('.bw-wall'),-40,1000,x=>colH(t-passReal(x+300)-.25,85+35*Math.sin(x*.011+2)+25*Math.sin(x*.037),.45,1.7),5,t,1-seg(t,4.8,5.8));
+  paintCurtain(q('.bw-wall'),-40,1000,x=>colH(t-passReal(x+300)-.25,60+28*Math.sin(x*.011+2)+20*Math.sin(x*.037),.45,1.7),5,t,.85*(1-seg(t,4.8,5.8)));
   const r=seeded(13);
   qa('.bw-cols .bw-col').forEach(p=>{const i=+p.dataset.i,x=60+i*240+r()*70,h=150+r()*90,w=20+r()*12;
    paintCol(p,x,t-passReal(x+300)-.32-r()*.1,h,w,-18,.5,1.6);});
@@ -193,6 +195,7 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
    '<use class="bw-far" href="'+M+'" opacity="0"/>'+
    '<use class="bw-near" href="'+M+'"/>'+
    sea()+
+   whaleRef('bw-ref')+
    '<g fill="none" stroke-linecap="round"><path class="bw-road-glow" stroke="#46bff8" stroke-width="10" filter="url(#bwSoft)"/>'+
    '<path class="bw-road" stroke="#bdeeff" stroke-width="1.6" stroke-dasharray="26 14 8 14"/></g>'+
    streaks+
@@ -228,6 +231,7 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
   const dy=(Y(t+.03)-Y(t-.03))/.06,deg=clamp(Math.atan2(dy,300)/RAD,-28,28);
   const nx=X(t),ny=Y(t);
   setUse(q('.bw-near'),mt(nx,ny,deg,-S,S,500,0),1);
+  setRef(q('.bw-ref'),mt(nx,ny,deg,-S,S,500,0),.14);
   const tail=apply(nx,ny,deg,-S,S,500,0,930,0);
   // 푸른 물길: 고래 꼬리에서 뱃머리까지
   const B=bob(tr);
@@ -281,9 +285,11 @@ const S3={title:'관통 회피',loop:7.5,
    '<g clip-path="url(#bwBelow)"><ellipse class="bw-uglow" rx="150" ry="24" fill="url(#bwUnder)" opacity="0"/></g>'+
    '<g fill="none" stroke-linecap="round"><path class="bw-lineglow" stroke="#4fc6ff" stroke-width="9" filter="url(#bwSoft)" opacity="0"/><path class="bw-line" stroke="#d9f5ff" stroke-width="1.6" opacity="0"/></g>'+
    '<ellipse class="bw-hump" rx="40" ry="4" fill="#dcecf2" filter="url(#bwRimF)" opacity="0"/>'+
+   whaleRef('bw-ref')+foam('bw-foam3',30)+
    columns('bw-cols',3)+
    boatMarkup()+
    '<g clip-path="url(#bwAbove)">'+ghosts(3)+'<use class="bw-front" href="'+M+'" opacity="0"/></g>'+
+   curtain('bw-erupt','',4,20)+
    drops('bw-burst',50,33)+
    drops('bw-rain',44,34)+
    rings(3)+
@@ -304,6 +310,9 @@ const S3={title:'관통 회피',loop:7.5,
    setUse(q('.bw-under'),mt(tipX,SEA+120+70*diveK,8*diveK,S,S,-60,-6),seg(t,.2,.6)*(1-diveK));
   }else setUse(q('.bw-under'),mt(P[0]+dx*k,P[1]+dy*k,ang,S,S,-60,-6),erupt?1:0);
   setUse(q('.bw-front'),mt(P[0]+dx*k,P[1]+dy*k,ang,S,S,-60,-6),erupt?1:0);
+  setRef(q('.bw-ref'),mt(P[0]+dx*k,P[1]+dy*k,ang,S,S,-60,-6),erupt?.16:0);
+  {const ea=tau-2.12;paintCurtain(q('.bw-erupt'),430,620,x=>colH(ea,150*(1-Math.abs(x-525)/150*.6),.35,1.6),4,tr,ea>0?1:0);
+   paintFoam(q('.bw-foam3'),513,ea>0?300:1,ea>0?Math.max(0,1-(ea-1.5)/2.5):0,13);}
   const slow=t>2.29&&t<2.95?1:0;
   qa('.bw-ghost').forEach(g=>{const j=+g.dataset.k,kk=k-j*60;setUse(g,mt(P[0]+dx*kk,P[1]+dy*kk,ang,S,S,-60,-6),erupt?(.28-j*.07)*(1-.8*slow):0);});
   // 겨누는 선
@@ -345,13 +354,12 @@ const S3={title:'관통 회피',loop:7.5,
 const S4={title:'최후의 교차',dur:9,
  caps:[[0,'작살잡이가 물길의 끝, 아무것도 없는 허공을 겨눕니다.'],[1.1,'작살이 먼저 날아갑니다.'],[1.7,'솟구친 고래가 정확히 그 지점을 지나갑니다.'],[3.2,'푸른 빛이 꺼져 갑니다. 거대한 몸이 뒤집혀 떠오릅니다.']],
  build(){
-  let sparks='<g class="bw-sparks" stroke="#c9f3ff" stroke-linecap="round" opacity="0">';
-  const r=seeded(71);for(let i=0;i<20;i++){const a=r()*TAU;sparks+='<path data-a="'+n3(a)+'" data-v="'+n1(60+r()*150)+'" stroke-width="'+n1(1+r()*1.6)+'"/>';}
-  sparks+='</g>';
+  const sparks='<g class="bw-sparks" opacity="0"></g>';
   return '<g class="bw-root">'+sky()+
    '<g clip-path="url(#bwBelow)"><use class="bw-under" href="'+M+'" opacity="0"/></g>'+
    '<use class="bw-carc" href="'+M+'" opacity="0"/>'+
    sea()+
+   whaleRef('bw-ref')+whaleRef('bw-cref')+foam('bw-foam4',34)+
    '<g clip-path="url(#bwBelow)"><ellipse class="bw-uglow" rx="170" ry="26" fill="url(#bwUnder)" opacity="0"/></g>'+
    boatMarkup()+
    '<g clip-path="url(#bwAbove)">'+ghosts(3)+'<use class="bw-front" href="'+M+'" opacity="0"/>'+
@@ -360,7 +368,7 @@ const S4={title:'최후의 교차',dur:9,
     '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g></g>'+
    '<g fill="none"><circle class="bwg-tc" r="24" stroke="#e8f3f6" stroke-width="1.6" stroke-dasharray="5 4" opacity="0"/><circle class="bwg-cc" r="24" stroke="#cfeefd" stroke-width="2" opacity="0"/></g>'+
    '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+
-   sparks+
+   sparks+drops('bw-hitw',70,77)+
    drops('bw-blood',22,72,'#1b0c16')+
    columns('bw-cols',5)+
    drops('bw-splash',60,73)+
@@ -385,7 +393,8 @@ const S4={title:'최후의 교차',dur:9,
   const tf=mt(E.x,E.y,E.deg,S,S,EYE[0],EYE[1]);
   const glow=post>0?lerp(1,.45,seg(post,0,.6)):1;
   setUse(q('.bw-under'),tf,vis);setUse(q('.bw-front'),tf,vis);
-  q('.bw-front').style.setProperty('--bwglow',n3(glow));q('.bw-under').style.setProperty('--bwglow',n3(glow));
+  setRef(q('.bw-ref'),tf,vis*.16);
+  q('.bw-front').style.setProperty('--bwglow',n3(glow*.6));q('.bw-under').style.setProperty('--bwglow',n3(glow));
   const fast=tau>1.15&&tau<TH;
   qa('.bw-ghost').forEach(g=>{const k=+g.dataset.k,pp=pose(tau-k*.03);setUse(g,mt(pp.x,pp.y,pp.deg,S,S,EYE[0],EYE[1]),fast?(.26-k*.07):0);});
   const ug=q('.bw-uglow');ug.setAttribute('cx',n1(E.x));ug.setAttribute('cy',n1(SEA+46));ug.setAttribute('opacity',n3(tau<1.3?seg(t,.2,.8)*(E.y>SEA?1:0):0));
@@ -427,10 +436,10 @@ const S4={title:'최후의 교차',dur:9,
   // 교차의 순간: 섬광 · 불꽃 · 멈춘 화면 흔들림
   const sh=t-TH;
   const fl=q('.bw-flash');fl.setAttribute('cx',P[0]);fl.setAttribute('cy',P[1]);
-  fl.setAttribute('opacity',sh>0?n3(Math.exp(-sh*2.6)):'0');fl.setAttribute('r',n1(50+90*clamp(sh*2)));
+  fl.setAttribute('opacity',sh>0?n3(.8*Math.exp(-sh*2.6)):'0');fl.setAttribute('r',n1(24+46*clamp(sh*2)));
+  if(!this._hw)this._hw=dropParams(70,79,-200,20,60,300);
+  paintDrops(qa('.bw-hitw circle'),this._hw,P[0],P[1],(tau-TH)*1.2,8,420);
   const sp=q('.bw-sparks');sp.setAttribute('opacity',sh>0&&sh<1.6?n3(1-sh/1.6):'0');
-  if(sh>0)qa('.bw-sparks path').forEach(p=>{const a=+p.dataset.a,v=+p.dataset.v,d1=12+v*Math.min(sh,1.2)*.9,d2=d1+10+v*.12;
-   p.setAttribute('d','M'+n1(P[0]+Math.cos(a)*d1)+','+n1(P[1]+Math.sin(a)*d1*.8)+' L'+n1(P[0]+Math.cos(a)*d2)+','+n1(P[1]+Math.sin(a)*d2*.8));});
   if(!this._bl)this._bl=dropParams(22,74,-200,20,90,300);
   paintDrops(qa('.bw-blood circle'),this._bl,P[0],P[1],(tau-TH)*1.3,10,500);
   const shake=sh>0&&sh<.7?(1-sh/.7)*4:0;
@@ -445,6 +454,8 @@ const S4={title:'최후의 교차',dur:9,
   function carc(tt,trr){const u=outC(seg(tt,tc+.9,tc+4.2));return {x:cx+240+4*Math.sin(trr*.4),y:lerp(SEA+150,SEA+22,u)+2.5*Math.sin(trr*1.1),deg:9+1.2*Math.sin(trr*.7),s:.72};}
   const C=carc(t,tr),cu=q('.bw-carc');
   setUse(cu,mt(C.x,C.y,C.deg,C.s,-C.s,500,0),seg(t,tc+.8,tc+1.6));
+  setRef(q('.bw-cref'),mt(C.x,C.y,C.deg,C.s,-C.s,500,0),.18*seg(t,tc+.8,tc+1.6));
+  paintFoam(q('.bw-foam4'),sc>0?cx+(sc>2?240*seg(sc,2,4):0):900,sc>0?360:1,sc>0?Math.max(.35,1-sc/3):0,15);
   cu.style.setProperty('--bwglow',n3(.5*(1-seg(t,tc+1,tc+5))));
   veil(el,tReal<.6?1-tReal/.6:0);
   caption(el,this.caps,t);
@@ -519,6 +530,9 @@ function evadeGame(el,t,tr,g){
  if(k!=null&&k<1400){underTf=at(k);underOp=1;}
  setUse(q('.bw-under'),underTf||'',underTf?underOp:0);
  setUse(q('.bw-front'),k!=null&&k<1400?at(k):'',k!=null&&k<1400?1:0);
+ setRef(q('.bw-ref'),k!=null&&k<1400?at(k):'',k!=null&&k<1400?.16:0);
+ {const ea=emergeAt!=null?t-emergeAt:-1;paintCurtain(q('.bw-erupt'),X0-40,X0+150,x=>colH(ea,140*(1-Math.abs(x-X0-55)/150*.6),.35,1.6),4,tr,ea>0?1:0);
+  paintFoam(q('.bw-foam3'),X0+43,ea>0?300:1,ea>0?Math.max(0,1-(ea-1.5)/2.5):0,13);}
  const fast=ph==='dodge'||(ph==='pierced'&&t-g.failAt<.25);
  qa('.bw-ghost').forEach(gh=>{const j=+gh.dataset.k;setUse(gh,k!=null?at(k-j*60):'',fast&&k!=null?(.28-j*.07):0);});
  // 겨누는 선
@@ -573,6 +587,7 @@ function finalGame(el,t,tr,g){
  const tf=mt(E.x,E.y,E.deg,FS,FS,EYE[0],EYE[1]);
  const show=t>.2?1:0;
  setUse(q('.bw-under'),tf,show);setUse(q('.bw-front'),tf,show);
+ setRef(q('.bw-ref'),tf,show*.16);q('.bw-front').style.removeProperty('--bwglow');
  const fast=t>g.breachAt&&t<g.th+(miss?.45:0);
  qa('.bw-ghost').forEach(gh=>{const k=+gh.dataset.k,pp=poseFinal(1.75+(t-k*.035-g.th)*sc);setUse(gh,mt(pp.x,pp.y,pp.deg,FS,FS,EYE[0],EYE[1]),fast&&!miss?(.24-k*.06):0);});
  setUse(q('.bw-carc'),'',0);

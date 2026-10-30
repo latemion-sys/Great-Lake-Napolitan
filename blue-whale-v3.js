@@ -100,9 +100,9 @@ function marlinDefs(p){
   '<path d="M904,-9 C928,-34 964,-112 1015,-202" fill="none" stroke="#bfe4fa" stroke-opacity=".35" stroke-width="1.3" filter="url(#'+p+'Rim)"/>'+
   '<g clip-path="url(#'+p+'Clip)">'+
    '<rect x="180" y="-210" width="850" height="420" filter="url(#'+p+'Tex)" opacity=".42"/>'+
-   '<rect x="180" y="-30" width="720" height="50" fill="url(#'+p+'Band)" style="opacity:var(--bwglow,1)"/>'+
-   '<g fill="none" stroke="#6fcaf5" stroke-linecap="round" filter="url(#'+p+'Glow)" style="opacity:var(--bwglow,1)"><g opacity=".45">'+bars+'</g></g>'+
-   '<g fill="none" stroke="#d6f1fd" stroke-width="1" stroke-linecap="round" style="opacity:var(--bwglow,1)"><g opacity=".32">'+fine+'</g></g>'+
+   '<rect x="180" y="-30" width="720" height="50" fill="url(#'+p+'Band)" style="opacity:var(--bwglow,.6)"/>'+
+   '<g fill="none" stroke="#6fcaf5" stroke-linecap="round" filter="url(#'+p+'Glow)" style="opacity:var(--bwglow,.6)"><g opacity=".45">'+bars+'</g></g>'+
+   '<g fill="none" stroke="#d6f1fd" stroke-width="1" stroke-linecap="round" style="opacity:var(--bwglow,.6)"><g opacity=".32">'+fine+'</g></g>'+
    '<g fill="none" stroke="#dfeef5" stroke-opacity=".12" stroke-width="1.4" stroke-linecap="round">'+scars+'</g>'+
    '<ellipse cx="520" cy="-62" rx="300" ry="18" fill="url(#'+p+'Sheen)"/>'+
    '<rect x="180" y="20" width="710" height="60" fill="url(#'+p+'Belly)"/>'+
@@ -126,7 +126,7 @@ function marlinDefs(p){
    '<g fill="none" stroke="#06142a" stroke-opacity=".45" stroke-width=".9">'+rough+'</g>'+
   '</g>'+
   '<path d="'+BILL_TOP+'" fill="none" stroke="#f0fbff" stroke-opacity=".9" stroke-width="1.4"/>'+
-  '<path d="'+BILL_TOP+'" fill="none" stroke="#62d4ff" stroke-opacity=".7" stroke-width="5" filter="url(#'+p+'Glow)" style="opacity:var(--bwglow,1)"/>'+
+  '<path d="'+BILL_TOP+'" fill="none" stroke="#62d4ff" stroke-opacity=".7" stroke-width="5" filter="url(#'+p+'Glow)" style="opacity:var(--bwglow,.6)"/>'+
   '<path d="'+BILL_LOW+'" fill="none" stroke="#01060d" stroke-opacity=".8" stroke-width="1"/>'+
   // 윗턱 뿌리: 머리로 이어지는 굵은 마디와 콧구멍
   '<path d="M238,-21 C252,-26 266,-32 282,-40" fill="none" stroke="#bfe6fb" stroke-opacity=".4" stroke-width="1.6" filter="url(#'+p+'Rim)"/>'+
@@ -136,12 +136,15 @@ function marlinDefs(p){
   '<path d="'+PEC+'" fill="url(#'+p+'Fin)" stroke="#86ccf2" stroke-opacity=".3" stroke-width="1"/>'+
   '<path d="M332,44 C356,62 384,86 420,108" fill="none" stroke="#0a2040" stroke-width="3.2" stroke-linecap="round"/>'+
   '<path d="M306,34 C350,52 410,64 482,64 C580,63 680,49 770,30 C818,20 852,13 884,10" fill="none" stroke="#8fc9e6" stroke-opacity=".16" stroke-width="1.4" filter="url(#'+p+'Rim)"/>'+
+  // 젖은 광택(등선 위의 하이라이트)
+  '<path d="M240,-20 C280,-44 330,-62 400,-70 C520,-80 640,-62 760,-32" fill="none" stroke="url(#bwSpec)" stroke-width="6" stroke-linecap="round" opacity=".5" filter="url(#bwB1)"/>'+
+  '<path d="M262,-25 C300,-46 352,-61 412,-67" fill="none" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" opacity=".55"/>'+
   // 달빛을 받는 등선
   '<path d="'+BACK+'" fill="none" stroke="#d6effc" stroke-opacity=".5" stroke-width="2" filter="url(#'+p+'Rim)"/>'+
   // 눈: 크고 어두운 눈, 푸른 테
   '<g><circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="12.5" fill="#06111f" stroke="#2c5d86" stroke-width="1.8"/>'+
    '<circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="8.6" fill="#01040a"/>'+
-   '<circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="11" fill="none" stroke="#6fd6ff" stroke-opacity=".5" stroke-width="1.1" filter="url(#'+p+'Rim)" style="opacity:var(--bwglow,1)"/>'+
+   '<circle cx="'+EYE[0]+'" cy="'+EYE[1]+'" r="11" fill="none" stroke="#6fd6ff" stroke-opacity=".5" stroke-width="1.1" filter="url(#'+p+'Rim)" style="opacity:var(--bwglow,.6)"/>'+
    '<circle cx="'+(EYE[0]-3)+'" cy="'+(EYE[1]-3)+'" r="1.7" fill="#e8f6ff" opacity=".85"/></g>'+
  '</g>'+
  '<g id="'+p+'G"><path d="'+SAIL+'"/><path d="'+BODY+'"/><path d="'+BILL+'"/></g>';
@@ -168,6 +171,12 @@ const HARPOON=
  '<path d="M-12,-3 L-22,-9 M-12,3 L-22,9" stroke="#c5cfcc" stroke-width="1.6" stroke-linecap="round"/></g>';
 
 /* ---------- 공통 배경 ---------- */
+// 반사를 잔물결 띠로 끊는 마스크
+function rippleBands(){
+ const r=seeded(7);let s='';
+ for(let y=SEA+1;y<H;){const k=(y-SEA)/(H-SEA),h=1.2+k*6;s+='<rect x="'+n1(-20+r()*30)+'" y="'+n1(y)+'" width="'+(W+40)+'" height="'+n1(h)+'" fill="#fff" opacity="'+n3(.35+r()*.65)+'"/>';y+=h+(.8+k*5)*(.6+r()*.8);}
+ return s;
+}
 function commonDefs(){
  return ''+
  '<linearGradient id="bwSky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#02050a"/><stop offset=".6" stop-color="#0b1520"/><stop offset="1" stop-color="#14222c"/></linearGradient>'+
@@ -183,6 +192,14 @@ function commonDefs(){
  '<filter id="bwHaze" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="9"/></filter>'+
  '<filter id="bwRimF" x="-5%" y="-40%" width="110%" height="180%"><feGaussianBlur stdDeviation="1.6"/></filter>'+
  '<filter id="bwStreak" x="-40%" y="-10%" width="180%" height="120%"><feGaussianBlur stdDeviation="16 2"/></filter>'+
+ '<radialGradient id="bwMistG"><stop stop-color="#e9f5fa" stop-opacity=".5"/><stop offset=".3" stop-color="#dcecf3" stop-opacity=".3"/><stop offset=".65" stop-color="#d0e4ed" stop-opacity=".1"/><stop offset="1" stop-color="#d0e4ed" stop-opacity="0"/></radialGradient>'+
+ '<radialGradient id="bwMistCore"><stop stop-color="#f2f9fc" stop-opacity=".7"/><stop offset="1" stop-color="#f2f9fc" stop-opacity="0"/></radialGradient>'+
+ '<linearGradient id="bwSea2" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#16242e" stop-opacity=".93"/><stop offset=".08" stop-color="#0d1820" stop-opacity=".95"/><stop offset=".5" stop-color="#060d13" stop-opacity=".97"/><stop offset="1" stop-color="#020507"/></linearGradient>'+
+ '<linearGradient id="bwHazeH" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#9fb8c6" stop-opacity="0"/><stop offset=".5" stop-color="#9fb8c6" stop-opacity=".15"/><stop offset="1" stop-color="#9fb8c6" stop-opacity="0"/></linearGradient>'+
+ '<linearGradient id="bwSpec" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#f4fbff" stop-opacity=".7"/><stop offset=".7" stop-color="#f4fbff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'+
+ '<filter id="bwB1" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1"/></filter>'+
+ '<filter id="bwSmear" x="-30%" y="-10%" width="160%" height="120%"><feGaussianBlur stdDeviation="22 1.5"/></filter>'+
+ '<mask id="bwRipple" maskUnits="userSpaceOnUse" x="0" y="'+SEA+'" width="'+W+'" height="'+(H-SEA)+'">'+rippleBands()+'</mask>'+
  '<clipPath id="bwAbove"><rect width="'+W+'" height="'+(SEA+1)+'"/></clipPath>'+
  '<clipPath id="bwBelow"><rect y="'+(SEA+1)+'" width="'+W+'" height="'+(H-SEA)+'"/></clipPath>';
 }
@@ -190,57 +207,95 @@ function sky(){
  return '<rect width="'+W+'" height="'+H+'" fill="url(#bwSky)"/>'+
   '<circle cx="812" cy="98" r="190" fill="url(#bwMoon)"/>'+
   '<circle cx="812" cy="98" r="26" fill="#dde8ec" opacity=".42" filter="url(#bwRimF)"/>'+
-  '<g class="bw-mist" filter="url(#bwMist)"><rect x="-200" y="252" width="700" height="34" rx="17" fill="#c3d3dc" opacity=".08"/><rect x="560" y="228" width="760" height="40" rx="20" fill="#c3d3dc" opacity=".07"/></g>'+
-  '<path d="M0,'+SEA+' H'+W+'" stroke="#9fb7c2" stroke-opacity=".18" stroke-width="1.2"/>';
+  '<rect x="0" y="'+(SEA-70)+'" width="'+W+'" height="110" fill="url(#bwHazeH)"/>'+
+  '<g class="bw-mist" filter="url(#bwMist)"><rect x="-200" y="'+(SEA-46)+'" width="760" height="30" rx="15" fill="#c3d3dc" opacity=".07"/><rect x="520" y="'+(SEA-60)+'" width="800" height="36" rx="18" fill="#c3d3dc" opacity=".06"/></g>'+
+  '<path d="M0,'+SEA+' H'+W+'" stroke="#c9dae2" stroke-opacity=".2" stroke-width="1"/>';
 }
+let SEA_CACHE=null;
 function sea(){
- return '<rect y="'+SEA+'" width="'+W+'" height="'+(H-SEA)+'" fill="url(#bwSea)"/>'+
-  '<g fill="#dbe7ec">'+[0,1,2,3,4,5,6].map(i=>'<rect class="bw-glint" data-i="'+i+'" x="'+(794-i*4)+'" y="'+(SEA+8+i*i*3.2+i*6)+'" width="'+(26+i*9)+'" height="'+n1(1.6+i*.35)+'" rx="1" opacity="0"/>').join('')+'</g>'+
-  '<g fill="none" stroke="#b3c7d0" stroke-linecap="round">'+[0,1,2,3,4,5,6,7].map(i=>{const y=SEA+7+i*i*2.6+i*7;return '<path class="bw-wave" data-i="'+i+'" d="M-60,'+n1(y)+' H'+(W+60)+'" stroke-opacity="'+n3(.15-i*.012)+'" stroke-width="'+n1(1+i*.3)+'" stroke-dasharray="'+(30+i*14)+' '+(40+i*22)+'"/>';}).join('')+'</g>';
+ if(SEA_CACHE)return SEA_CACHE;
+ const r=seeded(3);let rip='',gl=['','',''];
+ // 잔물결 반사광: 수평선 쪽은 촘촘하고 가늘게, 가까울수록 굵고 성기게 (가로로 흐를 수 있게 두 벌)
+ for(let i=0;i<150;i++){const k=Math.pow(r(),1.4),y=SEA+3+k*(H-SEA-6),x=r()*W,w=3+k*26*r(),h=.6+k*1.4,o=.04+.09*r();
+  rip+='<rect x="'+n1(x)+'" y="'+n1(y)+'" width="'+n1(w)+'" height="'+n1(h)+'" opacity="'+n3(o)+'"/><rect x="'+n1(x+W)+'" y="'+n1(y)+'" width="'+n1(w)+'" height="'+n1(h)+'" opacity="'+n3(o)+'"/>';}
+ // 달빛 길: 세 무리로 나눠 번갈아 반짝임
+ for(let i=0;i<120;i++){const k=Math.pow(r(),1.6),y=SEA+3+k*(H-SEA-10),spread=18+k*120,x=812+(r()-.5)*2*spread,w=4+k*40*r();
+  gl[i%3]+='<rect x="'+n1(x-w/2)+'" y="'+n1(y)+'" width="'+n1(w)+'" height="'+n1(.7+k*2.2)+'" rx="1" opacity="'+n3((.1+.36*r())*(1-k*.55))+'"/>';}
+ SEA_CACHE='<rect y="'+SEA+'" width="'+W+'" height="'+(H-SEA)+'" fill="url(#bwSea2)"/>'+
+  '<g class="bw-rip" fill="#a9c2cf">'+rip+'</g>'+
+  '<g fill="#e4eef2">'+gl.map((g,i)=>'<g class="bw-gl" data-i="'+i+'">'+g+'</g>').join('')+'</g>';
+ return SEA_CACHE;
 }
 function nearMist(){
  return '<g class="bw-mist" filter="url(#bwMist)"><rect x="-300" y="'+(SEA-16)+'" width="900" height="30" rx="15" fill="#cfdde3" opacity=".07"/><rect x="420" y="'+(SEA-34)+'" width="900" height="26" rx="13" fill="#cfdde3" opacity=".055"/></g>';
 }
+function lampRef(){
+ const r=seeded(11);let s='';
+ for(let i=0;i<16;i++){const yy=SEA+4+i*6+r()*4,w=6+r()*14*(1-i/20);s+='<rect x="'+n1(-w/2+(r()-.5)*6)+'" y="'+n1(yy)+'" width="'+n1(w)+'" height="1.6" rx=".8" opacity="'+n3(.55*(1-i/16)*(.5+r()*.5))+'"/>';}
+ return '<g class="bw-lampref" fill="#ffc35a" filter="url(#bwB1)" opacity="0">'+s+'</g>';
+}
 function boatMarkup(cls){
- return '<ellipse class="bw-lampglint" cy="'+(SEA+9)+'" rx="22" ry="3" fill="#ffbf47" filter="url(#bwRimF)" opacity="0"/>'+
+ return '<ellipse class="bw-lampglint" cy="'+(SEA+9)+'" rx="22" ry="3" fill="#ffbf47" filter="url(#bwRimF)" opacity="0"/>'+lampRef()+
+  '<g opacity=".24" mask="url(#bwRipple)"><g class="bw-boatref">'+BOAT.replace(/<circle[^>]*bw-lampglow[^>]*\/>/,'').replace(/class="bw-arm"/,'')+'</g></g>'+
   '<g clip-path="url(#bwAbove)"><g class="bw-boat'+(cls?' '+cls:'')+'">'+BOAT+'</g></g>';
 }
-// 물보라 장막: 아래는 진하고 위로 갈수록 흩어지는 물의 벽. 위쪽 가장자리는 들쭉날쭉하게.
-function curtain(cls,extra){
- return '<g class="'+cls+'"'+(extra||'')+'><path class="cu-haze" fill="url(#bwCol)" filter="url(#bwHaze)" opacity="0"/>'+
-  '<path class="cu-body" fill="url(#bwCol)" filter="url(#bwSoftS)" opacity="0"/>'+
-  '<path class="cu-crest" fill="none" stroke="#eef7fa" stroke-width="1.1" filter="url(#bwRimF)" opacity="0"/></g>';
+// 고래의 수면 반사 (물 위로 나온 부분만 잔물결에 끊겨 비침)
+function whaleRef(cls,href){return '<g class="'+cls+'" opacity="0" mask="url(#bwRipple)"><use href="'+(href||'#bwmM')+'"/></g>';}
+function setRef(node,tf,op){if(!node)return;node.firstChild.setAttribute('transform','translate(0 '+(2*SEA)+') scale(1 -1) '+tf);node.setAttribute('opacity',n3(op));}
+// 물보라: 흐린 물안개 입자 여러 개를 겹쳐 부피감 있게 (아래는 짙고 위로 흩어짐)
+function plumeMarkup(n){
+ let s='';for(let i=0;i<n;i++)s+='<circle class="pp" fill="url(#bwMistG)" r="1" opacity="0"/>';
+ for(let i=0;i<3;i++)s+='<ellipse class="pc" fill="url(#bwMistCore)" rx="1" ry="1" opacity="0"/>';
+ return s;
+}
+function paintPlume(g,cx,base,w,h,op,seed,t){
+ const c=g._pl||(g._pl={pp:Array.from(g.querySelectorAll('.pp')),pc:Array.from(g.querySelectorAll('.pc')),P:null});
+ if(h<1||op<=0){if(g.style.display!=='none')g.style.display='none';return;}
+ if(g.style.display==='none')g.style.display='';
+ if(!c.P){const r=seeded((Math.abs(seed|0)%2147483000)+7);c.P=c.pp.map(()=>({u:Math.pow(r(),.75),x:r()-.5,r:r(),o:r(),ph:r()*TAU}));c.C=c.pc.map(()=>({x:r()-.5,y:r(),r:r(),o:r()}));}
+ const sc=Math.max(.45,Math.min(2.2,w/120));
+ c.pp.forEach((n,i)=>{const p=c.P[i],u=p.u;
+  n.setAttribute('cx',n1(cx+p.x*w*(.25+.75*u)+Math.sin(t*1.5+p.ph)*3*u));
+  n.setAttribute('cy',n1(base-h*u-Math.sin(t*1.2+p.ph)*2));
+  n.setAttribute('r',n1((14+26*(1-u)*p.r+12)*sc*(.9+.6*u)));
+  n.setAttribute('opacity',n3((.16+.36*p.o)*(1-u*.6)*op));});
+ c.pc.forEach((n,i)=>{const p=c.C[i];
+  n.setAttribute('cx',n1(cx+p.x*w*.5));n.setAttribute('cy',n1(base-p.y*h*.25));
+  n.setAttribute('rx',n1((10+p.r*18)*sc));n.setAttribute('ry',n1((7+p.r*12)*sc));n.setAttribute('opacity',n3((.25+.35*p.o)*op*Math.min(1,h/40)));});
+}
+function curtain(cls,extra,n,parts){
+ let s='<g class="'+cls+'"'+(extra||'')+'>';
+ for(let j=0;j<(n||9);j++)s+='<g class="cu-p">'+plumeMarkup(parts||16)+'</g>';
+ return s+'</g>';
 }
 function paintCurtain(g,x0,x1,hf,seed,t,op){
- const [hz,bd,cr]=g._cu||(g._cu=[g.querySelector('.cu-haze'),g.querySelector('.cu-body'),g.querySelector('.cu-crest')]);
- let top='',haze='',mx=0;const step=Math.max(5,(x1-x0)/90);
- for(let x=x0;x<=x1+.1;x+=step){
-  const h=Math.max(0,hf(x));mx=Math.max(mx,h);
-  const sp=Math.sin(x*1.37+seed*7.7)*Math.sin(x*.53+seed);
-  const n=.6+.16*Math.sin(x*.071+seed)+.1*Math.sin(x*.23+seed*2.3+t*2.6)+.06*Math.sin(x*.61+seed*5.1-t*6.5)+.16*Math.max(0,sp)*sp;
-  top+=' L'+n1(x)+','+n1(SEA-h*n);haze+=' L'+n1(x)+','+n1(SEA-h*n*1.18-2);
- }
- if(mx<1||op<=0){hz.setAttribute('opacity','0');bd.setAttribute('opacity','0');cr.setAttribute('opacity','0');return;}
- bd.setAttribute('d','M'+n1(x0)+','+(SEA+4)+top+' L'+n1(x1)+','+(SEA+4)+' Z');
- hz.setAttribute('d','M'+n1(x0-10)+','+(SEA+4)+haze+' L'+n1(x1+10)+','+(SEA+4)+' Z');
- cr.setAttribute('d','M'+top.slice(2));
- bd.setAttribute('opacity',n3(.6*op));hz.setAttribute('opacity',n3(.45*op));cr.setAttribute('opacity',n3(.14*op));
+ const ps=g._cps||(g._cps=Array.from(g.querySelectorAll('.cu-p'))),n=ps.length,sp=(x1-x0)/n;
+ ps.forEach((p,j)=>{const x=x0+(j+.5)*sp+Math.sin(seed*3.1+j*1.7)*sp*.2;
+  paintPlume(p,x,SEA+4,sp*1.8,Math.max(0,hf(x)),op,(seed*97+j*13)|0,t);});
 }
 function columns(cls,n){
  let s='<g class="'+cls+'">';
- for(let i=0;i<n;i++)s+=curtain('bw-col',' data-i="'+i+'"');
+ for(let i=0;i<n;i++)s+=curtain('bw-col',' data-i="'+i+'"',3,18);
  return s+'</g>';
+}
+// 수면의 거품
+function foam(cls,n){let s='<g class="'+cls+'" filter="url(#bwB1)">';for(let i=0;i<(n||26);i++)s+='<ellipse fill="#e1eef3" rx="1" ry="1" opacity="0"/>';return s+'</g>';}
+function paintFoam(g,cx,w,op,seed){
+ const c=g._fo||(g._fo={e:Array.from(g.children),P:null});
+ if(!c.P){const r=seeded((Math.abs(seed|0)%2147483000)+5);c.P=c.e.map(()=>({x:r()-.5,y:Math.pow(r(),2),rx:3+r()*16,ry:.8+r()*2.2,o:.12+.4*r()}));}
+ c.e.forEach((e,i)=>{const p=c.P[i];if(op<=0){e.setAttribute('opacity','0');return;}
+  e.setAttribute('cx',n1(cx+p.x*w));e.setAttribute('cy',n1(SEA+1+p.y*14));e.setAttribute('rx',n1(p.rx*(.6+.4*Math.min(1,w/200))));e.setAttribute('ry',n1(p.ry));e.setAttribute('opacity',n3(p.o*op));});
 }
 // 물방울 · 파편
 function drops(cls,n,seed,fill){
  let s='<g class="'+cls+'">';
  const r=seeded(seed);
- for(let i=0;i<n;i++)s+='<circle data-i="'+i+'" r="'+n1(1.2+r()*2.2)+'" fill="'+(fill||'#dcebf1')+'" opacity="0"/>';
+ for(let i=0;i<n;i++)s+='<circle data-i="'+i+'" r="'+n1(.55+Math.pow(r(),4)*2.6)+'" fill="'+(fill||'#eaf5fa')+'" opacity="0"/>';
  return s+'</g>';
 }
 function dropParams(n,seed,a0,a1,v0,v1){
  const r=seeded(seed);
- return Array.from({length:n},()=>{const a=(a0+(a1-a0)*r())*RAD,v=v0+(v1-v0)*r();return {vx:Math.cos(a)*v,vy:Math.sin(a)*v,d:r()*0.12,ox:(r()-.5)*2,life:.8+r()*.8};});
+ return Array.from({length:n},()=>{const a=(a0+(a1-a0)*r())*RAD,v=v0+(v1-v0)*r();return {vx:Math.cos(a)*v,vy:Math.sin(a)*v,d:r()*0.12,ox:(r()-.5)*2,life:.8+r()*.8,o:.4+.6*r()};});
 }
 function paintDrops(nodes,P,x,y,s,spreadX,g){
  nodes.forEach(d=>{
@@ -248,7 +303,7 @@ function paintDrops(nodes,P,x,y,s,spreadX,g){
   if(k<=0||k>p.life){d.setAttribute('opacity','0');return;}
   const px=x+p.ox*(spreadX||0)+p.vx*k,py=y+p.vy*k+(g||420)*k*k;
   d.setAttribute('cx',n1(px));d.setAttribute('cy',n1(py));
-  d.setAttribute('opacity',py>SEA+4?'0':n3(.85*(1-k/p.life)));
+  d.setAttribute('opacity',py>SEA+4?'0':n3(.9*(p.o||1)*(1-k/p.life)));
  });
 }
 
@@ -263,8 +318,9 @@ function cacheQ(el){
 function ambient(el,t,flow){
  const {qa}=cacheQ(el);
  const f=flow||0;
- qa('.bw-wave').forEach(w=>{const i=+w.dataset.i;w.style.strokeDashoffset=n1(t*(8+i*6)*(i%2?1:-1)+t*f*(0.5+i*0.22));});
- qa('.bw-glint').forEach(g=>{const i=+g.dataset.i;g.setAttribute('opacity',n3(0.1+0.14*(0.5+0.5*Math.sin(t*2.3+i*1.7))));});
+ const rip=cacheQ(el).q('.bw-rip');
+ if(rip)rip.setAttribute('transform','translate('+n1(-(((t*(6+f*.9))%W)+W)%W)+' 0)');
+ qa('.bw-gl').forEach(g=>{const i=+g.dataset.i;g.setAttribute('opacity',n3(.55+.45*Math.sin(t*2.1+i*2.1)));});
  qa('.bw-mist').forEach((m,i)=>{
   const x=f?(((-t*f*(i?0.9:0.35))%1400)+1400)%1400-700:Math.sin(t*0.13+i*2)*50;
   m.setAttribute('transform','translate('+n1(x)+' 0)');
@@ -274,6 +330,7 @@ function ambient(el,t,flow){
 function boatPose(el,x,y,deg,armEnd){
  const {q}=cacheQ(el);
  q('.bw-boat').setAttribute('transform','translate('+n1(x)+' '+n1(y)+') rotate('+n1(deg)+') scale('+BOAT_S+')');
+ const ref=q('.bw-boatref');if(ref)ref.setAttribute('transform','translate('+n1(x)+' '+n1(2*SEA-y)+') rotate('+n1(-deg)+') scale('+BOAT_S+' '+n1(-BOAT_S*.85)+')');
  if(armEnd)q('.bw-arm').setAttribute('d','M29,-23 L'+n1(armEnd[0])+','+n1(armEnd[1]));
  const br=deg*RAD,toWorld=p=>[x+BOAT_S*(p[0]*Math.cos(br)-p[1]*Math.sin(br)),y+BOAT_S*(p[0]*Math.sin(br)+p[1]*Math.cos(br))];
  return toWorld;
@@ -283,7 +340,8 @@ function lamp(el,t,toWorld,boost){
  const k=0.86+Math.sin(t*7.3)*.05+Math.sin(t*12.9+1.7)*.04+(boost||0);
  q('.bw-lampglow').style.opacity=n3(k);
  const lw=toWorld([51,-18.5]),lg=q('.bw-lampglint');
- lg.setAttribute('cx',n1(lw[0]));lg.style.opacity=n3(0.4*k);
+ lg.setAttribute('cx',n1(lw[0]));lg.style.opacity=n3(0.25*k);
+ const lr=q('.bw-lampref');if(lr){lr.setAttribute('transform','translate('+n1(lw[0])+' 0)');lr.setAttribute('opacity',n3(Math.max(0,Math.min(1,(SEA+14-lw[1])/30))*k));}
 }
 function veil(el,v){cacheQ(el).q('.bw-veil').style.opacity=n3(clamp(v)*0.92);}
 function caption(el,caps,t){
@@ -294,6 +352,6 @@ function caption(el,caps,t){
 function setUse(node,tr,op){node.setAttribute('transform',tr);node.style.opacity=n3(op);}
 
 window.BlueWhaleV3Kit={W,H,SEA,clamp,outC,inC,inOut,seg,bell,lerp,n1,n3,TAU,RAD,seeded,esc,warp,mt,apply,
- marlinDefs,commonDefs,sky,sea,nearMist,boatMarkup,columns,curtain,paintCurtain,drops,dropParams,paintDrops,cacheQ,ambient,boatPose,lamp,veil,caption,setUse,
+ marlinDefs,commonDefs,sky,sea,nearMist,boatMarkup,columns,curtain,paintCurtain,plumeMarkup,paintPlume,foam,paintFoam,whaleRef,setRef,drops,dropParams,paintDrops,cacheQ,ambient,boatPose,lamp,veil,caption,setUse,
  BOAT,BOAT_S,HARPOON,EYE};
 })();
