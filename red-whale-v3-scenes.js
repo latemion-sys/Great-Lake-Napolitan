@@ -15,7 +15,14 @@ function redDefs(){
  '<linearGradient id="rwSky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#040205"/><stop offset=".55" stop-color="#170810"/><stop offset=".86" stop-color="#2e1014"/><stop offset="1" stop-color="#3a1612"/></linearGradient>'+
  '<radialGradient id="rwMoonG"><stop stop-color="#f0c6b0" stop-opacity=".5"/><stop offset=".2" stop-color="#d88a76" stop-opacity=".16"/><stop offset="1" stop-color="#a04a40" stop-opacity="0"/></radialGradient>'+
  '<linearGradient id="rwWater" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#24121a" stop-opacity=".95"/><stop offset=".3" stop-color="#120810" stop-opacity=".97"/><stop offset="1" stop-color="#040205"/></linearGradient>'+
- '<linearGradient id="rwMud" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#3a1a16"/><stop offset=".35" stop-color="#26100e"/><stop offset="1" stop-color="#0c0405"/></linearGradient>'+
+ '<linearGradient id="rwMud" gradientUnits="userSpaceOnUse" x1="0" y1="'+SEA+'" x2="0" y2="'+(SEA+40)+'"><stop stop-color="#7a6660"/><stop offset=".08" stop-color="#3a2a2a"/><stop offset=".5" stop-color="#1e1016"/><stop offset="1" stop-color="#160a10"/></linearGradient>'+
+ // 열기의 아지랑이: 뒤틀림(숨을 참으면 잦아듦)
+ '<filter id="rwHaze" x="-15%" y="-25%" width="130%" height="150%"><feTurbulence type="fractalNoise" baseFrequency=".011 .05" numOctaves="2" seed="5" result="n"/><feOffset class="rw-hzoff" in="n" dy="0" result="m"/><feDisplacementMap class="rw-hzmap" in="SourceGraphic" in2="m" scale="28" xChannelSelector="R" yChannelSelector="G"/></filter>'+
+ // 끝내 전체가 드러나지 않는 몸: 두 눈 언저리 · 외투막 한 귀퉁이 / 물 위로 드러난 등 한 조각
+ '<filter id="rwDis" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".02 .05" numOctaves="2" seed="9" result="n"/><feColorMatrix in="n" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  2.6 0 0 0 -.9" result="na"/><feComposite in="SourceGraphic" in2="na" operator="in"/></filter>'+
+ '<radialGradient id="rwFragR"><stop stop-color="#fff"/><stop offset=".45" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
+ '<mask id="rwHeadFrag" maskUnits="userSpaceOnUse" x="-320" y="-460" width="640" height="640"><g filter="url(#rwDis)"><ellipse cx="-134" cy="-8" rx="92" ry="66" fill="url(#rwFragR)"/><ellipse cx="134" cy="-8" rx="92" ry="66" fill="url(#rwFragR)"/><ellipse cx="-70" cy="-350" rx="150" ry="46" fill="url(#rwFragR)" opacity=".5"/></g></mask>'+
+ '<mask id="rwBackFrag" maskUnits="userSpaceOnUse" x="-320" y="-460" width="640" height="640"><g filter="url(#rwDis)"><ellipse cx="10" cy="-340" rx="210" ry="80" fill="url(#rwFragR)"/></g></mask>'+
  '<linearGradient id="rwHeat" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#ff6a3a" stop-opacity=".22"/><stop offset="1" stop-color="#ff6a3a" stop-opacity="0"/></linearGradient>'+
  '<filter id="rwSteam" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>'+
  '<filter id="rwMudTex" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".02 .09" numOctaves="3" seed="21"/><feColorMatrix values="0 0 0 0 .05  0 0 0 0 .02  0 0 0 0 .02  0 0 0 -1.8 1.1"/></filter>'+
@@ -42,10 +49,12 @@ function scenery(){
 }
 function bed(){
  return '<rect y="'+SEA+'" width="'+W+'" height="'+(H-SEA)+'" fill="url(#rwMud)"/>'+
-  '<rect y="'+SEA+'" width="'+W+'" height="'+(H-SEA)+'" filter="url(#rwMudTex)" opacity=".6"/>'+
+  '<rect y="'+SEA+'" width="'+W+'" height="'+(H-SEA)+'" filter="url(#rwMudTex)" opacity=".18"/>'+
+  // 물이 있던 자리에 남는 하얀 물자국(옛 수면 바로 아래로 옅게 흘러내린 자국)
+  '<g class="rw-salt" fill="#e8d8cc" opacity="0">'+(()=>{const r=seeded(52);let g='';for(let i=0;i<46;i++){const x=r()*W,w=6+r()*40;g+='<rect x="'+n1(x)+'" y="'+n1(SEA+1+r()*3)+'" width="'+n1(w)+'" height="'+n1(1+r()*2.6)+'" rx="1" opacity="'+n3(.25+r()*.5)+'"/>';}return g;})()+'</g>'+
   '<path class="rw-cracks" d="'+CRACKS+'" fill="none" stroke="#080203" stroke-width="2.2" stroke-linejoin="round" opacity="0"/>'+
   '<path class="rw-cracks2" d="'+CRACKS+'" fill="none" stroke="#c8644a" stroke-opacity=".18" stroke-width="1" transform="translate(0 -1.5)" opacity="0"/>'+
-  '<path class="rw-ring" d="M0,'+(SEA+2)+' H'+W+'" stroke="#5a2a22" stroke-width="3" opacity="0"/>'+
+  '<path class="rw-ring" d="M0,'+(SEA+2)+' H'+W+'" stroke="#efe2d8" stroke-width="2.2" opacity="0"/>'+
   '<g class="rw-water">'+
    '<rect class="rw-wrect" y="'+SEA+'" width="'+W+'" height="'+(H-SEA)+'" fill="url(#rwWater)"/>'+
    '<g fill="#e8c8bc">'+[0,1,2,3,4,5,6].map(i=>'<rect class="bw-glint" data-i="'+i+'" x="'+(794-i*4)+'" y="'+(i*i*3.2+i*6+8)+'" width="'+(26+i*9)+'" height="'+n1(1.6+i*.35)+'" rx="1" opacity="0"/>').join('')+'</g>'+
@@ -56,17 +65,20 @@ function bed(){
 }
 function steam(n){let s='<g class="rw-steam" filter="url(#rwSteam)" fill="#f0c8b8">';const r=seeded(44);for(let i=0;i<n;i++)s+='<ellipse data-x="'+n1(r()*W)+'" data-p="'+n3(r())+'" data-s="'+n3(.6+r()*.8)+'" rx="30" ry="14" opacity="0"/>';return s+'</g>';}
 function nearMist(){return '<g class="bw-mist" filter="url(#bwMist)"><rect x="-300" y="'+(SEA-16)+'" width="900" height="30" rx="15" fill="#e6c2b6" opacity=".06"/><rect x="420" y="'+(SEA-34)+'" width="900" height="26" rx="13" fill="#e6c2b6" opacity=".05"/></g>';}
-// 수위(0=가득, 1=말라붙음)에 따라 물·균열·김
+// 열기(0=없음, 1=가장 뜨거움)에 따라 물이 뱃전 아래로 내려감. 바닥은 드러나지 않음.
+// 물이 있던 자리(수면 위 띠)는 하얗게 마름
+const DROP=38;
 function paintBed(el,tr,level){
  const {q,qa}=cacheQ(el);
- const wy=SEA+level*96;
+ level=clamp(level);
+ const wy=SEA+level*DROP;
  q('.rw-water').setAttribute('transform','translate(0 '+n1(wy)+')');
  q('.rw-wrect').setAttribute('y','0');q('.rw-wrect').setAttribute('height',n1(H-wy+2));
- q('.rw-water').style.opacity=n3(1-level*.55);
+ q('.rw-water').style.opacity='1';
  qa('.bw-wave').forEach(w=>{const i=+w.dataset.i;w.style.strokeDashoffset=n1(tr*(8+i*6)*(i%2?1:-1));});
  qa('.bw-glint').forEach(g=>{const i=+g.dataset.i;g.setAttribute('opacity',n3((0.08+0.12*(0.5+0.5*Math.sin(tr*2.3+i*1.7)))*(1-level)));});
- q('.rw-cracks').setAttribute('opacity',n3(seg(level,.45,1)*.9));q('.rw-cracks2').setAttribute('opacity',n3(seg(level,.6,1)));
- q('.rw-ring').setAttribute('opacity',n3(seg(level,.15,.5)*.7));
+ q('.rw-cracks').setAttribute('opacity','0');q('.rw-cracks2').setAttribute('opacity','0');
+ q('.rw-ring').setAttribute('opacity',n3(seg(level,.1,.45)*.6));{const sl=q('.rw-salt');if(sl)sl.setAttribute('opacity',n3(seg(level,.2,.7)*.8));}
  qa('.bw-mist').forEach((m,i)=>m.setAttribute('transform','translate('+n1(Math.sin(tr*0.13+i*2)*50)+' 0)'));
  const hs=q('.rw-heat');if(hs)hs.style.opacity=n3(.4+.6*level+.15*Math.sin(tr*2.2));
  qa('.rw-steam ellipse').forEach(e=>{const x=+e.dataset.x,p=+e.dataset.p,s=+e.dataset.s,u=((tr*.18*s+p)%1);
@@ -74,14 +86,14 @@ function paintBed(el,tr,level){
   e.setAttribute('opacity',n3(level*.09*Math.sin(u*Math.PI)));});
  return wy;
 }
-// 마른 바닥에 얹힌 배(물이 있으면 출렁임)
+// 내려간 물 위에 뜬 배(뱃전에 하얀 물자국이 남음)
 function boatOnBed(el,tr,level,x,extra){
- const e=extra||{},bobK=1-seg(level,.55,.85);
- const y=SEA+level*74+(Math.sin(tr*1.6)*2.2+Math.sin(tr*.7)*1.2)*bobK+(e.dy||0);
- const r=(Math.sin(tr*1.25+.6)*2.6)*bobK+7*seg(level,.6,1)+(e.dr||0);
+ const e=extra||{},bobK=1;level=clamp(level);
+ const y=SEA+level*DROP+(Math.sin(tr*1.6)*2.2+Math.sin(tr*.7)*1.2)*bobK+(e.dy||0);
+ const r=(Math.sin(tr*1.25+.6)*2.6)*bobK+(e.dr||0);
  const tw=boatPose(el,x+(e.dx||0),y,r,e.arm||[37,-30]);
  lamp(el,tr,tw,e.lamp||0);
- const {q}=cacheQ(el);q('.rw-bclip').setAttribute('height',n1(SEA+level*96+2));const lg=q('.bw-lampglint');lg.setAttribute('cy',n1(SEA+level*96+9));lg.style.opacity=n3(parseFloat(lg.style.opacity||0)*(1-level));
+ const {q}=cacheQ(el);q('.rw-bclip').setAttribute('height',n1(SEA+level*DROP+2));const lg=q('.bw-lampglint');lg.setAttribute('cy',n1(SEA+level*DROP+9));
  return tw;
 }
 function rwBoat(){
@@ -98,13 +110,20 @@ function deep(el,k,x,y){const {q}=cacheQ(el),d=q('.rw-deep');d.setAttribute('opa
 function veil(el,v){cacheQ(el).q('.bw-veil').style.opacity=n3(clamp(v)*0.92);}
 function caption(el,caps,t){const {q}=cacheQ(el);let txt=caps[0][1];for(const c of caps)if(t>=c[0])txt=c[1];const b=q('.cine-bottom');if(b&&b.textContent!==txt)b.textContent=txt;}
 function jolt(s,amp,f){return s>0?amp*Math.exp(-s*2.2)*Math.sin(s*(f||10)):0;}
+// 아지랑이: clear 0 = 뒤틀려 형체가 없음, 1 = 숨을 참아 잦아듦(그래도 조각만 보임)
+function haze(el,clear,tr){
+ const {q,qa}=cacheQ(el);clear=clamp(clear);
+ const m=q('.rw-hzmap');if(m)m.setAttribute('scale',n1(34-31*clear));
+ const o=q('.rw-hzoff');if(o)o.setAttribute('dy',n1(-((tr*46)%400)));
+ qa('.rw-hz').forEach(g=>g.setAttribute('opacity',n3(.22+.78*clear)));
+}
 
-// 땅에서 솟는 팔: 땅 아래는 가리고, 뚫고 나온 자리에 진흙 구멍
+// 물에서 솟는 팔: 물 아래는 가리고, 뚫고 나온 자리에 물결 고리
 function groundArm(cls){
  return '<clipPath id="cp-'+cls+'"><rect class="gclip" width="'+W+'" height="'+H+'"/></clipPath>'+
-  '<g class="ga-'+cls+'"><ellipse class="ga-hole" rx="30" ry="8" fill="#0a0203" opacity="0"/>'+
+  '<g class="ga-'+cls+'"><ellipse class="ga-hole" rx="30" ry="8" fill="#1a080c" opacity="0"/>'+
   '<g clip-path="url(#cp-'+cls+')">'+armMarkup(cls)+'</g>'+
-  '<ellipse class="ga-lip" rx="34" ry="9" fill="none" stroke="#6a3226" stroke-width="3" opacity="0"/></g>';
+  '<ellipse class="ga-lip" rx="34" ry="9" fill="none" stroke="#e0b8aa" stroke-width="1.6" opacity="0"/></g>';
 }
 function paintGroundArm(el,cls,o,groundY,vis){
  const {q}=cacheQ(el);
@@ -112,7 +131,7 @@ function paintGroundArm(el,cls,o,groundY,vis){
  q('#cp-'+cls+' .gclip').setAttribute('height',n1(groundY));
  const hole=wrap.querySelector('.ga-hole'),lip=wrap.querySelector('.ga-lip');
  [hole,lip].forEach(e=>{e.setAttribute('cx',n1(o.x));e.setAttribute('cy',n1(groundY));e.setAttribute('rx',n1((o.w||42)*.85));e.setAttribute('ry',n1((o.w||42)*.22));});
- hole.setAttribute('opacity',n3(vis*.9));lip.setAttribute('opacity',n3(vis*.6));
+ hole.setAttribute('opacity',n3(vis*.4));lip.setAttribute('opacity',n3(vis*.45));
  g.style.opacity=vis>0?'1':'0';
  if(vis>0)return paintArm(g,o);
  return null;
@@ -134,16 +153,16 @@ function armPose(base,rise,o){
 /* =========================================================
    ① 말라붙는 호수
    ========================================================= */
-const S0={title:'말라붙는 호수',loop:8.5,
- caps:[[0,'호수 깊은 곳에서 새빨간 무언가가 떠오릅니다.'],[1.6,'그것이 다가올수록 물이 시들어 갑니다. 김이 피어오릅니다.'],[3.6,'호수 바닥이 갈라지고, 배가 메마른 진흙 위에 얹힙니다.'],[5.4,'아득한 곳에서 섬 같은 머리와 붉게 타는 눈이 떠오릅니다.']],
+const S0={title:'내려가는 물',loop:8.5,
+ caps:[[0,'갑자기 뜨거워집니다. 해가 뜬 것도 아닌데. 숨을 들이쉬자 목이 탑니다.'],[1.6,'물이 줄어듭니다. 뱃전 아래로 물 높이가 눈에 보이게 내려갑니다.'],[3.6,'물이 있던 자리가 하얗게 말라 갑니다.'],[5.4,'저 멀리, 붉은 것이 등을 드러냈다가 가라앉습니다.']],
  build(){
   return scenery()+
-   '<g class="rw-farhead" opacity="0" clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g></g>'+
+   '<g class="rw-farhead" opacity="0" clip-path="url(#rwAboveBed)"><g class="rw-hz" filter="url(#rwHaze)"><g class="rw-hd"><g mask="url(#rwBackFrag)">'+headMarkup()+'</g></g></g></g>'+
    bed()+steam(14)+rwBoat()+drops('rw-drip',18,3,'#c88a7a')+nearMist();
  },
  paint(el,t,tr){
   const {q,qa}=cacheQ(el);
-  const level=inOut(seg(t,1.4,4.8));
+  const level=inOut(seg(t,1.4,4.8))*(1-inOut(seg(t,7.0,8.4)));
   paintBed(el,tr,level);
   deep(el,bell(t,.2,1.4,3.2,4.6)*(.75+.25*Math.sin(tr*3)),480,SEA+150-60*seg(t,.2,2.4));
   wither(el,.5*seg(t,3.6,5.2));
@@ -151,8 +170,9 @@ const S0={title:'말라붙는 호수',loop:8.5,
   // 먼 곳의 머리: 외투막과 두 눈만
   const fh=bell(t,5.0,6.0,7.4,8.2);
   const g=q('.rw-farhead');g.setAttribute('opacity',n3(fh*.9));
-  g.firstChild.setAttribute('transform','translate(720 '+n1(SEA+40-46*outC(seg(t,5,6.6)))+') scale(.16)');
-  if(fh>0)paintHead(g.firstChild,tr,{open:seg(t,5.6,6.2),glow:1.4});
+  g.querySelector('.rw-hd').setAttribute('transform','translate(720 '+n1(SEA+40-46*outC(seg(t,5,6.6)))+') scale(.16)');
+  if(fh>0)paintHead(g.querySelector('.rw-hd'),tr,{open:seg(t,5.6,6.2),glow:1.4});
+  haze(el,.2+.75*bell(t,5.4,6.0,7.0,7.8),tr);
   caption(el,this.caps,t);
   veil(el,t<.6?1-t/.6:seg(t,7.9,8.5));
  }
@@ -168,13 +188,13 @@ const ARMS2=[
  {base:[70,SEA+34],a:-50,e:40,wr:16,L1:160,L2:150,w:38,side:1,grip:.5,delay:1.9}
 ];
 const S1={title:'붉은 팔의 포위',loop:8.5,
- caps:[[0,'갈라진 바닥 아래에서 새빨간 것이 꿈틀거립니다.'],[.9,'사람의 것을 닮은 팔들이 솟아오릅니다.'],[2.6,'악몽 같은 빨판이 선체에 들러붙습니다. 닿은 자리가 하얗게 시들어 갑니다.'],[4.6,'팔들이 배를 휘감아 조이고 목을 조르듯 들어 올립니다.']],
+ caps:[[0,'내려간 물 아래에서 새빨간 것이 꿈틀거립니다.'],[.9,'사람의 것을 닮은 팔들이 솟아오릅니다.'],[2.6,'악몽 같은 빨판이 선체에 들러붙습니다. 닿은 자리가 하얗게 시들어 갑니다.'],[4.6,'팔들이 배를 휘감아 조이고 목을 조르듯 들어 올립니다.']],
  build(){
   return scenery()+bed()+steam(10)+
    '<g class="rw-backarms">'+groundArm('ra2')+groundArm('ra3')+'</g>'+
    rwBoat()+
    '<g class="rw-frontarms">'+groundArm('ra0')+groundArm('ra1')+'</g>'+
-   drops('rw-mudspray',40,9,'#5a2a22')+nearMist();
+   drops('rw-mudspray',40,9,'#d9b8ae')+nearMist();
  },
  paint(el,t,tr){
   const {q,qa}=cacheQ(el);
@@ -260,18 +280,19 @@ const S2={title:'여덟 팔 격퇴',loop:8.6,
    ④ 붉은 눈의 머리 — 문어 머리가 배 뒤에서 떠오르고 붉은 눈을 뜸
    ========================================================= */
 const S3={title:'붉은 눈의 머리',loop:8.5,
- caps:[[0,'갈라진 바닥 아래가 새빨갛게 달아오릅니다.'],[1.2,'거대한 몸이 바닥을 뚫고 솟아오릅니다.'],[3.0,'깊이 박힌 작은 눈이 배를 내려다봅니다. 가로로 찢어진 동공 속에서 붉은 빛이 탑니다.'],[5.6,'거대한 머리가 진흙을 밀어내며 배 쪽으로 몸을 기울입니다.']],
+ caps:[[0,'물 아래가 새빨갛게 달아오릅니다.'],[1.2,'무언가가 물을 밀어내며 솟아오릅니다. 아지랑이 너머로는 형체가 잡히지 않습니다.'],[3.0,'어둠 속에서 깊이 박힌 두 눈만이 배를 내려다봅니다. 가로로 찢어진 동공 속에서 붉은 빛이 탑니다.'],[5.6,'보이지 않는 거대한 것이 배 쪽으로 몸을 기울입니다.']],
  build(){
   return scenery()+
-   '<g clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g></g>'+
+   '<g clip-path="url(#rwAboveBed)"><g class="rw-hz" filter="url(#rwHaze)"><g class="rw-hd"><g mask="url(#rwHeadFrag)">'+headMarkup()+'</g></g></g></g>'+
    bed()+steam(10)+
    '<g>'+groundArm('ha0')+groundArm('ha1')+'</g>'+
-   rwBoat()+drops('rw-mud',36,27,'#4a2420')+nearMist();
+   rwBoat()+drops('rw-mud',36,27,'#d9b8ae')+nearMist();
  },
  paint(el,t,tr){
   const {q,qa}=cacheQ(el);
   paintBed(el,tr,1);wither(el,1);
   const rise=outC(seg(t,.9,3.2)),lunge=inOut(seg(t,5.8,7.4));
+  haze(el,.25+.6*seg(t,2.6,3.4)*(1-.4*lunge),tr);
   deep(el,bell(t,0,.4,1.4,2.6),600,SEA+60);
   const hx=600,hy=SEA+300-353*rise+lunge*40,hs=.66+lunge*.22;
   const hd=q('.rw-hd');hd.setAttribute('transform','translate('+n1(hx-lunge*150)+' '+n1(hy+Math.sin(tr*.9)*4)+') scale('+n3(hs)+')');
@@ -295,23 +316,23 @@ const S3={title:'붉은 눈의 머리',loop:8.5,
    ⑤ 작살과 물의 귀환 — 두 눈 사이에 작살, 촉수가 늘어지고 머리가 가라앉으며 물이 다시 차오름
    ========================================================= */
 const S4={title:'작살과 물의 귀환',dur:11.5,
- caps:[[0,'머리가 바닥 아래로 가라앉습니다. 배 뒤쪽의 진흙이 들썩입니다.'],[1.6,'선미 뒤로 새빨간 꼬리가 솟아오릅니다.'],[3.0,'고래의 꼬리가 열립니다!'],[3.7,'작살잡이가 선미에서 몸을 돌려 열린 꼬리 한가운데를 겨눕니다.'],[4.6,'작살이 꼬리 속의 붉은 핵을 꿰뚫습니다.'],[6.2,'팔과 꼬리가 무너지고, 시들었던 호수에 물이 다시 차오릅니다.']],
+ caps:[[0,'두 눈이 물 아래로 가라앉습니다. 배 뒤쪽의 물이 들썩입니다.'],[1.6,'선미 뒤 아지랑이 속에서 새빨간 꼬리 끝이 솟아오릅니다.'],[3.0,'고래의 꼬리가 열립니다!'],[3.7,'작살잡이가 선미에서 몸을 돌려 열린 꼬리 한가운데를 겨눕니다.'],[4.6,'작살이 꼬리 속의 붉은 핵을 꿰뚫습니다.'],[6.2,'팔과 꼬리 끝이 무너지고 열기가 물러납니다. 물이 천천히 다시 차오릅니다.']],
  build(){
   let sparks='<g class="rw-sparks" stroke="#ffd9c0" stroke-linecap="round" opacity="0">';
   const r=seeded(81);for(let i=0;i<20;i++){const a=r()*TAU;sparks+='<path data-a="'+n3(a)+'" data-v="'+n1(60+r()*150)+'" stroke-width="'+n1(1+r()*1.6)+'"/>';}
   sparks+='</g>';
   return '<g class="rw-root">'+scenery()+
-   '<g clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g></g>'+
+   '<g clip-path="url(#rwAboveBed)"><g class="rw-hz" filter="url(#rwHaze)"><g class="rw-hd"><g mask="url(#rwHeadFrag)">'+headMarkup()+'</g></g></g></g>'+
    bed()+steam(10)+
    '<clipPath id="rwTailClip"><rect class="rw-tclip" width="'+W+'" height="'+(SEA+70)+'"/></clipPath>'+
-   '<g clip-path="url(#rwTailClip)"><g class="rw-tailg">'+tailMarkup()+'<g class="rw-stuck" opacity="0">'+HARPOON.replace('class="bw-tip"','class="rw-tip"')+'</g></g></g>'+
+   '<g clip-path="url(#rwTailClip)"><g class="rw-hz" filter="url(#rwHaze)"><g class="rw-tailg">'+tailMarkup()+'<g class="rw-stuck" opacity="0">'+HARPOON.replace('class="bw-tip"','class="rw-tip"')+'</g></g></g></g>'+
    '<ellipse class="rw-thole" rx="80" ry="14" fill="#0a0203" opacity="0"/>'+
    '<g>'+groundArm('ka0')+groundArm('ka1')+'</g>'+
    rwBoat()+
    '<path class="bw-rope" fill="none" stroke="#8a7d7a" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
    '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+
    '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+sparks+
-   drops('rw-blood',26,83,'#1e0206')+drops('rw-mud',40,87,'#4a2420')+
+   drops('rw-blood',26,83,'#1e0206')+drops('rw-mud',40,87,'#d9b8ae')+
    nearMist()+'</g>';
  },
  paint(el,tReal,tr){
@@ -319,6 +340,7 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
   const t=Math.min(tReal,this.dur);
   const T0=3.95,HIT=4.45,TX=150;
   const level=1-inOut(seg(t,6.0,10.0));
+  haze(el,t<HIT?.35+.55*seg(t,3.0,3.6):1,tr);
   paintBed(el,tr,level);
   wither(el,1-seg(t,8,10.5));
   // 머리: 바닥 아래로 가라앉음
@@ -365,7 +387,7 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
   const ropeEnd=t>=HIT?stTail:(pos?[pos[0]-104*Math.cos(ang*RAD),pos[1]-104*Math.sin(ang*RAD)]:p0);
   const anchor=tw([-40,-9]),mid=[(ropeEnd[0]+anchor[0])/2,(ropeEnd[1]+anchor[1])/2+(t<HIT?40:Math.max(6,30*Math.exp(-(t-HIT))))];
   const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(ropeEnd[0])+','+n1(ropeEnd[1]));
-  rope.setAttribute('opacity',thrown&&ropeEnd[1]<SEA+level*96+6?'.9':'0');
+  rope.setAttribute('opacity',thrown&&ropeEnd[1]<SEA+level*DROP+6?'.9':'0');
   // 명중
   const fl=q('.bw-flash');fl.setAttribute('cx',n1(core[0]));fl.setAttribute('cy',n1(core[1]));
   fl.setAttribute('opacity',hit>0?n3(Math.exp(-hit*2.6)):'0');fl.setAttribute('r',n1(40+90*clamp(hit*2)));
@@ -385,7 +407,7 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
    미니게임 표시 (red-whale-gameplay-v023.js가 window.RedHuntGame을 움직임)
    ② 연타로 조이는 팔 떨쳐내기 · ③ 솟는 팔을 눌러 쳐내기 · ⑤ 꼬리가 열리는 순간에 작살 닿게 던지기
    ========================================================= */
-const GAMECAP={1:'팔들이 배를 조여 옵니다. 연타해서 떨쳐 내십시오.',2:'솟아오르는 팔의 손을 눌러 쳐내십시오.',4:'꼬리가 열리는 순간에 작살이 닿도록 던지십시오.'};
+const GAMECAP={1:'팔들이 배를 조여 옵니다. 연타해서 떨쳐 내십시오.',2:'솟아오르는 팔의 손을 눌러 쳐내십시오.',4:'숨을 참는 동안에만 꼬리 끝이 보입니다. 숨을 내쉬는 순간 작살을 던지십시오.'};
 function rhud(el){const {q}=cacheQ(el);return {hint:q('.rwg-hint'),verdict:q('.rwg-verdict'),pips:q('.rwg-pips'),bar:q('.rwg-bar i'),time:q('.rwg-time i'),count:q('.rwg-count')};}
 function setTxt(n,t){if(n&&n.textContent!==t)n.textContent=t;}
 function setVerdict(n,t,cls){if(!n)return;setTxt(n,t);const c='rwg-verdict'+(t?' on '+(cls||''):'');if(n.className!==c)n.className=c;}
@@ -481,6 +503,9 @@ function tailGame(el,t,tr,g){
  if(g.hitAt!=null&&t>=g.hitAt){S4.paint(el,4.45+(t-g.hitAt),tr);hudTail(el,t,g);return;}
  const TX=150,level=1;
  paintBed(el,tr,level);wither(el,1);
+ // 숨을 참는 동안에만 아지랑이가 걷혀 꼬리 끝이 보임. 숨이 말랐으면 걷히지 않음
+ const want=g.holding&&!g.dried?1:0;g._c=g._c==null?0:g._c+(want-g._c)*.14;
+ haze(el,.06+.94*g._c,tr);
  q('.rw-hd').style.display='none';
  const rise=outC(seg(t,0,1.2));
  const open=g.openness?g.openness(t):0,trem=g.tremble?g.tremble(t):0;
@@ -504,6 +529,9 @@ function tailGame(el,t,tr,g){
  const hand=tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=40;
  const hp=q('.bw-harpoon');let pos,ang,show=1;
  if(!thrown||recover>=1){const a=180+40;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=F&&F.hit===false?recover:1;}
+ else if(F.crumble){ // 숨이 마른 채 던진 작살: 날아가다 하얗게 말라 부서짐
+  const u=clamp((t-T0)/(F.arrive-T0)),c=F.target||core;pos=[p0[0]+(c[0]-p0[0])*u,p0[1]+(c[1]-p0[1])*u-4*LIFT*u*(1-u)];ang=Math.atan2((c[1]-p0[1])-4*LIFT*(1-2*u),c[0]-p0[0])/RAD;show=1-seg(u,.35,.7);
+  if(!g._cr){g._cr=pos;}if(u<.5)g._cr=pos;}
  else if(t<F.arrive){const u=(t-T0)/(F.arrive-T0),e=u;const c=F.target||core;pos=[p0[0]+(c[0]-p0[0])*e,p0[1]+(c[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((c[1]-p0[1])-4*LIFT*(1-2*e),c[0]-p0[0])/RAD;}
  else{ // 닫힌 꽃잎에 튕겨 떨어짐
   const s=t-F.arrive,c=F.target||core;pos=[c[0]+60*s,c[1]-120*s+520*s*s];ang=-150+s*600;show=pos[1]<SEA+60?1:0;}
@@ -514,7 +542,8 @@ function tailGame(el,t,tr,g){
  rope.setAttribute('opacity',thrown&&show?'.9':'0');
  // 튕김 불꽃
  const fl=q('.bw-flash');
- if(F&&F.hit===false&&t>=F.arrive&&t<F.arrive+.4){const c=F.target||core;fl.setAttribute('cx',n1(c[0]));fl.setAttribute('cy',n1(c[1]));fl.setAttribute('r','36');fl.setAttribute('opacity',n3(.7*(1-(t-F.arrive)/.4)));}
+ if(F&&F.crumble&&g._cr){const u=clamp((t-T0)/(F.arrive-T0)),k=seg(u,.35,.8)*(1-seg(t,F.arrive,F.arrive+.8));fl.setAttribute('cx',n1(g._cr[0]));fl.setAttribute('cy',n1(g._cr[1]));fl.setAttribute('r',n1(30+50*seg(u,.35,1)));fl.setAttribute('opacity',n3(.45*k));}
+ else if(F&&F.hit===false&&t>=F.arrive&&t<F.arrive+.4){const c=F.target||core;fl.setAttribute('cx',n1(c[0]));fl.setAttribute('cy',n1(c[1]));fl.setAttribute('r','36');fl.setAttribute('opacity',n3(.7*(1-(t-F.arrive)/.4)));}
  else fl.setAttribute('opacity','0');
  q('.rw-sparks').setAttribute('opacity','0');
  qa('.rw-blood circle,.rw-mud circle').forEach(c=>c.setAttribute('opacity','0'));
@@ -524,15 +553,67 @@ function tailGame(el,t,tr,g){
 }
 function hudTail(el,t,g){
  const u=rhud(el),F=g.flight;
- setVerdict(u.verdict,F&&t>=F.arrive&&t<F.arrive+1.2?(F.hit?'명중':'튕겨 나감'):'',F&&F.hit?'good':'bad');
- setTxt(u.hint,g.hitAt!=null?'':F&&t<F.arrive?'':t<1.2?'꼬리가 솟아오릅니다':'꼬리가 열리는 순간에 닿도록 · 스페이스 / 화면 누르기');
+ setVerdict(u.verdict,F&&t>=F.arrive&&t<F.arrive+1.2?(F.hit?'명중':F.crumble?'말라 부서짐':'튕겨 나감'):'',F&&F.hit?'good':'bad');
+ setTxt(u.hint,g.hitAt!=null?'':F&&t<F.arrive?'':t<1.2?'열기 속에서 무언가가 솟아오릅니다':
+  g.dried?(g.holding?'숨이 말라 아지랑이가 걷히지 않습니다':'숨이 말랐습니다 · 누르고 떼면 던집니다'):
+  g.holding?'떼는 순간 숨을 내쉬며 던집니다 · 꼬리가 열릴 때 닿도록':'누르고 있으면 숨을 참습니다 · 아지랑이가 걷힙니다');
  u.hint.classList.toggle('now',!!(g.tremble&&g.tremble(t)>.2&&!(F&&t<F.arrive)));
  caption(el,[[0,GAMECAP[4]]],0);
 }
 
+/* ---------- 열기와 숨 (1~4단계 시작마다) ----------
+   열기가 오면 물이 뱃전 아래로 내려가고 아지랑이가 모든 것을 일그러뜨린다.
+   숨을 참는 동안에만 아지랑이가 잦아들어 그 단계의 조각이 보인다.
+   ① 멀리 드러났다 가라앉는 붉은 등 ② 더 가까이 떠오르는 등 ③ 물을 뚫고 나오는 팔 끝 ④ 어둠 속 두 눈 */
+const BREATHCAP=['갑자기 뜨거워집니다. 숨을 들이쉬지 마십시오.','열기가 다시 덮쳐 옵니다. 숨을 들이쉬지 마십시오.','열기 속에서 물이 내려갑니다. 숨을 들이쉬지 마십시오.','어둠이 달아오릅니다. 숨을 들이쉬지 마십시오.'];
+function breathBuild(k){
+ const head=(mask)=>'<g class="rw-farhead" clip-path="url(#rwAboveBed)"><g class="rw-hz" filter="url(#rwHaze)"><g class="rw-hd"><g mask="url(#'+mask+')">'+headMarkup()+'</g></g></g></g>';
+ return scenery()+(k===0||k===1?head('rwBackFrag'):k===3?head('rwHeadFrag'):'')+bed()+steam(14)+
+  (k===2?'<g class="rw-hz" filter="url(#rwHaze)">'+groundArm('ba0')+groundArm('ba1')+groundArm('ba2')+'</g>':'')+
+  rwBoat()+nearMist()+'<rect class="rw-burn" width="'+W+'" height="'+H+'" fill="#ff5a2a" opacity="0" style="mix-blend-mode:screen"/>';
+}
+function breathGame(el,t,tr,g){
+ const {q}=cacheQ(el),k=g.wave||0;
+ const hA=g.heatAt,hE=g.heatEnd;
+ const heat=seg(t,hA-.35,hA+.35)*(1-seg(t,hE,hE+1.5));
+ paintBed(el,tr,heat);wither(el,.5*heat);
+ boatOnBed(el,tr,heat,300,{lamp:.1});
+ // 숨을 참는 동안에만 아지랑이가 잦아듦
+ const want=g.holding&&!g.inhaledNow?1:0;g._c=g._c==null?0:g._c+(want-g._c)*.12;
+ haze(el,.08+.92*g._c,tr);
+ const show=heat;
+ if(k===0||k===1||k===3){
+  const hd=q('.rw-hd');
+  const P=k===0?[740,SEA+52-40*heat,.17]:k===1?[560,SEA+82-74*heat,.3]:[600,SEA+20-74*heat,.72];
+  hd.setAttribute('transform','translate('+P[0]+' '+n1(P[1]+Math.sin(tr*.9)*2)+') scale('+P[2]+')');
+  paintHead(hd,tr,{open:k===3?seg(t,hA+.2,hA+.8):0,glow:k===3?1.3:0,look:[-6,4]});
+  q('.rw-farhead').setAttribute('opacity',n3(show));
+ }else{
+  [[0,[600,SEA+70],-104,1],[1,[740,SEA+58],-82,-1],[2,[860,SEA+76],-96,-1]].forEach(([i,b,a,sd])=>{
+   const rr=.42*heat*(.8+.2*Math.sin(tr*1.3+i));
+   paintGroundArm(el,'ba'+i,armPose(b,rr,{a:a+Math.sin(tr*1.1+i)*5,e:sd*30,wr:sd*16,L1:150,L2:140,w:40,side:sd,grip:.3,spread:1.1}),b[1],rr>.02?1:0);
+  });
+ }
+ // 숨을 들이쉬면 목이 탐(붉게 번쩍)
+ const burn=g.inhaleAt!=null?Math.exp(-(t-g.inhaleAt)*2.2):0;
+ q('.rw-burn').setAttribute('opacity',n3(.28*burn));
+ hudBreath(el,t,g,heat);
+ veil(el,t<.5?1-t/.5:0);
+}
+function hudBreath(el,t,g,heat){
+ const u=rhud(el),r=g.result;
+ setVerdict(u.verdict,r==='kept'?'숨을 지켰다':r==='inhaled'?'숨을 들이쉬었다':'',r==='kept'?'good':'bad');
+ const hA=g.heatAt,hE=g.heatEnd;
+ const hint=r?'':t<hA?(g.holding?'숨을 참고 있습니다 · 열기가 옵니다':'열기가 몰려옵니다 · 누르고 있으십시오 (숨을 참는다)'):
+  t<hE?(g.holding?'버티십시오 · 숨을 들이쉬지 마십시오':'')
+  :'열기가 물러납니다 · 물이 다시 차오릅니다 · 떼십시오 (숨을 내쉰다)';
+ setTxt(u.hint,hint);u.hint.classList.toggle('now',!r&&t>=hE);
+ const p=u.pips;if(p){const rec=g.record||[],key=rec.join(',');if(p.dataset.k!==key){p.dataset.k=key;let h='';for(let i=0;i<4;i++)h+='<i class="'+(rec[i]==='kept'?'good':rec[i]==='inhaled'?'bad':'')+'"></i>';p.innerHTML=h;}}
+ caption(el,[[0,BREATHCAP[g.wave||0]]],0);
+}
 // 게임 화면용 장면 구성
 const GBUILD={
- 1:()=>scenery()+bed()+steam(10)+'<g class="rw-backarms">'+groundArm('ra2')+groundArm('ra3')+'</g>'+rwBoat()+'<g class="rw-frontarms">'+groundArm('ra0')+groundArm('ra1')+'</g>'+drops('rw-mudspray',40,9,'#5a2a22')+nearMist(),
+ 1:()=>scenery()+bed()+steam(10)+'<g class="rw-backarms">'+groundArm('ra2')+groundArm('ra3')+'</g>'+rwBoat()+'<g class="rw-frontarms">'+groundArm('ra0')+groundArm('ra1')+'</g>'+drops('rw-mudspray',40,9,'#d9b8ae')+nearMist(),
  2:()=>{let arms='',tg='',fl='';
   PSLOTS.forEach((_,i)=>{arms+=groundArm('pa'+i);
    tg+='<g class="rwg-t'+i+'" opacity="0"><circle r="40" fill="#1a0206" fill-opacity=".25" stroke="#ffe2c8" stroke-opacity=".35" stroke-width="2"/><circle class="rt-ring" r="34" fill="none" stroke="#ffe2c8" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="214" transform="rotate(-90)"/><circle r="5" fill="#ffe2c8"/></g>';
@@ -546,13 +627,13 @@ const GAMEMODE={1:'mash',2:'parry',4:'tail'};
 
 const SCENES=[S0,S1,S2,S3,S4];
 function html(stage,opts){
- const i=Math.max(0,Math.min(4,Math.floor(+stage||0))),S=SCENES[i],game=!!(opts&&opts.game&&GAMECAP[i]);
+ const i=Math.max(0,Math.min(4,Math.floor(+stage||0))),S=SCENES[i],breath=!!(opts&&opts.breath),game=breath||!!(opts&&opts.game&&GAMECAP[i]);
  const svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" preserveAspectRatio="xMidYMid slice">'+
-  '<defs>'+commonDefs()+headDefs()+tailDefs()+redDefs()+'</defs>'+(game?GBUILD[i]():S.build())+
+  '<defs>'+commonDefs()+headDefs()+tailDefs()+redDefs()+'</defs>'+(breath?breathBuild(Math.min(3,i)):game?GBUILD[i]():S.build())+
   '<rect class="bw-veil" width="'+W+'" height="'+H+'" fill="#030103" opacity="1"/></svg>';
- return '<div class="pallid-cine-v2 rw3-scene'+(game?' rwg-on':'')+'" data-stage="'+i+'"'+(game?' data-game="1"':'')+' role="img" aria-label="'+esc(NAME+' · '+(i+1)+'단계 '+S.title)+'">'+svg+
+ return '<div class="pallid-cine-v2 rw3-scene'+(game?' rwg-on':'')+'" data-stage="'+i+'"'+(game?' data-game="1"':'')+(breath?' data-breath="1"':'')+' role="img" aria-label="'+esc(NAME+' · '+(i+1)+'단계 '+S.title)+'">'+svg+
   '<span class="cine-top" aria-hidden="true">'+esc(NAME+' · '+S.title)+'</span>'+
-  '<span class="cine-bottom" aria-hidden="true">'+esc(game?GAMECAP[i]:S.caps[0][1])+'</span>'+
+  '<span class="cine-bottom" aria-hidden="true">'+esc(breath?BREATHCAP[Math.min(3,i)]:game?GAMECAP[i]:S.caps[0][1])+'</span>'+
   (game?'<div class="rwg-hud" aria-hidden="true"><span class="rwg-hint"></span><span class="rwg-verdict"></span><span class="rwg-pips"></span><span class="rwg-count"></span>'+
    '<span class="rwg-bar"><i></i></span><span class="rwg-time"><i></i></span></div>':'')+
   '<span class="cine-grain"></span><span class="cine-corner"></span><span class="cine-vignette"></span></div>';
@@ -563,8 +644,12 @@ function frame(now){
  const el=document.querySelector('.rw3-scene');
  if(el&&el.isConnected){
   const st=+el.dataset.stage,S=SCENES[st],g=window.RedHuntGame;
-  const isGame=!!(el.dataset.game&&g&&g.t0&&g.mode===GAMEMODE[st]);
-  if(S&&isGame){
+  const isBreath=!!(el.dataset.breath&&g&&g.t0&&g.mode==='breath');
+  const isGame=!isBreath&&!!(el.dataset.game&&g&&g.t0&&g.mode===GAMEMODE[st]);
+  if(S&&isBreath){
+   const t=(now-g.t0)/1000;lastSeen=now;seenGame=true;seenStage=st;
+   try{breathGame(el,t,t,g);}catch(e){if(!el._rwErr){el._rwErr=1;console.warn('붉은 고래 숨',e);}}
+  }else if(S&&isGame){
    const t=(now-g.t0)/1000;lastSeen=now;seenGame=true;seenStage=st;
    try{GAMEPAINT[st](el,t,t,g);}catch(e){if(!el._rwErr){el._rwErr=1;console.warn('붉은 고래 미니게임',e);}}
   }else if(S){
