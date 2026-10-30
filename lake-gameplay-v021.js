@@ -44,7 +44,7 @@ function seed(st){
 function initial(st){
  const id=st.id,N=st.vars.N,lim=st.turnLimit;
  if(id===36||id===37)return 'scene0';
- if([9,14,17].includes(id))return lim>=N+1?pick(id===17?['scene0','scene1']:['scene0']):id===17?'scene2':'scene1';
+ if([9,14,17].includes(id))return lim>=N+1?pick(id===17?['scene0','scene1','scene2']:['scene0','scene1']):id===17?'scene2':'scene1';
  if(id===38)return pick(lim>=4?['scene0','scene1','scene2']:['scene0','scene2']);
  if(id===41)return pick(['scene0','scene2','scene3']);
  if(id===43)return pick(['scene0','scene1','scene2','scene3']);
@@ -89,7 +89,7 @@ function makePlan(st){
 const beforeMake=makeStory014;
 makeStory014=function(lake){
  if(!custom.has(lake?.id))return beforeMake(lake);
- const id=lake.id,turnLimit=id===36?4+rng(3):3+rng(4);
+ const id=lake.id,turnLimit=(id===36||id===37)?4+rng(3):3+rng(4);
  const st={id,scripted:true,scriptVersion021:true,turns:0,turnLimit,
   vars:{},order:[],step:'',sceneText:'',count:0,seen:{},done38:0,fromNear:false,encounteredFake:false};
  seed(st);
