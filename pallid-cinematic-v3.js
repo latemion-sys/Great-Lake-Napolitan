@@ -95,6 +95,7 @@ function harpoonHtml(){
     '<ellipse cx="760" cy="170" rx="210" ry="46" fill="url(#w3Sheen)"/>'+
     '<use href="#w3WhaleShape" fill="url(#w3Face)"/>'+
     '<g class="w3-wrinkles" fill="none" stroke="#4c5856" stroke-opacity=".5" stroke-width="2.2" stroke-linecap="round">'+wrinkles()+'</g>'+
+    (window.WhaleMarks?window.WhaleMarks.pallidSkin():'')+
     '<g class="w3-suckers" fill="none" stroke="#f1f3ea" stroke-width="1.3">'+scars()+'</g>'+
     '<g fill="none" stroke-linecap="round">'+
      '<path d="M590,186 C636,200 690,208 742,204 M594,196 C640,212 692,220 738,216" stroke="#f3f4ec" stroke-opacity=".2" stroke-width="1.6" stroke-dasharray="46 6 30 9 60 4"/>'+
@@ -103,10 +104,10 @@ function harpoonHtml(){
      '<path d="M838,220 C870,250 892,288 900,330" stroke="#3a4549" stroke-opacity=".45" stroke-width="4"/>'+
     '</g>'+
     // 턱 주름과 눈
+    (window.WhaleMarks?window.WhaleMarks.pallidTeeth():'')+
     '<path d="M560,318 C620,332 690,334 752,322" fill="none" stroke="#1d2529" stroke-opacity=".7" stroke-width="3"/>'+
     '<g class="w3-eye"><ellipse cx="748" cy="298" rx="11" ry="7.5" fill="#2b3538" opacity=".7"/>'+
-     '<ellipse cx="748" cy="298" rx="6.5" ry="4.6" fill="#040607"/>'+
-     '<circle cx="746" cy="296.5" r="1.3" fill="#e8ece6" opacity=".8"/>'+
+     (window.WhaleMarks?window.WhaleMarks.pallidEye(748,298):'<ellipse cx="748" cy="298" rx="6.5" ry="4.6" fill="#040607"/>')+
      '<path class="w3-lid" d="M736,298 Q748,288 760,298" fill="none" stroke="#c9cfc6" stroke-opacity=".55" stroke-width="1.8"/></g>'+
     '<path d="M566,160 q9,-7 19,-1" fill="none" stroke="#283236" stroke-width="3" stroke-linecap="round"/>'+
     // 떠오를 때 이마에서 흘러내리는 물줄기
@@ -117,6 +118,7 @@ function harpoonHtml(){
    '</g>'+
    '<path d="'+WHALE_TOP+'" fill="none" stroke="#f4f5ec" stroke-opacity=".55" stroke-width="2.6" filter="url(#w3Rim)"/>'+
    // 미니게임: 아물지 않은 상처(명중 구간)와 움직이는 조준점 — 고래와 함께 움직임
+   (window.WhaleMarks?window.WhaleMarks.pallidHarpoons():'')+
    '<g class="w3-aimui" opacity="0"><ellipse class="w3-zone" cy="'+ZONE_Y+'" rx="30" ry="20" fill="url(#w3Zone)"/>'+
     '<ellipse class="w3-zonering" cy="'+ZONE_Y+'" rx="30" ry="20" fill="none" stroke="#ffcf9a" stroke-opacity=".75" stroke-width="1.6" stroke-dasharray="5 5"/></g>'+
    '<g class="w3-reticle" opacity="0"><circle r="12" fill="none" stroke="#f4f7ee" stroke-width="1.8"/><path d="M-20,0 H-8 M8,0 H20 M0,-20 V-8 M0,8 V20" stroke="#f4f7ee" stroke-width="1.8"/><circle r="1.8" fill="#f4f7ee"/></g>'+

@@ -98,6 +98,7 @@ function victoryHtml(){
     '<g clip-path="url(#w7WhaleClip)">'+
      '<rect x="500" y="130" width="520" height="240" filter="url(#w7Tex)" opacity=".55"/>'+
      '<use href="#w7Whale" fill="url(#w7Face)"/>'+
+     (window.WhaleMarks?window.WhaleMarks.pallidSkin()+window.WhaleMarks.pallidTeeth():'')+
      '<path d="M560,318 C620,332 690,334 752,322" fill="none" stroke="#1d2529" stroke-opacity=".6" stroke-width="3"/>'+
      // 감긴 눈
      '<path d="M737,298 Q748,304 759,298" fill="none" stroke="#2a3437" stroke-width="2.6" stroke-linecap="round"/>'+
@@ -105,6 +106,7 @@ function victoryHtml(){
      '<path d="M'+IMPACT[0]+','+(IMPACT[1]+3)+' c-1.5,32 1.5,64 -0.5,96" stroke="#2c0b11" stroke-width="2.6" fill="none"/>'+
     '</g>'+
     '<path d="'+WHALE_TOP+'" fill="none" stroke="#f4f5ec" stroke-opacity=".6" stroke-width="2.6" filter="url(#w7Soft)"/>'+
+    (window.WhaleMarks?window.WhaleMarks.pallidHarpoons():'')+
     // 이마에 남은 작살
     '<path d="M'+(IMPACT[0]+8)+','+(IMPACT[1]-3)+' L'+(IMPACT[0]-88)+','+(IMPACT[1]-34)+'" stroke="#15191b" stroke-width="4" stroke-linecap="round"/>'+
    '</g>'+

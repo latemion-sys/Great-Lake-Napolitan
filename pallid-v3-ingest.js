@@ -106,7 +106,7 @@ function ingestHtml(){
    '<g class="w4-jaw">'+
     '<path d="'+JAW+'" fill="url(#w4JawSkin)" stroke="#e9eadf" stroke-opacity=".35" stroke-width="1.5"/>'+
     '<path d="M-22,40 L-19,-220" stroke="#2e383c" stroke-opacity=".45" stroke-width="2" fill="none"/>'+
-    '<g fill="#ece6d2" stroke="#a8a08b" stroke-width=".8" stroke-linejoin="round">'+teeth()+'</g>'+
+    (window.WhaleMarks?'<g fill="#d6cbad" stroke="#4a4236" stroke-width=".9" stroke-linejoin="round">'+window.WhaleMarks.pallidJawTeeth()+'</g>':'<g fill="#ece6d2" stroke="#a8a08b" stroke-width=".8" stroke-linejoin="round">'+teeth()+'</g>')+
    '</g>'+
    '<g class="w4-head">'+
     '<use href="#w4HeadShape" fill="url(#w4Skin)"/>'+
@@ -116,6 +116,7 @@ function ingestHtml(){
      '<ellipse cx="120" cy="-300" rx="120" ry="40" fill="#fbfbf3" opacity=".2" filter="url(#w4Rim)"/>'+
      '<g fill="none" stroke="#f1f3ea" stroke-width="1.3">'+headTexture()+'</g>'+
      '<g fill="none" stroke="#4c5856" stroke-opacity=".5" stroke-width="2.2" stroke-linecap="round">'+wrinkleBands()+'</g>'+
+     (window.WhaleMarks?window.WhaleMarks.pallidUpSkin():'')+
      '<path d="M40,-250 C70,-220 96,-190 110,-150 M58,-262 C88,-230 112,-200 126,-160" fill="none" stroke="#2e383c" stroke-opacity=".45" stroke-width="2.6"/>'+
      // 입천장 가장자리와 이빨 자리
      '<path d="M1,40 L2,-200 C2,-236 -5,-262 -3,-280 L9,-276 C9,-250 13,-224 13,-200 L14,40 Z" fill="#33161d"/>'+
@@ -123,10 +124,11 @@ function ingestHtml(){
      // 솟구칠 때 머리에서 쏟아지는 물
      '<g class="w4-runoff" fill="none" stroke="#eef4f2" stroke-linecap="round" filter="url(#w4Run)">'+
       Array.from({length:12},(_,i)=>{const r=seeded(60+i),x=8+i*19+r()*8;return '<path d="M'+x.toFixed(0)+','+(-326+Math.abs(i-5)*3)+' C'+(x-2).toFixed(0)+',-220 '+(x+3).toFixed(0)+',-90 '+(x-2).toFixed(0)+',80" stroke-width="'+(3+r()*4).toFixed(1)+'" stroke-dasharray="'+(50+r()*70).toFixed(0)+' '+(30+r()*50).toFixed(0)+'" stroke-dashoffset="'+(r()*80).toFixed(0)+'"/>';}).join('')+'</g>'+
-     '<g class="w4-eye"><ellipse cx="58" cy="-14" rx="11" ry="7.5" fill="#2b3538" opacity=".7"/><ellipse cx="58" cy="-14" rx="6.5" ry="4.6" fill="#040607"/><circle cx="56" cy="-15.5" r="1.3" fill="#e8ece6" opacity=".8"/>'+
+     '<g class="w4-eye"><ellipse cx="58" cy="-14" rx="11" ry="7.5" fill="#2b3538" opacity=".7"/>'+(window.WhaleMarks?window.WhaleMarks.pallidEye(58,-14):'<ellipse cx="58" cy="-14" rx="6.5" ry="4.6" fill="#040607"/>')+
       '<path class="w4-lid" d="M46,-14 Q58,-24 70,-14" fill="none" stroke="#c9cfc6" stroke-opacity=".55" stroke-width="1.8"/></g>'+
     '</g>'+
     '<path d="'+HEAD_TOP+'" fill="none" stroke="#f4f5ec" stroke-opacity=".55" stroke-width="2.6" filter="url(#w4Rim)"/>'+
+    (window.WhaleMarks?window.WhaleMarks.pallidUpHarpoons():'')+
    '</g>'+
   '</g>'+
 
