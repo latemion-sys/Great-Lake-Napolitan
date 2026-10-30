@@ -8,6 +8,7 @@
  const format=(input,v)=>String(input||'').replace(/\{([^}]+)\}/g,(_,k)=>String(v[k]??''));
  const limits={7:4,11:4,12:4,13:4,16:4,19:4,23:4,30:4,38:4,39:4,42:4,44:4};
  for(const d of raw){
+  if(typeof TEST_LAKE_IDS154!=='undefined')TEST_LAKE_IDS154.add(d.id);
   let lake=LAKE_BY_ID157.get(d.id);
   if(!lake){
    lake={id:d.id,name:d.name,hex:d.hex,hue:0,material:0,zone:0,rule:RULES.length,risk:1+(d.id*17+3)%4,limit:6,mermaid:true,required:false,storyNo:'21-'+String(d.id).padStart(2,'0')};
