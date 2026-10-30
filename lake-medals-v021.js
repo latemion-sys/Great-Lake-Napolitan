@@ -1,7 +1,7 @@
-/* Source (8): one set of 1/10/100 completion medals per 44 lakes. */
+/* Revised lake source: one 1/10/100 medal set for each of 48 lakes. */
 (function(){
 'use strict';
-const defs=window.GREAT_LAKE_SCRIPT_DATA_021, ids=[34,35,36,37,38,39,41,42,43,44];
+const defs=window.GREAT_LAKE_SCRIPT_DATA_022, ids=[34,35,36,37,38,39,41,42,43,44,45,46,47,48];
 const KEY='great-lake-napolitan-new-lake-passes-v021';
 let passes={};try{passes=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}
 if(!passes||Array.isArray(passes)||typeof passes!=='object')passes={};
@@ -68,13 +68,13 @@ completeLake=function(success,msg){
 const oldHelp=renderHelp;
 renderHelp=function(){return oldHelp()
  .replace('현재 호수는 총 34개입니다. 21-01부터 21-33까지와 21-40이 등장합니다.',
-  '현재 호수는 총 44개입니다. 21-01부터 21-44까지 등장합니다.')
+  '현재 호수는 총 48개입니다. 21-01부터 21-48까지 등장합니다.')
  .replaceAll('현재 호수는 총 43개입니다. 21-01부터 21-43까지 등장합니다.',
-  '현재 호수는 총 44개입니다. 21-01부터 21-44까지 등장합니다.');};
+  '현재 호수는 총 48개입니다. 21-01부터 21-48까지 등장합니다.');};
 const oldPlay=renderPlay;
 renderPlay=function(){
  const page=oldPlay();
- return state.scene==='port'||state.scene==='start'?page.replaceAll('34개의 서로 다른 호수','44개의 서로 다른 호수').replaceAll('43개의 서로 다른 호수','44개의 서로 다른 호수'):page;
+ return state.scene==='port'||state.scene==='start'?page.replaceAll('34개의 서로 다른 호수','48개의 서로 다른 호수').replaceAll('43개의 서로 다른 호수','48개의 서로 다른 호수'):page;
 };
 try{localStorage.setItem(KEY,JSON.stringify(passes));}catch(e){}
 save();render();
