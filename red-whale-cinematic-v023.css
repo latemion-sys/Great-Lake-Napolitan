@@ -1,0 +1,14 @@
+/* Scarlet whale cinematic, scoped to its own components. */
+.redwhale-game{margin:0 0 16px;padding:14px;border:1px solid #7c3d42;border-radius:14px;background:linear-gradient(145deg,#35141b,#180b10);box-shadow:inset 0 0 40px #0b0508,0 12px 28px #0004}
+.redwhale-headline{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px}
+.redwhale-headline b{font-size:16px;color:#ffebe5}.redwhale-headline span{font-size:11px;color:#f2b0a6;letter-spacing:.12em}
+.redwhale-screen{position:relative;overflow:hidden;background:#17080d;border:1px solid #97464a;border-radius:10px;aspect-ratio:16/9;max-height:440px}
+.redwhale-screen canvas{display:block;width:100%;height:100%}
+.redwhale-screen:after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 56px #100409b8;pointer-events:none}
+.redwhale-caption{position:absolute;z-index:1;left:15px;right:15px;bottom:15px;font-size:13px;font-weight:600;letter-spacing:.02em;color:#fff4ee;text-shadow:0 2px 8px #000,0 1px 3px #000;pointer-events:none}
+.redwhale-bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0 0;flex-wrap:wrap}
+.redwhale-bottom p{color:#e4c9c2;font-size:12px;line-height:1.6;flex:1;min-width:190px;margin:0}
+.redwhale-replay{background:#722c33;border:1px solid #ca6562;color:#ffebe8;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer}
+.redwhale-replay:hover{background:#8c3840}
+.redwhale-finale{border-color:#df8065}
+@media(max-width:600px){.redwhale-game{padding:9px}.redwhale-headline{align-items:flex-start;flex-direction:column;gap:2px}.redwhale-caption{left:9px;right:9px;bottom:8px;font-size:10px}}
