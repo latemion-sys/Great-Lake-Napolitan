@@ -11,7 +11,7 @@ const swap=x=>x==='왼쪽'?'오른쪽':'왼쪽';
 const fill=(s,v)=>String(s).replace(/\{([^}]+)\}/g,(_,k)=>v[k]??'{'+k+'}');
 const colors=['붉은','푸른','노란'];
 for(const id of added){
- const d=defs.get(id);if(LAKE_BY_ID157.has(id))throw Error('Duplicate lake '+id);
+ const d=defs.get(id);if(LAKE_BY_ID157.has(id))continue;
  const l={id,name:d.name,hex:d.hex,hue:0,material:0,zone:0,rule:RULES.length,
   risk:1+(id*17+3)%4,limit:2+(id*7)%4,mermaid:true,required:false,storyNo:'21-'+id};
  LAKES.push(l);LAKE_BY_ID157.set(id,l);
@@ -98,6 +98,7 @@ makeStory014=function(lake){
  if([9,14,17,34,35,39,42].includes(id)&&st.vars.N+1>turnLimit)st.vars.N=2;
  let start=initial(st);
  if(id===38&&start==='scene2')st.done38=2;
+ if(id===38&&start==='scene1')st.seen.fake38=true;
  enter(st,start);
  st.plan=makePlan(st);
  return st;
@@ -159,7 +160,8 @@ storyChoice014=function(i){
  if(id===38){
   if(prev==='scene0'){
    st.done38++;
-   next=st.done38>=2?'scene2':st.turnLimit-st.turns>=3&&Math.random()<.5?'scene1':'scene0';
+   next=st.done38>=2?'scene2':(!st.seen.fake38&&st.turnLimit-st.turns>=3&&Math.random()<.5?'scene1':'scene0');
+   if(next==='scene1')st.seen.fake38=true;
   }else if(prev==='scene1')next='scene0';
  }
  if(!defs.get(id).nodes[next])return mermaidDeath015(id);
