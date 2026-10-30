@@ -110,7 +110,7 @@ function armMarkup(cls){
   '<path class="ra-knuck" fill="none" stroke="#22030a" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>'+
   '<path class="ra-elbow" fill="none" stroke="#22030a" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>'+
   '<g class="ra-suck">';
- for(let i=0;i<40;i++)s+='<g data-i="'+i+'"><circle fill="#c4746e" stroke="#4a0a12" stroke-width="1.1" opacity=".92"/><circle class="in" fill="#2e050a" opacity=".85"/></g>';
+ for(let i=0;i<40;i++)s+='<g data-i="'+i+'"><circle fill="#f08a86" stroke="#5a0614" stroke-width="1.1" opacity=".9"/><circle class="in" fill="#3a0210" opacity=".85"/></g>';
  return s+'</g></g>';
 }
 function paintArm(g,o){
@@ -141,12 +141,12 @@ const FACE_T=(()=>{const r=seeded(31);return Array.from({length:13},(_,i)=>{cons
  return {x,y,len:150+Math.sin(u*Math.PI)*130+r()*40,w:24+Math.sin(u*Math.PI)*12,ph:r()*TAU,curl:(u-.5)*1.4+(r()-.5)*.6,front:Math.abs(u-.5)<.28};});})();
 function headDefs(){
  return ''+
- '<linearGradient id="rwArmSkin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8e2832"/><stop offset=".5" stop-color="#520c18"/><stop offset="1" stop-color="#1c0307"/></linearGradient>'+
- '<radialGradient id="rwMantle" cx=".7" cy=".22" r=".85"><stop stop-color="#8a2630"/><stop offset=".28" stop-color="#5a0f1a"/><stop offset=".62" stop-color="#2c050c"/><stop offset="1" stop-color="#100104"/></radialGradient>'+
+ '<linearGradient id="rwArmSkin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d42638"/><stop offset=".45" stop-color="#8a0c1e"/><stop offset="1" stop-color="#2a020a"/></linearGradient>'+
+ '<radialGradient id="rwMantle" cx=".66" cy=".24" r=".85"><stop stop-color="#e0303e"/><stop offset=".3" stop-color="#a0101f"/><stop offset=".66" stop-color="#4a0310"/><stop offset="1" stop-color="#160105"/></radialGradient>'+
  '<linearGradient id="rwShadeV" gradientUnits="userSpaceOnUse" x1="0" y1="-380" x2="0" y2="30"><stop stop-color="#000" stop-opacity="0"/><stop offset=".6" stop-color="#000" stop-opacity=".15"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient>'+
  ''+
- '<radialGradient id="rwFace" cx=".62" cy=".15" r=".85"><stop stop-color="#74202a"/><stop offset=".5" stop-color="#3e0912"/><stop offset="1" stop-color="#120206"/></radialGradient>'+
- '<linearGradient id="rwTent" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#6e1a26"/><stop offset="1" stop-color="#26040a"/></linearGradient>'+
+ '<radialGradient id="rwFace" cx=".6" cy=".15" r=".85"><stop stop-color="#b8182c"/><stop offset=".5" stop-color="#620716"/><stop offset="1" stop-color="#180106"/></radialGradient>'+
+ '<linearGradient id="rwTent" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a8142a"/><stop offset="1" stop-color="#32020c"/></linearGradient>'+
  '<radialGradient id="rwSclera" cx=".45" cy=".4" r=".65"><stop stop-color="#f6efe2"/><stop offset=".7" stop-color="#e2d4c2"/><stop offset="1" stop-color="#a88f80"/></radialGradient>'+
  '<radialGradient id="rwIris" cx=".5" cy=".5" r=".5"><stop stop-color="#ff5a3c"/><stop offset=".55" stop-color="#d0182a"/><stop offset=".85" stop-color="#7a0816"/><stop offset="1" stop-color="#3a020a"/></radialGradient>'+
  '<radialGradient id="rwEyeGlow"><stop stop-color="#ff3a2a" stop-opacity=".5"/><stop offset="1" stop-color="#ff3a2a" stop-opacity="0"/></radialGradient>'+
@@ -176,7 +176,7 @@ function headMarkup(){
  for(let i=0;i<30;i++){const a=r()*TAU,rad=Math.sqrt(r()),x=-10+Math.cos(a)*rad*170,y=-170+Math.sin(a)*rad*150,s=1.5+r()*3.2;bumps+='<circle cx="'+n1(x)+'" cy="'+n1(y)+'" r="'+n1(s)+'"/><circle cx="'+n1(x-s*.3)+'" cy="'+n1(y-s*.35)+'" r="'+n1(s*.35)+'" fill="#e08a80" stroke="none" opacity=".35"/>';}
  let wr='';[[-150,-250,-60,-300,30,-310],[-180,-150,-90,-200,10,-215],[-170,-60,-80,-110,20,-120],[60,-300,130,-270,170,-210],[40,-220,130,-190,190,-120]].forEach(a=>wr+='M'+a[0]+','+a[1]+' Q'+a[2]+','+a[3]+' '+a[4]+','+a[5]+' ');
  let tents='';
- FACE_T.forEach((f,i)=>{tents+='<g class="rw-ft" data-i="'+i+'"'+(f.front?' data-front="1"':'')+'><path class="ft-b" fill="url(#rwTent)" stroke="#1e0307" stroke-width="1"/><path class="ft-r" fill="none" stroke="#ff8f7a" stroke-opacity=".28" stroke-width="1.4"/><g class="ft-s" fill="#a8605a" stroke="#3a060c" stroke-width=".8" opacity=".85">'+'<circle/>'.repeat(7)+'</g></g>';});
+ FACE_T.forEach((f,i)=>{tents+='<g class="rw-ft" data-i="'+i+'"'+(f.front?' data-front="1"':'')+'><path class="ft-b" fill="url(#rwTent)" stroke="#1e0307" stroke-width="1"/><path class="ft-r" fill="none" stroke="#ff8f7a" stroke-opacity=".28" stroke-width="1.4"/><g class="ft-s" fill="#e07a78" stroke="#4a0410" stroke-width=".8" opacity=".85">'+'<circle/>'.repeat(7)+'</g></g>';});
  return '<g class="rw-head">'+
   // 뒤쪽 얼굴 촉수
   '<g class="rw-tents-back">'+tents.replace(/rw-ft/g,'rw-ft back')+'</g>'+
@@ -187,7 +187,7 @@ function headMarkup(){
    '<rect x="-250" y="-400" width="500" height="440" filter="url(#rwSpots)" opacity=".18"/>'+
    '<path d="'+wr+'" fill="none" stroke="#2a050b" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>'+
    '<path d="'+wr+'" fill="none" stroke="#e17e74" stroke-opacity=".14" stroke-width="1.6" stroke-linecap="round" transform="translate(0 -4)"/>'+
-   '<g fill="#7a1a24" stroke="#1a0306" stroke-opacity=".5" stroke-width=".8">'+bumps+'</g>'+
+   '<g fill="#b0182a" stroke="#2a0208" stroke-opacity=".5" stroke-width=".8">'+bumps+'</g>'+
    '<ellipse cx="60" cy="-290" rx="110" ry="44" fill="#ffb4a0" opacity=".07"/>'+
    '<rect x="-250" y="-400" width="500" height="440" fill="url(#rwShadeV)"/>'+
   '</g>'+
@@ -240,5 +240,50 @@ function paintHead(g,t,o){
  });
 }
 
-window.RedWhaleV3Kit={catmull,tube,arm,armMarkup,paintArm,headDefs,headMarkup,paintHead,MANTLE,FACE,EYES};
+
+/* ---------- 열리는 꼬리: 고래 꼬리가 갈라지며 빨판 꽃잎 사이로 붉은 핵이 드러남 (원점=수면 위 꼬리 뿌리) ---------- */
+const PETAL='M-24,0 C-40,-56 -26,-124 0,-166 C26,-124 40,-56 24,0 Z';
+const FLUKE_L='M0,0 C-50,-18 -140,-40 -236,-120 C-196,-60 -130,-6 -30,26 Z';
+function tailMarkup(){
+ let petals='';
+ for(let i=0;i<5;i++){
+  let sk='';for(let k=0;k<6;k++)sk+='<circle cx="0" cy="'+(-18-k*24)+'" r="'+n1(7-k*.8)+'"/><circle class="in" cx="0" cy="'+(-18-k*24)+'" r="'+n1(3-k*.35)+'"/>';
+  petals+='<g class="rt-petal" data-i="'+i+'"><path d="'+PETAL+'" fill="url(#rwArmSkin)" stroke="#2a0208" stroke-width="1.4"/>'+
+   '<path d="M0,-6 L0,-158" stroke="#3a0210" stroke-opacity=".5" stroke-width="10" stroke-linecap="round"/>'+
+   '<g class="rt-suck" fill="#f08a86" stroke="#5a0614" stroke-width="1">'+sk.replace(/class="in"/g,'class="in" fill="#3a0210" stroke="none"')+'</g></g>';
+ }
+ return '<g class="rw-tail">'+
+  '<path class="rt-stalk" fill="url(#rwArmSkin)" stroke="#2a0208" stroke-width="1.5"/>'+
+  '<path class="rt-stalktex" fill="#000" filter="url(#rwSkinTex)" opacity=".6"/>'+
+  '<g class="rt-fluke" data-s="-1"><path d="'+FLUKE_L+'" fill="url(#rwMantle)" stroke="#2a0208" stroke-width="1.4"/><path d="M-20,10 C-90,-8 -160,-40 -220,-104" fill="none" stroke="#ff9c8c" stroke-opacity=".3" stroke-width="2"/></g>'+
+  '<g class="rt-fluke" data-s="1"><g transform="scale(-1 1)"><path d="'+FLUKE_L+'" fill="url(#rwMantle)" stroke="#2a0208" stroke-width="1.4"/><path d="M-20,10 C-90,-8 -160,-40 -220,-104" fill="none" stroke="#ff9c8c" stroke-opacity=".3" stroke-width="2"/></g></g>'+
+  petals+
+  '<g class="rt-core"><circle r="90" fill="url(#rwCoreGlow)"/><ellipse class="rt-hole" rx="26" ry="19" fill="url(#rwCore)"/><ellipse class="rt-pulse" rx="16" ry="11" fill="#ffd2a0"/></g>'+
+ '</g>';
+}
+function tailDefs(){
+ return '<radialGradient id="rwCore"><stop stop-color="#ffe2b0"/><stop offset=".35" stop-color="#ff5a2a"/><stop offset=".75" stop-color="#b0081e"/><stop offset="1" stop-color="#3a0208"/></radialGradient>'+
+  '<radialGradient id="rwCoreGlow"><stop stop-color="#ff4a2a" stop-opacity=".55"/><stop offset=".5" stop-color="#ff2a2a" stop-opacity=".15"/><stop offset="1" stop-color="#ff2a2a" stop-opacity="0"/></radialGradient>';
+}
+// o: {h 꼬리 높이, open 0~1, pulse, sway, limp 0~1}
+function paintTail(g,o){
+ const c=g._rt||(g._rt={stalk:g.querySelector('.rt-stalk'),tex:g.querySelector('.rt-stalktex'),fl:Array.from(g.querySelectorAll('.rt-fluke')),core:g.querySelector('.rt-core'),pu:g.querySelector('.rt-pulse'),hole:g.querySelector('.rt-hole'),pe:Array.from(g.querySelectorAll('.rt-petal'))});
+ const h=o.h||300,op=clamp(o.open||0,0,1),sw=o.sway||0,limp=o.limp||0;
+ const top=[sw,-h],mid=[sw*.4,-h*.5];
+ const sp=[[0,40],[mid[0],mid[1]],top],ws=[110,74,46];
+ // 꼬리 기둥: 아래가 굵고 위로 가늘어짐
+ const L=[[-ws[0]/2,40],[mid[0]-ws[1]/2,mid[1]],[top[0]-ws[2]/2,top[1]]],R=[[ws[0]/2,40],[mid[0]+ws[1]/2,mid[1]],[top[0]+ws[2]/2,top[1]]];
+ const d=catmull(L.concat(R.slice().reverse()),true);
+ c.stalk.setAttribute('d',d);c.tex.setAttribute('d',d);
+ c.fl.forEach(f=>{const s=+f.dataset.s;f.setAttribute('transform','translate('+n1(top[0]+s*14)+' '+n1(top[1]+6)+') rotate('+n1(s*(op*38-limp*40)+sw*.05)+')');});
+ c.core.setAttribute('transform','translate('+n1(top[0])+' '+n1(top[1]-8)+') scale('+n3(.2+.8*op)+')');
+ c.core.setAttribute('opacity',n3(op*(1-limp*.85)));
+ const p=o.pulse||0;c.pu.setAttribute('rx',n1(14+6*p));c.pu.setAttribute('ry',n1(9+4*p));
+ const base=[-62,-30,0,30,62];
+ c.pe.forEach((e,i)=>{const a=base[i]*(.12+.88*op)*(1-limp*.6)+(limp?(i-2)*8*limp:0)+Math.sin((o.t||0)*3+i)*2*op;
+  e.setAttribute('transform','translate('+n1(top[0])+' '+n1(top[1]+4)+') rotate('+n1(a)+') scale('+n3(.7+.3*op)+' '+n3((.75+.25*op)*(1-limp*.35))+')');});
+ return [top[0],top[1]-8];
+}
+
+window.RedWhaleV3Kit={tailMarkup,tailDefs,paintTail,catmull,tube,arm,armMarkup,paintArm,headDefs,headMarkup,paintHead,MANTLE,FACE,EYES};
 })();

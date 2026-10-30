@@ -6,7 +6,7 @@
 const K=window.BlueWhaleV3Kit,R=window.RedWhaleV3Kit;
 if(!K||!R)return;
 const {W,H,SEA,clamp,outC,inC,inOut,seg,bell,lerp,n1,n3,TAU,RAD,seeded,esc,mt,commonDefs,drops,dropParams,paintDrops,cacheQ,boatPose,lamp,setUse,HARPOON}=K;
-const {headDefs,headMarkup,paintHead,armMarkup,paintArm,catmull}=R;
+const {headDefs,headMarkup,paintHead,armMarkup,paintArm,catmull,tailMarkup,tailDefs,paintTail}=R;
 const NAME='모든 것을 말리는 붉은 고래';
 
 /* ---------- 배경: 붉게 물든 밤, 마르는 호수 바닥 ---------- */
@@ -19,6 +19,7 @@ function redDefs(){
  '<linearGradient id="rwHeat" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#ff6a3a" stop-opacity=".22"/><stop offset="1" stop-color="#ff6a3a" stop-opacity="0"/></linearGradient>'+
  '<filter id="rwSteam" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>'+
  '<filter id="rwMudTex" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".02 .09" numOctaves="3" seed="21"/><feColorMatrix values="0 0 0 0 .05  0 0 0 0 .02  0 0 0 0 .02  0 0 0 -1.8 1.1"/></filter>'+
+ '<radialGradient id="rwDeep"><stop stop-color="#ff1a2e" stop-opacity=".55"/><stop offset=".5" stop-color="#c00a20" stop-opacity=".2"/><stop offset="1" stop-color="#c00a20" stop-opacity="0"/></radialGradient>'+
  '<clipPath id="rwAboveBed"><rect width="'+W+'" height="'+(SEA+38)+'"/></clipPath>';
 }
 function cracks(){
@@ -50,7 +51,8 @@ function bed(){
    '<g fill="#e8c8bc">'+[0,1,2,3,4,5,6].map(i=>'<rect class="bw-glint" data-i="'+i+'" x="'+(794-i*4)+'" y="'+(i*i*3.2+i*6+8)+'" width="'+(26+i*9)+'" height="'+n1(1.6+i*.35)+'" rx="1" opacity="0"/>').join('')+'</g>'+
    '<g fill="none" stroke="#c9a49a" stroke-linecap="round">'+[0,1,2,3,4,5,6,7].map(i=>{const y=7+i*i*2.6+i*7;return '<path class="bw-wave" data-i="'+i+'" d="M-60,'+n1(y)+' H'+(W+60)+'" stroke-opacity="'+n3(.13-i*.011)+'" stroke-width="'+n1(1+i*.3)+'" stroke-dasharray="'+(30+i*14)+' '+(40+i*22)+'"/>';}).join('')+'</g>'+
    '<path class="rw-wline" d="M0,0 H'+W+'" stroke="#d9a090" stroke-opacity=".3" stroke-width="1.4"/>'+
-  '</g>';
+  '</g>'+
+  '<ellipse class="rw-deep" cx="480" cy="'+(SEA+120)+'" rx="320" ry="70" fill="url(#rwDeep)" opacity="0" style="mix-blend-mode:screen"/>';
 }
 function steam(n){let s='<g class="rw-steam" filter="url(#rwSteam)" fill="#f0c8b8">';const r=seeded(44);for(let i=0;i<n;i++)s+='<ellipse data-x="'+n1(r()*W)+'" data-p="'+n3(r())+'" data-s="'+n3(.6+r()*.8)+'" rx="30" ry="14" opacity="0"/>';return s+'</g>';}
 function nearMist(){return '<g class="bw-mist" filter="url(#bwMist)"><rect x="-300" y="'+(SEA-16)+'" width="900" height="30" rx="15" fill="#e6c2b6" opacity=".06"/><rect x="420" y="'+(SEA-34)+'" width="900" height="26" rx="13" fill="#e6c2b6" opacity=".05"/></g>';}
@@ -85,8 +87,14 @@ function boatOnBed(el,tr,level,x,extra){
 function rwBoat(){
  return '<clipPath id="rwBoatClip"><rect class="rw-bclip" width="'+W+'" height="'+(SEA+1)+'"/></clipPath>'+
   '<ellipse class="bw-lampglint" cy="'+(SEA+9)+'" rx="22" ry="3" fill="#ffbf47" filter="url(#bwRimF)" opacity="0"/>'+
-  '<g clip-path="url(#rwBoatClip)"><g class="bw-boat">'+K.BOAT+'</g></g>';
+  '<g clip-path="url(#rwBoatClip)"><g class="bw-boat">'+K.BOAT+
+   '<g class="rw-wither" opacity="0"><path d="M-44,-6 L36,-6 Q44,-6 50,-12 L48,-6 Q44,3 32,5 L-33,5 Q-44,3 -44,-6 Z" fill="#5a4c46" opacity=".45"/>'+
+   '<g fill="#b9a596" opacity=".32"><ellipse cx="-29" cy="-1" rx="2.6" ry="1.8"/><ellipse cx="-23" cy="2" rx="1.8" ry="1.3"/><ellipse cx="-12" cy="-2" rx="2.2" ry="1.5"/><ellipse cx="19" cy="0" rx="2.4" ry="1.6"/><ellipse cx="27" cy="2.5" rx="1.6" ry="1.1"/><ellipse cx="35" cy="-2" rx="2" ry="1.4"/></g>'+
+   '<path d="M-38,-4 l6,4 l-3,4 M-6,-6 l3,5 l5,2 M10,-6 l-2,6 M40,-8 l-4,5" fill="none" stroke="#1a1210" stroke-width=".8"/></g>'+
+  '</g></g>';
 }
+function wither(el,k){const {q}=cacheQ(el);q('.rw-wither').setAttribute('opacity',n3(clamp(k)));}
+function deep(el,k,x,y){const {q}=cacheQ(el),d=q('.rw-deep');d.setAttribute('opacity',n3(clamp(k)));if(x!=null){d.setAttribute('cx',n1(x));d.setAttribute('cy',n1(y));}}
 function veil(el,v){cacheQ(el).q('.bw-veil').style.opacity=n3(clamp(v)*0.92);}
 function caption(el,caps,t){const {q}=cacheQ(el);let txt=caps[0][1];for(const c of caps)if(t>=c[0])txt=c[1];const b=q('.cine-bottom');if(b&&b.textContent!==txt)b.textContent=txt;}
 function jolt(s,amp,f){return s>0?amp*Math.exp(-s*2.2)*Math.sin(s*(f||10)):0;}
@@ -126,7 +134,7 @@ function armPose(base,rise,o){
    ① 말라붙는 호수
    ========================================================= */
 const S0={title:'말라붙는 호수',loop:8.5,
- caps:[[0,'붉은 열기가 수면을 덮습니다.'],[1.2,'물이 빠르게 빠져나가고, 김이 피어오릅니다.'],[3.4,'호수 바닥이 갈라지며 배가 마른 진흙 위에 얹힙니다.'],[5.4,'아득한 곳에서 붉은 눈 두 개가 떠오릅니다.']],
+ caps:[[0,'호수 깊은 곳에서 새빨간 무언가가 떠오릅니다.'],[1.6,'그것이 다가올수록 물이 시들어 갑니다. 김이 피어오릅니다.'],[3.6,'호수 바닥이 갈라지고, 배가 메마른 진흙 위에 얹힙니다.'],[5.4,'아득한 곳에서 붉은 눈 두 개가 떠오릅니다.']],
  build(){
   return scenery()+
    '<g class="rw-farhead" opacity="0" clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g></g>'+
@@ -134,8 +142,10 @@ const S0={title:'말라붙는 호수',loop:8.5,
  },
  paint(el,t,tr){
   const {q,qa}=cacheQ(el);
-  const level=inOut(seg(t,1.1,4.6));
+  const level=inOut(seg(t,1.4,4.8));
   paintBed(el,tr,level);
+  deep(el,bell(t,.2,1.4,3.2,4.6)*(.75+.25*Math.sin(tr*3)),480,SEA+150-60*seg(t,.2,2.4));
+  wither(el,.5*seg(t,3.6,5.2));
   boatOnBed(el,tr,level,300,{});
   // 먼 곳의 머리: 외투막과 두 눈만
   const fh=bell(t,5.0,6.0,7.4,8.2);
@@ -157,7 +167,7 @@ const ARMS2=[
  {base:[70,SEA+34],a:-50,e:40,wr:16,L1:160,L2:150,w:38,side:1,grip:.5,delay:1.9}
 ];
 const S1={title:'붉은 팔의 포위',loop:8.5,
- caps:[[0,'갈라진 바닥 아래에서 무언가가 움직입니다.'],[.9,'사람의 것을 닮은 붉은 팔이 솟아오릅니다.'],[2.6,'빨판이 늘어선 손가락이 선체를 움켜쥡니다.'],[4.6,'팔들이 배를 조이며 들어 올립니다.']],
+ caps:[[0,'갈라진 바닥 아래에서 새빨간 것이 꿈틀거립니다.'],[.9,'사람의 것을 닮은 팔들이 솟아오릅니다.'],[2.6,'악몽 같은 빨판이 선체에 들러붙습니다. 닿은 자리가 하얗게 시들어 갑니다.'],[4.6,'팔들이 배를 휘감아 조이고 목을 조르듯 들어 올립니다.']],
  build(){
   return scenery()+bed()+steam(10)+
    '<g class="rw-backarms">'+groundArm('ra2')+groundArm('ra3')+'</g>'+
@@ -168,7 +178,9 @@ const S1={title:'붉은 팔의 포위',loop:8.5,
  paint(el,t,tr){
   const {q,qa}=cacheQ(el);
   paintBed(el,tr,1);
+  deep(el,bell(t,0,.3,1.2,2.2),300,SEA+110);
   const squeeze=inOut(seg(t,4.4,6.2))*(1-seg(t,7.6,8.4));
+  wither(el,.5+.5*seg(t,2.8,5.0));
   const shake=t>2.6?Math.sin(tr*31)*1.2*seg(t,2.6,3)+Math.sin(tr*47)*squeeze*1.6:0;
   const tw=boatOnBed(el,tr,1,300,{dy:-18*squeeze+shake,dr:-5*squeeze+shake*.8,lamp:.1});
   const gunL=tw([-40,-8]),gunR=tw([40,-8]);
@@ -209,7 +221,7 @@ const S2={title:'여덟 팔 격퇴',loop:8.6,
  },
  paint(el,t,tr){
   const {q,qa}=cacheQ(el);
-  paintBed(el,tr,1);
+  paintBed(el,tr,1);wither(el,1);
   let cur=-1;for(let i=0;i<8;i++)if(t>=STRIKES[i].at-.1)cur=i;
   let hitK=0,parryAt=null;
   [0,1].forEach(slot=>{
@@ -247,7 +259,7 @@ const S2={title:'여덟 팔 격퇴',loop:8.6,
    ④ 붉은 눈의 머리 — 문어 머리가 배 뒤에서 떠오르고 붉은 눈을 뜸
    ========================================================= */
 const S3={title:'붉은 눈의 머리',loop:8.5,
- caps:[[0,'갈라진 바닥이 부풀어 오릅니다.'],[1.2,'팔 뒤에서 거대한 머리가 떠오릅니다.'],[3.0,'흰자 위의 붉은 눈동자가 배를 내려다봅니다.'],[5.6,'얼굴에서 늘어진 촉수가 꿈틀거리며 다가옵니다.']],
+ caps:[[0,'갈라진 바닥 아래가 새빨갛게 달아오릅니다.'],[1.2,'거대한 몸이 바닥을 뚫고 솟아오릅니다.'],[3.0,'흰자 위의 붉은 눈동자가 배를 내려다봅니다.'],[5.6,'얼굴에서 늘어진 촉수가 꿈틀거리며 다가옵니다.']],
  build(){
   return scenery()+
    '<g clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g></g>'+
@@ -257,8 +269,9 @@ const S3={title:'붉은 눈의 머리',loop:8.5,
  },
  paint(el,t,tr){
   const {q,qa}=cacheQ(el);
-  paintBed(el,tr,1);
+  paintBed(el,tr,1);wither(el,1);
   const rise=outC(seg(t,.9,3.2)),lunge=inOut(seg(t,5.8,7.4));
+  deep(el,bell(t,0,.4,1.4,2.6),600,SEA+60);
   const hx=600,hy=SEA+250-350*rise+lunge*60,hs=.56+lunge*.3;
   const hd=q('.rw-hd');hd.setAttribute('transform','translate('+n1(hx-lunge*150)+' '+n1(hy+Math.sin(tr*.9)*4)+') scale('+n3(hs)+')');
   const look=[clamp((300-hx)/40,-9,0),6];
@@ -280,72 +293,87 @@ const S3={title:'붉은 눈의 머리',loop:8.5,
 /* =========================================================
    ⑤ 작살과 물의 귀환 — 두 눈 사이에 작살, 촉수가 늘어지고 머리가 가라앉으며 물이 다시 차오름
    ========================================================= */
-const S4={title:'작살과 물의 귀환',dur:10,
- caps:[[0,'작살잡이가 거대한 작살을 들어 올립니다.'],[1.6,'작살이 두 눈 사이에 깊이 박힙니다.'],[2.6,'붉은 눈동자가 가늘게 줄어들며 빛을 잃습니다.'],[4.4,'머리가 가라앉고, 말라붙었던 호수에 물이 다시 차오릅니다.']],
+const S4={title:'작살과 물의 귀환',dur:11.5,
+ caps:[[0,'머리가 바닥 아래로 가라앉습니다. 배 뒤쪽의 진흙이 들썩입니다.'],[1.6,'선미 뒤로 새빨간 꼬리가 솟아오릅니다.'],[3.0,'고래의 꼬리가 열립니다!'],[3.7,'작살잡이가 선미에서 몸을 돌려 열린 꼬리 한가운데를 겨눕니다.'],[4.6,'작살이 꼬리 속의 붉은 핵을 꿰뚫습니다.'],[6.2,'팔과 꼬리가 무너지고, 시들었던 호수에 물이 다시 차오릅니다.']],
  build(){
   let sparks='<g class="rw-sparks" stroke="#ffd9c0" stroke-linecap="round" opacity="0">';
-  const r=seeded(81);for(let i=0;i<18;i++){const a=r()*TAU;sparks+='<path data-a="'+n3(a)+'" data-v="'+n1(60+r()*140)+'" stroke-width="'+n1(1+r()*1.6)+'"/>';}
+  const r=seeded(81);for(let i=0;i<20;i++){const a=r()*TAU;sparks+='<path data-a="'+n3(a)+'" data-v="'+n1(60+r()*150)+'" stroke-width="'+n1(1+r()*1.6)+'"/>';}
   sparks+='</g>';
   return '<g class="rw-root">'+scenery()+
-   '<g clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g>'+
-    '<g class="rw-stuck" opacity="0">'+HARPOON.replace('class="bw-tip"','class="rw-tip"')+'</g></g>'+
+   '<g clip-path="url(#rwAboveBed)"><g class="rw-hd">'+headMarkup()+'</g></g>'+
    bed()+steam(10)+
+   '<clipPath id="rwTailClip"><rect class="rw-tclip" width="'+W+'" height="'+(SEA+70)+'"/></clipPath>'+
+   '<g clip-path="url(#rwTailClip)"><g class="rw-tailg">'+tailMarkup()+'<g class="rw-stuck" opacity="0">'+HARPOON.replace('class="bw-tip"','class="rw-tip"')+'</g></g></g>'+
+   '<ellipse class="rw-thole" rx="80" ry="14" fill="#0a0203" opacity="0"/>'+
    '<g>'+groundArm('ka0')+groundArm('ka1')+'</g>'+
    rwBoat()+
    '<path class="bw-rope" fill="none" stroke="#8a7d7a" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
    '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+
    '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+sparks+
-   drops('rw-blood',26,83,'#1e0206')+
+   drops('rw-blood',26,83,'#1e0206')+drops('rw-mud',40,87,'#4a2420')+
    nearMist()+'</g>';
  },
  paint(el,tReal,tr){
   const {q,qa}=cacheQ(el);
   const t=Math.min(tReal,this.dur);
-  const HIT=1.6,T0=1.05;
-  const sink=inOut(seg(t,3.6,7.0)),level=1-inOut(seg(t,4.2,8.2));
+  const T0=3.95,HIT=4.45,TX=150;
+  const level=1-inOut(seg(t,6.0,10.0));
   paintBed(el,tr,level);
-  const hx=600,hs=.6,hy=SEA-100+sink*420;
-  const hit=t-HIT;
-  const flinch=hit>0?Math.exp(-hit*3)*Math.sin(hit*24)*6:0;
-  const hd=q('.rw-hd');hd.setAttribute('transform','translate('+n1(hx+flinch)+' '+n1(hy+Math.sin(tr*.9)*3*(1-sink))+') scale('+hs+')');
-  const limp=seg(t,HIT+.3,HIT+2.2);
-  paintHead(hd,tr,{open:1-.55*seg(t,HIT+1.4,HIT+3),dilate:hit>0?lerp(1.2,.25,seg(hit,0,.5)):1.1,look:[-6,5],glow:1-seg(t,HIT+.3,HIT+2.4),limp});
-  // 팔: 작살이 박히면 힘이 빠져 무너짐
-  [[0,[130,SEA+90],-70,55,1],[1,[850,SEA+90],-112,-55,-1]].forEach(([i,b,a,e,sd])=>{
-   const fall=seg(t,HIT+.2,HIT+2.0),rr=1-inC(fall);
-   paintGroundArm(el,'ka'+i,armPose(b,rr,{a:a+sd*fall*30,e:e*(1-fall*.5),wr:sd*(20+fall*30),L1:160,L2:150,w:44,side:sd,grip:.3*(1-fall),spread:1.2-fall*.6}),b[1],rr>.02?1-seg(t,4.6,6):0);
+  wither(el,1-seg(t,8,10.5));
+  // 머리: 바닥 아래로 가라앉음
+  const hsink=inOut(seg(t,0,1.6)),hd=q('.rw-hd');
+  hd.style.display=hsink>=1?'none':'';
+  if(hsink<1){hd.setAttribute('transform','translate(600 '+n1(SEA-100+hsink*420)+') scale(.6)');paintHead(hd,tr,{open:1-hsink,glow:1-hsink,look:[-6,5]});}
+  // 꼬리: 선미 뒤에서 솟아 열림 → 작살 → 경련 → 무너짐
+  const rise=outC(seg(t,1.5,3.0)),open=inOut(seg(t,3.0,3.6))*(1-.75*seg(t,HIT+.1,HIT+.6));
+  const hit=t-HIT,limp=seg(t,HIT+.8,HIT+2.2),fall=inOut(seg(t,HIT+1.2,HIT+3.2));
+  const spasm=hit>0?Math.exp(-hit*2.5)*Math.sin(hit*30)*10:0;
+  const tg=q('.rw-tailg');
+  const ty=SEA+60+(1-rise)*300+fall*520;
+  tg.setAttribute('transform','translate('+n1(TX+spasm*.5)+' '+n1(ty)+') rotate('+n1(-fall*25+Math.sin(tr*1.3)*2*(1-limp))+') scale(.85)');
+  tg.style.opacity=n3(1-seg(t,HIT+2.6,HIT+3.4));
+  q('.rw-tclip').setAttribute('height',n1(SEA+70));
+  const tipL=paintTail(tg.querySelector('.rw-tail'),{h:210,open,pulse:.5+.5*Math.sin(tr*7),sway:Math.sin(tr*1.1)*14*(1-limp)+spasm,limp,t:tr});
+  const ang0=(-fall*25+Math.sin(tr*1.3)*2*(1-limp))*RAD,c0=Math.cos(ang0),s0=Math.sin(ang0);
+  const core=[TX+spasm*.5+.85*(tipL[0]*c0-tipL[1]*s0),ty+.85*(tipL[0]*s0+tipL[1]*c0)];
+  const th=q('.rw-thole');th.setAttribute('cx',n1(TX));th.setAttribute('cy',n1(SEA+60));th.setAttribute('opacity',n3(seg(t,1.4,1.8)*(1-seg(t,6,7.5))*.85));
+  if(!this._md)this._md=dropParams(40,91,-160,-20,90,300);
+  paintDrops(qa('.rw-mud circle'),this._md,TX,SEA+50,t-1.5,120,460);
+  // 팔: 핵이 꿰뚫리면 힘이 빠짐
+  [[0,[700,SEA+120],-118,-50,-1],[1,[880,SEA+80],-108,-55,-1]].forEach(([i,b,a,e,sd])=>{
+   const f=seg(t,HIT+.2,HIT+2.0),rr=1-inC(f);
+   paintGroundArm(el,'ka'+i,armPose(b,rr,{a:a+sd*f*30+Math.sin(tr*1.2+i)*4,e:e*(1-f*.5),wr:sd*(20+f*30),L1:160,L2:150,w:44,side:sd,grip:.3*(1-f),spread:1.2-f*.6}),b[1],rr>.02?1-seg(t,6.4,7.4):0);
   });
-  // 배와 작살
-  const thrown=t>=T0,aim=clamp(t/.8);
-  const armEnd=thrown?[38,-24]:[37-aim*12,-30-aim*4];
-  const tw=boatOnBed(el,tr,level,300,{arm:armEnd,lamp:!thrown?.12:0,dr:thrown?-Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0});
-  const target=[hx,hy-30*hs];   // 두 눈 사이 바로 위
-  const hand=tw(armEnd),p0=[hand[0]+30,hand[1]-14],LIFT=60;
-  const hp=q('.bw-harpoon');let pos,ang,show=1;
-  if(!thrown){const a=-30-aim*14;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=clamp((t-.2)/.4);}
-  else if(t<HIT){const u=(t-T0)/(HIT-T0),e=u*(.85+.15*u);pos=[p0[0]+(target[0]-p0[0])*e,p0[1]+(target[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((target[1]-p0[1])-4*LIFT*(1-2*e),target[0]-p0[0])/RAD;}
-  else show=0;
+  // 배: 선미가 꼬리 쪽(왼쪽). 작살잡이가 몸을 돌려 선미 너머로 던짐
+  const turn=seg(t,3.5,3.8),thrown=t>=T0;
+  const armEnd=thrown?[16,-26]:turn>0?[29-turn*12,-30-turn*6]:[37,-30];
+  const tw=boatOnBed(el,tr,level,380,{arm:armEnd,lamp:turn>0&&!thrown?.15:0,dr:thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0});
+  const hand=tw(armEnd),p0=[hand[0]-24,hand[1]-14],LIFT=50;
+  const hp=q('.bw-harpoon');let pos,ang,show=0;
+  if(turn>0&&!thrown){const a=180+28+turn*10;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=turn;}
+  else if(thrown&&t<HIT){const u=(t-T0)/(HIT-T0),e=u*(.85+.15*u);pos=[p0[0]+(core[0]-p0[0])*e,p0[1]+(core[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((core[1]-p0[1])-4*LIFT*(1-2*e),core[0]-p0[0])/RAD;show=1;}
   hp.setAttribute('opacity',String(show));
   if(pos)hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
-  // 머리에 박힌 작살(머리와 함께 가라앉음)
-  const endAng=Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0])/RAD;
+  // 꼬리 핵에 박힌 작살(꼬리와 함께 움직임)
+  const endAng=Math.atan2((core[1]-p0[1])+4*LIFT,core[0]-p0[0])/RAD;
   const st=q('.rw-stuck');st.setAttribute('opacity',t>=HIT?'1':'0');
-  st.setAttribute('transform','translate('+n1(hx+flinch-6*Math.cos(endAng*RAD))+' '+n1(hy-30*hs+Math.sin(tr*.9)*3*(1-sink)-6*Math.sin(endAng*RAD))+') rotate('+n1(endAng)+')');
+  const local=[tipL[0],tipL[1]];
+  st.setAttribute('transform','translate('+n1(local[0]*.9/.9)+' '+n1(local[1])+') rotate('+n1(endAng-(-fall*25+Math.sin(tr*1.3)*2*(1-limp)))+') scale(1.18)');
   const stt=st.querySelector('.rw-tip');if(stt)stt.style.opacity='0';
-  const sAr=endAng*RAD,stTail=[hx+flinch-110*Math.cos(sAr),hy-30*hs-110*Math.sin(sAr)];
+  const sAr=endAng*RAD,stTail=[core[0]-104*Math.cos(sAr),core[1]-104*Math.sin(sAr)];
   const ropeEnd=t>=HIT?stTail:(pos?[pos[0]-104*Math.cos(ang*RAD),pos[1]-104*Math.sin(ang*RAD)]:p0);
-  const anchor=tw([40,-9]),mid=[(ropeEnd[0]+anchor[0])/2,(ropeEnd[1]+anchor[1])/2+(t<HIT?40:Math.max(6,30*Math.exp(-(t-HIT))))];
+  const anchor=tw([-40,-9]),mid=[(ropeEnd[0]+anchor[0])/2,(ropeEnd[1]+anchor[1])/2+(t<HIT?40:Math.max(6,30*Math.exp(-(t-HIT))))];
   const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(ropeEnd[0])+','+n1(ropeEnd[1]));
   rope.setAttribute('opacity',thrown&&ropeEnd[1]<SEA+level*96+6?'.9':'0');
-  // 명중 섬광
-  const fl=q('.bw-flash');fl.setAttribute('cx',n1(target[0]));fl.setAttribute('cy',n1(target[1]));
-  fl.setAttribute('opacity',hit>0?n3(Math.exp(-hit*3)):'0');fl.setAttribute('r',n1(40+80*clamp(hit*2)));
-  const sp=q('.rw-sparks');sp.setAttribute('opacity',hit>0&&hit<1.2?n3(1-hit/1.2):'0');
+  // 명중
+  const fl=q('.bw-flash');fl.setAttribute('cx',n1(core[0]));fl.setAttribute('cy',n1(core[1]));
+  fl.setAttribute('opacity',hit>0?n3(Math.exp(-hit*2.6)):'0');fl.setAttribute('r',n1(40+90*clamp(hit*2)));
+  const sp=q('.rw-sparks');sp.setAttribute('opacity',hit>0&&hit<1.3?n3(1-hit/1.3):'0');
   if(hit>0)qa('.rw-sparks path').forEach(p=>{const a=+p.dataset.a,v=+p.dataset.v,d1=10+v*Math.min(hit,1)*.8,d2=d1+8+v*.1;
-   p.setAttribute('d','M'+n1(target[0]+Math.cos(a)*d1)+','+n1(target[1]+Math.sin(a)*d1*.8)+' L'+n1(target[0]+Math.cos(a)*d2)+','+n1(target[1]+Math.sin(a)*d2*.8));});
+   p.setAttribute('d','M'+n1(core[0]+Math.cos(a)*d1)+','+n1(core[1]+Math.sin(a)*d1*.8)+' L'+n1(core[0]+Math.cos(a)*d2)+','+n1(core[1]+Math.sin(a)*d2*.8));});
   if(!this._bl)this._bl=dropParams(26,85,-200,20,80,260);
-  paintDrops(qa('.rw-blood circle'),this._bl,target[0],target[1],hit,10,480);
-  const shake=hit>0&&hit<.5?(1-hit/.5)*4:0;
+  paintDrops(qa('.rw-blood circle'),this._bl,core[0],core[1],hit,10,480);
+  const shake=hit>0&&hit<.5?(1-hit/.5)*4:(t>1.5&&t<2.6?Math.sin(t*40)*1.5:0);
   q('.rw-root').setAttribute('transform',shake?'translate('+n1(Math.sin(t*90)*shake)+' '+n1(Math.cos(t*77)*shake*.6)+')':'');
   caption(el,this.caps,t);
   veil(el,tReal<.6?1-tReal/.6:0);
@@ -356,7 +384,7 @@ const SCENES=[S0,S1,S2,S3,S4];
 function html(stage){
  const i=Math.max(0,Math.min(4,Math.floor(+stage||0))),S=SCENES[i];
  const svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" preserveAspectRatio="xMidYMid slice">'+
-  '<defs>'+commonDefs()+headDefs()+redDefs()+'</defs>'+S.build()+
+  '<defs>'+commonDefs()+headDefs()+tailDefs()+redDefs()+'</defs>'+S.build()+
   '<rect class="bw-veil" width="'+W+'" height="'+H+'" fill="#030103" opacity="1"/></svg>';
  return '<div class="pallid-cine-v2 rw3-scene" data-stage="'+i+'" role="img" aria-label="'+esc(NAME+' · '+(i+1)+'단계 '+S.title)+'">'+svg+
   '<span class="cine-top" aria-hidden="true">'+esc(NAME+' · '+S.title)+'</span>'+

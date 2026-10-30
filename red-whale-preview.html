@@ -58,13 +58,13 @@ button:focus-visible{outline:3px solid #9fd2ef;outline-offset:2px}
 <p class="help">1~4단계는 반복 재생되고, 5단계(사냥 성공)는 한 번 재생된 뒤 마지막 장면에 멈춥니다. 게임에서는 조우 → 전투 1·2·3번째 공격 → 사냥 성공 순서로 나옵니다.</p>
 </main>
 <script src="./blue-whale-v3.js?v=bwmg1030c"></script>
-<script src="./red-whale-v3.js?v=rw1030"></script>
-<script src="./red-whale-v3-scenes.js?v=rw1030"></script>
+<script src="./red-whale-v3.js?v=rw1030b"></script>
+<script src="./red-whale-v3-scenes.js?v=rw1030b"></script>
 <script>
 (function(){
 'use strict';
 var lib=window.RedWhaleV3,stage=document.getElementById('stage'),title=document.getElementById('scene-title'),desc=document.getElementById('scene-desc'),pause=document.getElementById('pause');
-var DESC=['붉은 열기에 호수가 말라붙고, 배가 갈라진 진흙 위에 얹힙니다.','빨판이 늘어선 사람의 팔들이 바닥에서 솟아 배를 움켜쥡니다.','여덟 개의 팔이 차례로 덮쳐 오고, 작살잡이가 하나씩 쳐냅니다.','문어와 크툴루를 합친 거대한 머리가 떠올라 붉은 눈을 뜹니다.','두 눈 사이에 작살이 박히고, 머리가 가라앉으며 물이 다시 차오릅니다.'];
+var DESC=['깊은 곳에서 새빨간 것이 떠오르자 호수가 시들어 말라붙고, 배가 갈라진 진흙 위에 얹힙니다.','빨판 달린 사람의 팔들이 솟아 배를 휘감아 조입니다. 빨판이 닿은 자리가 시들어 갑니다.','여덟 개의 팔이 차례로 덮쳐 오고, 작살잡이가 하나씩 쳐냅니다.','문어와 크툴루를 합친 거대한 머리가 떠올라 붉은 눈을 뜹니다.','선미 뒤로 솟은 꼬리가 열리고, 작살이 그 안의 붉은 핵을 꿰뚫습니다. 시들었던 호수에 물이 다시 차오릅니다.'];
 var active=0,playing=true;
 function display(i){
  active=i;stage.innerHTML=lib.html(i);
