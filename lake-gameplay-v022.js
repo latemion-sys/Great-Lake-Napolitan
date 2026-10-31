@@ -24,7 +24,7 @@
  }
  function seed(st){
   const id=st.id,v=st.vars,dirs=['왼쪽','오른쪽'],full=['왼쪽','앞쪽','오른쪽'];
-  if([19,31,32,33,34,35,36,37,45,47,48].includes(id))v.N=([45,48].includes(id)?pick([3,4]):id===19||id===39||id===42?3:pick([2,3]));
+  if([9,14,17,19,31,32,33,34,35,36,37,45,47,48].includes(id))v.N=([45,48].includes(id)?pick([3,4]):id===19||id===39||id===42?3:pick([2,3]));
   if(id===39||id===42)v.N=3;
   if(id===36)v.N=pick([2,3]);
   if(id===46){v.M=2;v['건네는 것']=pick(['검은 고체','흰 액체']);}
@@ -35,15 +35,7 @@
    v['끝']=pick(ends);v['다른 끝']=pick(ends.filter(x=>x!==v['끝']));
    v['천']=pick(['검은','붉은','흰','푸른']);v['다른 물건']=pick(['그물','밧줄','닻']);
   }
-  if(id===14){
-   const positions=['왼쪽','가운데','오른쪽'];
-   v['우리 색']=pick(['붉은','푸른','노란']);
-   const others=['붉은','푸른','노란'].filter(x=>x!==v['우리 색']);
-   const colors=shuffle([v['우리 색'],...others]);
-   positions.forEach((name,i)=>v[name+' 색']=colors[i]);
-   const first=positions[colors.indexOf(v['우리 색'])],second=pick(positions.filter(x=>x!==first));
-   v['바꾸는 자리1']=first;v['바꾸는 자리2']=second;v['정답 위치']=second;
-  }
+  if(id===14)v['우리 색']=pick(['붉은','푸른','노란']);
   if(id===23)bellOrder(st);
   if(id===26)v['내 자리']=pick(['뱃머리','가운데','고물']);
   if(id===27){v['도는 쪽']=side();v['반대쪽']=opposite(v['도는 쪽']);}
@@ -62,8 +54,12 @@
  }
  function enter(st,index){
   const v=st.vars,id=st.id;
-  if([35,39].includes(id)){v['쪽']=side();v['반대쪽']=opposite(v['쪽']);}
+  if([9,14,17,35,39].includes(id)){v['쪽']=side();v['반대쪽']=opposite(v['쪽']);}
   if(id===6)v['손잡이 천']=pick([v['천'],...['검은','붉은','흰','푸른'].filter(x=>x!==v['천'])]);
+  if(id===14){
+   const same=st.count===0?Math.random()<.5:!st.seen.same?true:!st.seen.diff?false:Math.random()<.5;
+   v['색']=same?v['우리 색']:pick(['붉은','푸른','노란'].filter(x=>x!==v['우리 색']));
+  }
   if(id===22){
    const colors=shuffle(['붉은','푸른','노란']);v['빛1']=colors[0];v['빛2']=colors[1];
    const names={'붉은,푸른':'보랏빛','노란,붉은':'주황빛','노란,푸른':'초록빛'};
@@ -117,17 +113,16 @@
   seed(st);
   const v=st.vars,N=v.N;
   let min=limits[id]||3;
-  if([33,34,35,37,39,42,47].includes(id))min=Math.max(min,(N||2)+1);
+  if([9,14,17,33,34,35,37,39,42,47].includes(id))min=Math.max(min,(N||2)+1);
   if([29,31,32,36,48].includes(id))min=N+2;
   if(id===45)min=N+1;
   if(id===46)min=6;
   if(id===5)min=3;
   if(id===41)min=4;
   st.turnLimit=min+rng(Math.max(1,7-min));
-  st.rulesRev023=true;
   let first=0;
   if(id===5||id===20)first=rng(defs.get(id).scenes.length);
-  else if([1,2,3,4,6,7,8,10,18,21,22,24,26,27,28,33,40,43].includes(id))first=pick([0,0,1].filter(x=>x<defs.get(id).scenes.length));
+  else if([1,2,3,4,6,7,8,10,18,21,22,24,26,27,28,33,40,41,43].includes(id))first=pick([0,0,1].filter(x=>x<defs.get(id).scenes.length));
   else if(id===14)first=0;
   else if([17,34,37,39,42,45,47].includes(id))first=st.plan[0]??0;
   else if(id===35)first=rng(3);
@@ -142,7 +137,7 @@
   if(!op)return;
   let valid=!op.death, next=op.targets.find(x=>x!==st.step)??op.targets[0];
   const prior=st.step,v=st.vars,N=v.N||2;
-  if(id===14&&prior===2){valid=actual<3&&['왼쪽','가운데','오른쪽'][actual]===v['정답 위치'];}
+  if(id===14&&prior===0){valid=(actual===(v['색']===v['우리 색']?0:1));}
   if(id===48&&prior===0){
    valid=actual<2&&(st.lastSide===null||(actual===0?'왼쪽':'오른쪽')!==st.lastSide);
   }
@@ -162,9 +157,15 @@
   if(id===5&&prior<3){
    st.count++;const remain=st.turnLimit-st.turns,chance=Math.min(.9,.22+.19*st.count);
    next=remain<=1||Math.random()<chance?3:pick([0,1,2].filter(x=>x!==prior));
-  }else if(id===12&&prior===0){st.count++;next=st.count>=2?4:0;}
+  }else if(id===9){st.count++;next=st.count>=N?1:0;}
+  else if(id===12&&prior===0){st.count++;next=st.count>=2?4:0;}
   else if(id===13&&(prior===0||prior===1)){
    st.count++;next=st.count>=2?2:pick([0,1]);
+  }else if(id===14&&prior===0){
+   st.seen[v['색']===v['우리 색']?'same':'diff']=true;st.count++;
+   next=st.count>=N?1:0;
+  }else if(id===17&&prior<2){
+   st.count++;next=st.count>=N?2:1-prior;
   }else if(id===19&&prior<3){
    st.count++;next=st.count>=3?3:pick([0,1,2].filter(x=>x!==prior));
   }else if(id===23){
@@ -246,7 +247,7 @@
    st.order.map((j,k)=>button('▸ '+format(scene.choices[j].text,st.vars),'storyChoice',String(k),'')).join('')+
    '</div></div>';
  };
- if(state.scene==='event'&&defs.has(state.current)&&(!state.lakeStory?.scriptVersion022||([9,14,17,41].includes(state.current)&&!state.lakeStory?.rulesRev023))){
+ if(state.scene==='event'&&defs.has(state.current)&&!state.lakeStory?.scriptVersion022){
   state.lakeStory=makeStory014(LAKE_BY_ID157.get(state.current));save();
  }
  window.GREAT_LAKE_RULES_022={ids:[...defs.keys()],count:defs.size,make:makeStory014};
