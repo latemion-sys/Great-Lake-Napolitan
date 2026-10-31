@@ -111,18 +111,9 @@ function rimMarkup(){
  return '<path class="bk-rim" d="'+MANTA+'" fill="none" stroke="url(#bkRimG)" stroke-width="9" filter="url(#bkB8)" opacity="0" transform="translate(-9999 0)"/>';
 }
 /* 날개 끝: 몸빛 → 피부 결 → 앞전 윤기 → 흘러내리는 물 → 등불빛 → 물안개(먼 날개) */
-function wingMarkup(cls){
- let sheets='';for(let i=0;i<8;i++)sheets+='<ellipse class="bk-sh" data-i="'+i+'" cx="0" cy="0" rx="5" ry="18" fill="url(#bkSheet)"/>';
- return '<g class="'+cls+'" transform="translate(-9999 0)"><g clip-path="url(#bkWingCut)">'+
-  '<path d="'+WING+'" fill="url(#bkWingG)"/>'+
-  '<g clip-path="url(#bkWingClip)"><rect x="-240" y="-470" width="410" height="500" filter="url(#bkSkinD)" opacity=".38"/><rect x="-240" y="-470" width="410" height="500" filter="url(#bkSkin)" opacity=".14"/>'+
-   '<g class="bk-sheets">'+sheets+'</g></g>'+
-  '<path d="'+RIDGE+'" fill="url(#bkRidgeG)"/><path d="'+HEM+'" fill="#000" opacity=".55"/>'+
-  '<path class="bk-wl" d="'+WING+'" fill="url(#bkWingL)" opacity="0"/>'+
-  '<path d="'+WING+'" fill="url(#bkWingV)"/>'+
-  '<path class="bk-fog" d="'+WING+'" fill="url(#bkFogW)" opacity="0"/></g></g>';
-}
-function wingRef(cls){return '<g class="'+cls+'" opacity=".34" mask="url(#bwRipple)" transform="translate(-9999 0)"><path d="'+WING+'" fill="#000"/><path d="'+RIDGE+'" fill="#2a3a4c" opacity=".5"/></g>';}
+/* 날개 끝: 빛을 하나도 돌려주지 않는 완전한 검정. 원근은 크기 · 수면 위치 · 비친 그림자 · 물을 가르는 자국으로만 드러남 */
+function wingMarkup(cls){return '<g class="'+cls+'" transform="translate(-9999 0)"><g clip-path="url(#bkWingCut)"><path d="'+WING+'" fill="#000"/></g></g>';}
+function wingRef(cls){return '<g class="'+cls+'" opacity=".42" mask="url(#bwRipple)" transform="translate(-9999 0)"><path d="'+WING+'" fill="#000"/></g>';}
 // 날개가 물을 가르는 자리: 부풀어 오른 물 · 거품 · 퍼지는 물결 · 물보라
 function wakeMarkup(cls){
  let rp='';for(let i=0;i<3;i++)rp+='<ellipse class="bk-rp" data-i="'+i+'" rx="1" ry="1" fill="url(#bkRipple)" opacity="0"/>';
@@ -255,7 +246,7 @@ const S0={title:'별이 꺼지는 수평선',loop:10,
 const NEAR={x:170,y:SEA+48,s:1.04},FAR={x:780,y:SEA+10,s:.66,fog:.42};
 const S1={title:'닫히는 날개',loop:9,
  caps:[[0,'양옆의 물이 검게 부풀어 오릅니다.'],[1.6,'날개 끝입니다. 그것이 드러내는 가장 큰 부분입니다.'],[4,'두 날개가 배 위로 휘어 듭니다. 별이 보이는 틈이 좁아집니다.'],[7,'틈이 닫히기 직전, 날개가 물러납니다.']],
- build(){return night()+wingRef('bk-wFarR')+wingRef('bk-wNearR')+wakeMarkup('bk-wkFar')+wingMarkup('bk-wFar')+boatMarkup()+wakeMarkup('bk-wkNear')+wingMarkup('bk-wNear')+drops('bk-drN',36,61,'#dbe8f2')+drops('bk-drF',24,67,'#dbe8f2')+K.nearMist();},
+ build(){return night()+wingRef('bk-wFarR')+wingRef('bk-wNearR')+wakeMarkup('bk-wkFar')+K.nearMist()+wingMarkup('bk-wFar')+boatMarkup()+wakeMarkup('bk-wkNear')+wingMarkup('bk-wNear')+drops('bk-drN',36,61,'#dbe8f2')+drops('bk-drF',24,67,'#dbe8f2');},
  paint(el,t,tr){
   ambient(el,t,0);twinkle(el,t);placeHole(el,null);
   const rise=outC(seg(t,.6,3.0))*(1-inC(seg(t,7.2,8.8))),curl=inOut(seg(t,2.4,6.4))*(1-seg(t,7,8.6));
@@ -305,19 +296,31 @@ const S3={title:'감싸인 배',loop:9,
   veil(el,tr<.6?1-tr/.6:.3*(t<.6?1-t/.6:seg(t,8.5,9)));
  }};
 // ⑤ 날개 끝 — 사냥 성공(한 번 재생). g가 있으면 미니게임 진행(던진 시각 · 명중 여부)을 따름
-const T4={rise:1.0,throwAt:2.6,fly:.45};
-const WP=[610,SEA+30],WS=.82;   // 등불이 닿는 가장자리에서 솟는 날개(배보다 조금 앞쪽 = 조금 크게)
+/* ⑤ 날개 끝 — 작살 한 방으로는 쓰러지지 않는다.
+   ① 등불에 젖어 오른 날개 끝을 망을 감은 작살로 꿰어 붙든다(망 3개 이상. 0개는 튕겨 나가고, 1~2개는 얕게 박혔다 찢겨 나감)
+   ② 붙들린 그것이 배를 통째로 감싸 온다. 3단계에서 기억한 별 자리(별 지도)가 하나씩 꺼지며 이음매가 닫힌다
+   ③ 마지막 이음매가 닫히는 순간 덮어 두었던 등불을 한꺼번에 연다
+   ④ 안쪽에서 빛이 커지자 그것은 그 빛마저 감싸려 들고, 제 안쪽까지 감싸다 뒤집혀 한 점으로 접혀 사라진다 */
+const T4={rise:1.0,throwAt:2.6,fly:.45,wrap:4.2,close:7.6,dur:13.4};
+const WP=[610,SEA+30],WS=.82;
+const SEAMS=[[250,120],[690,96],[520,214]];
 function finalPose(t,up){return {x:WP[0],y:WP[1]+470*WS*(1-up),rot:-8+Math.sin(t*1.3)*2};}
 function spotAt(t,up){const p=finalPose(t,up);return wingPoint(p.x,p.y,p.rot,WS,true,WHIT);}
-const S4={title:'날개 끝',dur:12,
- caps:[[0,'등불이 닿는 가장자리에서 물이 검게 솟습니다.'],[1.6,'날개 끝이 휘어 오릅니다. 등불에 밑면이 젖어 빛납니다.'],[3.2,'작살이 날개 끝을 꿰뚫었습니다.'],[4.6,'감싸던 것이 풀립니다. 어둠이 걷혀 갑니다.'],[7,'별이 돌아옵니다. 그것의 온몸은 끝내 아무도 보지 못했습니다.']],
+function starMap(){const r=typeof state!=='undefined'&&state&&state.blackLamp;return r&&Array.isArray(r.stars)&&r.stars.length?r.stars:SEAMS;}
+function wrapWings(){let s='';for(let i=0;i<7;i++)s+='<g class="bk-ww" data-i="'+i+'" opacity="0"><path d="'+WING+'" fill="#000"/></g>';return '<g class="bk-wrap">'+s+'</g>';}
+function seamMarkup(){let s='';for(let i=0;i<4;i++)s+='<g class="bk-seam" data-i="'+i+'" opacity="0"><circle r="16" fill="url(#bkStar)"/><circle r="2.2" fill="#fff"/></g>';return s;}
+const S4={title:'날개 끝',dur:T4.dur,
+ caps:[[0,'등불이 닿는 가장자리에서 물이 검게 솟습니다.'],[1.6,'날개 끝이 휘어 오릅니다.'],[3.2,'망을 감은 작살이 날개 끝을 꿰어 붙듭니다.'],[4.4,'붙들린 그것이 배를 통째로 감싸 옵니다. 기억해 둔 별 자리가 하나씩 닫힙니다.'],[7.6,'마지막 이음매가 닫히는 순간, 덮어 두었던 등불을 엽니다.'],[8.4,'그것이 빛마저 감싸려 듭니다. 제 안쪽까지 감싸다 뒤집혀 접힙니다.'],[10.4,'아무것도 남지 않았습니다. 별이 돌아옵니다.']],
  build(){
   return night()+membrane()+poolMarkup()+wingRef('bk-wFR')+wakeMarkup('bk-wkF')+
    '<path class="bw-rope" fill="none" stroke="#8a9697" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
    boatMarkup()+wingMarkup('bk-wF')+
    '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+
    drops('bk-splash',44,51,'#dbe8f2')+motesMarkup(20)+
-   darkMarkup()+
+   darkMarkup()+seamMarkup()+wrapWings()+
+   '<circle class="bk-burst" r="1" fill="url(#bkGlow)" opacity="0"/>'+
+   '<circle class="bk-knot" r="1" fill="#000" opacity="0"/>'+
+   '<circle class="bk-white" r="1" fill="url(#bkGlow)" opacity="0"/>'+
    '<circle class="bk-ring" r="1" fill="url(#bkRing)" opacity="0"/>'+
    (HL()?HL().hitMarkup():'');
  },
@@ -326,32 +329,69 @@ const S4={title:'날개 끝',dur:12,
   ambient(el,t,0);twinkle(el,t);
   const game=!!g,blind=game&&g.blind;
   const T0=game?(g.thrownAt!=null?g.thrownAt:null):T4.throwAt;
-  const thrown=T0!=null&&t>=T0,arrive=T0!=null?T0+T4.fly:1e9,hit=game?!!g.hit:true;
-  const HIT=hit?arrive:1e9,since=t-HIT;
+  const thrown=T0!=null&&t>=T0,arrive=T0!=null?T0+T4.fly:1e9;
+  const pinOK=game?!!g.hit:true,pinFail=game?g.pinFail||null:null;
+  const HIT=pinOK?arrive:1e9,since=t-HIT;
+  // 감싸기 · 열기 시각
+  const wrapAt=game?(g.wrapStart!=null?g.wrapStart:1e9):T4.wrap,closeAt=game?(g.closeAt!=null?g.closeAt:1e9):T4.close;
+  const openAt=game?(g.openAt!=null?g.openAt:1e9):T4.close;
+  let wk=t>=wrapAt?clamp((t-wrapAt)/(closeAt-wrapAt)):0;           // 0 → 1: 감싸며 닫힘
+  if(game&&g.recoilAt!=null&&t>=g.recoilAt&&t<wrapAt)wk=g.recoilK*(1-outC(seg(t,g.recoilAt,g.recoilAt+.7)));   // 일찍/늦게 열어 물러남
+  const wrap0=game?(g.wrap0!=null?g.wrap0:wrapAt):T4.wrap;
+  const fo=t>=openAt?t-openAt:-1;                                       // 연 뒤 흐른 시간
+  // 날개 끝
   let up=game?(g.wingUp?g.wingUp(t):0):outC(seg(t,T4.rise,T4.rise+1.1));
-  if(t>=HIT)up=Math.max(up,1)*(1-inC(seg(t,HIT+1.8,HIT+3.6)));
+  if(t>=HIT)up=Math.max(up,1)*(1-inC(seg(t,Math.max(HIT+.6,wrap0-.4),wrap0+.8)));
   if(blind)up=0;
   const fp=finalPose(t,up),wr=fp.rot+(t>=HIT?-8*seg(t,HIT,HIT+.25):0);
-  const tw=boatAt(el,t,300,{arm:[37,-30]}),lampW=tw([51,-18.5]);
-  placeWing(el,'bk-wF',fp.x,fp.y,wr,WS,true,{t,lit:{at:lampW,k:.9*up},wet:up});
+  const tw=boatAt(el,t,300,{arm:[37,-30],lamp:fo>=0?1.2*Math.exp(-fo*.8):wk>0?-.3*wk:0}),lampW=tw([51,-18.5]);
+  placeWing(el,'bk-wF',fp.x,fp.y,wr,WS,true,{t});
   paintWake(el,'bk-wkF',fp.x-30,WP[1],up>.02?.4+.6*hump(clamp(up*1.4)):0,t,WS,7);
   const tip=wingPoint(fp.x,fp.y,wr,WS,true),spot=wingPoint(fp.x,fp.y,wr,WS,true,WHIT);
-  // 어둠: 명중 뒤 풀려 걷힘
-  const open=t>=HIT?inOut(seg(t,HIT+1.2,HIT+3.8)):0;
+  // 어둠: 감싸 오며 좁아짐 → 열면 빛이 밀어냄 → 접혀 사라지면 걷힘
   const lv=(lampLevel()/4*.45+.55)*(blind?.65:1);
-  const C=[(lampW[0]+fp.x)/2,lampW[1]-60],R=(290+30*Math.sin(t*1.7))*lv+open*1000;
-  paintDark(el,C,R,1-open*.95);
-  paintPool(el,[lampW[0]+60,SEA+8],220*lv,.85*(1-open*.6));
-  paintMotes(el,[C[0],C[1]+20],200*lv,t,1-open);
-  q('.bk-memb').setAttribute('opacity',n3(.55*(1-open)));
-  placeHole(el,open<1?{x:480+open*1700,y:140-open*140,rot:180-open*24,s:1.7}:null);
-  // 좁혀 오는 고리(미니게임)
+  const gone=fo>=0?inOut(seg(fo,2.2,3.4)):0;
+  const baseR=(290+30*Math.sin(t*1.7))*lv;
+  let R=baseR*(1-wk*.45);const R0w=baseR*.55;
+  if(fo>=0)R=lerp(R,520,outC(seg(fo,0,.35)))*(1-.7*inOut(seg(fo,.5,2.0)))+gone*1100;
+  const C=[lampW[0]+(fo>=0?0:(fp.x-lampW[0])*.5*(1-wk)),lampW[1]-40-(fo>=0?0:20*(1-wk))];
+  paintDark(el,C,R,(1-gone*.97)*(1-.1*wk));
+  paintPool(el,[lampW[0]+40,SEA+8],(220*lv)*(1-wk*.25)+(fo>=0?260*hump(seg(fo,0,1.6)):0),.85*(1-gone*.6));
+  paintMotes(el,[C[0],C[1]+20],Math.max(60,R*.7),t,1-gone);
+  q('.bk-memb').setAttribute('opacity',n3(.55*(1-gone)*(1-wk*.5)));
+  placeHole(el,gone<1?{x:480+gone*1700,y:140-gone*140,rot:180-gone*24,s:1.7}:null);
+  // 별 지도: 이음매(기억한 별 자리)가 감싸이며 하나씩 닫힘
+  const map=starMap();
+  const nS=Math.min(4,map.length),showS=(t>=wrapAt||wk>0)&&!(fo>.3);
+  qa('.bk-seam').forEach(e=>{const i=+e.dataset.i,p=map[i];if(!p||i>=nS||!showS){e.setAttribute('opacity','0');return;}
+   const at=(i+1)/nS,shut=wk>=at,near=clamp(1-(at-wk)*nS),flick=.75+.25*Math.sin(t*9+i*2);   // i번째 이음매는 wk=(i+1)/n에 닫힘 → 마지막은 정확히 closeAt
+   e.setAttribute('transform','translate('+n1(p[0])+' '+n1(p[1])+') scale('+n3(shut?.2:.9+.9*near)+')');
+   e.setAttribute('opacity',n3(shut?0:flick*(.55+.45*near)*Math.max(seg(t,wrapAt,wrapAt+.4),wk>0?1:0)));});
+  // 감싸는 날개들: 배를 둘러 안쪽으로 휘어 듦 → 빛을 감싸려 모여듦 → 뒤집혀 한 점으로 접힘
+  qa('.bk-ww').forEach(e=>{const i=+e.dataset.i,a=i/7*360+20*Math.sin(i*1.7),ar=a*RAD;
+   if(t<wrapAt&&wk<=0){e.setAttribute('opacity','0');return;}
+   // 날개 끝이 안쪽(등불)을 향함: 밑동은 빛의 둘레 밖, 끝은 빛 안으로 파고들어 실루엣으로만 보임
+   const sc0=.42;let sc=sc0,rr=lerp(760,R+150,outC(wk)),rot=a-90+14*Math.sin(t*1.1+i),op=t<wrapAt?clamp(wk*3):seg(t,wrapAt,wrapAt+.6);
+   if(fo>=0){const f0=outC(seg(fo,0,.3)),f1=inOut(seg(fo,.35,1.8)),f2=inC(seg(fo,1.8,2.3));
+    rr=lerp(lerp(R0w+150,R0w+300,f0),50,f1)*(1-f2);sc=lerp(sc0,.26,f1)*(1-f2);rot=a-90+f1*170+f2*240;op=1-seg(fo,2.2,2.5);}
+   const x=C[0]+Math.cos(ar)*rr,y=C[1]+Math.sin(ar)*rr*.8;
+   e.setAttribute('transform','translate('+n1(x)+' '+n1(y)+') rotate('+n1(rot)+') scale('+n3(sc)+')');e.setAttribute('opacity',n3(op));});
+  // 연 빛 · 감싸인 매듭 · 뒤집히는 섬광
+  const bu=q('.bk-burst'),kn=q('.bk-knot'),wh=q('.bk-white');
+  if(fo>=0){
+   const br=lerp(30,380,outC(seg(fo,0,.4)))*(1-.75*inOut(seg(fo,.5,1.9)))+240*inC(seg(fo,2.0,2.6));
+   bu.setAttribute('cx',n1(C[0]));bu.setAttribute('cy',n1(C[1]));bu.setAttribute('r',n1(br));bu.setAttribute('opacity',n3(1-seg(fo,2.6,3.4)));
+   const kr=lerp(0,70,seg(fo,1.2,1.8))*(1-inC(seg(fo,1.9,2.25)));
+   kn.setAttribute('cx',n1(C[0]));kn.setAttribute('cy',n1(C[1]));kn.setAttribute('r',n1(kr));kn.setAttribute('opacity',n3(kr>1?.95:0));
+   wh.setAttribute('cx',n1(C[0]));wh.setAttribute('cy',n1(C[1]));wh.setAttribute('r',n1(lerp(30,430,outC(seg(fo,2.05,2.6)))));wh.setAttribute('opacity',n3(.8*hump(seg(fo,2.05,2.9))));
+  }else{bu.setAttribute('opacity','0');kn.setAttribute('opacity','0');wh.setAttribute('opacity','0');}
+  // 좁혀 오는 고리(꿰어 붙들기 미니게임)
   const ring=q('.bk-ring');
   if(game&&!thrown&&!blind&&g.ringAt){const k=g.ringAt(t);
    if(k!=null){const r=16+160*Math.max(0,k);ring.setAttribute('cx',n1(spot[0]));ring.setAttribute('cy',n1(spot[1]));ring.setAttribute('r',n1(r));ring.setAttribute('opacity',n3(.95*clamp(1.2-Math.abs(k)*.4)));}
    else ring.setAttribute('opacity','0');}
   else ring.setAttribute('opacity','0');
-  // 작살: 특수 작살이면 발사대에서, 없으면 손으로
+  // 작살: 특수 작살이면 발사대에서, 없으면 손으로 · 망 개수에 따라 박히는 깊이
   const L=HL(),own=!!(L&&L.owned()),PC=L?L.pierce():{deep:0,pass:false,n:0};
   const hp=q('.bw-harpoon'),rope=q('.bw-rope');
   const hand=own?L.handFor(L.launch(el,tw,{loaded:!thrown}),30,-14):tw(thrown?[38,-24]:[33,-31]);
@@ -360,33 +400,34 @@ const S4={title:'날개 끝',dur:12,
   let pos=null,ang=0,show=0;
   if(!thrown){if(!own){pos=[hand[0]+20,hand[1]-14];ang=-30;show=1;}}
   else if(t<arrive){const u=(t-T0)/T4.fly,e=u*(.85+.15*u);pos=[p0[0]+(target[0]-p0[0])*e,p0[1]+(target[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((target[1]-p0[1])-4*LIFT*(1-2*e),target[0]-p0[0])/RAD;show=1;}
-  else if(hit){
+  else if(pinOK){
    const ea=Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0])/RAD;
-   if(PC.pass){const pa=L.passAngle(ea),dd=10+since*L.PASS_SPEED;ang=pa;pos=[target[0]+Math.cos(pa*RAD)*dd,target[1]+Math.sin(pa*RAD)*dd];show=pos[0]<W+260?1:0;}
+   if(PC.pass){const pa=L.passAngle(ea),dd=Math.min(10+since*L.PASS_SPEED,90);ang=pa;pos=[spot[0]+Math.cos(pa*RAD)*dd,spot[1]+Math.sin(pa*RAD)*dd];show=up>.05?1:0;} // 5망: 날개를 꿰뚫고 나가 밧줄로 걸림
    else{ang=ea;const dd=-8+PC.deep;pos=[spot[0]+Math.cos(ea*RAD)*dd,spot[1]+Math.sin(ea*RAD)*dd];show=up>.05?1:0;}
-  }else{const s=t-arrive,ea=Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0]);pos=[target[0]+Math.cos(ea)*s*500,target[1]+Math.sin(ea)*s*500+300*s*s];ang=ea/RAD+s*40;show=pos[1]<SEA+6?1:0;}
+  }else{const s=t-arrive,ea=Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0]);
+   if(pinFail==='tear'&&s<.7){ang=ea/RAD;pos=[target[0]+Math.cos(ea)*4,target[1]+Math.sin(ea)*4+40*seg(s,.4,.7)];show=1;}   // 1~2망: 얕게 박혔다가 찢겨 나감
+   else{const s2=pinFail==='tear'?s-.7:s,dir=pinFail==='bounce'?ea+Math.PI*.85:ea;pos=[target[0]+Math.cos(dir)*s2*420,target[1]+Math.sin(dir)*s2*420+320*s2*s2];ang=dir/RAD+s2*(pinFail?480:40);show=pos[1]<SEA+6?1:0;}}
   hp.setAttribute('opacity',String(show));
   if(pos)hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
-  if(L){L.bury(hp,hit&&t>=HIT&&!PC.pass?8-PC.deep:null);
-   L.paintHit(el,{s:t>=HIT?since:-1,p:target,ang:PC.pass?L.passAngle(ang):ang,tier:PC.n,through:110});}
-  const tipEl=hp.querySelector('.bw-tip');if(tipEl)tipEl.style.opacity=hit&&t>=HIT&&!PC.pass?'0':'1';
+  if(L){L.bury(hp,pinOK&&t>=HIT&&!PC.pass?8-PC.deep:null);
+   L.paintHit(el,{s:t>=HIT?since:pinFail&&thrown&&t>=arrive?t-arrive:-1,p:target,ang:PC.pass?L.passAngle(ang):ang,tier:PC.n,through:110});}
+  const tipEl=hp.querySelector('.bw-tip');if(tipEl)tipEl.style.opacity=pinOK&&t>=HIT&&!PC.pass?'0':'1';
   if(thrown&&pos&&show){const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&L?L.anchorLocal():[40,-9]);
-   const slack=t<arrive?36:hit?Math.max(4,26*Math.exp(-since*2))+Math.sin(t*2.4)*2:40;
+   const slack=t<arrive?36:pinOK?Math.max(2,26*Math.exp(-since*2))+Math.sin(t*2.4)*2:40;
    rope.setAttribute('d','M'+n1(an[0])+','+n1(an[1])+' Q'+n1((an[0]+tail[0])/2)+','+n1((an[1]+tail[1])/2+slack)+' '+n1(tail[0])+','+n1(tail[1]));
    rope.setAttribute('opacity','.85');}
   else rope.setAttribute('opacity','0');
-  // 솟을 때와 가라앉을 때 쏟아지는 물
   if(!S4._sp)S4._sp=dropParams(44,51,-160,-20,110,300);
-  const riseAt=game?(g.cycles&&g.cycles.length?g.cycles.filter(c=>c.start<=t).slice(-1)[0]:null):null;
-  const ds=game?(riseAt?t-riseAt.start:-1):t-T4.rise;
-  paintDrops(qa('.bk-splash circle'),S4._sp,fp.x-20,WP[1]-6,t>=HIT+1.8?t-HIT-1.8:ds,90,420);
+  const cyc=game&&g.cycles?g.cycles.filter(c=>c.start<=t).slice(-1)[0]:null;
+  const ds=game?(cyc?t-cyc.start:-1):t-T4.rise;
+  paintDrops(qa('.bk-splash circle'),S4._sp,fp.x-20,WP[1]-6,ds,90,420);
   if(!game)caption(el,S4.caps,t);
   veil(el,tr<.6?1-tr/.6:0);
  }};
 
 /* =================== 미니게임 화면 =================== */
 const LAMPCAP=['어둠이 수평선에서 밀려옵니다. 그것이 등불에 닿는 순간 덮개를 덮으십시오.','어둠이 다시 밀려옵니다. 닿는 순간 덮으십시오.','별이 꺼지며 다가옵니다. 등불을 지키십시오.','마지막 어둠입니다. 등불을 지키십시오.'];
-const GAMECAP=['','두 날개 사이의 별빛 아래에 배를 두십시오.','별이 꺼지는 맨 앞자리를 누르십시오.','어둠이 고동칠 때 등불을 흔들어 밀어내십시오.','날개 끝이 등불에 젖어 오르는 순간 작살을 던지십시오.'];
+const GAMECAP=['','두 날개 사이의 별빛 아래에 배를 두십시오.','별이 꺼지는 맨 앞자리를 누르십시오. 비춘 자리는 별 지도로 남습니다.','어둠이 고동칠 때 등불을 흔들어 밀어내십시오.','날개 끝이 등불에 젖어 오르는 순간 망을 감은 작살로 꿰어 붙드십시오.'];
 // 등불 덮기: 어둠의 앞자락이 수평선 왼쪽에서 밀려와 배를 지나감
 function lampGame(el,t,tr,g){
  ambient(el,t,0);twinkle(el,t);
@@ -475,11 +516,14 @@ function pulseGame(el,t,tr,g){
 }
 function finalGame(el,t,tr,g){
  S4.paint(el,t,t,g);
- const u=hud(el);
- setVerdict(u.verdict,g.flight&&t>=g.flight.arrive&&t<g.flight.arrive+1.2?(g.flight.hit?'명중':g.flight.blind?'어둠 속으로':'빗나감'):'',g.flight&&g.flight.hit?'good':'bad');
- setTxt(u.hint,g.hit||g.done||(g.thrownAt!=null&&g.flight&&t<g.flight.arrive+1)?'':g.blind?'등불이 꺼져 갑니다 · 날개 끝이 어디 있는지 보이지 않습니다':'좁혀 오는 고리가 날개 끝에 닿는 순간 누르십시오');
- u.hint.classList.toggle('now',!!(g.ringAt&&g.ringAt(t)!=null&&Math.abs(g.ringAt(t))<.12));
- caption(el,[[0,GAMECAP[4]]],0);
+ const u=hud(el),ph=g.phase;
+ const verdict=g.flash&&t-g.flash.at<1.1?g.flash:null;
+ setVerdict(u.verdict,verdict?verdict.text:'',verdict&&verdict.good?'good':'bad');
+ setTxt(u.hint,g.done||g.locked?'':g.blind?'등불이 꺼져 갑니다 · 날개 끝이 어디 있는지 보이지 않습니다':
+  ph==='wrap'?(t<g.closeAt-.8?'감싸여 옵니다 · 기억한 별 자리가 하나씩 닫힙니다 · 마지막 이음매가 닫히는 순간 누르십시오':'지금 · 등불을 엽니다'):
+  ph==='pin'&&g.thrownAt==null?'좁혀 오는 고리가 날개 끝에 닿는 순간 누르십시오 (작살로 꿰어 붙든다)':'');
+ u.hint.classList.toggle('now',ph==='wrap'?Math.abs(t-g.closeAt)<(g.openWin||.25):!!(g.ringAt&&g.ringAt(t)!=null&&Math.abs(g.ringAt(t))<.12));
+ caption(el,[[0,ph==='fold'?'그것이 빛마저 감싸려 듭니다. 제 안쪽까지 감싸다 뒤집혀 접힙니다.':ph==='wrap'||ph==='recoil'?'붙들린 그것이 배를 감싸 옵니다. 마지막 이음매가 닫히는 순간 등불을 여십시오.':GAMECAP[4]]],0);
 }
 /* ---------- HUD 도우미 ---------- */
 function hud(el){const {q}=cacheQ(el);return {hint:q('.bkg-hint'),verdict:q('.bkg-verdict'),pips:q('.bkg-pips'),count:q('.bkg-count'),bar:q('.bkg-bar'),time:q('.bkg-time')};}
@@ -536,5 +580,5 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 // 미니게임이 쓰는 기하
-API.geo={spotAt,cineHit:T4.throwAt+T4.fly};
+API.geo={spotAt,cineHit:T4.throwAt+T4.fly,cineOpen:T4.close};
 })();

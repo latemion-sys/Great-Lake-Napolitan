@@ -312,10 +312,41 @@ const S3={title:'드러난 붉은 등',loop:8.5,
 };
 
 /* =========================================================
-   ⑤ 작살과 물의 귀환 — 붉은 등이 가라앉고 선미 뒤로 꼬리 끝이 열림, 작살이 핵을 꿰뚫으면 물이 다시 차오름
+   ⑤ 작살과 물의 귀환 — 붉은 등이 가라앉고 선미 뒤로 꼬리 끝이 열림. 작살이 핵에 박혀 꽃잎이 닫히지 못하는 사이,
+   1~4단계에서 지켜 낸 숨(물기)을 열린 핵에 불어 넣는다. 모든 것을 말리는 것이 그 물기마저 말리려다 제 핵을 말려 버림 → 하얗게 갈라져 부스러짐
    ========================================================= */
-const S4={title:'작살과 물의 귀환',dur:11.5,
- caps:[[0,'붉은 등이 물 아래로 가라앉습니다. 배 뒤쪽의 물이 들썩입니다.'],[1.6,'선미 뒤 아지랑이 속에서 새빨간 꼬리 끝이 솟아오릅니다.'],[3.0,'고래의 꼬리가 열립니다!'],[3.7,'작살잡이가 선미에서 몸을 돌려 열린 꼬리 한가운데를 겨눕니다.'],[4.6,'작살이 꼬리 속의 붉은 핵을 꿰뚫습니다.'],[6.2,'팔과 꼬리 끝이 무너지고 열기가 물러납니다. 물이 천천히 다시 차오릅니다.']],
+const R4={HIT:4.45,DRY:7.25,puffs:[[4.95,5.3],[5.75,6.1],[6.55,6.9]]};
+function cineDry(t){
+ const P=R4.puffs.map(([at,arr])=>({at,arr,ok:true}));
+ let open=0;for(const p of P)open=Math.max(open,bell(t,p.arr-.38,p.arr-.16,p.arr+.22,p.arr+.5));
+ let dry=0;for(const p of P)dry+=outC(seg(t,p.arr,p.arr+.45))/P.length;
+ return {puffs:P,open:t<R4.HIT?0:.3+.7*open,dry,holding:t>4.75&&t<6.6&&!P.some(p=>t>=p.at&&t<p.at+.3)};
+}
+function breathMarkup(){let s='<g class="rw-breath">';for(let i=0;i<4;i++){s+='<g class="rw-puff" data-i="'+i+'">';for(let j=0;j<8;j++)s+='<ellipse data-j="'+j+'" rx="1" ry="1" fill="url(#rwMist)" opacity="0"/>';s+='</g>';}return s+'</g>';}
+// 지켜 낸 숨: 작살잡이의 입에서 핵까지 흐르는 젖은 김. ok면 핵에 스며들어 김이 솟고, 아니면 닫힌 꽃잎에 막혀 흩어짐
+function paintBreath(el,mouth,core,puffs,t){
+ const {qa}=cacheQ(el),G=qa('.rw-puff');
+ G.forEach((g,i)=>{const p=puffs[i],E=g._e||(g._e=Array.from(g.children));
+  if(!p||t<p.at||t>p.arr+1.1){E.forEach(e=>e.setAttribute('opacity','0'));return;}
+  const dur=p.arr-p.at,mid=[(mouth[0]+core[0])/2,Math.min(mouth[1],core[1])-50];
+  E.forEach((e,j)=>{const u=clamp((t-p.at)/dur-j*.07);
+   if(t<p.at+j*.07*dur){e.setAttribute('opacity','0');return;}
+   let x=(1-u)*(1-u)*mouth[0]+2*(1-u)*u*mid[0]+u*u*core[0],y=(1-u)*(1-u)*mouth[1]+2*(1-u)*u*mid[1]+u*u*core[1],r=5+13*u,o=.55*Math.sin(Math.min(1,u*1.2)*Math.PI*.5+.2);
+   const s2=t-p.arr;
+   if(s2>0){if(p.ok){r=r*(1-.7*seg(s2,0,.35));o*=1-seg(s2,0,.35);}       // 핵이 빨아들임
+    else{const a=j/8*TAU;x+=Math.cos(a)*s2*90;y+=Math.sin(a)*s2*60-40*s2;r+=s2*30;o*=1-seg(s2,0,.9);}}   // 막혀 흩어짐
+   e.setAttribute('cx',n1(x));e.setAttribute('cy',n1(y));e.setAttribute('rx',n1(r*1.25));e.setAttribute('ry',n1(r));e.setAttribute('opacity',n3(o));});});
+}
+function hissMarkup(){let s='<g class="rw-hiss">';for(let i=0;i<10;i++)s+='<ellipse data-i="'+i+'" rx="1" ry="1" fill="url(#rwMist)" opacity="0"/>';return s+'</g>';}
+function paintHiss(el,core,puffs,t){
+ const {qa}=cacheQ(el);let last=null;for(const p of puffs)if(p.ok&&t>=p.arr)last=p;
+ qa('.rw-hiss ellipse').forEach(e=>{const i=+e.dataset.i;if(!last){e.setAttribute('opacity','0');return;}
+  const s=t-last.arr-i*.06;if(s<0||s>1.6){e.setAttribute('opacity','0');return;}
+  const a=(-90+(i-4.5)*13)*RAD;e.setAttribute('cx',n1(core[0]+Math.cos(a)*s*70));e.setAttribute('cy',n1(core[1]+Math.sin(a)*s*110));
+  e.setAttribute('rx',n1(8+s*26));e.setAttribute('ry',n1(6+s*18));e.setAttribute('opacity',n3(.6*(1-s/1.6)));});
+}
+const S4={title:'작살과 물의 귀환',dur:R4.DRY+6.5,
+ caps:[[0,'붉은 등이 물 아래로 가라앉습니다. 배 뒤쪽의 물이 들썩입니다.'],[1.6,'선미 뒤 아지랑이 속에서 새빨간 꼬리 끝이 솟아오릅니다.'],[3.0,'고래의 꼬리가 열립니다!'],[3.7,'작살잡이가 선미에서 몸을 돌려 열린 꼬리 한가운데를 겨눕니다.'],[4.5,'작살이 핵에 박혀 꽃잎이 닫히지 못합니다.'],[4.95,'지켜 낸 숨을 열린 핵에 불어 넣습니다.'],[6.0,'모든 것을 말리는 것이, 그 물기마저 말리려 듭니다. 제 핵을 말리고 있습니다.'],[R4.DRY,'핵이 하얗게 갈라져 부스러집니다.'],[R4.DRY+1.6,'팔과 꼬리 끝이 무너지고 열기가 물러납니다. 물이 천천히 다시 차오릅니다.']],
  build(){
   let sparks='<g class="rw-sparks" stroke="#ffd9c0" stroke-linecap="round" opacity="0">';
   const r=seeded(81);for(let i=0;i<20;i++){const a=r()*TAU;sparks+='<path data-a="'+n3(a)+'" data-v="'+n1(60+r()*150)+'" stroke-width="'+n1(1+r()*1.6)+'"/>';}
@@ -330,41 +361,48 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
    rwBoat()+
    '<path class="bw-rope" fill="none" stroke="#8a7d7a" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
    '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+
+   '<defs><radialGradient id="rwMist"><stop stop-color="#f4fbff" stop-opacity=".95"/><stop offset=".5" stop-color="#d8ecf6" stop-opacity=".45"/><stop offset="1" stop-color="#c2dceb" stop-opacity="0"/></radialGradient></defs>'+
+   breathMarkup()+hissMarkup()+
    '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+sparks+(window.HarpoonLauncher?window.HarpoonLauncher.hitMarkup():'')+
-   drops('rw-blood',26,83,'#1e0206')+drops('rw-mud',40,87,'#d9b8ae')+
+   drops('rw-blood',26,83,'#1e0206')+drops('rw-mud',40,87,'#d9b8ae')+drops('rw-flake',36,95,'#f3ead9')+
    nearMist()+'</g>';
  },
- paint(el,tReal,tr){
+ // X(선택): 미니게임에서 넘겨주는 말리기 상태(시각은 이 장면의 시간으로 옮겨 둠) {puffs,open,dry,holding,noCollapse}
+ paint(el,tReal,tr,X){
   const {q,qa}=cacheQ(el);
-  const t=Math.min(tReal,this.dur);
-  const T0=3.95,HIT=4.45,TX=150;
-  const level=1-inOut(seg(t,6.0,10.0));
+  const t=X?tReal:Math.min(tReal,this.dur);
+  const T0=3.95,HIT=R4.HIT,TX=150,DRY=X&&X.noCollapse?1e9:R4.DRY;
+  const D=X||cineDry(t);
+  const level=1-inOut(seg(t,DRY+1.6,DRY+5.6));
   haze(el,t<HIT?.35+.55*seg(t,3.0,3.6):1,tr);
   paintBed(el,tr,level);
-  wither(el,1-seg(t,8,10.5));
+  wither(el,1-seg(t,DRY+3,DRY+6.3));
   // 머리: 바닥 아래로 가라앉음
   const hsink=inOut(seg(t,0,1.6)),hd=q('.rw-hd');
   hd.style.display=hsink>=1?'none':'';
   if(hsink<1){hd.setAttribute('transform','translate(600 '+n1(SEA+220+hsink*260)+') scale(.8)');paintHead(hd,tr,{open:0,glow:0,look:[-6,5]});}
   // 꼬리: 선미 뒤에서 솟아 열림 → 작살 → 경련 → 무너짐
-  const rise=outC(seg(t,1.5,3.0)),open=inOut(seg(t,3.0,3.6))*(1-.75*seg(t,HIT+.1,HIT+.6));
-  const hit=t-HIT,limp=seg(t,HIT+.8,HIT+2.2),fall=inOut(seg(t,HIT+1.2,HIT+3.2));
-  const spasm=hit>0?Math.exp(-hit*2.5)*Math.sin(hit*30)*10:0;
+  const rise=outC(seg(t,1.5,3.0));
+  const open=t<HIT?inOut(seg(t,3.0,3.6)):Math.max(D.open,(1-seg(t,HIT+.1,HIT+.6))*1)*(1-seg(t,DRY+.2,DRY+1.2)*.7);
+  const hit=t-HIT,limp=seg(t,DRY+.3,DRY+1.7),fall=inOut(seg(t,DRY+.8,DRY+2.8));
+  let spasm=hit>0?Math.exp(-hit*2.5)*Math.sin(hit*30)*10:0;
+  for(const p of D.puffs)if(p.ok&&t>p.arr)spasm+=Math.exp(-(t-p.arr)*4)*Math.sin((t-p.arr)*36)*5;
+  const dryK=t<HIT?0:D.dry,crumble=seg(t,DRY,DRY+1.1);
   const tg=q('.rw-tailg');
   const ty=SEA+60+(1-rise)*300+fall*520;
   tg.setAttribute('transform','translate('+n1(TX+spasm*.5)+' '+n1(ty)+') rotate('+n1(-fall*25+Math.sin(tr*1.3)*2*(1-limp))+') scale(.85)');
-  tg.style.opacity=n3(1-seg(t,HIT+2.6,HIT+3.4));
+  tg.style.opacity=n3(1-seg(t,DRY+2.2,DRY+3.0));
   q('.rw-tclip').setAttribute('height',n1(SEA+70));
-  const tipL=paintTail(tg.querySelector('.rw-tail'),{h:210,open,pulse:.5+.5*Math.sin(tr*7),sway:Math.sin(tr*1.1)*14*(1-limp)+spasm,limp,t:tr});
+  const tipL=paintTail(tg.querySelector('.rw-tail'),{h:210,open,pulse:.5+.5*Math.sin(tr*7),sway:Math.sin(tr*1.1)*14*(1-limp)+spasm,limp,t:tr,dry:dryK,crumble});
   const ang0=(-fall*25+Math.sin(tr*1.3)*2*(1-limp))*RAD,c0=Math.cos(ang0),s0=Math.sin(ang0);
   const core=[TX+spasm*.5+.85*(tipL[0]*c0-tipL[1]*s0),ty+.85*(tipL[0]*s0+tipL[1]*c0)];
-  const th=q('.rw-thole');th.setAttribute('cx',n1(TX));th.setAttribute('cy',n1(SEA+60));th.setAttribute('opacity',n3(seg(t,1.4,1.8)*(1-seg(t,6,7.5))*.85));
+  const th=q('.rw-thole');th.setAttribute('cx',n1(TX));th.setAttribute('cy',n1(SEA+60));th.setAttribute('opacity',n3(seg(t,1.4,1.8)*(1-seg(t,DRY+1.8,DRY+3.3))*.85));
   if(!this._md)this._md=dropParams(40,91,-160,-20,90,300);
   paintDrops(qa('.rw-mud circle'),this._md,TX,SEA+50,t-1.5,120,460);
   // 팔: 핵이 꿰뚫리면 힘이 빠짐
   [[0,[700,SEA+120],-118,-50,-1],[1,[880,SEA+80],-108,-55,-1]].forEach(([i,b,a,e,sd])=>{
-   const f=seg(t,HIT+.2,HIT+2.0),rr=1-inC(f);
-   paintGroundArm(el,'ka'+i,armPose(b,rr,{a:a+sd*f*30+Math.sin(tr*1.2+i)*4,e:e*(1-f*.5),wr:sd*(20+f*30),L1:160,L2:150,w:44,side:sd,grip:.3*(1-f),spread:1.2-f*.6}),b[1],rr>.02?1-seg(t,6.4,7.4):0);
+   const f=seg(t,DRY+.2,DRY+2.0),rr=1-inC(f);
+   paintGroundArm(el,'ka'+i,armPose(b,rr,{a:a+sd*f*30+Math.sin(tr*1.2+i)*4,e:e*(1-f*.5),wr:sd*(20+f*30),L1:160,L2:150,w:44,side:sd,grip:.3*(1-f),spread:1.2-f*.6}),b[1],rr>.02?1-seg(t,DRY+.9,DRY+2):0);
   });
   // 배: 선미가 꼬리 쪽(왼쪽). 작살잡이가 몸을 돌려 선미 너머로 던짐
   const turn=seg(t,3.5,3.8),thrown=t>=T0;const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const PC=HL?HL.pierce():{deep:0,pass:false,n:0};
@@ -397,10 +435,13 @@ const S4={title:'작살과 물의 귀환',dur:11.5,
    p.setAttribute('d','M'+n1(core[0]+Math.cos(a)*d1)+','+n1(core[1]+Math.sin(a)*d1*.8)+' L'+n1(core[0]+Math.cos(a)*d2)+','+n1(core[1]+Math.sin(a)*d2*.8));});
   if(!this._bl)this._bl=dropParams(26,85,-200,20,80,260);
   paintDrops(qa('.rw-blood circle'),this._bl,core[0],core[1],hit,10,480);
-  const shake=hit>0&&hit<.5?(1-hit/.5)*4:(t>1.5&&t<2.6?Math.sin(t*40)*1.5:0);
+  // 숨을 불어 넣음 · 핵에서 솟는 김 · 하얗게 부스러지는 조각
+  paintBreath(el,tw([22,-44]),core,D.puffs,t);paintHiss(el,core,D.puffs,t);
+  if(!this._fk)this._fk=dropParams(36,97,-170,-10,40,190);
+  paintDrops(qa('.rw-flake circle'),this._fk,core[0],core[1],t-DRY-.1,40,260);
+  const shake=hit>0&&hit<.5?(1-hit/.5)*4:t>DRY&&t<DRY+.6?(1-(t-DRY)/.6)*3:(t>1.5&&t<2.6?Math.sin(t*40)*1.5:0);
   q('.rw-root').setAttribute('transform',shake?'translate('+n1(Math.sin(t*90)*shake)+' '+n1(Math.cos(t*77)*shake*.6)+')':'');
-  caption(el,this.caps,t);
-  veil(el,tReal<.6?1-tReal/.6:0);
+  if(!X){caption(el,this.caps,t);veil(el,tReal<.6?1-tReal/.6:0);}
  }
 };
 
@@ -501,7 +542,16 @@ function parryGame(el,t,tr,g){
 /* ⑤ 꼬리: 리듬에 맞춰 열리고 닫힘. 작살이 날아가는 동안 열려 있어야 꽂힘 */
 function tailGame(el,t,tr,g){
  const {q,qa}=cacheQ(el);
- if(g.hitAt!=null&&t>=g.hitAt){S4.paint(el,4.45+(t-g.hitAt),tr);hudTail(el,t,g);return;}
+ // 셋째 숨이 스며든 뒤: 시네마틱으로 이어짐(핵이 갈라져 부스러짐 → 물의 귀환)
+ if(g.dryAt!=null&&t>=g.dryAt){const ct=R4.puffs[2][1]+(t-g.dryAt);S4.paint(el,ct,tr);hudTail(el,t,g);caption(el,S4.caps,ct);veil(el,0);return;}
+ // 작살이 꽂힌 뒤: 숨을 불어 넣는 동안(장면 시간으로 옮겨 그림)
+ if(g.hitAt!=null&&t>=g.hitAt){
+  const sh=R4.HIT-g.hitAt,need=g.need||3;let dry=0;
+  for(const p of g.puffs||[])if(p.ok)dry+=outC(seg(t,p.arr,p.arr+.45))/need;
+  const P=(g.puffs||[]).slice(-4).map(p=>({at:p.at+sh,arr:p.arr+sh,ok:p.ok}));
+  S4.paint(el,R4.HIT+(t-g.hitAt),tr,{puffs:P,open:g.dryOpen?g.dryOpen(t):.5,dry,holding:g.holding,noCollapse:true});
+  hudTail(el,t,g);veil(el,0);return;
+ }
  const TX=150,level=1;
  paintBed(el,tr,level);wither(el,1);
  // 숨을 참는 동안에만 아지랑이가 걷혀 꼬리 끝이 보임. 숨이 말랐으면 걷히지 않음
@@ -554,6 +604,16 @@ function tailGame(el,t,tr,g){
 }
 function hudTail(el,t,g){
  const u=rhud(el),F=g.flight;
+ if(g.phase==='dry'){
+  const lp=(g.puffs||[]).slice(-1)[0],recent=lp&&t>=lp.arr&&t<lp.arr+1.1;
+  setVerdict(u.verdict,g.dryAt!=null&&t>=g.dryAt?(t<g.dryAt+1.6?'말라 갈라짐':''):recent?(lp.ok?'스며듦':'흩어짐'):'',recent&&!lp.ok?'bad':'good');
+  const left=(g.breaths||0)-(g.given||0)-(g.wasted||0),open=g.dryOpen?g.dryOpen(t):0;
+  setTxt(u.hint,g.dryAt!=null||g.done?'':g.holding?(open>.6?'지금 · 떼며 숨을 불어 넣으십시오':'숨을 모으는 중 · 핵이 열리는 순간 떼십시오'):'누르고 숨을 모으십시오 · 불어 넣은 숨 '+(g.given||0)+' / '+(g.need||3)+' · 남은 숨 '+left);
+  u.hint.classList.toggle('now',!!(g.holding&&open>.6));
+  setPips(u.pips,g.need||3,g.given||0);
+  caption(el,[[0,'작살이 꽃잎을 받쳐 핵이 닫히지 못합니다. 지켜 낸 숨을 열린 핵에 불어 넣으십시오.']],0);
+  return;
+ }
  setVerdict(u.verdict,F&&t>=F.arrive&&t<F.arrive+1.2?(F.hit?'명중':F.crumble?'말라 부서짐':'튕겨 나감'):'',F&&F.hit?'good':'bad');
  setTxt(u.hint,g.hitAt!=null?'':F&&t<F.arrive?'':t<1.2?'열기 속에서 무언가가 솟아오릅니다':
   g.dried?(g.holding?'숨이 말라 아지랑이가 걷히지 않습니다':'숨이 말랐습니다 · 누르고 떼면 던집니다'):

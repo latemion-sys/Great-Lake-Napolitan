@@ -87,7 +87,7 @@ var TOOLBAR=[
 '<button type="button" data-t="shop1">항구 상점 · 수련</button>',
 '<span style="width:10px"></span>',
 '<span style="font-size:12px;color:#c4d0dc">사냥 중간 단계에 두른 망</span>',
-'<button type="button" data-m="0">0</button><button type="button" data-m="3" class="on">3</button><button type="button" data-m="4">4</button><button type="button" data-m="5">5</button>',
+'<button type="button" data-m="0">0</button><button type="button" data-m="1">1</button><button type="button" data-m="2">2</button><button type="button" data-m="3" class="on">3</button><button type="button" data-m="4">4</button><button type="button" data-m="5">5</button>',
 '</div><div class="note">테스트 전용 페이지입니다. 진짜 저장 데이터와 업적에는 영향을 주지 않으며, 새로고침하면 처음 상태로 돌아갑니다. 1단계는 아군 전투력에 따라 난이도가 달라지므로 명중 확률 기준을 골라 바꿔 볼 수 있습니다. 조우 장면에서는 직접 망 개수를 고르고, 사냥 중간 단계 버튼은 위에서 고른 망 개수를 두른 상태로 시작합니다. 피해 무시는 선장 정신력에는 적용되지 않습니다.</div></div>'
 ].join('\n');
 
@@ -97,7 +97,7 @@ var CONTROL=[
 ' var P=0.25,M=3;',
 ' function closeModals(){Array.prototype.forEach.call(document.querySelectorAll("button"),function(b){if(b.textContent.indexOf("창 닫기")>=0)b.click();});}',
 ' function base(){',
-'  closeModals();state.redWhaleFinal023=false;state.blueWhaleFinalStage=false;state.blackWhaleFinal=false;state.pallidHunt161=null;',
+'  closeModals();state.redWhaleFinal023=false;state.blueWhaleFinalStage=false;state.blackWhaleFinal=false;state.blackDefer=false;state.blackKill=false;state.pallidHunt161=null;',
 '  state.sea=true;if(state.current==null)state.current=(state.offered&&state.offered[0])||1;',
 '  state.hull=100;state.mind=100;state.exposure=0;state.pallor155=0;state.pallorWard=5;state.pallidVictory162=false;state.grade=Math.max(state.grade||0,5);state.calamityHarpoon={damaged:false};',
 '  state.captainMind=100;state.egoBloomed=true;state.egoName=state.egoName||"시험용 E.G.O";state.shinOpen=true;state.shinLevel=5;state.mindJudge=null;state.mangActive=M;state.gold=Math.max(state.gold||0,1000);',

@@ -8,7 +8,14 @@
    ② 닫히는 날개   : ← → 로 배를 옮겨 두 날개 사이 별빛 아래에 머묾 × 2
    ③ 꺼지는 별     : 머리 위로 별이 꺼져 가는 맨 앞(날개 끝)을 눌러 등불로 비춤 × 3
    ④ 감싸인 배     : 어둠이 고동치며 등불 둘레를 조일 때 박자 맞춰 등불을 흔듦 × 8
-   ⑤ 날개 끝       : 등불에 젖어 오르는 날개 끝에 좁혀 오는 고리가 닿는 순간 작살
+   ⑤ 날개 끝       : 작살 한 방으로는 쓰러지지 않는다. 개념이 부딪히는 방식으로 스스로를 감싸게 만든다.
+                     ⓐ 붙들기 : 좁혀 오는 고리가 날개 끝에 닿는 순간 망을 감은 작살로 꿰어 붙듦
+                               (망 0개는 튕겨 나가고, 1~2개는 얕게 박혔다 찢겨 나감 → 실패. 망 3개 이상이어야 붙듦)
+                     ⓑ 감싸기 : 붙들린 그것이 배를 통째로 감싸 옴. 3단계에서 비춘 별 자리(별 지도)가 하나씩 닫힘
+                     ⓒ 열기   : 마지막 이음매가 닫히는 바로 그 순간 덮어 두었던 등불을 한꺼번에 염
+                               (일찍 열면 빛이 새어 그것이 물러났다 다시 감싸 옴, 늦으면 감싸여 버림 → 실패)
+                     ⓓ 접힘   : 안쪽에서 커지는 빛마저 감싸려다 제 안쪽까지 감싸고, 뒤집혀 한 점으로 접혀 사라짐
+                     특수 조건: 등불 3개 이상(2개 이상 잃으면 빛이 없어 날개 끝을 볼 수 없음) · 3단계 별 지도 · 망 3개 이상
    미니게임마다 실패는 한 번까지: 첫 실패는 피해를 입고 다시, 두 번째 실패는 사망(5망은 한 번 더).
    고래 전투는 기존 'whale' 전투(유효 타격 4)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
 (function(){
@@ -19,7 +26,7 @@ const LAMP={edgeMin:2.4,edgeRand:.8,win:.3};
 const GAP={need:2,limit:7.5,fill:2.6,speed:330};
 const STARS={need:3,dur:2.6,gap:.9,radius:88};
 const PULSE={need:8,first:1.8,min:1.05,rand:.3,win:.2,missCap:3};
-const FINAL={rise:.55,hold:1.1,fall:.5,toTarget:1.05,win:.2,fly:.45,cineHit:3.05};
+const FINAL={rise:.55,hold:1.1,fall:.5,toTarget:1.05,win:.2,fly:.45,cineHit:3.05,wrapDelay:1.0,wrapDur:3.4,openWin:.25,fold:3.6,cineOpen:7.6};
 const G=window.BlackHuntGame=window.BlackHuntGame||{mode:null};
 
 /* ---------- 등불 기록: state.blackLamp = {done:[4], rec:['kept'|'early'|'late'...]} ---------- */
@@ -65,7 +72,8 @@ function syncGame(){
   if(mode==='stars')Object.assign(G,{need:STARS.need,caught:0,pass:null,nextAt:1.2});
   if(mode==='pulse'){const beats=[];let b=PULSE.first;for(let i=0;i<40;i++){beats.push({t:b,judged:false});b+=PULSE.min+Math.random()*PULSE.rand;}
    Object.assign(G,{need:PULSE.need,beats,beatsOk:0,misses:0,radius:200,win:PULSE.win*G.ease,nextBeat:beats[0].t});}
-  if(mode==='final'){Object.assign(G,{blind:blind(),cycles:[],thrownAt:null,flight:null,hit:false,win:FINAL.win*G.ease,target:null});addCycle(1.6+Math.random()*.6);
+  if(mode==='final'){Object.assign(G,{blind:blind(),cycles:[],thrownAt:null,flight:null,hit:false,pinFail:null,phase:'pin',wrapStart:null,closeAt:null,openAt:null,
+    openWin:FINAL.openWin*G.ease*(lampLevel()>=4?1.2:1),win:FINAL.win*G.ease,target:null});addCycle(1.6+Math.random()*.6);
    G.wingUp=wingUp;G.ringAt=ringAt;}
  }
  G.lampLevel=lampLevel();
@@ -156,7 +164,9 @@ function starsClick(x,y){
  const tip=p.tipAt(t),hit=Math.hypot(tip[0]-x,tip[1]-y)<=STARS.radius*(G.ease||1);
  G.lastClick={at:t,p:[x,y],hit};p.done=true;
  if(hit){G.caught++;
-  if(G.caught>=G.need){setText('세 번 비췄습니다 · 꺼진 별이 돌아오지 않습니다. 하늘 전체가 감싸이기 시작합니다.');finish(1.4);}
+  // 별 지도: 비춘 날개 끝 자리를 기억 → 5단계에서 감싸 올 때 닫히는 이음매가 됨
+  const r=ensureBl();if(!Array.isArray(r.stars))r.stars=[];r.stars.push([Math.round(Math.max(60,Math.min(900,tip[0]))),Math.round(Math.max(60,Math.min(250,tip[1])))]);if(r.stars.length>4)r.stars=r.stars.slice(-4);
+  if(G.caught>=G.need){setText('세 번 비췄습니다 · 꺼진 별 자리를 기억해 둡니다(별 지도). 하늘 전체가 감싸이기 시작합니다.');finish(1.4);}
   else setText('등불이 날개 끝을 비췄습니다 · 젖은 가장자리가 한 번 빛났습니다. ('+G.caught+' / '+G.need+')');
   p.end=t+.25;
  }else{
@@ -202,9 +212,14 @@ function wingUp(t){
 }
 function ringAt(t){const c=cycleAt(t);if(!c||t>c.ti+.35)return null;return (c.ti-t)/FINAL.toTarget;}
 function spotAt(t){const V=window.BlackWhaleV3;return V&&V.geo?V.geo.spotAt(t,wingUp(t)):[620,180];}
+function mangRings(){return window.CalamityMang?CalamityMang.rings():0;}
+function actLabel(t){const e=document.getElementById('bkgAct');if(e)e.textContent=t;}
+function startWrap(at){G.phase='wrap';G.wrapStart=at;if(G.wrap0==null)G.wrap0=at;G.closeAt=at+FINAL.wrapDur;G.openAt=null;actLabel('등불을 연다');}
 function finalPress(){
- if(G.mode!=='final'||G.done||G.locked||G.thrownAt!=null)return;
+ if(G.mode!=='final'||G.done||G.locked)return;
  const t=now();if(t<1.0)return;
+ if(G.phase==='wrap')return openPress(t);
+ if(G.thrownAt!=null)return;
  if(G.blind){
   G.thrownAt=t;G.hit=false;G.target=[720,SEA-140];G.flight={at:t,arrive:t+FINAL.fly,hit:false,blind:true};
   setText('작살이 어둠 속으로 사라집니다 · 날개 끝을 비출 빛이 없었습니다.');
@@ -215,26 +230,56 @@ function finalPress(){
   return;
  }
  const c=cycleAt(t);if(!c)return;          // 날개 끝이 보이지 않을 때는 던지지 않음
- const arrive=t+FINAL.fly,hit=Math.abs(t-c.ti)<=G.win;
- G.thrownAt=t;G.hit=hit;G.target=spotAt(arrive);G.flight={at:t,arrive,hit};
- if(hit){
+ const arrive=t+FINAL.fly,timed=Math.abs(t-c.ti)<=G.win,rings=mangRings();
+ const pinned=timed&&rings>=3;
+ G.thrownAt=t;G.hit=pinned;G.pinFail=timed&&!pinned?(rings<=0?'bounce':'tear'):null;
+ G.target=spotAt(arrive);G.flight={at:t,arrive,hit:pinned};
+ if(pinned){
   G.hitAt=arrive;
-  if(window.BlackWhaleV3)window.BlackWhaleV3.resume={stage:4,start:G.t0+arrive*1000-((window.BlackWhaleV3.geo&&window.BlackWhaleV3.geo.cineHit)||FINAL.cineHit)*1000};
-  setText('날개 끝이 등불에 젖은 순간, 작살이 꽂힙니다!');
-  G.done='ok';busy=true;
-  const extra=window.CalamityMang&&CalamityMang.rings()>=3?(CalamityMang.rings()>=5?1.1:.7):0;
-  G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isBlackBattle()){G.mode=null;return;}G.mode=null;resolveCoin(true);},(FINAL.fly+1.6+extra)*1000);
- }else{
+  setText('망을 감은 작살이 날개 끝을 꿰어 붙듭니다! · 붙들린 그것이 배를 감싸 오기 시작합니다.');
   G.locked=true;
-  setTimeout(()=>{if(G.mode!=='final'||G.done){G.locked=false;return;}
-   const ok=fail(4,5,'작살이 날개 끝을 비껴 어둠 속으로 떨어졌습니다.','빗나갔습니다 · 고리가 날개 끝에 닿는 순간을 노리십시오.','빗나갔습니다 · 날개가 배 위로 휘어 덮칩니다.');
-   setTimeout(()=>{G.locked=false;if(ok&&G.mode==='final'&&!G.done){G.thrownAt=null;G.flight=null;G.hit=false;}},900);
-  },FINAL.fly*1000);
+  setTimeout(()=>{G.locked=false;if(G.mode==='final'&&!G.done)startWrap(now()+Math.max(0,arrive+FINAL.wrapDelay-now()));},FINAL.fly*1000+200);
+  return;
  }
+ G.locked=true;
+ setTimeout(()=>{if(G.mode!=='final'||G.done){G.locked=false;return;}
+  const ok=G.pinFail==='bounce'
+   ?fail(4,5,'작살 끝이 날개 끝에 닿았지만 튕겨 나왔습니다. 맨 작살로는 그것의 가장자리를 붙들 수 없습니다.','튕겨 나왔습니다 · 망을 감지 않은 작살은 날개 끝에 박히지 않습니다(망 3개 이상 필요)','튕겨 나온 작살 너머로 날개가 배 위로 휘어 덮칩니다.')
+   :G.pinFail==='tear'
+   ?fail(4,5,'작살이 얕게 박혔지만 날개 끝이 몸을 비틀자 찢겨 나왔습니다. 망 '+mangRings()+'개로는 붙들 수 없습니다.','찢겨 나왔습니다 · 망 '+mangRings()+'개로는 붙들 수 없습니다(망 3개 이상 필요)','찢겨 나온 작살과 함께 날개가 배 위로 휘어 덮칩니다.')
+   :fail(4,5,'작살이 날개 끝을 비껴 어둠 속으로 떨어졌습니다.','빗나갔습니다 · 고리가 날개 끝에 닿는 순간을 노리십시오.','빗나갔습니다 · 날개가 배 위로 휘어 덮칩니다.');
+  setTimeout(()=>{G.locked=false;if(ok&&G.mode==='final'&&!G.done){G.thrownAt=null;G.flight=null;G.hit=false;G.pinFail=null;}},G.pinFail==='tear'?1300:900);
+ },FINAL.fly*1000);
+}
+// 감싸 오는 동안: 마지막 이음매가 닫히는 순간 등불을 연다
+function openPress(t){
+ if(t<G.wrapStart+.3)return;
+ const d=t-G.closeAt;
+ if(Math.abs(d)<=G.openWin){
+  G.openAt=t;G.phase='fold';G.done='ok';busy=true;actLabel('등불이 열렸습니다');
+  G.flash={at:t,text:'열림',good:true};
+  if(window.BlackWhaleV3){const V=window.BlackWhaleV3;V.resume={stage:4,start:G.t0+t*1000-((V.geo&&V.geo.cineOpen)||FINAL.cineOpen)*1000};}
+  setText('마지막 이음매가 닫히는 순간 등불을 열었습니다 · 그것이 빛마저 감싸려 들다 제 안쪽까지 감싸고, 뒤집혀 접힙니다.');
+  G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isBlackBattle()){G.mode=null;return;}G.mode=null;resolveCoin(true);},FINAL.fold*1000);
+  return;
+ }
+ if(d<0)wrapFail(t,'early');
+}
+function wrapFail(t,why){
+ G.flash={at:t,text:why==='early'?'일찍 엶':'감싸임',good:false};
+ // 물러났다가(이미 닫힌 만큼 다시 벌어짐) 1.6초 뒤 처음부터 다시 감싸 옴
+ G.recoilAt=t;G.recoilK=Math.max(0,Math.min(1,(t-G.wrapStart)/(G.closeAt-G.wrapStart)));
+ G.wrapStart=t+1.6;G.closeAt=G.wrapStart+FINAL.wrapDur;
+ G.phase='recoil';G.locked=true;actLabel('등불을 연다');
+ const ok=why==='early'
+  ?fail(5,6,'이음매가 다 닫히기 전에 등불을 열었습니다. 빛이 틈으로 새어 나가고 그것이 물러났다가 다시 감싸 옵니다.','일찍 열었습니다 · 기억한 별 자리가 모두 닫히는 순간까지 기다리십시오','틈으로 새어 나간 빛을 따라 그것이 배를 다시 감쌉니다.')
+  :fail(5,6,'마지막 이음매가 닫힌 뒤에도 등불을 열지 못했습니다. 안쪽까지 감싸여 숨이 막힙니다.','늦었습니다 · 마지막 별 자리가 닫히는 바로 그 순간 여십시오','등불을 연 손마저 감싸여 버렸습니다.');
+ setTimeout(()=>{G.locked=false;if(ok&&G.mode==='final'&&!G.done)G.phase='wrap';},1000);
 }
 function finalTick(t){
  const last=G.cycles[G.cycles.length-1];
- if(t>last.end-.5)addCycle(last.end+1.0+Math.random()*.7);
+ if(G.phase==='pin'&&t>last.end-.5)addCycle(last.end+1.0+Math.random()*.7);
+ if(G.phase==='wrap'&&!G.locked&&t>G.closeAt+G.openWin)wrapFail(t,'late');
 }
 
 let lastTick=0;
@@ -275,9 +320,9 @@ function gamePanel(mode){
   '<button type="button" class="danger bkg-big" id="bkgAct">등불을 흔든다</button>');
  if(mode==='final')return panel(5,'날개 끝',
   G.blind?'등불이 거의 꺼졌습니다. 빛의 둘레 밖 어딘가에서 물이 갈라지는 소리만 들립니다. 날개 끝이 어디 있는지 보이지 않습니다.'
-   :'빛의 가장자리에서 물이 검게 솟더니 날개 끝이 휘어 오릅니다. 등불이 닿는 밑면만 젖어 빛납니다. 좁혀 오는 고리가 날개 끝에 닿는 순간 작살을 던지십시오.',
-  '좁혀 오는 고리가 날개 끝에 닿는 순간 누르기(스페이스 / 이펙트 화면 / 아래 버튼) · 날개 끝이 내려가면 다시 오를 때를 기다림 · 빗나가면 실패',
-  '<button type="button" class="danger bkg-big" id="bkgAct">작살을 던진다</button>');
+   :'빛의 가장자리에서 검은 날개 끝이 휘어 오릅니다. 작살 한 방으로 쓰러질 것이 아닙니다. 날개 끝을 꿰어 붙들면 그것은 배를 통째로 감싸 옵니다. 그때 기억해 둔 별 자리가 모두 닫히는 순간 덮어 두었던 등불을 열면, 그것은 안에서 커지는 빛마저 감싸려다 제 안쪽까지 감싸 버립니다.',
+  '① 고리가 날개 끝에 닿는 순간 누르기 — 망을 감은 작살로 꿰어 붙듦(망 3개 이상 · 0개는 튕기고 1~2개는 찢겨 나감) ② 감싸 오는 동안 별 자리(3단계에서 비춘 곳)가 하나씩 닫힘 — 마지막이 닫히는 순간 누르기(일찍 · 늦게 열면 실패) · 스페이스 / 이펙트 화면 / 아래 버튼 · 지금 망 '+mangRings()+'개',
+  '<button type="button" class="danger bkg-big" id="bkgAct">'+(G.phase==='wrap'||G.phase==='recoil'?'등불을 연다':'작살을 던진다')+'</button>');
  return '';
 }
 function sceneMarkup(n,game,lampW){return window.BlackWhaleV3?window.BlackWhaleV3.html(n,lampW?{lamp:true}:game?{game:true}:null):'';}
@@ -292,7 +337,7 @@ renderPlay=function(){
  if(n===4&&!isBlackBattle()){
   return sceneMarkup(4)+
    '<div class="inset"><h2>'+esc(WHALES[BLACK].name)+' · 사냥 성공</h2>'+
-   '<p>등불에 젖어 오른 날개 끝을 작살이 꿰뚫었습니다. 감싸던 것이 소리 없이 풀리고, 어둠이 걷혀 갑니다. 지워졌던 별이 하나씩, 물빛이 한 줄씩 돌아옵니다. 그것의 온몸이 어떤 모양이었는지는 끝내 아무도 보지 못했습니다. 다만 별이 지워졌던 자리가 커다란 날개 같았다고들 말합니다.</p>'+
+   '<p>망을 감은 작살로 날개 끝을 붙들자 그것은 배를 통째로 감싸 왔습니다. 마지막 별 자리가 닫히는 순간 등불을 열자, 그것은 안에서 커지는 빛마저 감싸려 들다 제 안쪽까지 감싸 버렸고, 뒤집혀 한 점으로 접혀 사라졌습니다. 지워졌던 별이 하나씩, 물빛이 한 줄씩 돌아옵니다. 그것의 온몸이 어떤 모양이었는지는 끝내 아무도 보지 못했습니다. 다만 별이 지워졌던 자리가 커다란 날개 같았다고들 말합니다.</p>'+
    '<p class="muted">전리품과 사냥 업적은 기존 판정대로 지급되었습니다.</p>'+
    button('사냥을 마치고 항해 계속하기','blackWhaleContinue','','primary')+'</div>';
  }
@@ -315,6 +360,18 @@ resolveCoin=function(win){
  const result=previousCoin(win);
  if(success&&state.scene==='dead')state.blackWhaleFinal=false;
  return result;
+};
+
+/* 처치 성공: 원래 흐름(afterWhale(3) → 호수 붕괴 · 이탈)은 성공 장면을 본 뒤 '항해 계속하기'를 누를 때 진행 */
+const previousAfterWhale=afterWhale;
+afterWhale=function(k){
+ if(k===BLACK&&state.blackWhaleFinal===true&&!state.blackKill&&state.scene!=='dead'){state.blackDefer=true;state.scene='event';sync();return;}
+ return previousAfterWhale.apply(this,arguments);
+};
+const previousComplete=completeLake;
+completeLake=function(success,msg){
+ if(state.blackKill&&!success&&/집어삼켜지는 것을 피해/.test(msg||''))msg='모든 것을 감싸는 까만 고래가 제 안쪽까지 감싸 접혀 사라졌습니다. 그것이 감싸 두었던 호수도 함께 접혀 들어가, 별이 돌아온 물길을 따라 빠져나왔습니다.';
+ return previousComplete.call(this,success,msg);
 };
 
 /* ---------- 입력 ---------- */
@@ -354,9 +411,10 @@ document.addEventListener('keyup',function(e){
 document.addEventListener('click',function(e){
  const b=e.target?.closest?.('button[data-act]');
  if(!b||b.disabled||busy)return;
- if(b.dataset.act==='blackWhaleContinue'&&state.blackWhaleFinal&&state.scene!=='dead'){state.blackWhaleFinal=false;sync();}
+ if(b.dataset.act==='blackWhaleContinue'&&state.blackWhaleFinal&&state.scene!=='dead'){state.blackWhaleFinal=false;
+  if(state.blackDefer){state.blackDefer=false;state.blackKill=true;afterWhale(BLACK);state.blackKill=false;}else sync();}
 });
-if(state.blackWhaleFinal&&(!state.sea||state.scene==='dead'||state.current==null)){state.blackWhaleFinal=false;save();}
+if(state.blackWhaleFinal&&(!state.sea||state.scene==='dead'||state.current==null)){state.blackWhaleFinal=false;state.blackDefer=false;save();}
 render();
 window.BLACK_WHALE_HUNT={stage,labels,game:G,lampPress,starsClick,pulsePress,finalPress};
 })();

@@ -254,26 +254,38 @@ function tailMarkup(){
  let petals='';
  for(let i=0;i<5;i++){
   let sk='';for(let k=0;k<6;k++)sk+='<circle cx="0" cy="'+(-18-k*24)+'" r="'+n1(7-k*.8)+'"/><circle class="in" cx="0" cy="'+(-18-k*24)+'" r="'+n1(3-k*.35)+'"/>';
-  petals+='<g class="rt-petal" data-i="'+i+'"><path d="'+PETAL+'" fill="url(#rwArmSkin)" stroke="#2a0208" stroke-width="1.4"/>'+
+  petals+='<g class="rt-petal" data-i="'+i+'"><path d="'+PETAL+'" fill="url(#rwArmSkin)" stroke="#2a0208" stroke-width="1.4"/><path class="rt-pdry" d="'+PETAL+'" fill="url(#rwDryP)" opacity="0"/>'+
    '<path d="M0,-6 L0,-158" stroke="#3a0210" stroke-opacity=".5" stroke-width="10" stroke-linecap="round"/>'+
    '<g class="rt-suck" fill="#f08a86" stroke="#5a0614" stroke-width="1">'+sk.replace(/class="in"/g,'class="in" fill="#3a0210" stroke="none"')+'</g></g>';
  }
  return '<g class="rw-tail">'+
   '<path class="rt-stalk" fill="url(#rwArmSkin)" stroke="#2a0208" stroke-width="1.5"/>'+
-  '<path class="rt-stalktex" fill="#000" filter="url(#rwSkinTex)" opacity=".6"/>'+
+  '<path class="rt-stalktex" fill="#000" filter="url(#rwSkinTex)" opacity=".6"/><path class="rt-stalkdry" fill="url(#rwDryS)" opacity="0"/>'+
   '<g class="rt-fluke" data-s="-1"><path d="'+FLUKE_L+'" fill="url(#rwMantle)" stroke="#2a0208" stroke-width="1.4"/><path d="M-20,10 C-90,-8 -160,-40 -220,-104" fill="none" stroke="#ff9c8c" stroke-opacity=".3" stroke-width="2"/></g>'+
   '<g class="rt-fluke" data-s="1"><g transform="scale(-1 1)"><path d="'+FLUKE_L+'" fill="url(#rwMantle)" stroke="#2a0208" stroke-width="1.4"/><path d="M-20,10 C-90,-8 -160,-40 -220,-104" fill="none" stroke="#ff9c8c" stroke-opacity=".3" stroke-width="2"/></g></g>'+
   petals+
-  '<g class="rt-core"><circle r="90" fill="url(#rwCoreGlow)"/><ellipse class="rt-hole" rx="26" ry="19" fill="url(#rwCore)"/><ellipse class="rt-pulse" rx="16" ry="11" fill="#ffd2a0"/></g>'+
+  '<g class="rt-core"><circle class="rt-cglow" r="90" fill="url(#rwCoreGlow)"/><ellipse class="rt-hole" rx="26" ry="19" fill="url(#rwCore)"/><ellipse class="rt-pulse" rx="16" ry="11" fill="#ffd2a0"/>'+dryMarkup()+'</g>'+
  '</g>';
+}
+/* 스스로 말라 가는 핵: 하얗게 바래는 막 + 가지 치며 번지는 갈라짐(가늘어지는 면) */
+function dryMarkup(){
+ const r=seeded(57);let cr='';
+ for(let i=0;i<9;i++){const a=i/9*360+r()*24,L=26+r()*24,w=1.2+r()*1.3,b=.45+r()*.3,ba=(r()<.5?-1:1)*(28+r()*24),bl=L*(.35+r()*.3);
+  cr+='<g class="rt-crack" data-i="'+i+'" data-k="'+n3((i%3)/3+r()*.2)+'" transform="rotate('+n1(a)+')">'+
+   '<path d="M0,'+n1(-w)+' C'+n1(L*.3)+','+n1(-w*.8+2)+' '+n1(L*.6)+','+n1(-w*.4-1)+' '+n1(L)+',0 C'+n1(L*.6)+','+n1(w*.4+1)+' '+n1(L*.3)+','+n1(w*.8-2)+' 0,'+n1(w)+' Z"/>'+
+   '<path transform="translate('+n1(L*b)+' 0) rotate('+n1(ba)+')" d="M0,'+n1(-w*.6)+' L'+n1(bl)+',0 L0,'+n1(w*.6)+' Z"/></g>';}
+ return '<g class="rt-dry" opacity="0"><ellipse class="rt-drymem" rx="27" ry="20" fill="url(#rwDry)"/><g class="rt-cracks" fill="#fbf4e8" stroke="#8d7b66" stroke-width=".35">'+cr+'</g></g>';
 }
 function tailDefs(){
  return '<radialGradient id="rwCore"><stop stop-color="#ffe2b0"/><stop offset=".35" stop-color="#ff5a2a"/><stop offset=".75" stop-color="#b0081e"/><stop offset="1" stop-color="#3a0208"/></radialGradient>'+
+  '<linearGradient id="rwDryP" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#f6eee2"/><stop offset=".45" stop-color="#e2d2bc" stop-opacity=".85"/><stop offset="1" stop-color="#c9b398" stop-opacity="0"/></linearGradient>'+
+  '<linearGradient id="rwDryS" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#efe4d4" stop-opacity=".9"/><stop offset=".6" stop-color="#d6c3aa" stop-opacity=".35"/><stop offset="1" stop-color="#b59c80" stop-opacity="0"/></linearGradient>'+
+  '<radialGradient id="rwDry"><stop stop-color="#fffaf0"/><stop offset=".45" stop-color="#efe4d2" stop-opacity=".95"/><stop offset=".8" stop-color="#c8b49a" stop-opacity=".75"/><stop offset="1" stop-color="#8d7258" stop-opacity="0"/></radialGradient>'+
   '<radialGradient id="rwCoreGlow"><stop stop-color="#ff4a2a" stop-opacity=".55"/><stop offset=".5" stop-color="#ff2a2a" stop-opacity=".15"/><stop offset="1" stop-color="#ff2a2a" stop-opacity="0"/></radialGradient>';
 }
 // o: {h 꼬리 높이, open 0~1, pulse, sway, limp 0~1}
 function paintTail(g,o){
- const c=g._rt||(g._rt={stalk:g.querySelector('.rt-stalk'),tex:g.querySelector('.rt-stalktex'),fl:Array.from(g.querySelectorAll('.rt-fluke')),core:g.querySelector('.rt-core'),pu:g.querySelector('.rt-pulse'),hole:g.querySelector('.rt-hole'),pe:Array.from(g.querySelectorAll('.rt-petal'))});
+ const c=g._rt||(g._rt={dry:g.querySelector('.rt-dry'),mem:g.querySelector('.rt-drymem'),cracks:Array.from(g.querySelectorAll('.rt-crack')),cg:g.querySelector('.rt-cglow'),stalk:g.querySelector('.rt-stalk'),tex:g.querySelector('.rt-stalktex'),fl:Array.from(g.querySelectorAll('.rt-fluke')),core:g.querySelector('.rt-core'),pu:g.querySelector('.rt-pulse'),hole:g.querySelector('.rt-hole'),pe:Array.from(g.querySelectorAll('.rt-petal'))});
  const h=o.h||300,op=clamp(o.open||0,0,1),sw=o.sway||0,limp=o.limp||0;
  const top=[sw,-h],mid=[sw*.4,-h*.5];
  const sp=[[0,40],[mid[0],mid[1]],top],ws=[110,74,46];
@@ -281,12 +293,18 @@ function paintTail(g,o){
  const L=[[-ws[0]/2,40],[mid[0]-ws[1]/2,mid[1]],[top[0]-ws[2]/2,top[1]]],R=[[ws[0]/2,40],[mid[0]+ws[1]/2,mid[1]],[top[0]+ws[2]/2,top[1]]];
  const d=catmull(L.concat(R.slice().reverse()),true);
  c.stalk.setAttribute('d',d);c.tex.setAttribute('d',d);
+ const sd=c.sdry||(c.sdry=g.querySelector('.rt-stalkdry'));if(sd){sd.setAttribute('d',d);sd.setAttribute('opacity',n3(.85*clamp((o.dry||0)*1.3-.3,0,1)));}
  c.fl.forEach(f=>{const s=+f.dataset.s;f.setAttribute('transform','translate('+n1(top[0]+s*14)+' '+n1(top[1]+6)+') rotate('+n1(s*(op*38-limp*40)+sw*.05)+')');});
  c.core.setAttribute('transform','translate('+n1(top[0])+' '+n1(top[1]-8)+') scale('+n3(.2+.8*op)+')');
  c.core.setAttribute('opacity',n3(op*(1-limp*.85)));
- const p=o.pulse||0;c.pu.setAttribute('rx',n1(14+6*p));c.pu.setAttribute('ry',n1(9+4*p));
+ const p=o.pulse||0,dr=clamp(o.dry||0,0,1),cru=clamp(o.crumble||0,0,1);c.pu.setAttribute('rx',n1(14+6*p));c.pu.setAttribute('ry',n1(9+4*p));
+ // 스스로 말라 감: 맥동이 잦아들고, 하얀 막이 덮이며 갈라짐이 안쪽에서 바깥으로 번짐 → 부스러짐
+ c.pu.setAttribute('opacity',n3(1-dr));if(c.cg)c.cg.setAttribute('opacity',n3(1-.8*dr));
+ if(c.dry){c.dry.setAttribute('opacity',n3(Math.min(1,dr*1.6)*(1-cru)));c.mem.setAttribute('opacity',n3(.35+.65*dr));
+  c.cracks.forEach(k=>{const kk=+k.dataset.k,v=clamp((dr-kk*.6)/.45,0,1),a=k._a||(k._a=k.getAttribute('transform'));k.setAttribute('transform',a+' scale('+n3(v*(1+cru*.6))+' '+n3(.6+.4*v)+')');});}
+ if(cru>0)c.core.setAttribute('transform','translate('+n1(top[0])+' '+n1(top[1]-8+cru*10)+') scale('+n3((.2+.8*op)*(1-.7*cru))+')');
  const base=[-62,-30,0,30,62];
- c.pe.forEach((e,i)=>{const a=base[i]*(.12+.88*op)*(1-limp*.6)+(limp?(i-2)*8*limp:0)+Math.sin((o.t||0)*3+i)*2*op;
+ c.pe.forEach((e,i)=>{const pd=e._pd||(e._pd=e.querySelector('.rt-pdry'));if(pd)pd.setAttribute('opacity',n3(.9*clamp((o.dry||0)*1.25-i%2*.12,0,1)));const a=base[i]*(.12+.88*op)*(1-limp*.6)+(limp?(i-2)*8*limp:0)+Math.sin((o.t||0)*3+i)*2*op;
   e.setAttribute('transform','translate('+n1(top[0])+' '+n1(top[1]+4)+') rotate('+n1(a)+') scale('+n3(.7+.3*op)+' '+n3((.75+.25*op)*(1-limp*.35))+')');});
  return [top[0],top[1]-8];
 }

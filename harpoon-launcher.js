@@ -219,11 +219,12 @@ function paintHit(el,o){
   orbs:Array.from(g.querySelectorAll('.hh-orbs circle')),drift:Array.from(g.querySelectorAll('.hh-drift path')),ghosts:Array.from(g.querySelectorAll('.hh-ghosts path'))});
  const svg=g.ownerSVGElement;
  const tier=o&&o.tier|0,s=o&&o.s;
- if(!o||s==null||s<0||tier<3||s>3.4){if(g.getAttribute('opacity')!=='0')g.setAttribute('opacity','0');if(svg&&svg.style.transform)svg.style.transform='';return;}
+ if(!o||s==null||s<0||tier<1||s>(tier<3?1.6:3.4)){if(g.getAttribute('opacity')!=='0')g.setAttribute('opacity','0');if(svg&&svg.style.transform)svg.style.transform='';return;}
  // o.fade: 대상이 금방 사라지는 장면(푸른 고래가 물속으로 사라짐)은 그 무렵 함께 걷힘
  const fo=o.fade!=null&&s>o.fade?Math.max(0,1-(s-o.fade)/.35):1;
  if(fo<=0){g.setAttribute('opacity','0');if(svg&&svg.style.transform)svg.style.transform='';return;}
  g.setAttribute('opacity',n2(fo));
+ if(tier<3){paintHitMini(c,o,s,tier,svg);return;}
  const K=tier>=5?2:tier-3,x=o.p[0],y=o.p[1],a=o.ang,d=a*RAD,dx=Math.cos(d),dy=Math.sin(d);
  const at=(tx,ty,rot,sx,sy)=>'translate('+n2(tx)+' '+n2(ty)+')'+(rot!=null?' rotate('+n2(rot)+')':'')+(sx!=null?' scale('+n2(Math.max(.001,sx))+(sy!=null?' '+n2(Math.max(.001,sy)):'')+')':'');
  // 화면을 덮는 섬광
@@ -307,6 +308,40 @@ function paintHit(el,o){
   c.ghosts.forEach((e,i)=>{const gd=hd-i*55,go=s<.7?Math.max(0,(1-s/.7)*(1-i*.28)):0;
    e.setAttribute('transform',at(x+dx*gd,y+dy*gd,a,1+i*.15,1+i*.4));e.setAttribute('opacity',n2(go));});
  }else{['tunnel','exit','exitp'].forEach(k=>c[k].setAttribute('opacity','0'));c.ghosts.forEach(e=>e.setAttribute('opacity','0'));}
+}
+/* 1망 · 2망: 작은 달빛 — 박힌 자리에서 짧게 번지는 따스한 빛과 망 개수만큼의 고리, 몇 알의 빛방울 */
+function paintHitMini(c,o,s,tier,svg){
+ const m=tier-1,x=o.p[0],y=o.p[1],a=o.ang,d=a*RAD,dx=Math.cos(d),dy=Math.sin(d);
+ const at=(tx,ty,rot,sx,sy)=>'translate('+n2(tx)+' '+n2(ty)+')'+(rot!=null?' rotate('+n2(rot)+')':'')+(sx!=null?' scale('+n2(Math.max(.001,sx))+(sy!=null?' '+n2(Math.max(.001,sy)):'')+')':'');
+ ['white','tunnel','exit','exitp','veins','wound','shock2'].forEach(k=>c[k].setAttribute('opacity','0'));c.ghosts.forEach(e=>e.setAttribute('opacity','0'));
+ if(svg&&svg.style.transform)svg.style.transform='';
+ const R=[16,24][m]*(1+.4*outE(s*6));
+ c.flash.setAttribute('transform',at(x,y,null,R));c.flash.setAttribute('opacity',n2(Math.exp(-s*[5,4][m])*.9));
+ c.core.setAttribute('transform',at(x,y,null,[5,8][m]));c.core.setAttribute('opacity',n2(Math.max(0,1-s/[.16,.22][m])));
+ const SH=[48,80][m],sk=outE(s/.4);
+ c.shock.setAttribute('cx',n2(x));c.shock.setAttribute('cy',n2(y));c.shock.setAttribute('rx',n2(6+SH*sk));c.shock.setAttribute('ry',n2((6+SH*sk)*.62));c.shock.setAttribute('opacity',n2(Math.max(0,[.4,.55][m]-s/.45)));
+ const PL=[12,20][m]*(.25+.75*outE(s/.2));
+ c.petals.setAttribute('transform',at(x,y,a+s*50,PL,PL));c.petals.setAttribute('opacity',n2(Math.max(0,.85-s/[.35,.45][m])));
+ c.rings.forEach((e,i)=>{if(i>=tier){e.setAttribute('opacity','0');return;}
+  const si=s-i*.06;if(si<0){e.setAttribute('opacity','0');return;}
+  const ry=7+[18,28][m]*(1-Math.exp(-si*5))*(1+i*.2),rx=ry*.34,fx=x+dx*i*4,fy=y+dy*i*4;
+  e.setAttribute('cx',n2(fx));e.setAttribute('cy',n2(fy));e.setAttribute('rx',n2(rx));e.setAttribute('ry',n2(ry));
+  e.setAttribute('transform','rotate('+n2(a)+' '+n2(fx)+' '+n2(fy)+')');e.setAttribute('opacity',n2(Math.max(0,.9-si/[.5,.6][m])));});
+ const nd=[7,11][m],SP=[26,42][m];
+ c.dots.forEach((e,i)=>{const P=DOTP[i];if(i>=nd){e.setAttribute('opacity','0');return;}
+  const k=s/(P.life*.8);if(k>=1){e.setAttribute('opacity','0');return;}
+  const ang=P.a+P.curl*k,dist=SP*P.v*outE(k*1.4),lx=Math.cos(ang)*dist,ly=Math.sin(ang)*dist+30*k*k;
+  e.setAttribute('cx',n2(x+lx*dx-ly*dy));e.setAttribute('cy',n2(y+lx*dy+ly*dx));e.setAttribute('r',n2((2+P.sz*[1.2,1.8][m])*(1-k*.7)));e.setAttribute('opacity',n2(.9*(1-k)));});
+ const no=[3,5][m];
+ c.orbs.forEach((e,i)=>{if(i>=no){e.setAttribute('opacity','0');return;}
+  const so=s-.04-i*.02;if(so<0||so>.9){e.setAttribute('opacity','0');return;}
+  const th=i/no*Math.PI*2+so*6,Rr=[10,14][m]*(1+so*2),lu=Math.sin(th)*Rr*.34,lv=Math.cos(th)*Rr;
+  e.setAttribute('cx',n2(x+lu*dx-lv*dy));e.setAttribute('cy',n2(y+lu*dy+lv*dx));e.setAttribute('r',n2(2.2*(1-so)));e.setAttribute('opacity',n2(Math.max(0,1-so/.9)));});
+ const ndr=[0,3][m];
+ c.drift.forEach((e,i)=>{if(i>=ndr){e.setAttribute('opacity','0');return;}
+  const sd=s-.15-i*.06;if(sd<0||sd>1.3){e.setAttribute('opacity','0');return;}
+  const sp=DOTP[i],ra=sp.a+i,rr=14*(.5+sp.v)*outE(sd/.5),px=x+Math.cos(ra)*rr,py=y+Math.sin(ra)*rr*.6-sd*18,sz=5*(.6+sp.sz*.5);
+  e.setAttribute('transform',at(px,py,(ra/RAD)+sd*90,sz,sz));e.setAttribute('opacity',n2(Math.min(1,sd*5)*Math.max(0,1-sd/1.3)*.8));});
 }
 /* 작살이 살 속에 묻힌 만큼 가리기: entryX(작살 자신의 좌표, 날 끝 = 3)보다 앞쪽을 잘라 낸다. null이면 해제 */
 let clipN=0;

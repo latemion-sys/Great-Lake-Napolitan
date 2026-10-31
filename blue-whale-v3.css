@@ -28,3 +28,7 @@
 .bwg-pad .bwg-dir{font-size:30px;padding:14px 0;touch-action:manipulation;user-select:none}
 .bwg-panel #bwgAct{font-size:16px;padding:12px 22px;touch-action:manipulation}
 @media(max-width:620px){.bw3-scene .bwg-hint{font-size:10px;bottom:36px;white-space:normal;width:84%;text-align:center}.bw3-scene .bwg-verdict{font-size:22px}.bw3-scene .bwg-arrow{width:62px;height:62px;margin:-31px 0 0 -31px}.bw3-scene .bwg-arrow b{font-size:30px}.bw3-scene .bwg-bar{top:30px;width:56%}.bw3-scene .bwg-pips{top:9px;right:12px}}
+
+/* 5단계 정면충돌: 밀고 당기는 막대(왼쪽 푸른 주둥이 · 오른쪽 달빛 작살) */
+.bw3-scene[data-stage="4"] .bwg-bar.tug{display:block;background:linear-gradient(90deg,#1d5f99,#2f8ed6);border-color:#ffe2b088}
+.bw3-scene[data-stage="4"] .bwg-bar.tug i{background:linear-gradient(90deg,#f6c27a,#fff1d2);box-shadow:0 0 12px #ffcf8a;transition:width .06s}

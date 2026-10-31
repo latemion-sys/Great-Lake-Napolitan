@@ -5,7 +5,10 @@
    ③ 푸른 항로 추적 : ← → 중 무작위 방향을 0.9초 안에 연타해 게이지를 채움. 2번 놓치면 추적 실패
    ④ 관통 회피     : 0.5~2초 중 무작위 순간에 물살에서 주둥이가 솟을 때 회피(스페이스·화면 누르기) × 3.
                      너무 이르거나 늦으면 꿰뚫리며 사망
-   ⑤ 최후의 교차   : 단 한 번의 작살. 좁혀 오는 고리가 교차점에 겹칠 때 던짐. 빗나가면 꿰뚫리며 사망
+   ⑤ 최후의 교차   : 단 한 번의 작살. 좁혀 오는 고리가 교차점에 겹칠 때 던지면, 작살 끝과 주둥이 끝이 그 한 점에서 정면으로 부딪힌다.
+                     꿰뚫는 것 대 꿰뚫는 것(개념 충돌) → 연타로 밀어붙여 휘지 않는 주둥이를 꺾어야 한다.
+                     망 0개: 맞닿자마자 작살이 부서짐(실패) · 1개: 거의 불가능 · 2개: 매우 어려움 · 3개: 팽팽 · 4개: 수월 · 5개: 압도
+                     꺾으면 부러진 자리로 작살이 들어가 눈을 꿰뚫음(사냥 성공). 밀리거나 시간이 다하면 작살이 부서지고 주둥이가 배를 꿰뚫음(실패)
    특수 조건「궤적이 겹치는 허공」: 고래의 몸은 끝까지 보이지 않는다. 보이는 것은 이미 지나간 곧은 궤적뿐.
      궤적 ① 사냥을 시작하면(수면을 가른 선) ② 초고속 관통을 첫 동전에 맞히면 ③ 추적을 다시 하지 않고 넘기면 ④ 회피를 다시 하지 않고 넘기면
      해도에 한 줄씩 그어진다. 3줄 이상이면 5단계에서 선들이 겹치는 허공(교차점)이 보이고, 2줄 이하면 겨눌 곳이 없어
@@ -19,6 +22,9 @@ const labels=['수면의 절단','초고속 관통','푸른 항로 추적','관�
 const CHASE_NEED=12,CHASE_WIN=0.9,CHASE_MISS=2;
 const EVADE_NEED=3,EVADE_APPROACH=0.9,EVADE_WIN=0.6;
 const FINAL_CLOSE=0.6,FINAL_WIN=0.2,FINAL_FLIGHT=0.4;
+// 정면충돌: 누를 때마다 작살이 미는 힘 · 망 개수별로 고래가 되미는 힘(초당) · 시작 균형 · 제한 시간
+const CLASH={push:.085,limit:7,cineSnap:3.6,
+ back:{1:.85,2:.56,3:.26,4:.16,5:.03},start:{1:0,2:0,3:0,4:.1,5:.4}};
 const G=window.BlueHuntGame=window.BlueHuntGame||{mode:null};
 const TRAIL_TEXT={1:'수면을 가르고 지나간 첫 선',2:'배 앞을 가로지른 잔상의 선',3:'호수를 갈라 놓은 물길의 방향',4:'솟구친 주둥이의 각도'};
 function trailsOf(h){return h&&Array.isArray(h.trails)?h.trails:null;}
@@ -58,7 +64,7 @@ function syncGame(){
   G.ease=(window.CalamityMang?window.CalamityMang.ease():1);
   if(mode==='chase')Object.assign(G,{need:CHASE_NEED,win:CHASE_WIN*G.ease,hits:0,misses:0,dir:null,pauseUntil:1.2,promptAt:null,lastHitAt:null,lastMissAt:null});
   if(mode==='evade')Object.assign(G,{need:EVADE_NEED,ok:0,round:-1,phase:'ready',nextAt:1.0});
-  if(mode==='final')Object.assign(G,{phase:'wait',breachAt:1.2+Math.random()*1.4,thrownAt:null,hit:null});
+  if(mode==='final')Object.assign(G,{phase:'wait',breachAt:1.2+Math.random()*1.4,thrownAt:null,hit:null,timed:false,shatter:false,clash:null,loseAt:null,snapAt:null});
   if(mode==='final'){G.win=FINAL_WIN*G.ease;G.ti=G.breachAt+FINAL_CLOSE;G.th=G.ti+FINAL_FLIGHT;}
   if(mode==='final'){G.trails=trailCount();G.blind=G.trails<3;}else G.trails=null;
  }
@@ -101,23 +107,58 @@ function evadePress(){
  updatePanel();
 }
 /* ---------- ⑤ 최후의 교차 ---------- */
+function mangRings(){return window.CalamityMang?CalamityMang.rings():0;}
 function finalPress(){
- if(G.mode!=='final'||G.done||G.thrownAt!=null)return;
+ if(G.mode!=='final'||G.done)return;
+ if(G.clash){clashPress();return;}
+ if(G.thrownAt!=null)return;
  const t=now();
  if(G.blind){G.thrownAt=t;G.hit=false;G.arriveAt=t+FINAL_FLIGHT;setText('작살이 허공을 가릅니다 · 지나간 것은 잔상뿐이었습니다.');finish('fail',Math.max(G.th,t),0.3);G.fatal=false;updatePanel();return;}
- G.thrownAt=t;G.hit=Math.abs(t-G.ti)<=(G.win||FINAL_WIN);
- G.arriveAt=t+FINAL_FLIGHT;
- if(G.hit){
-  // 명중: 작살이 교차점에 닿는 순간부터 사냥 성공 장면이 이어서 재생되도록 시작 시각을 넘겨 줌
-  G.resume={stage:4,start:G.t0+G.th*1000-1750};
-  if(window.BlueWhaleV3)window.BlueWhaleV3.resume=G.resume;
-  setText('작살이 먼저 날아갑니다 · 솟구친 고래가 정확히 그 지점을 지나갑니다.');
-  finish('ok',G.th,1.35);
+ G.thrownAt=t;G.timed=Math.abs(t-G.ti)<=(G.win||FINAL_WIN);G.hit=false;
+ G.arriveAt=G.timed?G.th:t+FINAL_FLIGHT;
+ if(G.timed){
+  const r=mangRings();
+  if(r<=0){
+   // 망 없이: 꿰뚫는 것에 맞선 맨 작살은 맞닿는 순간 부서진다
+   G.shatter=true;setText('작살 끝이 주둥이 끝에 정면으로 닿습니다 · 망을 감지 않은 작살이 그대로 부서집니다.');
+   finish('fail',G.th,0.3);updatePanel();return;
+  }
+  G.clash={start:G.th,b:CLASH.start[Math.min(5,r)]||0,back:CLASH.back[Math.min(5,r)],last:G.th,rings:r};
+  setText('작살 끝이 주둥이 끝을 향해 날아갑니다 · 맞부딪히는 순간부터 연타해서 밀어붙이십시오.');
+  actLabel('밀어붙인다');
  }else{
   setText(t<G.ti?'너무 빨랐습니다 · 작살이 빈 허공을 가릅니다.':'늦었습니다 · 고래가 교차점을 먼저 지나갑니다.');
   finish('fail',Math.max(G.th,t),0.3);
  }
  updatePanel();
+}
+function actLabel(t){const a=document.getElementById('bwgAct');if(a)a.textContent=t;}
+function clashPress(){
+ const c=G.clash,t=now();if(!c||t<c.start)return;
+ c.b=Math.min(1,c.b+CLASH.push*(G.ease||1));c.presses=(c.presses||0)+1;
+ if(c.b>=1)clashWin(t);
+}
+function clashTick(t){
+ const c=G.clash;if(!c||t<c.start)return;
+ const dt=Math.min(.1,Math.max(0,t-c.last));c.last=t;
+ const surge=1+.55*Math.sin((t-c.start)*3.1)+.25*Math.sin((t-c.start)*7.3);   // 몰아치는 힘
+ c.b=Math.max(-1,c.b-c.back*surge*dt);
+ if(c.b<=-1||t>c.start+CLASH.limit)clashLose(t,c.b<=-1?'push':'time');
+}
+function clashWin(t){
+ G.snapAt=t;G.hit=true;
+ // 꺾이는 순간부터 사냥 성공 장면이 이어지도록 시작 시각을 넘겨 줌
+ G.resume={stage:4,start:G.t0+t*1000-CLASH.cineSnap*1000};
+ if(window.BlueWhaleV3)window.BlueWhaleV3.resume=G.resume;
+ setText('휘지 않던 주둥이가 휘고, 꺾여 부러집니다 · 부러진 자리로 작살이 그대로 들어갑니다!');
+ actLabel('작살을 던진다');
+ finish('ok',t,2.2);updatePanel();
+}
+function clashLose(t,why){
+ G.loseAt=t;G.hit=false;
+ setText(why==='push'?'밀렸습니다 · 작살이 부서지고 주둥이가 그대로 배를 향합니다.':'버티지 못했습니다 · 작살이 먼저 금 가 부서집니다.');
+ actLabel('작살을 던진다');
+ finish('fail',t,0.3);updatePanel();
 }
 function finalAutoMiss(t){
  G.hit=false;G.thrownAt=null;G.autoMiss=true;
@@ -156,14 +197,14 @@ function resolveMinigame(mode,kind){
  // 실패: 첫 번째는 피해 후 다시, 두 번째는 사망
  const verdict=window.MinigameStrikes?MinigameStrikes.strike(G):'dead';
  if(verdict==='dead'){
-  log(mode==='chase'?'물길 끝에서 방향을 튼 푸른 고래가 배를 정면으로 꿰뚫었습니다.':'푸른 고래의 주둥이가 선체와 선원들을 한꺼번에 꿰뚫었습니다.');
+  log(mode==='chase'?'물길 끝에서 방향을 튼 푸른 고래가 배를 정면으로 꿰뚫었습니다.':mode==='final'&&(G.shatter||G.loseAt!=null)?'작살이 부서진 자리로 꺾이지 않은 주둥이가 그대로 들어와, 선체와 선원들을 한꺼번에 꿰뚫었습니다.':'푸른 고래의 주둥이가 선체와 선원들을 한꺼번에 꿰뚫었습니다.');
   G.mode=null;state.blueHunt=null;
   die();
   return;
  }
  const dmg={chase:[8,6],evade:[14,6],final:[14,6]}[mode];
  takeDamage(dmg[0],dmg[1]);
- log(mode==='chase'?'푸른 고래를 놓칠 뻔했습니다. 물길을 다시 쫓습니다.':mode==='evade'?'주둥이가 선체를 스치고 지나갔습니다. 아직 버팁니다.':'작살이 빗나가고 고래가 선체를 들이받았습니다. 아직 버팁니다.');
+ log(mode==='chase'?'푸른 고래를 놓칠 뻔했습니다. 물길을 다시 쫓습니다.':mode==='evade'?'주둥이가 선체를 스치고 지나갔습니다. 아직 버팁니다.':G.shatter?'망을 감지 않은 작살은 주둥이 끝에 닿자마자 부서졌습니다. 고래가 선체를 들이받았습니다. 아직 버팁니다.':G.loseAt!=null?'맞부딪힌 끝에 작살이 밀려 부서지고, 고래가 선체를 들이받았습니다. 아직 버팁니다.':'작살이 빗나가고 고래가 선체를 들이받았습니다. 아직 버팁니다.');
  if(!safeCheck())return;
  retryMode(mode);
  render();
@@ -173,7 +214,7 @@ function retryMode(mode){
  G.done=null;G.fatal=false;G.timer=null;
  if(mode==='chase'){Object.assign(G,{hits:0,misses:0,dir:null,pauseUntil:t+1.2,promptAt:null,lastHitAt:null,lastMissAt:null,_off:null});setText('다시 쫓습니다 · 남은 기회 1번.');}
  if(mode==='evade'){Object.assign(G,{phase:'ready',nextAt:t+1.2,pressAt:null,failAt:null,failWhy:null});setText('배를 다시 바로잡았습니다 · 남은 기회 1번.');}
- if(mode==='final'){const b=t+1.2+Math.random()*1.4;Object.assign(G,{phase:'wait',breachAt:b,ti:b+FINAL_CLOSE,th:b+FINAL_CLOSE+FINAL_FLIGHT,thrownAt:null,hit:null,autoMiss:false,arriveAt:null});setText('고래가 다시 물속으로 사라졌습니다 · 남은 기회 1번.');}
+ if(mode==='final'){const b=t+1.2+Math.random()*1.4;Object.assign(G,{phase:'wait',breachAt:b,ti:b+FINAL_CLOSE,th:b+FINAL_CLOSE+FINAL_FLIGHT,thrownAt:null,hit:null,autoMiss:false,arriveAt:null,timed:false,shatter:false,clash:null,loseAt:null,snapAt:null});actLabel('작살을 던진다');setText('고래가 다시 물속으로 사라졌습니다 · 남은 기회 1번.');}
  if(window.MinigameStrikes)MinigameStrikes.refresh(G);
 }
 function setText(t){G.text=t;const el=document.getElementById('bwgText');if(el)el.textContent=t;}
@@ -194,6 +235,7 @@ function tick(){
   }else if(G.mode==='final'){
    if(G.phase==='wait'&&t>=G.breachAt)G.phase='breach';
    if(G.thrownAt==null&&t>G.ti+(G.blind?4:(G.win||FINAL_WIN)+.05))finalAutoMiss(t);
+   if(G.clash&&!G.done)clashTick(t);
   }
  }
  requestAnimationFrame(tick);
@@ -226,9 +268,9 @@ function finalPanel(){
  return '<div class="inset warning bwg-panel"><div class="small">재앙의 고래 · 모든 것을 뚫는 푸른 고래 · 5단계</div><h2>최후의 교차</h2>'+
   (blind
    ?'<p>그것은 보이지 않습니다. 해도에 그어진 궤적은 '+n+'줄뿐이라 선들이 겹치는 곳이 없습니다. 어디에 던져도 잔상만 지나갈 것입니다.</p>'
-   :'<p>그것은 끝내 보이지 않습니다. 그것은 휘지 않습니다. 해도의 선 '+n+'줄이 겹치는 허공, 아무것도 없는 그 한 점에 작살을 먼저 던져야 합니다.</p>')+
+   :'<p>그것은 휘지 않습니다. 해도의 선 '+n+'줄이 겹치는 허공, 그 한 점에 작살을 던지면 작살 끝과 주둥이 끝이 정면으로 부딪힙니다. 꿰뚫는 것과 꿰뚫는 것 — 망을 감은 작살로 밀어붙여 휘지 않는 것을 꺾어야 합니다.</p>')+
   '<p>'+statusTags()+'</p>'+
-  '<div class="coinpanel bwg-final"><div class="small">'+(blind?'겨눌 곳 없이 던질 수는 있습니다 · 작살은 잔상을 지나가고 고래는 사라집니다':'선들이 겹치는 교차점 원에 좁혀 오는 고리가 겹치는 순간 · 스페이스 / 화면 누르기 / 아래 버튼 · 명중하면 사냥 성공')+'</div>'+
+  '<div class="coinpanel bwg-final"><div class="small">'+(blind?'겨눌 곳 없이 던질 수는 있습니다 · 작살은 잔상을 지나가고 고래는 사라집니다':'① 선들이 겹치는 교차점 원에 좁혀 오는 고리가 겹치는 순간 던지기 ② 맞부딪히면 연타로 밀어붙이기(밀리거나 7초가 지나면 작살이 부서짐) · 망 0개는 맞닿자마자 부서지고, 1~2개는 거의 버티지 못하며, 3개는 팽팽, 4개는 수월, 5개는 압도 · 지금 망 '+mangRings()+'개 · 스페이스 / 화면 누르기 / 아래 버튼')+'</div>'+
   '<button type="button" class="danger" id="bwgAct">작살을 던진다</button>'+
   (window.MinigameStrikes?MinigameStrikes.livesHtml(G):'')+
   '<p id="bwgText">'+esc(G.text||'고래가 솟구칠 때까지 숨을 고르십시오.')+'</p></div></div>';
@@ -237,7 +279,7 @@ function updatePanel(){
  const c=document.getElementById('bwgCount'),m=document.getElementById('bwgMiss'),g=document.getElementById('bwgGauge'),a=document.getElementById('bwgAct');
  if(G.mode==='chase'){if(c)c.textContent=G.hits+' / '+CHASE_NEED;if(m)m.textContent=G.misses+' / '+CHASE_MISS;if(g)g.style.width=(100*G.hits/CHASE_NEED).toFixed(1)+'%';}
  if(G.mode==='evade'&&c)c.textContent=G.ok+' / '+EVADE_NEED;
- if(a)a.disabled=!!G.done||(G.mode==='final'&&G.thrownAt!=null);
+ if(a)a.disabled=!!G.done||(G.mode==='final'&&G.thrownAt!=null&&!G.clash);
  document.querySelectorAll('.bwg-dir').forEach(b=>b.disabled=!!G.done);
 }
 
@@ -252,7 +294,7 @@ renderPlay=function(){
  if(stage===4&&!isBlueBattle()){
   return blueMarkup(4)+
    '<div class="inset"><h2>'+esc(WHALES[BLUE].name)+' · 사냥 성공</h2>'+
-   '<p>먼저 던진 작살이 아무것도 없던 허공에서 멈췄습니다. 그 자리에서 푸른 빛과 피가 쏟아집니다. 물기둥이 걷힌 뒤 떠오른 것은 부러진 주둥이 끝과 지느러미 조각뿐입니다. 그 몸이 어떻게 생겼는지는 끝내 아무도 보지 못했습니다.</p>'+
+   '<p>해도의 선이 겹치는 허공에서 작살 끝과 주둥이 끝이 정면으로 맞부딪혔습니다. 꿰뚫는 것과 꿰뚫는 것이 맞물린 끝에 휘지 않던 주둥이가 휘어 꺾였고, 부러진 자리로 작살이 그대로 들어가 눈을 꿰뚫었습니다. 푸른 빛과 피가 쏟아집니다. 물기둥이 걷힌 뒤 떠오른 것은 부러진 주둥이 끝과 지느러미 조각뿐입니다. 그 몸이 어떻게 생겼는지는 끝내 아무도 보지 못했습니다.</p>'+
    '<p class="muted">고래 사냥 전리품과 업적은 기존 사냥 결과대로 지급되었습니다.</p>'+
    button('사냥을 마치고 항해 계속하기','blueWhaleContinue021','','primary')+
    '</div>';

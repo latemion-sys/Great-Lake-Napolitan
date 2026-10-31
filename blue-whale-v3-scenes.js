@@ -410,12 +410,12 @@ function s4Rift(el,ptt,t){
   H:i=>{const k=rise[i]*hVar(sx[i],3.3);return [16+80*k,5+30*k];}});
 }
 // ⑤ 해도의 궤적: 1~4단계에서 읽어 낸 곧은 선들이 교차점(허공의 한 점)에서 겹친다
-const TRAIL_ANG=[-6,17,35,-25];
+const TRAIL_ANG=[-6,17,35,-25],CHART_P=[500,212];
 function chartMarkup(){
  let s='<g class="bw-chart" fill="none" stroke-linecap="round" opacity="0">';
- TRAIL_ANG.forEach((a,i)=>{const c=Math.cos(a*RAD),d=Math.sin(a*RAD),P=[600,215],A=[P[0]-c*900,P[1]-d*900],B=[P[0]+c*900,P[1]+d*900],dd='M'+n1(A[0])+','+n1(A[1])+' L'+n1(B[0])+','+n1(B[1]);
+ TRAIL_ANG.forEach((a,i)=>{const c=Math.cos(a*RAD),d=Math.sin(a*RAD),P=CHART_P,A=[P[0]-c*900,P[1]-d*900],B=[P[0]+c*900,P[1]+d*900],dd='M'+n1(A[0])+','+n1(A[1])+' L'+n1(B[0])+','+n1(B[1]);
   s+='<g class="bw-tl" data-i="'+i+'"><path d="'+dd+'" stroke="#5fc8f5" stroke-width="5" filter="url(#bwSoft)" opacity=".35"/><path class="bw-tlc" d="'+dd+'" stroke="#d8f3ff" stroke-width="1.1" stroke-dasharray="16 9"/></g>';});
- return s+'<circle class="bw-tx" cx="600" cy="215" r="5" fill="#e8f8ff" opacity="0"/></g>';
+ return s+'<circle class="bw-tx" cx="'+CHART_P[0]+'" cy="'+CHART_P[1]+'" r="5" fill="#e8f8ff" opacity="0"/></g>';
 }
 function paintChart(el,t,n,out){
  const {q,qa}=cacheQ(el);
@@ -424,134 +424,245 @@ function paintChart(el,t,n,out){
  const blind=n<3;
  qa('.bw-tl').forEach(l=>{const i=+l.dataset.i,have=i<n;
   // 궤적이 모자라면 선들이 한 점에 모이지 않고 어긋난 채 흔들림
-  if(blind){const a=TRAIL_ANG[i]*RAD,o=(i%2?-1:1)*(70+30*i)+6*Math.sin(t*1.7+i);l.setAttribute('transform','translate('+n1(-Math.sin(a)*o)+' '+n1(Math.cos(a)*o)+') rotate('+n1(3*Math.sin(t*.9+i*2))+' 600 215)');}
+  if(blind){const a=TRAIL_ANG[i]*RAD,o=(i%2?-1:1)*(70+30*i)+6*Math.sin(t*1.7+i);l.setAttribute('transform','translate('+n1(-Math.sin(a)*o)+' '+n1(Math.cos(a)*o)+') rotate('+n1(3*Math.sin(t*.9+i*2))+' '+CHART_P[0]+' '+CHART_P[1]+')');}
   else if(l.hasAttribute('transform'))l.removeAttribute('transform');
   l.setAttribute('opacity',n3(have?seg(t,.15+i*.18,.55+i*.18):.1));
   const c=l._c||(l._c=l.querySelector('.bw-tlc'));c.setAttribute('stroke-dasharray',have?'16 9':'3 16');c.style.strokeDashoffset=n1(-t*30);});
  const x=q('.bw-tx');if(x)x.setAttribute('opacity',n>=3?n3(seg(t,1,1.4)*(.6+.4*Math.sin(t*5))):'0');
 }
-const S4={title:'최후의 교차',dur:9,
- caps:[[0,'해도의 선들이 겹치는 곳, 아무것도 없는 허공을 겨눕니다.'],[1.1,'작살이 먼저 날아갑니다.'],[1.7,'솟구친 고래가 정확히 그 지점을 지나갑니다.'],[3.2,'푸른 빛이 꺼져 갑니다. 떠오르는 것은 부러진 주둥이와 지느러미 조각뿐입니다.']],
+/* ⑤ 최후의 교차 — 정면충돌.
+   모든 것을 꿰뚫는 주둥이와, 망을 감아 거의 모든 것을 꿰뚫게 된 작살이 해도의 선이 겹치는 한 점에서 끝과 끝으로 맞부딪힌다.
+   꿰뚫는 것 대 꿰뚫는 것(개념 충돌): 버티는 쪽이 이긴다. 휘지 않는 주둥이가 휘고, 꺾이고, 부러진 자리로 작살이 그대로 들어가 눈을 꿰뚫는다. */
+const CP=[500,212],CS=.72,TIPS=[-60,-4],PIV=[150,-6];
+const CV=[-640,150],CG=900;
+const EMERGE=(-CV[1]-Math.sqrt(CV[1]*CV[1]+2*CG*(SEA-CP[1])))/CG;   // 수면을 뚫고 나오는 시각(맞닿기 전, 음수)                          // 맞닿는 순간 주둥이 끝의 속도와 낙하 가속
+const CT={TB:1.9,throwAt:1.45,hold:1.7,dur:10.4};CT.TS=CT.TB+CT.hold;
+const HULL=[252,SEA-12];
+// 다가오는 동안 주둥이 끝의 자리와 몸의 각도 (d = 맞닿는 순간까지 남은 시간, 음수)
+function tipAt(d){return [CP[0]+CV[0]*d,CP[1]+CV[1]*d+.5*CG*d*d];}
+function degAt(d){const vx=CV[0],vy=CV[1]+CG*d;return Math.atan2(-vy,-vx)/RAD;}
+const CDEG=degAt(0);
+const tfTip=(x,y,deg)=>mt(x,y,deg,CS,CS,TIPS[0],TIPS[1]);
+const atTip=(x,y,deg,p)=>apply(x,y,deg,CS,CS,TIPS[0],TIPS[1],p[0],p[1]);
+function clashDefs(){return '<defs><clipPath id="bwNoBill" clipPathUnits="userSpaceOnUse"><rect x="'+PIV[0]+'" y="-520" width="1400" height="1040"/></clipPath>'+
+ '<clipPath id="bwBillOnly" clipPathUnits="userSpaceOnUse"><path d="M-90,-40 L'+PIV[0]+',-40 L'+(PIV[0]+4)+',-14 L'+(PIV[0]-3)+',-4 L'+(PIV[0]+5)+',8 L'+PIV[0]+',40 L-90,40 Z"/></clipPath>'+
+ '<radialGradient id="bwClashB"><stop stop-color="#f2fcff"/><stop offset=".25" stop-color="#8fe2ff" stop-opacity=".75"/><stop offset=".6" stop-color="#3aaef0" stop-opacity=".25"/><stop offset="1" stop-color="#1f7fd0" stop-opacity="0"/></radialGradient>'+
+ '<radialGradient id="bwClashW"><stop stop-color="#fffaf0"/><stop offset=".25" stop-color="#ffe4b0" stop-opacity=".8"/><stop offset=".6" stop-color="#f2bf72" stop-opacity=".28"/><stop offset="1" stop-color="#e0a050" stop-opacity="0"/></radialGradient>'+
+ '<radialGradient id="bwClashR"><stop offset=".55" stop-color="#cfefff" stop-opacity="0"/><stop offset=".8" stop-color="#e9f8ff" stop-opacity=".55"/><stop offset="1" stop-color="#bfe8ff" stop-opacity="0"/></radialGradient>'+
+ '<linearGradient id="bwShard" x1="0" x2="1"><stop stop-color="#3e4a50"/><stop offset=".5" stop-color="#b9c6cb"/><stop offset="1" stop-color="#55636a"/></linearGradient></defs>';}
+function clashMarkup(){
+ let s='<g class="bw-clash" opacity="0">'+
+  '<ellipse class="bw-clW" rx="1" ry="1" fill="url(#bwClashW)"/><ellipse class="bw-clB" rx="1" ry="1" fill="url(#bwClashB)"/>';
+ for(let i=0;i<3;i++)s+='<ellipse class="bw-clR" data-i="'+i+'" rx="1" ry="1" fill="url(#bwClashR)" opacity="0"/>';
+ s+='<circle class="bw-clC" r="5" fill="#ffffff"/></g>';
+ return s+drops('bw-clSB',26,91,'#bfeaff')+drops('bw-clSW',26,93,'#ffe2ad')+drops('bw-clSB2',26,95,'#e9f9ff')+drops('bw-clSW2',26,97,'#fff0cf')+
+  '<circle class="bw-crack" r="1" fill="url(#bwClashB)" opacity="0"/>';
+}
+function shardMarkup(){let s='<g class="bw-shards" opacity="0">';[[0,30],[1,22],[2,40],[3,14]].forEach(([i,l])=>{s+='<path data-i="'+i+'" d="M0,-2.2 L'+l+',-1.6 L'+(l+4)+',0 L'+l+',1.6 L0,2.2 L3,0 Z" fill="url(#bwShard)"/>';});return s+'</g>';}
+// 맞부딪힌 자리의 빛: b = 밀고 당기는 균형(-1 고래 · +1 작살), s = 맞닿은 뒤 흐른 시간
+function paintClash(el,c,b,s,on,t,hd){
+ const {q,qa}=cacheQ(el),g=q('.bw-clash');
+ if(!on){g.setAttribute('opacity','0');['.bw-clSB','.bw-clSW','.bw-clSB2','.bw-clSW2'].forEach(k=>qa(k+' circle').forEach(e=>e.setAttribute('opacity','0')));return;}
+ g.setAttribute('opacity',n3(on));
+ const ang=Math.atan2(hd[1],hd[0])/RAD,pulse=1+.12*Math.sin(t*23)+.08*Math.sin(t*37);
+ const wk=.5+.5*b,bk=.5-.5*b;                       // 이기는 쪽 빛이 커져 상대 쪽으로 번짐
+ const W0=q('.bw-clW'),B0=q('.bw-clB');
+ W0.setAttribute('cx',n1(c[0]-hd[0]*(14-22*wk)));W0.setAttribute('cy',n1(c[1]-hd[1]*(14-22*wk)));W0.setAttribute('rx',n1((30+70*wk)*pulse));W0.setAttribute('ry',n1((22+46*wk)*pulse));W0.setAttribute('transform','rotate('+n1(ang)+' '+n1(c[0])+' '+n1(c[1])+')');
+ B0.setAttribute('cx',n1(c[0]+hd[0]*(14-22*bk)));B0.setAttribute('cy',n1(c[1]+hd[1]*(14-22*bk)));B0.setAttribute('rx',n1((30+70*bk)*pulse));B0.setAttribute('ry',n1((22+46*bk)*pulse));B0.setAttribute('transform','rotate('+n1(ang)+' '+n1(c[0])+' '+n1(c[1])+')');
+ const C0=q('.bw-clC');C0.setAttribute('cx',n1(c[0]));C0.setAttribute('cy',n1(c[1]));C0.setAttribute('r',n1(4+3*Math.sin(t*41)+3*Math.abs(b)));
+ // 맞닿은 면에서 퍼지는 충격 고리(진행 방향에 수직인 납작한 고리)
+ qa('.bw-clR').forEach(e=>{const i=+e.dataset.i,k=((s*1.6+i/3)%1),r=20+150*k;e.setAttribute('cx',n1(c[0]));e.setAttribute('cy',n1(c[1]));e.setAttribute('rx',n1(r*.28));e.setAttribute('ry',n1(r));
+  e.setAttribute('transform','rotate('+n1(ang)+' '+n1(c[0])+' '+n1(c[1])+')');e.setAttribute('opacity',n3(s>0?(1-k)*.85:0));});
+ // 불꽃: 양쪽으로 갈라져 튐(두 벌을 번갈아 흘려 끊이지 않게)
+ const nx=-hd[1],ny=hd[0];
+ if(!paintClash._p){paintClash._p=[dropParams(26,101,-200,20,160,520),dropParams(26,103,160,380,160,520)];}
+ const P=paintClash._p,cyc=.9;
+ [['.bw-clSB',0,0],['.bw-clSB2',0,.45],['.bw-clSW',1,0],['.bw-clSW2',1,.45]].forEach(([k,pi,off])=>{
+  const age=((s+off)%cyc),side=pi?-1:1;
+  paintDrops(qa(k+' circle'),P[pi],c[0]+side*hd[0]*6+nx*3,c[1]+side*hd[1]*6+ny*3,s>0?age:-1,10,260);});
+}
+function shardsPaint(el,c,s,hd){
+ const {q,qa}=cacheQ(el),g=q('.bw-shards');
+ if(s<0||s>1.6){g.setAttribute('opacity','0');return;}
+ g.setAttribute('opacity',n3(1-seg(s,1.1,1.6)));
+ const base=Math.atan2(hd[1],hd[0])/RAD;
+ qa('.bw-shards path').forEach(p=>{const i=+p.dataset.i,a=(base+180+[-40,25,-75,60][i])*RAD,v=[260,320,200,380][i];
+  const x=c[0]+Math.cos(a)*v*s,y=c[1]+Math.sin(a)*v*s+520*s*s;
+  p.setAttribute('transform','translate('+n1(x)+' '+n1(y)+') rotate('+n1(base+[1,-1,1,-1][i]*s*[700,900,520,1100][i])+')');p.style.opacity=y>SEA+4?'0':'1';});
+}
+const S4={title:'최후의 교차',dur:CT.dur,
+ caps:[[0,'해도의 선들이 겹치는 곳, 아무것도 없는 허공을 겨눕니다.'],[1.2,'망을 감은 작살이 먼저 날아갑니다.'],[CT.TB,'꿰뚫는 것과 꿰뚫는 것이 끝과 끝으로 맞부딪힙니다.'],[CT.TB+.9,'버팁니다. 휘지 않는 것이 휘어 갑니다.'],[CT.TS,'주둥이가 꺾여 부러지고, 작살이 그 자리로 들어갑니다.'],[CT.TS+2.2,'푸른 빛이 꺼져 갑니다. 떠오르는 것은 부러진 주둥이와 지느러미 조각뿐입니다.']],
  build(){
-  const sparks='<g class="bw-sparks" opacity="0"></g>';
-  return '<g class="bw-root">'+sky()+
+  return clashDefs()+'<g class="bw-root">'+sky()+
    '<g clip-path="url(#bwBelow)"><use class="bw-under" href="'+M+'" opacity="0"/></g>'+
-   '<use class="bw-carc" href="'+M+'" opacity="0"/>'+
+   '<use class="bw-carc" href="'+M+'" clip-path="url(#bwNoBill)" opacity="0"/>'+
    sea()+
    whaleRef('bw-ref')+whaleRef('bw-cref')+foam('bw-foam4',34)+
    '<g clip-path="url(#bwBelow)"><ellipse class="bw-uglow" rx="170" ry="26" fill="url(#bwUnder)" opacity="0"/></g>'+
    boatMarkup()+
    riftMarkup('bw-rift4','back')+riftMarkup('bw-rift4','front')+
+   drops('bw-brch',40,87)+
    '<g clip-path="url(#bwAbove)">'+ghosts(3)+'<use class="bw-front" href="'+M+'" opacity="0"/>'+
+    '<use class="bw-bill" href="'+M+'" clip-path="url(#bwBillOnly)" opacity="0"/>'+
     '<path class="bw-trail" fill="none" stroke="#e3ecea" stroke-width="2" stroke-linecap="round" filter="url(#bwRimF)" opacity="0"/>'+
     '<path class="bw-rope" fill="none" stroke="#8a9697" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
-    '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g></g>'+
+    '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+shardMarkup()+'</g>'+
    chartMarkup()+
    '<g fill="none"><circle class="bwg-tc" r="24" stroke="#e8f3f6" stroke-width="1.6" stroke-dasharray="5 4" opacity="0"/><circle class="bwg-cc" r="24" stroke="#cfeefd" stroke-width="2" opacity="0"/></g>'+
+   clashMarkup()+
    '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+(window.HarpoonLauncher?window.HarpoonLauncher.hitMarkup():'')+
-   sparks+drops('bw-hitw',70,77)+
+   drops('bw-hitw',70,77)+
    drops('bw-blood',22,72,'#1b0c16')+
    columns('bw-cols',5)+
    drops('bw-splash',60,73)+
    rings(3)+
    nearMist()+'</g>';
  },
- paint(el,tReal,tr){
+ /* g가 있으면 미니게임 시각을 따름:
+    g.th 맞닿는 시각 · g.thrownAt · g.timed(고리에 맞춰 던짐) · g.shatter(망 0개: 맞닿자마자 작살이 부서짐)
+    g.clash{start,b} 밀어붙이는 중 · g.loseAt(밀려서 작살이 부서짐) · g.blind(궤적 부족) · g.autoMiss */
+ paint(el,t,tr,g){
   const {q,qa}=cacheQ(el);
-  const t=Math.min(tReal,this.dur);
   ambient(el,tr,0);
-  const S=.8,P=[600,215],TH=1.75,HS=[1.75,2.45,.05];
-  const tau=warp(t,HS[0],HS[1],HS[2]);
-  const V=[-700,-150],Gv=900;
-  function pose(tt){
-   if(tt<TH){const d=tt-TH;const vy=V[1]+Gv*d;return {x:P[0]+V[0]*d,y:P[1]+V[1]*d+.5*Gv*d*d,deg:Math.atan2(-vy,-V[0])/RAD};}
-   const p=tt-TH,th0=Math.atan2(-V[1],-V[0])/RAD;
-   if(p<.558)return {x:P[0]-150*p,y:P[1]-90*p+550*p*p,deg:lerp(th0,-28,inOut(p/.558))+(p<.2?3*Math.sin(p*60)*(1-p/.2):0)};
-   const q2=p-.558;return {x:P[0]-150*p,y:SEA+160*(1-Math.exp(-q2*3)),deg:lerp(-28,-6,outC(q2/.4))};
-  }
-  const E=pose(tau),post=tau-TH;
-  const vis=tau>.6&&post<1.3?(post>.9?1-seg(post,.9,1.3):1):0;
-  const tf=mt(E.x,E.y,E.deg,S,S,EYE[0],EYE[1]);
-  const glow=post>0?lerp(1,.45,seg(post,0,.6)):1;
-  setUse(q('.bw-under'),tf,vis);setUse(q('.bw-front'),tf,vis);
-  setRef(q('.bw-ref'),tf,vis*.16);
+  const game=!!g,blind=game&&!!g.blind;
+  const TB=game?g.th:CT.TB,T0=game?g.thrownAt:CT.throwAt,thrown=T0!=null&&t>=T0;
+  const timed=game?!!g.timed&&!blind:true;
+  const shatterAt=game?(g.shatter?TB:g.loseAt!=null?g.loseAt:null):null;
+  const TS=game?null:CT.TS;                              // 게임에서는 꺾이는 순간부터 시네마틱으로 넘어감
+  const holding=timed&&t>=TB&&(shatterAt==null||t<shatterAt)&&(TS==null||t<TS);
+  const clashB=game?(g.clash?g.clash.b:0):(()=>{const s=t-TB;return lerp(-.22*Math.sin(Math.min(1,s/.7)*Math.PI),1,inC(seg(s,.45,CT.hold)))+.05*Math.sin(s*17);})();
+  const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned()),PC=HL?HL.pierce():{deep:0,pass:false,n:0};
+  // ---- 배 · 작살잡이
+  const B=bob(tr),aim=clamp(t/.8),armEnd=own?HL.ARM:thrown?[38,-24]:[37-aim*12,-30-aim*4];
+  // 고래가 배로 들이닥치는 경우(빗나감 · 작살이 부서짐)
+  const pierceFrom=!blind&&game?(shatterAt!=null?shatterAt:thrown&&!timed?TB:g.autoMiss?TB:null):null;
+  const ib=pierceFrom!=null?pierceFrom+.5:null;
+  let tw;
+  if(ib!=null&&t>=ib)tw=brokenBoat(el,t,ib,210,g.fatal);
+  else{const sTS=TS!=null?t-TS:-1,j=sTS>0?jolt(sTS-.1,1,8):0;
+   tw=boatPose(el,210-j*4,SEA+B.y,B.r+j*8-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0)+(holding?Math.sin(t*31)*.6:0),armEnd);lamp(el,tr,tw,!thrown?.12:holding?.25:0);}
+  const hand=own?HL.handFor(HL.launch(el,tw,{loaded:!thrown}),30,-14):tw(armEnd),p0=[hand[0]+30,hand[1]-14],LIFT=10;
+  const hdx=CP[0]-p0[0],hdy=CP[1]-p0[1]+4*LIFT,hl=Math.hypot(hdx,hdy),hd=[hdx/hl,hdy/hl];   // 작살이 닿을 때의 진행 방향
+  const endAng=Math.atan2(hd[1],hd[0])/RAD;
+  // ---- 맞닿은 자리(균형에 따라 밀림)
+  const shift=holding?clashB*20+Math.sin(t*29)*1.5:0,contact=[CP[0]+hd[0]*shift,CP[1]+hd[1]*shift];
+  // ---- 고래(주둥이 끝 기준)
+  let tip,deg,vis=1,bend=0,billOff=null,cut=false,under=false;
+  const sSnap=TS!=null?t-TS:-1;
+  let eyeFall=null;
+  if(t<TB||(!timed&&!holding&&pierceFrom==null)){        // 다가옴(또는 궤적이 모자라 그대로 지나감)
+   const d=t-TB;tip=tipAt(d);deg=lerp(degAt(d),endAng,timed?inOut(seg(d,-.35,0)):0);
+  }else if(holding){                                     // 맞물려 버팀: 떨림 · 주둥이가 휨
+   tip=contact;deg=endAng+Math.sin(t*27)*.5;bend=-Math.max(0,clashB)*13+Math.sin(t*33)*(1+2*Math.max(0,clashB));cut=true;
+  }else if(pierceFrom!=null){                            // 배로 들이닥침
+   const s=t-pierceFrom,u=outC(seg(s,0,.5));
+   tip=[lerp(CP[0],HULL[0],u),lerp(CP[1],HULL[1],u)];deg=Math.atan2(CP[1]-HULL[1],CP[0]-HULL[0])/RAD;
+   if(s>.5){const k=seg(s,.5,1.6);tip=[HULL[0]-60*k,HULL[1]+150*inC(k)];deg=Math.atan2(CP[1]-HULL[1],CP[0]-HULL[0])/RAD-26*k;}
+   vis=1-seg(s,1.2,1.8);
+  }else if(sSnap>=0){                                    // 꺾인 뒤: 눈에 작살이 꽂힌 채 떨어짐
+   cut=true;
+   const eye0=atTip(contact[0],contact[1],endAng,EYE),fs=sSnap;
+   const ex=eye0[0]-110*fs,ey0=eye0[1]-50*fs+520*fs*fs;
+   const se=(50+Math.sqrt(2500+4*520*(SEA-eye0[1])))/(2*520);
+   let ey=ey0;if(fs>se){const q2=fs-se;ey=SEA+160*(1-Math.exp(-q2*3));}
+   deg=lerp(endAng,-36,inOut(seg(fs,0,.7)))+(fs<.25?4*Math.sin(fs*55)*(1-fs/.25):0);
+   eyeFall={eye:[ex,ey],eye0,se};
+   // 눈 자리를 기준으로 다시 놓음
+   const tmp=apply(0,0,deg,CS,CS,EYE[0],EYE[1],TIPS[0],TIPS[1]);tip=[eyeFall.eye[0]+tmp[0],eyeFall.eye[1]+tmp[1]];
+   vis=fs>se+.9?1-seg(fs,se+.9,se+1.5):1;
+  }else{const d=t-TB;tip=tipAt(d);deg=degAt(d);}
+  const tf=tfTip(tip[0],tip[1],deg);
+  setUse(q('.bw-under'),tf,vis);setUse(q('.bw-front'),tf,vis);setRef(q('.bw-ref'),tf,vis*.16);
+  const cp=cut?'url(#bwNoBill)':null;['.bw-front','.bw-under'].forEach(k=>{const n=q(k);if(cp)n.setAttribute('clip-path',cp);else n.removeAttribute('clip-path');});
+  const glow=sSnap>0?lerp(1,.35,seg(sSnap,0,.8)):holding?1.2:1;
   q('.bw-front').style.setProperty('--bwglow',n3(glow*.6));q('.bw-under').style.setProperty('--bwglow',n3(glow));
-  const fast=tau>1.15&&tau<TH;
-  qa('.bw-ghost').forEach(g=>{const k=+g.dataset.k,pp=pose(tau-k*.03);setUse(g,mt(pp.x,pp.y,pp.deg,S,S,EYE[0],EYE[1]),fast?(.26-k*.07):0);});
-  const ug=q('.bw-uglow');ug.setAttribute('cx',n1(E.x));ug.setAttribute('cy',n1(SEA+46));ug.setAttribute('opacity',n3(tau<1.3?seg(t,.2,.8)*(E.y>SEA?1:0):0));
-  s4Rift(el,tau,t);
-  {const hg=window.BlueHuntGame,n=hg&&hg.trails!=null?hg.trails:4;paintChart(el,t,n,seg(t,1.8,2.6));}
-  // 배와 작살잡이
-  const tc=unwarp(TH+.558,...HS),cx=P[0]-150*.558,sc=t-tc,B=bob(tr),j=jolt(sc-.3,1,8),heave=sc>.3?-13*Math.exp(-(sc-.3)*2)*Math.sin((sc-.3)*5):0;
-  const T0=1.1,thrown=t>=T0,aim=clamp(t/.8);const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const PC=HL?HL.pierce():{deep:0,pass:false,n:0};let hitP=null;
-  const armEnd=own?HL.ARM:thrown?[38,-24]:[37-aim*12,-30-aim*4];
-  const bx=210,tw=boatPose(el,bx-j*5,SEA+B.y+heave,B.r+j*10-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);
-  lamp(el,tr,tw,!thrown?.12:0);
-  // 작살: 손 → 비어 있는 교차점 P(먼저 도착) → 고래 눈에 박혀 함께 움직임
-  const hand=own?HL.handFor(HL.launch(el,tw,{loaded:!thrown}),30,-14):tw(armEnd),p0=[hand[0]+30,hand[1]-14],LIFT=50;
-  const hp=q('.bw-harpoon');let pos,ang,show=0;
-  const endAng=Math.atan2((P[1]-p0[1])+4*LIFT,P[0]-p0[0])/RAD;
-  // 고래 기준 작살의 붙은 자리(눈)와 상대 각도
-  const rel=endAng-pose(TH).deg;
-  if(!thrown){const a=-28-aim*16;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=own?0:clamp((t-.2)/.4);}
-  else if(t<TH){const u=(t-T0)/(TH-T0),e=u*(.85+.15*u);
-   pos=[p0[0]+(P[0]-p0[0])*e,p0[1]+(P[1]-p0[1])*e-4*LIFT*e*(1-e)];
-   ang=Math.atan2((P[1]-p0[1])-4*LIFT*(1-2*e),P[0]-p0[0])/RAD;show=1;}
-  else{
-   let host=E,hostS=[S,S],hostO=EYE;
-   const carcOn=t>tc+.9;
-   if(carcOn){const C=carc(t,tr);host={x:C.x,y:C.y,deg:C.deg};hostS=[C.s,-C.s];hostO=[500,0];}
-   const eye=carcOn?apply(host.x,host.y,host.deg,hostS[0],hostS[1],hostO[0],hostO[1],EYE[0],EYE[1]):[E.x,E.y];
-   ang=carcOn?host.deg+26:E.deg+rel;
-   pos=[eye[0]-10*Math.cos(ang*RAD),eye[1]-10*Math.sin(ang*RAD)];show=1;hitP=eye;
-   if(PC.deep)pos=[pos[0]+PC.deep*Math.cos(ang*RAD),pos[1]+PC.deep*Math.sin(ang*RAD)];   // 4망: 몸통이 반쯤 파고듦
-   if(PC.pass){const s5=t-TH,pa=HL.passAngle(endAng),ea=pa*RAD,dd=10+s5*HL.PASS_SPEED;ang=pa;pos=[P[0]+Math.cos(ea)*dd,P[1]+Math.sin(ea)*dd];show=pos[0]<W+260&&pos[1]<H+260?1:0;hitP=P;} // 5망: 꿰뚫고 날아감
-  }
+  // 주둥이: 버티는 동안 뿌리에서 휨 → 꺾여 부러진 조각이 튕겨 나감
+  const bill=q('.bw-bill');
+  if(holding){bill.setAttribute('transform',tf+' rotate('+n1(bend)+' '+PIV[0]+' '+PIV[1]+')');bill.style.opacity='1';bill.style.setProperty('--bwglow',n3(1.2));}
+  else if(sSnap>=0){const fs=sSnap,bt=tfTip(contact[0],contact[1],endAng);
+   bill.setAttribute('transform','translate('+n1(-150*fs)+' '+n1(-300*fs+620*fs*fs)+') '+bt+' rotate('+n1(-13-fs*620)+' '+PIV[0]+' '+PIV[1]+')');
+   const by=contact[1]-300*fs+620*fs*fs;bill.style.opacity=n3(by>SEA+20?0:1-seg(fs,1.4,1.9));bill.style.setProperty('--bwglow',n3(1-seg(fs,0,1.2)));}
+  else bill.style.opacity='0';
+  // 금 가는 빛(주둥이 뿌리)
+  const ck=q('.bw-crack');
+  if(holding&&clashB>.25){const pv=atTip(tip[0],tip[1],deg,PIV);ck.setAttribute('cx',n1(pv[0]));ck.setAttribute('cy',n1(pv[1]));ck.setAttribute('r',n1(10+26*clashB+4*Math.sin(t*40)));ck.setAttribute('opacity',n3(.4+.5*clashB));}
+  else if(sSnap>=0&&sSnap<.6){const pv=atTip(contact[0],contact[1],endAng,PIV);ck.setAttribute('cx',n1(pv[0]));ck.setAttribute('cy',n1(pv[1]));ck.setAttribute('r',n1(36+120*sSnap));ck.setAttribute('opacity',n3(1-sSnap/.6));}
+  else ck.setAttribute('opacity','0');
+  // 잔상(빠르게 날 때)
+  const fast=t>TB-.75&&t<TB&&vis>0;
+  qa('.bw-ghost').forEach(gh=>{const k=+gh.dataset.k,d=t-TB-k*.035;const tp=tipAt(d);setUse(gh,tfTip(tp[0],tp[1],degAt(d)),fast?(.26-k*.07):0);});
+  // 솟구침 물보라 · 물속 빛 · 물길
+  if(!S4._br)S4._br=dropParams(40,89,-150,-40,160,520);
+  const emerge=TB+EMERGE;paintDrops(qa('.bw-brch circle'),S4._br,tipAt(EMERGE)[0]+40,SEA-4,t-emerge,70,520);
+  const ug=q('.bw-uglow');ug.setAttribute('cx',n1(lerp(1150,tipAt(EMERGE)[0]+60,seg(t,.2,emerge))));ug.setAttribute('cy',n1(SEA+46));ug.setAttribute('opacity',n3(t<emerge+.2?seg(t,.2,.8):0));
+  s4Rift(el,0,t);
+  {const n=game?(g.trails!=null?g.trails:4):(()=>{const hg=window.BlueHuntGame;return hg&&hg.trails!=null?hg.trails:4;})();paintChart(el,t,n,seg(t,TB,TB+.7));}
+  // ---- 작살
+  const hp=q('.bw-harpoon');let pos,ang,show=1;
+  if(!thrown){const a=-28-aim*16;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;show=own?0:clamp((t-.2)/.4)*(ib!=null&&t>=ib?0:1);}
+  else if(t<TB||!timed){                                  // 날아감(빗나가면 지나쳐 떨어짐)
+   const fl=TB-T0,u=(t-T0)/Math.max(.2,fl);
+   if(u<=1||timed){const e=Math.min(1,u);pos=[p0[0]+(CP[0]-p0[0])*e,p0[1]+(CP[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((CP[1]-p0[1])-4*LIFT*(1-2*e),CP[0]-p0[0])/RAD;
+    pos=[pos[0]-hd[0]*6,pos[1]-hd[1]*6];}
+   else{const s2=t-TB,vx=hd[0]*hl/fl,vy=hd[1]*hl/fl;pos=[CP[0]+vx*s2*.8,CP[1]+vy*s2*.8+500*s2*s2];ang=Math.atan2(vy*.8+1000*s2,vx*.8)/RAD;if(pos[1]>SEA+10)show=0;}
+  }else if(holding){pos=[contact[0]-hd[0]*6+Math.sin(t*35)*.8,contact[1]-hd[1]*6];ang=endAng+Math.sin(t*29)*.6;}
+  else if(shatterAt!=null&&t>=shatterAt){pos=[contact[0],contact[1]];ang=endAng;show=0;}
+  else if(sSnap>=0){
+   const fs=sSnap,eye0=eyeFall.eye0;
+   if(PC.pass){const pa=HL.passAngle(endAng),ea=pa*RAD,dd=fs*HL.PASS_SPEED;ang=pa;pos=[contact[0]+Math.cos(ea)*dd,contact[1]+Math.sin(ea)*dd];show=pos[0]<W+260&&pos[1]<H+260?1:0;}
+   else if(fs<.12){const k=outC(fs/.12);pos=[lerp(contact[0],eye0[0],k)-hd[0]*10,lerp(contact[1],eye0[1],k)-hd[1]*10];ang=endAng;}
+   else{const rel=0;ang=deg+rel;const e=eyeFall.eye;pos=[e[0]-10*Math.cos(ang*RAD)+PC.deep*Math.cos(ang*RAD),e[1]-10*Math.sin(ang*RAD)+PC.deep*Math.sin(ang*RAD)];show=vis>0?1:0;}
+  }else{pos=[contact[0],contact[1]];ang=endAng;show=0;}
   hp.setAttribute('opacity',String(show));
   hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
-  q('.bw-tip').style.opacity=t>=TH&&!PC.pass?'0':'1';
-  if(HL){HL.bury(hp,t>=TH&&PC.deep?10-PC.deep:null);if(PC.n>=3){const sk=q('.bw-sparks');if(sk)sk.setAttribute('opacity','0');}HL.paintHit(el,{s:t>=TH?t-TH:-1,p:P,ang:PC.pass?HL.passAngle(endAng):endAng,tier:PC.n,through:150,fade:.8});}
+  const lodged=sSnap>=.12&&!PC.pass;
+  q('.bw-tip').style.opacity=lodged?'0':'1';
+  if(HL){HL.bury(hp,lodged&&PC.deep?10-PC.deep:null);
+   HL.paintHit(el,{s:sSnap>=0?sSnap-.1:-1,p:eyeFall?eyeFall.eye0:CP,ang:PC.pass?HL.passAngle(endAng):endAng,tier:PC.n,through:150,fade:.8});}
+  shardsPaint(el,contact,shatterAt!=null?t-shatterAt:-1,hd);
   const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
   const trl=q('.bw-trail');
-  if(thrown&&t<TH+.3){const bk=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];trl.setAttribute('d','M'+n1(bk[0])+','+n1(bk[1])+' L'+n1(tail[0])+','+n1(tail[1]));trl.setAttribute('opacity',n3(t<TH?.45:.45*(1-(t-TH)/.3)));}
+  if(thrown&&t<TB&&show){const bk=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];trl.setAttribute('d','M'+n1(bk[0])+','+n1(bk[1])+' L'+n1(tail[0])+','+n1(tail[1]));trl.setAttribute('opacity','.45');}
   else trl.setAttribute('opacity','0');
-  const anchor=tw(own?HL.anchorLocal():[40,-9]),slack=!thrown?14:t<TH?40:(t>tc+.9?46+Math.sin(tr*1.1)*4:Math.max(4,30*Math.exp(-(t-TH)*1.5))+Math.sin(tr*2.4)*3);
+  const anchor=tw(own?HL.anchorLocal():[40,-9]),slack=!thrown?14:holding?2+Math.sin(t*20)*1.5:t<TB?40:sSnap>=0?Math.max(4,30*Math.exp(-sSnap*1.5))+Math.sin(tr*2.4)*3:46;
   const mid=[(tail[0]+anchor[0])/2,(tail[1]+anchor[1])/2+slack];
   const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(tail[0])+','+n1(tail[1]));
-  rope.setAttribute('opacity',thrown?'.9':'0');
-  // 교차의 순간: 섬광 · 불꽃 · 멈춘 화면 흔들림
-  const sh=t-TH;
-  const fl=q('.bw-flash');fl.setAttribute('cx',P[0]);fl.setAttribute('cy',P[1]);
-  fl.setAttribute('opacity',sh>0?n3(.8*Math.exp(-sh*2.6)):'0');fl.setAttribute('r',n1(24+46*clamp(sh*2)));
-  if(!this._hw)this._hw=dropParams(70,79,-200,20,60,300);
-  paintDrops(qa('.bw-hitw circle'),this._hw,P[0],P[1],(tau-TH)*1.2,8,420);
-  const sp=q('.bw-sparks');sp.setAttribute('opacity',PC.n<3&&sh>0&&sh<1.6?n3(1-sh/1.6):'0');
-  if(!this._bl)this._bl=dropParams(22,74,-200,20,90,300);
-  paintDrops(qa('.bw-blood circle'),this._bl,P[0],P[1],(tau-TH)*1.3,10,500);
-  const shake=sh>0&&sh<.7?(1-sh/.7)*4:0;
-  q('.bw-root').setAttribute('transform',shake?'translate('+n1(Math.sin(t*90)*shake)+' '+n1(Math.cos(t*77)*shake*.6)+')':'');
-  // 추락: 거대한 물보라 · 물기둥 · 물결
+  rope.setAttribute('opacity',thrown&&(show||holding||sSnap>=0)?'.9':'0');
+  // ---- 맞부딪힌 빛
+  const sC=t-TB;
+  paintClash(el,contact,holding?clashB:0,sC,holding?seg(sC,0,.08):0,t,hd);
+  const fl=q('.bw-flash');const fAt=sSnap>=0?sSnap:shatterAt!=null&&t>=shatterAt?t-shatterAt:timed&&t>=TB?t-TB:-1;
+  fl.setAttribute('cx',n1(contact[0]));fl.setAttribute('cy',n1(contact[1]));
+  fl.setAttribute('opacity',fAt>=0?n3((sSnap>=0?1:.75)*Math.exp(-fAt*2.6)):'0');fl.setAttribute('r',n1(24+(sSnap>=0?120:46)*clamp(fAt*2)));
+  if(!S4._hw)S4._hw=dropParams(70,79,-200,20,60,300);
+  paintDrops(qa('.bw-hitw circle'),S4._hw,contact[0],contact[1],sSnap>=0?sSnap*1.2:-1,8,420);
+  if(!S4._bl)S4._bl=dropParams(22,74,-200,20,90,300);
+  paintDrops(qa('.bw-blood circle'),S4._bl,eyeFall?eyeFall.eye0[0]:0,eyeFall?eyeFall.eye0[1]:0,sSnap>=0?(sSnap-.12)*1.3:-1,10,500);
+  const shk=holding?1.2+2.2*Math.abs(clashB):sSnap>=0&&sSnap<.7?(1-sSnap/.7)*5:shatterAt!=null&&t>=shatterAt&&t<shatterAt+.4?3:0;
+  q('.bw-root').setAttribute('transform',shk?'translate('+n1(Math.sin(t*90)*shk)+' '+n1(Math.cos(t*77)*shk*.6)+')':'');
+  // ---- 추락: 물보라 · 물기둥 · 물결 · 떠오른 사체
+  const tc=eyeFall?TS+eyeFall.se:1e9,cx=eyeFall?eyeFall.eye0[0]-110*eyeFall.se:0,sc=t-tc;
   const cs=qa('.bw-cols .bw-col');
   [[0,0,200,44,-10],[1,-150,125,28,-22],[2,170,150,30,16],[3,-290,90,20,-14],[4,330,100,20,18]].forEach(([i,ox,h,w,ln],n)=>paintCol(cs[i],cx+ox,sc-n*.06,h,w,ln,.5,2.1));
-  if(!this._sp)this._sp=dropParams(60,75,-170,-10,160,460);
-  paintDrops(qa('.bw-splash circle'),this._sp,cx,SEA-6,sc,320,460);
+  if(!S4._sp)S4._sp=dropParams(60,75,-170,-10,160,460);
+  if(!S4._sp2)S4._sp2=dropParams(60,77,-170,-10,120,380);
+  if(ib!=null)paintDrops(qa('.bw-splash circle'),S4._sp2,215,SEA-14,t-ib,60,520);
+  else paintDrops(qa('.bw-splash circle'),S4._sp,cx,SEA-6,sc,320,460);
   paintRings(qa('.bw-rings ellipse'),cx,sc-.2,330,.6);
-  // 뒤집혀 떠오른 사체: 빛이 점점 꺼짐
-  function carc(tt,trr){const u=outC(seg(tt,tc+.9,tc+4.2));return {x:cx+240+4*Math.sin(trr*.4),y:lerp(SEA+150,SEA+22,u)+2.5*Math.sin(trr*1.1),deg:9+1.2*Math.sin(trr*.7),s:.72};}
-  const C=carc(t,tr),cu=q('.bw-carc');
-  setUse(cu,mt(C.x,C.y,C.deg,C.s,-C.s,500,0),seg(t,tc+.8,tc+1.6));
-  setRef(q('.bw-cref'),mt(C.x,C.y,C.deg,C.s,-C.s,500,0),.18*seg(t,tc+.8,tc+1.6));
+  const cu=q('.bw-carc');
+  if(eyeFall){const u=outC(seg(t,tc+.9,tc+4.2)),C={x:cx+240+4*Math.sin(tr*.4),y:lerp(SEA+150,SEA+22,u)+2.5*Math.sin(tr*1.1),deg:9+1.2*Math.sin(tr*.7),s:.72};
+   setUse(cu,mt(C.x,C.y,C.deg,C.s,-C.s,500,0),seg(t,tc+.8,tc+1.6));setRef(q('.bw-cref'),mt(C.x,C.y,C.deg,C.s,-C.s,500,0),.18*seg(t,tc+.8,tc+1.6));
+   cu.style.setProperty('--bwglow',n3(.5*(1-seg(t,tc+1,tc+5))));}
+  else{setUse(cu,'',0);setRef(q('.bw-cref'),'',0);}
   paintFoam(q('.bw-foam4'),sc>0?cx+(sc>2?240*seg(sc,2,4):0):900,sc>0?360:1,sc>0?Math.max(.35,1-sc/3):0,15);
-  cu.style.setProperty('--bwglow',n3(.5*(1-seg(t,tc+1,tc+5))));
-  veil(el,tReal<.6?1-tReal/.6:0);
-  caption(el,this.caps,t);
+  if(!game){veil(el,tr<.6?1-tr/.6:0);caption(el,this.caps,t);}
  }
 };
 
 /* =========================================================
    미니게임 표시 (blue-whale-gameplay-v021.js가 window.BlueHuntGame을 움직임)
    ========================================================= */
-const GAMECAP={2:'고래가 꺾는 쪽으로 키를 돌리십시오.',3:'주둥이가 물살을 뚫고 솟는 순간에만 배를 트십시오.',4:'좁혀 오는 고리가 교차점에 겹치는 순간 작살을 던지십시오.'};
+const GAMECAP={2:'고래가 꺾는 쪽으로 키를 돌리십시오.',3:'주둥이가 물살을 뚫고 솟는 순간에만 배를 트십시오.',4:'좁혀 오는 고리가 교차점에 겹치는 순간 망을 감은 작살을 던지십시오. 주둥이와 정면으로 부딪힙니다.'};
 function hud(el){const {q}=cacheQ(el);return {hint:q('.bwg-hint'),verdict:q('.bwg-verdict'),pips:q('.bwg-pips'),arrow:q('.bwg-arrow'),glyph:q('.bwg-arrow b'),ring:q('.bwg-ring'),bar:q('.bwg-bar i')};}
 function setTxt(n,t){if(n&&n.textContent!==t)n.textContent=t;}
 function setVerdict(n,t,cls){if(!n)return;setTxt(n,t);const c='bwg-verdict'+(t?' on '+(cls||''):'');if(n.className!==c)n.className=c;}
@@ -580,13 +691,16 @@ function hudEvade(el,t,g){
  caption(el,[[0,GAMECAP[3]]],0);
 }
 function hudFinal(el,t,g){
- const u=hud(el);
- const fin=g.done&&(g.hit?t>=g.th:t>=Math.max(g.th,g.thrownAt!=null?g.arriveAt:0));
+ const u=hud(el),{q}=cacheQ(el),bar=q('.bwg-bar');
  const blind=g.trails!=null&&g.trails<3;
- setVerdict(u.verdict,fin?(g.hit?'명중':blind?'잔상':'빗나감'):'',g.hit?'good':'bad');
- setTxt(u.hint,g.thrownAt!=null||g.autoMiss?'':blind?'겨눌 점이 없습니다 · 궤적이 모자랍니다':t<g.breachAt?'단 한 번 · 선들이 겹치는 허공을 보십시오':'지금 · 고리가 겹칠 때 스페이스 / 화면 누르기');
- u.hint.classList.toggle('now',t>=g.breachAt&&g.thrownAt==null&&!g.autoMiss);
- caption(el,[[0,blind?'선들이 한 점에 모이지 않습니다. 어디를 겨눠야 할지 알 수 없습니다.':GAMECAP[4]]],0);
+ const clashing=!!(g.clash&&t>=g.th&&g.snapAt==null&&g.loseAt==null&&!g.done);
+ const won=g.snapAt!=null&&t>=g.snapAt,lost=g.loseAt!=null&&t>=g.loseAt,shat=g.shatter&&t>=g.th;
+ const fin=won||lost||shat||(g.done==='fail'&&t>=Math.max(g.th,g.thrownAt!=null?g.arriveAt:0));
+ setVerdict(u.verdict,won?(t<g.snapAt+1.4?'꺾음':''):lost?'밀림':shat?'부서짐':fin?(blind?'잔상':'빗나감'):'',won?'good':'bad');
+ setTxt(u.hint,clashing?'맞부딪혔습니다 · 연타해서 밀어붙이십시오 (스페이스 / 화면 / 버튼)':g.clash&&t<g.th?'':g.thrownAt!=null||g.autoMiss||g.done?'':blind?'겨눌 점이 없습니다 · 궤적이 모자랍니다':t<g.breachAt?'단 한 번 · 선들이 겹치는 허공을 보십시오':'지금 · 고리가 겹칠 때 스페이스 / 화면 누르기');
+ u.hint.classList.toggle('now',clashing||(t>=g.breachAt&&g.thrownAt==null&&!g.autoMiss&&!g.done));
+ if(bar){const on=!!g.clash&&t>=g.th&&!won;bar.classList.toggle('tug',on);if(on)u.bar.style.width=n1(50+50*clamp(g.clash.b,-1,1))+'%';}
+ caption(el,[[0,blind?'선들이 한 점에 모이지 않습니다. 어디를 겨눠야 할지 알 수 없습니다.':clashing?'꿰뚫는 것과 꿰뚫는 것이 맞물렸습니다. 밀리면 작살이 부서집니다.':GAMECAP[4]]],0);
 }
 // 배가 꿰뚫려 부서지는 모습
 function brokenBoat(el,t,ft,x,fatal){
@@ -654,59 +768,16 @@ function evadeGame(el,t,tr,g){
  veil(el,ph==='pierced'&&g.fatal?.9*seg(t,g.failAt+.6,g.failAt+2):t<.5?1-t/.5:0);
  hudEvade(el,t,g);
 }
-/* ⑤ 최후의 교차 미니게임 */
-const FP=[600,215],FS=.8;
-function poseFinal(tt){const d=tt-1.75,vy=-150+900*d;return {x:FP[0]-700*d,y:FP[1]-150*d+450*d*d,deg:Math.atan2(-vy,700)/RAD};}
+/* ⑤ 최후의 교차 미니게임: 고리 → 정면충돌(밀어붙이기) */
+const FP=CP;
 function finalGame(el,t,tr,g){
- const {q,qa}=cacheQ(el);
- if(g.hit&&t>=g.th){
+ const {q}=cacheQ(el);
+ if(g.snapAt!=null&&t>=g.snapAt){
   ['.bwg-tc','.bwg-cc'].forEach(s=>q(s).setAttribute('opacity','0'));
-  S4.paint(el,1.75+(t-g.th),tr);hudFinal(el,t,g);return;
+  S4.paint(el,CT.TS+(t-g.snapAt),tr);veil(el,0);hudFinal(el,t,g);return;
  }
- ambient(el,tr,0);
- const miss=g.done==='fail'&&t>g.th;
- const sc=.6/Math.max(.3,g.th-g.breachAt);
- let E=poseFinal(1.75+(t-g.th)*sc);
- const ib=g.th+.45;
- if(miss){
-  const P0=poseFinal(1.75),u=inOut(seg(t,g.th,ib)),sink=60*inC(seg(t,ib+.5,ib+2));
-  E={x:lerp(P0.x,429,u),y:lerp(P0.y,177,u)+sink,deg:lerp(P0.deg,-32,u)};
- }
- const tf=mt(E.x,E.y,E.deg,FS,FS,EYE[0],EYE[1]);
- const show=t>.2?1:0;
- setUse(q('.bw-under'),tf,show);setUse(q('.bw-front'),tf,show);
- setRef(q('.bw-ref'),tf,show*.16);q('.bw-front').style.removeProperty('--bwglow');
- const fast=t>g.breachAt&&t<g.th+(miss?.45:0);
- qa('.bw-ghost').forEach(gh=>{const k=+gh.dataset.k,pp=poseFinal(1.75+(t-k*.035-g.th)*sc);setUse(gh,mt(pp.x,pp.y,pp.deg,FS,FS,EYE[0],EYE[1]),fast&&!miss?(.24-k*.06):0);});
- setUse(q('.bw-carc'),'',0);
- const ug=q('.bw-uglow');ug.setAttribute('cx',n1(E.x));ug.setAttribute('cy',n1(SEA+46));ug.setAttribute('opacity',n3(E.y>SEA+20&&t<g.breachAt+.2?seg(t,.2,.8):0));
- s4Rift(el,miss?1.75+(t-g.th)*.6:1.75+(t-g.th)*sc,t);
- const ntr=g.trails!=null?g.trails:4,blind=ntr<3;
- paintChart(el,t,ntr,miss?seg(t,g.th,g.th+.8):0);
- // 배 · 작살잡이
- const B=bob(tr),T0=g.thrownAt,thrown=T0!=null&&t>=T0;
- const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const aim=clamp(t/.8),armEnd=own?HL.ARM:thrown?[38,-24]:[37-aim*12,-30-aim*4];
- let tw;
- if(miss&&t>=ib&&!blind)tw=brokenBoat(el,t,ib,210,g.fatal);
- else{tw=boatPose(el,210,SEA+B.y,B.r-(thrown?Math.exp(-(t-T0)*3)*Math.sin((t-T0)*9)*4:0),armEnd);lamp(el,tr,tw,!thrown?.12:0);}
- const hand=own?HL.handFor(HL.launch(el,tw,{loaded:!thrown}),30,-14):tw(armEnd),p0=[hand[0]+30,hand[1]-14];
- const hpn=q('.bw-harpoon');let pos,ang,showH=1;
- if(!thrown){const a=-28-aim*16;pos=[hand[0]+Math.cos(a*RAD)*40,hand[1]+Math.sin(a*RAD)*40];ang=a;showH=own?0:clamp((t-.2)/.4)*(miss&&t>=ib?0:1);}
- else{
-  const fl=.4,u=(t-T0)/fl,L=30;
-  if(u<=1){const e=u;pos=[p0[0]+(FP[0]-p0[0])*e,p0[1]+(FP[1]-p0[1])*e-4*L*e*(1-e)];ang=Math.atan2((FP[1]-p0[1])-4*L*(1-2*e),FP[0]-p0[0])/RAD;}
-  else{const s2=t-T0-fl,vx=(FP[0]-p0[0])/fl,vy=(FP[1]-p0[1]+4*L)/fl;pos=[FP[0]+vx*s2*.8,FP[1]+vy*s2*.8+500*s2*s2];ang=Math.atan2(vy*.8+1000*s2,vx*.8)/RAD;if(pos[1]>SEA+10)showH=0;}
- }
- hpn.setAttribute('opacity',String(showH));
- hpn.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
- q('.bw-tip').style.opacity='1';
- const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
- const trl=q('.bw-trail');
- if(thrown&&t<T0+.5){const bk=[pos[0]-170*Math.cos(ar),pos[1]-170*Math.sin(ar)];trl.setAttribute('d','M'+n1(bk[0])+','+n1(bk[1])+' L'+n1(tail[0])+','+n1(tail[1]));trl.setAttribute('opacity','.45');}
- else trl.setAttribute('opacity','0');
- const anchor=tw(own?HL.anchorLocal():[40,-9]),mid=[(tail[0]+anchor[0])/2,(tail[1]+anchor[1])/2+(thrown?40:14)];
- const rope=q('.bw-rope');rope.setAttribute('d','M'+n1(anchor[0])+','+n1(anchor[1])+' Q'+n1(mid[0])+','+n1(mid[1])+' '+n1(tail[0])+','+n1(tail[1]));
- rope.setAttribute('opacity',thrown&&showH?'.9':'0');
+ S4.paint(el,t,tr,g);
+ const blind=!!g.blind,T0=g.thrownAt;
  // 교차점과 좁혀 오는 고리
  const tc=q('.bwg-tc'),cc=q('.bwg-cc');
  const ringOn=T0==null&&!g.autoMiss&&!blind;
@@ -719,16 +790,9 @@ function finalGame(el,t,tr,g){
   cc.setAttribute('stroke',near?'#ffcf9a':'#cfeefd');cc.setAttribute('stroke-width',near?'3':'2');
   tc.setAttribute('stroke',near?'#ffcf9a':'#e8f3f6');
  }else cc.setAttribute('opacity','0');
- // 꿰뚫림
- const sp=qa('.bw-splash circle');
- if(!finalGame._sp)finalGame._sp=dropParams(60,77,-170,-10,120,380);
- paintDrops(sp,finalGame._sp,215,SEA-14,miss&&!blind?t-ib:-1,60,520);
- ['.bw-flash','.bw-sparks'].forEach(s=>q(s).setAttribute('opacity','0'));
- qa('.bw-cols .bw-col').forEach(c=>paintCol(c,0,-1,1,1,0));
- qa('.bw-blood circle,.bw-rings ellipse').forEach(c=>c.setAttribute('opacity','0'));
- const shake=miss&&!blind&&t>ib&&t<ib+.5?(1-(t-ib)/.5)*5:0;
- q('.bw-root').setAttribute('transform',shake?'translate('+n1(Math.sin(t*90)*shake)+' '+n1(Math.cos(t*77)*shake*.6)+')':'');
- veil(el,miss&&g.fatal&&!blind?.9*seg(t,ib+.5,ib+2.1):t<.5?1-t/.5:0);
+ const pf=blind?null:g.shatter?g.th:g.loseAt!=null?g.loseAt:(T0!=null&&!g.timed)||g.autoMiss?g.th:null;
+ const ib=pf!=null?pf+.5:null;
+ veil(el,ib!=null&&g.fatal?.9*seg(t,ib+.5,ib+2.1):t<.5?1-t/.5:0);
  hudFinal(el,t,g);
 }
 

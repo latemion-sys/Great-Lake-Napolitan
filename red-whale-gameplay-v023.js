@@ -9,7 +9,11 @@
    ② 붉은 팔의 포위 : 스페이스·화면 누르기 연타로 조여 오는 팔을 떨쳐 냄 × 2
    ③ 여덟 팔 격퇴   : 솟아오르는 팔의 손을 눌러 쳐냄. 1개×8 → 2개×4 → 4개×2 → 8개×1
    ④ 드러난 붉은 등 : 동전 전투 1승 (기존 방식)
-   ⑤ 작살과 물의 귀환 : 리듬에 맞춰 열리고 닫히는 꼬리. 작살이 닿는 순간 열려 있어야 꽂힘
+   ⑤ 작살과 물의 귀환 : 리듬에 맞춰 열리고 닫히는 꼬리. 작살이 닿는 순간 열려 있어야 꽂힘.
+                       꽂힌 작살이 꽃잎을 받쳐 핵이 닫히지 못하는 사이, 1~4단계에서 지켜 낸 숨(물기)을 열린 핵에 3번 불어 넣는다.
+                       (누르고 숨을 모았다가 핵이 열리는 순간 떼며 내쉼) 모든 것을 말리는 것이 그 물기마저 말리려다 제 핵을 말려 버린다.
+                       망 개수만큼 작살이 꽃잎을 더 넓게 받쳐 핵이 오래 열림: 0개 0.3초 · 1개 0.4초 · 2개 0.5초 · 3개 0.7초 · 4개 0.9초 · 5개는 꿰뚫린 구멍이 닫히지 않음
+                       숨은 지켜 낸 만큼(최소 3)만 있다. 닫힌 꽃잎에 막혀 흩어진 숨이 많아 3번을 채울 수 없게 되면 실패
    미니게임마다 실패는 한 번까지: 첫 실패는 피해를 입고 다시, 두 번째 실패는 사망.
    고래 전투는 기존 'whale' 전투(유효 타격 4)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
 (function(){
@@ -26,6 +30,7 @@ const MASH={need:2,limit:4.5,start:25,add:7.5,decay:20};
 const WAVES=[].concat(Array(8).fill(1),Array(4).fill(2),Array(2).fill(4),[8]);
 const WAVE_TIME={1:1.5,2:1.9,4:2.6,8:4.2};
 const TAIL={flight:.45,openHold:.9,rise:.15,close:.15,telegraph:.5};
+const DRY={need:3,travel:.32,minHold:.3,win:{0:.3,1:.4,2:.5,3:.7,4:.9},first:1.3,gap:1.5,rand:.7,cineArrive:6.9,after:3.4};
 const G=window.RedHuntGame=window.RedHuntGame||{mode:null};
 
 function isRedBattle(){const b=state.battle;return state.scene==='battle'&&b&&b.type==='whale'&&b.index===RED;}
@@ -175,18 +180,61 @@ function openness(t){
 }
 function tremble(t){let v=0;for(const o of G.opens||[]){const a=o-t;if(a>0&&a<TAIL.telegraph)v=Math.max(v,1-a/TAIL.telegraph);}return v;}
 function tailDown(){
- if(G.mode!=='tail'||G.done||G.hitAt!=null||G.holding)return;
- const t=now();if(t<1.0||G.locked||(G.flight&&t<G.flight.arrive+.9))return;
+ if(G.mode!=='tail'||G.done||G.holding)return;
+ const t=now();
+ if(G.phase==='dry'){if(G.locked||t<G.hitAt+.6)return;G.holding=true;G.holdAt=t;return;}
+ if(G.hitAt!=null)return;
+ if(t<1.0||G.locked||(G.flight&&t<G.flight.arrive+.9))return;
  G.holding=true;G.holdAt=t;
 }
 function tailUp(){
  if(G.mode!=='tail'||!G.holding)return;
  G.holding=false;
+ if(G.phase==='dry'){const t=now();if(t-G.holdAt<DRY.minHold){setText('숨을 모으지 못했습니다 · 조금 더 참았다가 핵이 열리는 순간 내쉬십시오.');return;}exhale(t);return;}
  if(now()-G.holdAt<.12)return;           // 숨을 참지도 않고 뗀 것은 무시
  tailPress();
 }
+function mangRings(){return window.CalamityMang?CalamityMang.rings():0;}
+function keptBreaths(){const r=rb();return r?Math.max(DRY.need,r.rec.filter(x=>x==='kept').length):4;}
+// 작살이 받친 핵이 열리는 순간(망 5개는 꿰뚫린 구멍이 닫히지 않음)
+function dryOpen(t){
+ if(G.hole)return 1;
+ let v=0;const w=G.dwin;for(const o of G.dopens||[]){const a=t-o;if(a<-.01||a>.24+w)continue;v=Math.max(v,a<.12?a/.12:a<.12+w?1:1-(a-.12-w)/.12);}
+ return Math.max(.12,Math.min(1,v));
+}
+function breathsLeft(){return G.breaths-G.given-G.wasted;}
+function startDry(arrive){
+ const r=mangRings();
+ Object.assign(G,{phase:'dry',need:DRY.need,given:0,wasted:0,breaths:keptBreaths(),puffs:[],dopens:[arrive+DRY.first],dwin:(DRY.win[Math.min(4,r)]||.3)*(G.ease||1),hole:r>=5,holding:false});
+ G.dryOpen=dryOpen;
+}
+function exhale(t){
+ const arr=t+DRY.travel,ok=dryOpen(arr)>=.6;
+ G.puffs.push({at:t,arr,ok});
+ if(ok){
+  G.given++;
+  if(G.given>=G.need){
+   G.dryAt=arr;
+   const resume={stage:4,start:G.t0+arr*1000-DRY.cineArrive*1000};
+   if(window.RedWhaleV3)window.RedWhaleV3.resume=resume;
+   setText('세 번째 숨이 스며듭니다 · 그것이 제 핵의 물기를 말리려 들다가, 핵째로 말라 하얗게 갈라집니다!');
+   G.done='ok';busy=true;
+   G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isRedBattle()){G.mode=null;return;}G.mode=null;resolveCoin(true);},(arr-t+DRY.after)*1000);
+  }else setText('숨이 핵에 스며듭니다 · 열기가 그 물기마저 말리려 들며 핵이 하얗게 바래 갑니다. ('+G.given+' / '+G.need+' · 남은 숨 '+breathsLeft()+')');
+  return;
+ }
+ G.wasted++;
+ const left=breathsLeft();
+ if(left<G.need-G.given){
+  G.locked=true;
+  setTimeout(()=>{G.locked=false;if(G.mode!=='tail'||G.done)return;
+   const go=fail(4,6,'지켜 낸 숨이 닫힌 꽃잎에 막혀 모두 흩어졌습니다. 젖었던 핵이 다시 붉게 달아오릅니다.','숨이 모자랍니다 · 핵이 다시 달아오릅니다. 숨을 고르고 다시 불어 넣으십시오.','숨이 다했습니다 · 열기가 배와 선원들을 말려 버립니다.');
+   if(go&&G.mode==='tail'&&!G.done){G.given=0;G.wasted=0;G.puffs=[];G.breaths=keptBreaths();}},700);
+  setText('닫힌 꽃잎에 막혀 숨이 흩어졌습니다 · 남은 숨으로는 모자랍니다.');
+ }else setText('닫힌 꽃잎에 막혀 숨이 흩어졌습니다 · 핵이 열리는 순간 내쉬십시오. (남은 숨 '+left+')');
+}
 function tailPress(){
- if(G.mode!=='tail'||G.done||G.hitAt!=null)return;
+ if(G.mode!=='tail'||G.done||G.hitAt!=null||G.phase==='dry')return;
  const t=now();if(t<1.2)return;
  if(G.locked||(G.flight&&t<G.flight.arrive+.9))return;
  if(G.dried){
@@ -202,12 +250,8 @@ function tailPress(){
  const arrive=t+TAIL.flight,hit=openness(arrive)>=.7;
  G.flight={at:t,arrive,hit,target:G.core?G.core.slice():null};
  if(hit){
-  G.hitAt=arrive;
-  const resume={stage:4,start:G.t0+arrive*1000-4450};
-  if(window.RedWhaleV3)window.RedWhaleV3.resume=resume;
-  setText('열린 꼬리 한가운데로 작살이 꽂힙니다!');
-  G.done='ok';busy=true;
-  G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isRedBattle()){G.mode=null;return;}G.mode=null;resolveCoin(true);},(arrive-t+1.4)*1000);
+  G.hitAt=arrive;startDry(arrive);
+  setText('열린 꼬리 한가운데로 작살이 꽂힙니다! · 작살이 꽃잎을 받쳐 핵이 닫히지 못합니다. 지켜 낸 숨을 불어 넣으십시오.');
  }else{
   G.locked=true;
   setTimeout(()=>{G.locked=false;if(G.mode==='tail'&&!G.done)fail(3,5,'작살이 닫힌 꼬리에 튕겨 나갔습니다.','닫힌 꽃잎에 튕겨 나갔습니다 · 꼬리가 열리는 순간을 노리십시오.','닫힌 꽃잎에 튕겨 나갔습니다 · 팔들이 배를 덮칩니다.');},TAIL.flight*1000);
@@ -216,6 +260,7 @@ function tailPress(){
 function tailTick(t){
  const last=G.opens[G.opens.length-1];
  if(t>last-3)G.opens.push(last+1.7+Math.random()*.9);
+ if(G.phase==='dry'){const ld=G.dopens[G.dopens.length-1];if(t>ld-2.5)G.dopens.push(ld+DRY.gap+Math.random()*DRY.rand);}
  if(G.holding&&t-G.holdAt>BREATH.holdMax){G.holding=false;
   fail(0,7,'너무 오래 숨을 참았습니다. 숨이 터지며 뜨거운 공기를 들이켰습니다.','숨이 터졌습니다 · 목이 탑니다. 다시 숨을 고르십시오.','숨이 터졌습니다 · 열기가 배와 선원들을 말려 버립니다.');}
 }
@@ -251,7 +296,7 @@ function gamePanel(mode){
  if(mode==='tail')return panel(5,'작살과 물의 귀환',
   dried()?'숨이 말랐습니다. 아무리 참아도 아지랑이가 걷히지 않습니다. 선미 뒤 어딘가에서 붉은 것이 숨 쉬듯 열렸다 닫히는 소리만 들립니다.'
    :'선미 뒤 아지랑이 속에서 무언가가 숨 쉬듯 열렸다 닫힙니다. 숨을 참는 동안에만 아지랑이가 걷혀 꼬리 끝이 보입니다. 숨을 내쉬는 순간 작살을 던집니다.',
-  '누르고 있으면 숨을 참습니다(스페이스 / 이펙트 화면 / 아래 버튼) · 꼬리가 떨리면 곧 1초 동안 열립니다 · 떼는 순간 작살을 던집니다 · 6초 넘게 참으면 숨이 터짐 · 첫 실패는 피해 후 다시, 두 번째 실패는 사망',
+  '① 누르고 있으면 숨을 참습니다(스페이스 / 이펙트 화면 / 아래 버튼) · 꼬리가 떨리면 곧 1초 동안 열립니다 · 떼는 순간 작살을 던집니다 ② 작살이 꽂히면 같은 방법으로 숨을 모았다가 핵이 열리는 순간 떼며 지켜 낸 숨을 불어 넣습니다 × 3 · 지금 망 '+mangRings()+'개(핵이 열려 있는 시간 '+(mangRings()>=5?'계속':(DRY.win[Math.min(4,mangRings())]+'초'))+') · 6초 넘게 참으면 숨이 터짐 · 첫 실패는 피해 후 다시, 두 번째 실패는 사망',
   '<button type="button" class="danger rwg-big rwg-hold" id="rwgAct">숨을 참고 · 떼며 던진다</button>');
  if(mode==='breath'){const k=G.wave||0;return panel(k+1,'열기 · '+['첫 번째','두 번째','세 번째','네 번째'][k]+' 숨',
   '갑자기 뜨거워집니다. 해가 뜬 것도 아닌데. 숨을 들이쉬면 목이 탑니다. 열기가 지나갈 때까지 숨을 참으십시오. 숨을 참는 동안에만 아지랑이가 잦아들어, 그 너머의 붉은 것이 조금 보입니다.',
@@ -271,7 +316,7 @@ renderPlay=function(){
  if(n===4&&!isRedBattle()){
   return sceneMarkup(4)+
    '<div class="inset"><h2>'+esc(WHALES[RED].name)+' · 사냥 성공</h2>'+
-   '<p>숨을 내쉬는 순간 던진 작살이 아지랑이 속에서 열린 꼬리 끝, 그 안의 붉은 핵을 꿰뚫었습니다. 빨판 달린 팔들이 힘없이 물속으로 무너지고 열기가 물러납니다. 갈라졌던 입술이 따끔거립니다. 물이 천천히 다시 차오릅니다. 그것의 온몸이 어떤 모습이었는지는 끝내 아무도 보지 못했습니다.</p>'+
+   '<p>숨을 내쉬는 순간 던진 작살이 열린 꼬리 끝, 그 안의 붉은 핵에 박혀 꽃잎을 받쳤습니다. 지켜 낸 숨을 그 핵에 불어 넣자, 모든 것을 말리는 것이 그 물기마저 말리려 들다가 제 핵을 말려 버렸습니다. 핵이 하얗게 갈라져 부스러지고, 빨판 달린 팔들이 힘없이 물속으로 무너지고 열기가 물러납니다. 갈라졌던 입술이 따끔거립니다. 물이 천천히 다시 차오릅니다. 그것의 온몸이 어떤 모습이었는지는 끝내 아무도 보지 못했습니다.</p>'+
    '<p class="muted">전리품과 사냥 업적은 기존 판정대로 지급되었습니다.</p>'+
    button('사냥을 마치고 항해 계속하기','redWhaleContinue023','','primary')+
    '</div>';
