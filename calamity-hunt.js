@@ -11,12 +11,12 @@
    [망 두르기] 선장 정신력 망1 5 · 망2 10 · 망3 25 · 망4 40 · 망5 50
      - 동전 앞면 확률 +3 · 6 · 9 · 12 · 15%p (인어 전투는 1개부터 두를 수 있음, 재앙 사냥의 동전 판정에도 적용)
      - 받는 피해: 4망 -15% · 5망 -30%
-     - 재앙의 고래(창백한 · 푸른 · 붉은): 특수 작살 + 망 3개 이상이어야 사냥 선택 가능. 미니게임 판정 자체는 바꾸지 않는다.
+     - 재앙의 고래(창백한 · 푸른 · 붉은 · 검은): 특수 작살 + 망 3개 이상이어야 사냥 선택 가능. 미니게임 판정 자체는 바꾸지 않는다.
    [특수 작살] 선장 5등급부터 300. 사냥 한 번에 손상, 정비 150. */
 (function(){
 'use strict';
 if(typeof renderPlay!=='function'||typeof huntWhale!=='function'||typeof renderShop132!=='function'||typeof beginBattle!=='function')return;
-const WHALES_OK=new Set([0,1,2]);
+const WHALES_OK=new Set([0,1,2,3]);   // 창백한 · 푸른 · 붉은 · 검은
 const HARPOON={name:'재앙 사냥용 특수 작살',cost:300,grade:5};
 const RING_COST=[0,5,10,25,40,50];   // 두른 망 개수별 선장 정신력
 const SHIN_TRY={cost:5,p:.6};
@@ -50,7 +50,7 @@ function inCalamity(){
  const b=state.battle;
  if(state.scene==='battle'&&b&&((b.type==='whale'&&WHALES_OK.has(b.index))||HUNT_BATTLES.has(b.type)))return true;
  if(state.scene==='blueHunt'||(typeof PALLID_SCENE_161!=='undefined'&&state.scene===PALLID_SCENE_161))return true;
- if(state.blueWhaleFinalStage||state.redWhaleFinal023)return true;
+ if(state.blueWhaleFinalStage||state.redWhaleFinal023||state.blackWhaleFinal)return true;
  return false;
 }
 function mermaidBattle(){const b=state.battle;return state.scene==='battle'&&b&&MERMAID_HIT[b.type]!=null;}
@@ -342,7 +342,7 @@ renderShop132=function(){
   '</div></div>';
  s+='<div class="inset"><h3>재앙 사냥 준비 · 특수 작살</h3>'+
   '<p>고래잡이들 사이에서 먼 옛날 전설로 불리는 \'쪽빛 노인\'이라 불리는 특색 해결사이자 고래잡이의 무기를 본떠 항구 대장간이 어떻게든 따라해 만든 전용 발사대. 리벳으로 박은 금속판 수십 장을 겹쳐 만든 석궁 모양의 틀에, 사람 키보다 긴 미늘 작살을 걸어 쏜다. 노인은 홀로 쪽배를 몰며 모든 것을 꿰뚫는 청새치를 잡았고, 던질 때마다 작살에 망이라 불리우는 고리 세 개를 감았다고 한다.</p>'+
-  '<p class="muted">그래서 이 작살도 망을 '+MIN_RINGS+'개 이상 두른 손에서만 재앙의 고래(창백한 · 푸른 · 붉은)에게 박힙니다. 한 번 고래의 살을 물고 나면 미늘이 휘고 리벳이 헐거워져, 다음 사냥 전에 판을 다시 박아야 합니다(정비).</p>'+
+  '<p class="muted">그래서 이 작살도 망을 '+MIN_RINGS+'개 이상 두른 손에서만 재앙의 고래(창백한 · 푸른 · 붉은 · 검은)에게 박힙니다. 한 번 고래의 살을 물고 나면 미늘이 휘고 리벳이 헐거워져, 다음 사냥 전에 판을 다시 박아야 합니다(정비).</p>'+
   tag(HARPOON.name+' '+(h?(h.damaged?'손상됨':'정비됨'):'없음'))+'<div class="stack" style="margin-top:8px">';
  if(!h)s+=button(HARPOON.name+' 구매 · '+unitMoney(HARPOON.cost)+' · 선장 '+HARPOON.grade+'등급 이상','calHarpoonBuy','','primary',!avail||state.grade<HARPOON.grade||state.gold<HARPOON.cost);
  else s+=button('특수 작살 정비 · '+unitMoney(HARPOON.cost/2)+(h.damaged?'':' (정비 완료)'),'calHarpoonFix','','',!avail||!h.damaged||state.gold<HARPOON.cost/2);

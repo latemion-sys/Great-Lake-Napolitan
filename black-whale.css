@@ -1,0 +1,31 @@
+/* 모든 것을 감싸안는 검은 고래 · 미니게임 표시 */
+.bk3-scene.bkg-on{cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.bk3-scene[data-stage="2"].bkg-on{cursor:crosshair}
+.bk3-scene .bkg-hud{position:absolute;inset:0;z-index:6;pointer-events:none}
+.bk3-scene .bkg-hint{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);padding:5px 12px;border-radius:20px;background:#03060ccc;border:1px solid #9fb8d055;color:#e4edf5;font-size:12px;letter-spacing:.04em;white-space:nowrap;transition:border-color .1s,box-shadow .1s}
+.bk3-scene .bkg-hint:empty{display:none}
+.bk3-scene .bkg-hint.now{border-color:#ffd59a;color:#fff4dc;box-shadow:0 0 16px #ffcf7a77}
+.bk3-scene .bkg-verdict{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:30px;font-weight:700;letter-spacing:.3em;opacity:0;transition:opacity .2s;white-space:nowrap}
+.bk3-scene .bkg-verdict.on{opacity:1}
+.bk3-scene .bkg-verdict.good{color:#fff6e2;text-shadow:0 0 18px #ffcf7a,0 2px 8px #000}
+.bk3-scene .bkg-verdict.bad{color:#c9d3df;text-shadow:0 0 16px #2a3a50,0 2px 8px #000}
+.bk3-scene .bkg-pips{position:absolute;top:12px;right:16px;display:flex;gap:6px}
+.bk3-scene .bkg-pips i{width:24px;height:8px;border-radius:4px;background:#03060ccc;border:1.5px solid #c8d6e8aa}
+.bk3-scene .bkg-pips i.good{background:#ffcf7a;border-color:#ffcf7a;box-shadow:0 0 8px #ffb84a}
+.bk3-scene .bkg-pips i.bad{background:#0a0e14;border-color:#5a6a80;box-shadow:inset 0 0 6px #000}
+.bk3-scene .bkg-count{position:absolute;top:12px;right:16px;padding:3px 10px;border-radius:12px;background:#03060ccc;border:1px solid #9fb8d055;color:#e4edf5;font-size:12px}
+.bk3-scene .bkg-count:empty{display:none}
+.bk3-scene .bkg-bar,.bk3-scene .bkg-time{position:absolute;left:50%;transform:translateX(-50%);width:44%;border-radius:6px;background:#03060ccc;overflow:hidden}
+.bk3-scene .bkg-bar{top:38px;height:12px;border:1.5px solid #c8d6e888}
+.bk3-scene .bkg-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3a4a60,#9fb8d0);transition:background .2s}
+.bk3-scene .bkg-bar.hot i{background:linear-gradient(90deg,#ffcf7a,#fff2d0);box-shadow:0 0 10px #ffcf7a}
+.bk3-scene .bkg-time{top:56px;height:4px;border:1px solid #c8d6e844}
+.bk3-scene .bkg-time i{display:block;height:100%;width:100%;background:#e4edf5}
+.bk3-scene:not([data-stage="1"]) .bkg-bar,.bk3-scene:not([data-stage="1"]) .bkg-time{display:none}
+.bk3-scene:not([data-lamp]) .bkg-pips{display:none}
+.bk3-scene[data-lamp] .bkg-count,.bk3-scene[data-lamp] .bkg-bar,.bk3-scene[data-lamp] .bkg-time,.bk3-scene[data-stage="4"] .bkg-count{display:none}
+.bkg-panel .bkg-big{font-size:17px;padding:14px 26px;touch-action:none;user-select:none;-webkit-user-select:none}
+.bkg-panel .bkg-steer{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.bkg-panel .bkg-lamp i{display:inline-block;width:14px;height:20px;margin:0 2px;border-radius:7px 7px 4px 4px;background:#0a0e14;border:1px solid #5a6a80;vertical-align:middle}
+.bkg-panel .bkg-lamp i.on{background:radial-gradient(circle at 50% 60%,#fff2d0,#ffcf7a 55%,#b07a3a);border-color:#ffcf7a;box-shadow:0 0 8px #ffb84a}
+@media(max-width:620px){.bk3-scene .bkg-hint{font-size:10px;bottom:36px;white-space:normal;width:84%;text-align:center}.bk3-scene .bkg-verdict{font-size:22px}.bk3-scene .bkg-bar,.bk3-scene .bkg-time{width:58%}.bk3-scene .bkg-bar{top:30px}.bk3-scene .bkg-time{top:46px}}
