@@ -620,9 +620,18 @@ function sailorStoryNumbered(id,raw){
   const named=source.filter(d=>d&&d.name&&d.id).sort((a,b)=>b.name.length-a.name.length);
   for(const d of named)sentence=sentence.split(d.name).join(sailorLakeNumber(d.id)||d.name);
  }
+ // 특정되지 않은 다른 곳에 현재 호수 번호를 잘못 붙이지 않습니다.
+ sentence=sentence.replace(/(다른|여러|모든|어떤)\s+호수로/g,'$1 곳으로')
+                  .replace(/(다른|여러|모든|어떤)\s+호수/g,'$1 곳')
+                  .replace(/각\s+호수/g,'각 구역');
  sentence=sentence.replace(/(21-\d{2})\s*(?:번(?:째)?)?\s*호수/g,'$1');
  sentence=sentence.replace(/(?:이|그|저|해당)\s+호수/g,number);
  sentence=sentence.replace(/(?<![가-힣])호수/g,number);
+ // 번호로 바뀌었을 때의 조사와 수식 관계를 보정합니다.
+ const 받침있는번호=/[013678]$/;
+ sentence=sentence.replace(/(21-\d{2})는(?=[\s.,!?]|$)/g,(_,id)=>id+(받침있는번호.test(id)?'은':'는'));
+ sentence=sentence.replace(/(21-\d{2})를(?=[\s.,!?]|$)/g,(_,id)=>id+(받침있는번호.test(id)?'을':'를'));
+ sentence=sentence.replace(/(21-\d{2})\s+한가운데/g,'$1의 한가운데');
  return sentence;
 }
 
