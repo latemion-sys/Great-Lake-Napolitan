@@ -102,10 +102,12 @@ if(typeof chooseRule==='function'){
  };
 }
 
+/* 터치 화면: 손가락은 마우스보다 느리고 넓게 닿으므로 판정 시간 · 범위 ×1.35 */
+function TOUCH(){try{return (window.matchMedia&&matchMedia('(pointer:coarse)').matches)||('ontouchstart' in window&&navigator.maxTouchPoints>0)?1.35:1;}catch(e){return 1;}}
 /* ---------- 다른 스크립트가 읽는 이점 ---------- */
 const API=window.CalamityMang={
  rings,
- ease(){return 1;},        // 미니게임 판정은 망과 무관
+ ease(){return TOUCH();},  // 미니게임 판정은 망과 무관 · 터치 화면(휴대폰)은 판정 시간 · 범위를 넓힘
  extraLife(){return 0;},
  guard(){const r=rings();return r>=5?.3:r>=4?.15:0;},
  captainMind:cm,hurt,ringCost,MAX_RINGS,MIN_RINGS

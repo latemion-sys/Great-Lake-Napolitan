@@ -22,7 +22,7 @@ function card(a){
  const shown=yes||['common','rare'].includes(a.tier);
  return '<article class="ach-modal-item-161 '+(yes?'earned':'locked')+(hidden?' secret':'')+'" data-tier="'+escapeText(a.tier)+'">'+
   '<div class="ach-topline-161"><span>'+label[a.tier]+'</span><span class="ach-tag-161">'+(yes?'✓ 달성':'미달성')+'</span></div>'+
-  '<h3>'+escapeText(hidden?'???':a.name)+'</h3>'+
+  '<h3>'+escapeText(hidden?'???':a.name)+(yes?'<span class="ach-count-024" title="달성 횟수">'+Math.max(1,window.AchCount024?AchCount024.get(a.id):1)+'회</span>':'')+'</h3>'+
   (shown&&a.desc?'<p>'+escapeText(a.desc)+'</p>':hidden?'<p>달성 후 공개됩니다.</p>':!yes&&a.tier==='hero'?'<p>달성 조건은 비공개입니다.</p>':'')+'</article>';
 }
 function draw(keepScroll){

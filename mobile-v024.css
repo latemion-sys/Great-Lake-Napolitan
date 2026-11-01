@@ -1,0 +1,55 @@
+/* v0.2.4 · 이펙트 화면 확대 + 휴대폰 화면 · 터치 조정 */
+/* 이펙트 화면: 장면 전체(16:9)가 잘리지 않고 지금보다 크게 보이도록 */
+.pallid-cine-v2{height:auto!important;aspect-ratio:16/9;max-height:min(78vh,640px)}
+.pallid-cine-v2 svg{width:100%;height:100%}
+.lakefx{height:clamp(200px,34vw,320px)!important}
+/* 미니게임 화면: 탭 · 끌기 중 스크롤 · 확대가 끼어들지 않게 */
+.pallid-cine-v2[data-game],.bwg-on,.rwg-on,.bkg-on,.rare-fx-024{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation}
+.cross-timer-024{position:sticky;top:0;z-index:30;background:#1b1214;border:1px solid #c0525a;border-radius:12px;padding:10px 12px;margin-bottom:10px;box-shadow:0 6px 18px #0009}
+.cross-timer-024 .meter span{background:linear-gradient(90deg,#c0525a,#ffb46a);transition:width .25s linear}
+.cross-timer-024.urgent{animation:crossPulse .5s ease-in-out infinite alternate}
+@keyframes crossPulse{to{box-shadow:0 0 22px #ff5a5a}}
+.cross-offer-024{border:1px solid #d9a85a;background:linear-gradient(135deg,#2a2016,#1a1a22)}
+.ach-count-024{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;background:#ffffff1a;border:1px solid #ffffff33;font-size:.72em;font-weight:600;vertical-align:middle;letter-spacing:0}
+/* 휴대폰 */
+@media (max-width:600px){
+ .pallid-cine-v2,.lakefx{width:100vw!important;max-width:100vw;margin-left:calc(50% - 50vw)!important;margin-right:calc(50% - 50vw)!important;border-radius:0!important;border-left:0!important;border-right:0!important}
+ .pallid-cine-v2{max-height:none}
+ .pallid-cine-v2 .cine-bottom{font-size:11px;left:10px;right:10px;bottom:8px}
+ .pallid-cine-v2 .cine-top{font-size:9px;left:10px;top:8px}
+ /* 미니게임 HUD · 버튼을 손가락 크기로 */
+ .bwg-hint,.rwg-hint,.bkg-hint{font-size:12px!important;bottom:34px!important;max-width:92vw;white-space:normal!important;text-align:center}
+ .bwg-verdict,.rwg-verdict,.bkg-verdict{font-size:24px!important}
+ .bkg-big,.rwg-big,.bwg-panel button,.rwg-panel button,.bkg-panel button,.inset .stack button,#pallidThrowBtn{min-height:56px;font-size:16px!important}
+ .bkg-steer,.bwg-pad{display:grid!important;grid-template-columns:1fr 1fr;gap:10px}
+ .bkg-steer button,.bwg-pad button{min-height:72px;font-size:22px!important}
+ .stack button{width:100%}
+ body{overscroll-behavior-y:contain;overflow-x:clip}
+ html{overflow-x:clip}
+}
+/* 가로로 눕힌 휴대폰: 화면 높이를 거의 다 쓰도록 */
+@media (max-height:500px) and (orientation:landscape){
+ .pallid-cine-v2{max-height:86vh;width:auto;margin-left:auto;margin-right:auto}
+}
+.mstat-024{display:none}
+@media (max-width:780px){
+ header{margin-bottom:8px;padding:12px 14px!important}
+ header h1{font-size:21px!important;margin:4px 0}
+ header p.muted{display:none}
+ header .notice{font-size:11px;padding:8px 10px}
+ .layout{display:flex!important;flex-direction:column;gap:12px}
+ .layout>main{order:1}
+ .layout>aside{order:2}
+ .mstat-024{display:flex;flex-wrap:wrap;gap:6px;position:sticky;top:0;z-index:35;margin:-6px -6px 10px;padding:8px;border-radius:12px;background:#0f141bf2;border:1px solid var(--line);backdrop-filter:blur(4px)}
+ .mstat-024 span{font-size:12px;padding:3px 8px;border-radius:9px;background:#ffffff10;white-space:nowrap}
+ .mstat-024 span.bad{background:#7a1f2a;color:#ffd9d9}
+ .mstat-024 span.cross{background:#5a3a14;color:#ffe2b0}
+ .tabs{display:flex!important;overflow-x:auto;flex-wrap:nowrap!important;gap:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+ .tabs button{flex:0 0 auto;min-height:44px;padding:8px 14px}
+ .side .stats{grid-template-columns:repeat(3,1fr)!important;gap:6px}
+ .side .stat{padding:8px!important}
+ .side .stat small{font-size:10px}
+ .side .stat strong{font-size:14px!important}
+ .cross-timer-024{top:44px}
+}
