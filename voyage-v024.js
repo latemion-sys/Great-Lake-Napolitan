@@ -66,7 +66,7 @@ enterNextLake0131=function(id){
 };
 function rareScene(){
  const R=state.rareWhale024,d=R&&RARE[R.id];if(!d)return null;
- return (window.RareWhaleFx024?RareWhaleFx024.html(R.id):'')+
+ return ''+   // 희귀 고래는 이펙트 없이 글로만 등장
   '<div class="inset warning"><div class="small">희귀 고래 · 이 호수에 사는 것</div><h2>'+esc(d.name)+'</h2><p>'+esc(d.desc)+'</p>'+
   '<p class="muted">재앙은 아니지만, 이 호수의 고래입니다. 사냥에 성공하면 '+esc(d.loot)+'을(를) 얻을 수 있습니다.</p>'+
   tag('호수 침식도 '+state.exposure+' / 100')+' '+tag('아군 전투력 '+crewPower())+
@@ -235,7 +235,6 @@ renderPlay=function(){
  if(state.scene==='rareWhale'){const h=rareScene();if(h)return h;state.scene='event';}
  rollOffer();
  let page=basePlay.apply(this,arguments);
- if(state.scene==='battle'&&state.battle&&state.battle.type==='rare'&&window.RareWhaleFx024)page=RareWhaleFx024.html(state.battle.rare,true)+page;
  if(state.scene==='port'&&!state.sea){
   if(state.crossResult024){const R=state.crossResult024;state.crossResult024=null;
    page='<div class="inset cross-offer-024"><h2>대호수를 주파했습니다</h2><p>'+R.money+'만 안(眼)을 받았습니다. 선체가 보강되어 최대 내구도가 <b>'+(100+R.bonus)+'</b>이 되었습니다'+(R.bonus>=HULL_CAP?' (보강 한도)':'')+'.</p></div>'+page;}
