@@ -1,0 +1,21 @@
+/* 붉은 고래 · 여덟 팔 사냥 표시 */
+.rw3-scene .rwg-heat{position:absolute;left:16px;top:34px;width:150px;height:14px;border-radius:7px;background:#12040acc;border:1.5px solid #ff9a6a99;overflow:hidden;display:none}
+.rw3-scene .rwg-heat i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff9a3a,#ff3a1a);box-shadow:0 0 12px #ff5a2a;transition:width .3s}
+.rw3-scene .rwg-heat b{position:absolute;left:8px;top:-1px;font-size:10px;line-height:14px;color:#fff1e4;text-shadow:0 1px 3px #000;font-weight:600}
+.rw3-scene[data-mode] .rwg-heat{display:block}
+.rw3-scene[data-mode] .rwg-pips{display:flex!important}
+.rw3-scene[data-mode] .rwg-pips i{width:14px}
+.rw3-scene[data-mode="p1"] .rwg-bar,.rw3-scene[data-mode="p1"] .rwg-time{display:block!important}
+.rw3-scene[data-mode]:not([data-mode="p1"]) .rwg-bar,.rw3-scene[data-mode]:not([data-mode="p1"]) .rwg-time{display:none!important}
+.rw3-scene[data-mode="p2"]{cursor:ns-resize;touch-action:none}
+.rw3-scene[data-mode="p4"]{cursor:crosshair;touch-action:none}
+.rw3-scene .rwg-dpad{display:none;position:absolute;right:14px;bottom:56px;width:150px;height:150px;pointer-events:auto}
+.rw3-scene[data-mode="p3"] .rwg-dpad{display:block}
+.rwg-dpad button,.rwg-dpad-panel button{position:absolute;width:52px;height:52px;border-radius:12px;background:#2a0a10e6;border:1.5px solid #ffc8b8aa;color:#fff1e4;font-size:22px;touch-action:none;user-select:none;-webkit-user-select:none;padding:0}
+.rwg-dpad button:active,.rwg-dpad-panel button:active{background:#ff7a4a;color:#1a0206}
+.rwg-dpad [data-dir="up"]{left:49px;top:0}.rwg-dpad [data-dir="down"]{left:49px;bottom:0}.rwg-dpad [data-dir="left"]{left:0;top:49px}.rwg-dpad [data-dir="right"]{right:0;top:49px}
+.rwg-dpad-panel{position:relative;width:170px;height:170px;margin:8px auto}
+.rwg-dpad-panel button{width:58px;height:58px}
+.rwg-dpad-panel [data-dir="up"]{left:56px;top:0}.rwg-dpad-panel [data-dir="down"]{left:56px;bottom:0}.rwg-dpad-panel [data-dir="left"]{left:0;top:56px}.rwg-dpad-panel [data-dir="right"]{right:0;top:56px}
+@media (max-width:600px){.rw3-scene .rwg-dpad{width:126px;height:126px;bottom:40px;right:8px}.rwg-dpad button{width:42px;height:42px;font-size:18px}.rwg-dpad [data-dir="up"],.rwg-dpad [data-dir="down"]{left:42px}.rwg-dpad [data-dir="left"],.rwg-dpad [data-dir="right"]{top:42px}.rw3-scene .rwg-heat{width:110px;top:26px}}
+@media (max-width:600px){.rw3-scene[data-mode="p3"] .rwg-hint{left:8px;top:46px;bottom:auto!important;transform:none;width:auto;max-width:calc(100% - 150px);text-align:left!important}.rw3-scene .rwg-dpad{bottom:30px}.rwg-dpad button{background:#2a0a10f2}}
