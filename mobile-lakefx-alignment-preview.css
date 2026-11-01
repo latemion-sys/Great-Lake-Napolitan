@@ -1,0 +1,13 @@
+/* 미리보기 전용 · 모바일 호수 이펙트의 좌우를 같은 화면의 선택지 폭에 맞춥니다.
+   높이, 내부 이펙트, 장면 및 버튼 동작은 변경하지 않습니다. */
+@media (max-width:600px) {
+  body.mobile-choice-preview .lakefx {
+    width:100% !important;
+    max-width:100% !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+    border-left:1px solid #56646b !important;
+    border-right:1px solid #56646b !important;
+    border-radius:13px !important;
+  }
+}
