@@ -16,6 +16,15 @@
  }
  const beforeMake=makeStory014;
  makeStory014=function(lake){
+  if(lake?.id===37){
+   const d=ids.get(37),M=rng(2);
+   const st={id:37,scripted:true,scriptVersion022:true,rulesRevision024:true,custom37v024:true,
+    step:0,turns:0,turnLimit:M+3+rng(4-M),vars:{M,'센 수':pick(['다섯','일곱','열']),
+     '거짓 말':pick(['찾았다.','거기 있는 거 다 보여.','이제 나와도 돼.'])},
+    plan:M===1?shuffle([1,2]):[1],visited37:0,order:shuffle([0,1,2,3])};
+   st.sceneText=String(d.scenes[0].text).replace(/\\{([^{}]+)\\}/g,(_,k)=>st.vars[k]??'');
+   return st;
+  }
   if(!lake||lake.id!==8){
    const original=beforeMake(lake);
    if(original&&[9,14,50].includes(lake?.id)){
@@ -36,6 +45,38 @@
  const beforeChoice=storyChoice014;
  storyChoice014=function(i){
   const st=state.lakeStory;
+  if(state.scene==='event'&&state.current===37&&st?.custom37v024){
+   const chosen=st.order[i],prior=st.step;
+   if(chosen!==0||st.turns>=st.turnLimit)return mermaidDeath015(37);
+   const option=ids.get(37).scenes[st.step].choices[0];
+   if(option.pass&&state.normalMermaidDraw&&!state.mermaidResolved){
+    state.mermaidResolved=true;
+    beginBattle({type:'normal',name:'대호수의 인어',power:35+LAKE_BY_ID157.get(37).risk*18,
+     need:1,won:0,history:[],after:'navigation'});return;
+   }
+   st.turns++;
+   if(!state.nav)state.nav={stage:'law',turns:0,transition:false};
+   state.nav.turns=st.turns;
+   if(option.pass){
+    state.nav.transition=true;state.ruleResolved=true;
+    completeLake(true,'호수의 경계를 건넜습니다.');return;
+   }
+   if(prior===0)st.step=st.plan[0];
+   else if(prior===1||prior===2){
+    st.visited37++;
+    st.step=st.visited37>=st.plan.length?3:st.plan[st.visited37];
+   }else return mermaidDeath015(37);
+   const scene=ids.get(37).scenes[st.step];
+   st.sceneText=String(scene.text).replace(/\\{([^{}]+)\\}/g,(_,k)=>st.vars[k]??'');
+   st.order=shuffle(scene.choices.map((_,j)=>j));
+   dispatchAchievement142('choice',{lake:37,stage:'scene'+prior,choice:0});
+   if(state.normalMermaidDraw&&!state.mermaidResolved){
+    state.mermaidResolved=true;
+    beginBattle({type:'normal',name:'대호수의 인어',power:35+LAKE_BY_ID157.get(37).risk*18,
+     need:1,won:0,history:[],after:'navigation'});
+   }else sync();
+   return;
+  }
   if(state.scene!=='event'||state.current!==8||!st?.custom024)return beforeChoice(i);
   const d=ids.get(8),selected=st.order[i];
   if(!Number.isInteger(selected))return;
