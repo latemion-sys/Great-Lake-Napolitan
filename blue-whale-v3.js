@@ -474,6 +474,7 @@ function commonDefs(){
  '<linearGradient id="bwSea2" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#16242e" stop-opacity=".93"/><stop offset=".08" stop-color="#0d1820" stop-opacity=".95"/><stop offset=".5" stop-color="#060d13" stop-opacity=".97"/><stop offset="1" stop-color="#020507"/></linearGradient>'+
  '<linearGradient id="bwHazeH" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#9fb8c6" stop-opacity="0"/><stop offset=".5" stop-color="#9fb8c6" stop-opacity=".15"/><stop offset="1" stop-color="#9fb8c6" stop-opacity="0"/></linearGradient>'+
  '<linearGradient id="bwSpec" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#f4fbff" stop-opacity=".7"/><stop offset=".7" stop-color="#f4fbff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'+
+ '<radialGradient id="bwMistG"><stop stop-color="#cfdde3"/><stop offset=".55" stop-color="#cfdde3" stop-opacity=".75"/><stop offset="1" stop-color="#cfdde3" stop-opacity="0"/></radialGradient>'+'<radialGradient id="bwFoamG"><stop stop-color="#e1eef3"/><stop offset=".55" stop-color="#e1eef3" stop-opacity=".7"/><stop offset="1" stop-color="#e1eef3" stop-opacity="0"/></radialGradient>'+
  '<filter id="bwB1" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1"/></filter>'+
  '<filter id="bwSmear" x="-30%" y="-10%" width="160%" height="120%"><feGaussianBlur stdDeviation="22 1.5"/></filter>'+
  '<mask id="bwRipple" maskUnits="userSpaceOnUse" x="0" y="'+SEA+'" width="'+W+'" height="'+(H-SEA)+'">'+rippleBands()+'</mask>'+
@@ -485,7 +486,7 @@ function sky(){
   '<circle cx="812" cy="98" r="190" fill="url(#bwMoon)"/>'+
   '<circle cx="812" cy="98" r="26" fill="#dde8ec" opacity=".42" filter="url(#bwRimF)"/>'+
   '<rect x="0" y="'+(SEA-70)+'" width="'+W+'" height="110" fill="url(#bwHazeH)"/>'+
-  '<g class="bw-mist" filter="url(#bwMist)"><rect x="-200" y="'+(SEA-46)+'" width="760" height="30" rx="15" fill="#c3d3dc" opacity=".07"/><rect x="520" y="'+(SEA-60)+'" width="800" height="36" rx="18" fill="#c3d3dc" opacity=".06"/></g>'+
+  '<g class="bw-mist"><ellipse cx="180" cy="'+(SEA-31)+'" rx="410" ry="27" fill="url(#bwMistG)" opacity=".09"/><ellipse cx="920" cy="'+(SEA-42)+'" rx="430" ry="30" fill="url(#bwMistG)" opacity=".08"/></g>'+
   '<path d="M0,'+SEA+' H'+W+'" stroke="#c9dae2" stroke-opacity=".2" stroke-width="1"/>';
 }
 let SEA_CACHE=null;
@@ -504,12 +505,12 @@ function sea(){
  return SEA_CACHE;
 }
 function nearMist(){
- return '<g class="bw-mist" filter="url(#bwMist)"><rect x="-300" y="'+(SEA-16)+'" width="900" height="30" rx="15" fill="#cfdde3" opacity=".07"/><rect x="420" y="'+(SEA-34)+'" width="900" height="26" rx="13" fill="#cfdde3" opacity=".055"/></g>';
+ return '<g class="bw-mist"><ellipse cx="150" cy="'+(SEA-1)+'" rx="480" ry="27" fill="url(#bwMistG)" opacity=".09"/><ellipse cx="870" cy="'+(SEA-21)+'" rx="480" ry="25" fill="url(#bwMistG)" opacity=".07"/></g>';
 }
 function lampRef(){
  const r=seeded(11);let s='';
  for(let i=0;i<16;i++){const yy=SEA+4+i*6+r()*4,w=6+r()*14*(1-i/20);s+='<rect x="'+n1(-w/2+(r()-.5)*6)+'" y="'+n1(yy)+'" width="'+n1(w)+'" height="1.6" rx=".8" opacity="'+n3(.55*(1-i/16)*(.5+r()*.5))+'"/>';}
- return '<g class="bw-lampref" fill="#ffc35a" filter="url(#bwB1)" opacity="0">'+s+'</g>';
+ return '<g class="bw-lampref" fill="#ffc35a" opacity="0">'+s+'</g>';
 }
 function boatMarkup(cls){
  return '<ellipse class="bw-lampglint" cy="'+(SEA+9)+'" rx="22" ry="3" fill="#ffbf47" filter="url(#bwRimF)" opacity="0"/>'+lampRef()+
@@ -556,7 +557,7 @@ function columns(cls,n){
  return s+'</g>';
 }
 // 수면의 거품
-function foam(cls,n){let s='<g class="'+cls+'" filter="url(#bwB1)">';for(let i=0;i<(n||26);i++)s+='<ellipse fill="#e1eef3" rx="1" ry="1" opacity="0"/>';return s+'</g>';}
+function foam(cls,n){let s='<g class="'+cls+'">';for(let i=0;i<(n||26);i++)s+='<ellipse fill="url(#bwFoamG)" rx="1" ry="1" opacity="0"/>';return s+'</g>';}
 function paintFoam(g,cx,w,op,seed){
  const c=g._fo||(g._fo={e:Array.from(g.children),P:null});
  if(!c.P){const r=seeded((Math.abs(seed|0)%2147483000)+5);c.P=c.e.map(()=>({x:r()-.5,y:Math.pow(r(),2),rx:3+r()*16,ry:.8+r()*2.2,o:.12+.4*r()}));}

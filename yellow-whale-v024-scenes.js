@@ -45,6 +45,7 @@ function yDefs(){
  '<radialGradient id="yLife"><stop stop-color="#f4fbff"/><stop offset=".4" stop-color="#cfe8ff" stop-opacity=".5"/><stop offset="1" stop-color="#cfe8ff" stop-opacity="0"/></radialGradient>'+
  '<radialGradient id="yFlash"><stop stop-color="#fffbe8"/><stop offset=".25" stop-color="#ffe080" stop-opacity=".7"/><stop offset="1" stop-color="#f0a020" stop-opacity="0"/></radialGradient>'+
  '<radialGradient id="yRing"><stop offset=".62" stop-color="#ffd98a" stop-opacity="0"/><stop offset=".84" stop-color="#ffeac0" stop-opacity=".7"/><stop offset=".92" stop-color="#fff7e2" stop-opacity=".95"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>'+
+ (window.FxNoise?FxNoise.pattern('yGrainPat','ygrain',{cell:10,oct:3,rgb:[46,26,5],lo:.5,hi:.8,stretch:[1.8,1],seed:7},120,120)+FxNoise.pattern('yGrainLPat','ygrainl',{cell:16,oct:2,rgb:[255,230,150],lo:.62,hi:.9,stretch:[1,2.4],seed:19},120,120)+FxNoise.pattern('yCaustPat','ycaust',{cell:60,oct:2,rgb:[255,210,100],lo:.55,hi:.72,stretch:[4,1],seed:31},340,140):'')+
  '<clipPath id="yAbove"><rect x="-260" y="-460" width="520" height="462"/></clipPath>'+
  '<clipPath id="yIsle"><path d="'+ISLE+'"/></clipPath>'+
  '<clipPath id="yConeC"><path d="'+CONE+'"/></clipPath>'+
@@ -72,10 +73,10 @@ function seaMarkup(){
   '<g clip-path="url(#ySeaClip)">'+
    // 물밑 등껍질: 삼각형을 품은 넓은 황토빛 그림자 + 물결 무늬 빛
    '<ellipse class="y-under" cx="'+n1(C[0])+'" cy="'+n1(C[1]+10)+'" rx="360" ry="78" fill="url(#yUnder)"/>'+
-   '<g class="y-caust" opacity=".22"><ellipse cx="'+n1(C[0])+'" cy="'+n1(C[1]+10)+'" rx="340" ry="70" fill="#000" opacity="0"/><rect x="'+n1(C[0]-340)+'" y="'+n1(C[1]-60)+'" width="680" height="140" filter="url(#yCaust)" mask="url(#yUnderM)"/></g>'+
+   '<g class="y-caust" opacity=".22"><ellipse cx="'+n1(C[0])+'" cy="'+n1(C[1]+10)+'" rx="340" ry="70" fill="#000" opacity="0"/><rect x="'+n1(C[0]-340)+'" y="'+n1(C[1]-60)+'" width="680" height="140" fill="url(#yCaustPat)" mask="url(#yUnderM)"/></g>'+
    '<g class="y-glints">'+g+'</g>'+
    '<ellipse class="y-pit" cx="'+n1(C[0])+'" cy="'+n1(C[1])+'" rx="1" ry="1" fill="url(#yPit)" opacity="0"/>'+
-   '<g class="y-spiral" filter="url(#yBlur3)">'+sp+'</g>'+
+   '<g class="y-spiral">'+sp+'</g>'+
   '</g>';
 }
 function underMask(){return '<mask id="yUnderM" maskUnits="userSpaceOnUse" x="0" y="0" width="'+W+'" height="'+H+'"><ellipse cx="'+n1(C[0])+'" cy="'+n1(C[1]+10)+'" rx="340" ry="70" fill="url(#yUnder)"/></mask>';}
@@ -103,14 +104,14 @@ function ventBody(){
  return ''+
   // 섬처럼 드러나는 등껍질
   '<path d="'+ISLE+'" fill="url(#yShell)"/>'+
-  '<g clip-path="url(#yIsle)"><rect x="-170" y="-40" width="340" height="50" fill="#000" filter="url(#yGrain)"/><rect x="-170" y="-40" width="340" height="50" fill="url(#yShellSide)"/>'+
+  '<g clip-path="url(#yIsle)"><rect x="-170" y="-40" width="340" height="50" fill="url(#yGrainPat)"/><rect x="-170" y="-40" width="340" height="50" fill="url(#yShellSide)"/>'+
    '<path d="M-120,-4 C-90,-14 -60,-18 -40,-20 M60,-20 C90,-16 118,-8 140,0 M-30,-6 L-12,-24 M30,-4 L48,-22 M-80,-2 L-64,-16 M96,0 L84,-14" stroke="#3a220a" stroke-width="1.2" stroke-opacity=".55" fill="none"/>'+
    '<path d="M-150,2 C-110,-12 -60,-22 -10,-25" stroke="#fff0c0" stroke-width="2" stroke-opacity=".25" fill="none"/></g>'+
   crust+
   // 원뿔: 겹친 판 · 성장선 · 결
   '<g class="yv-cone"><path d="'+CONE+'" fill="#5a3a12"/>'+plates+
-  '<g clip-path="url(#yConeC)">'+growth+'<rect x="-52" y="-122" width="104" height="102" fill="#000" filter="url(#yGrain)" opacity=".7"/><rect x="-52" y="-122" width="104" height="102" fill="url(#yPlateV)"/>'+
-   '<rect x="-52" y="-122" width="104" height="102" fill="#fff" filter="url(#yGrainL)" opacity=".18"/></g>'+
+  '<g clip-path="url(#yConeC)">'+growth+'<rect x="-52" y="-122" width="104" height="102" fill="url(#yGrainPat)" opacity=".7"/><rect x="-52" y="-122" width="104" height="102" fill="url(#yPlateV)"/>'+
+   '<rect x="-52" y="-122" width="104" height="102" fill="url(#yGrainLPat)" opacity=".3"/></g>'+
   // 꼭대기: 구멍 · 황금빛 중심부 · 부리 모양 덮개 넷
   '<ellipse cy="-116" rx="27" ry="7.5" fill="#1e1204"/>'+
   '<ellipse class="yv-core" cy="-116" rx="22" ry="6" fill="url(#yCore)" opacity="0"/>'+
@@ -130,7 +131,7 @@ function ventMarkup(i){
   '<ellipse class="yv-halo" rx="1" ry="1" fill="url(#yHalo)" opacity="0"/>'+rp+
   
   '<g class="yv-pos"><g clip-path="url(#yAbove)"><g class="yv-in"><g class="yv-sh2">'+ventBody()+'</g></g></g>'+
-   '<ellipse class="yv-foam" cy="2" rx="150" ry="7" fill="#f4e0b0" opacity="0" filter="url(#yBlur3)"/>'+
+   '<ellipse class="yv-foam" cy="2" rx="150" ry="7" fill="url(#ySteam)" opacity="0"/>'+
    '<circle class="yv-glow" cy="-120" r="70" fill="url(#yHalo)" opacity="0"/>'+st+sm+lf+sh+
    '<circle class="yv-flash" cy="-118" r="1" fill="url(#yFlash)" opacity="0"/></g>'+
   drops('yv-dr'+i,26,40+i*7,'#f4e4c0')+'</g>';
@@ -193,10 +194,9 @@ function paintSea(el,t,k,opt){
  qa('.y-sp').forEach(e=>{const i=+e.dataset.i,ph=i/16*TAU,rot=t*(.25+.9*k)+ph;
   let d='';const R0=60+((i*37)%120),turns=1.1;
   for(let j=0;j<=44;j++){const u=j/44,a=rot+u*turns*TAU,r=R0*(1-u*.85)*(1+.4*k)+20;const x=C[0]+Math.cos(a)*r*1.9,y=C[1]+Math.sin(a)*r*.42;d+=(j?' L':'M')+n1(x)+','+n1(y);}
-  e.setAttribute('d',d);e.setAttribute('stroke-width',n1(.6+((i*13)%5)*.35));e.setAttribute('opacity',n3((.06+.3*k)*(.5+.5*Math.sin(t*1.7+i))));});
+  e.setAttribute('d',d);e.setAttribute('stroke-width',n1(2.6+((i*13)%5)*1.2));e.setAttribute('opacity',n3((.035+.15*k)*(.5+.5*Math.sin(t*1.7+i))));});
  const under=q('.y-under');if(under)under.setAttribute('opacity',n3(o.under==null?1:o.under));
  const ca=q('.y-caust');if(ca)ca.setAttribute('transform','translate('+n1(Math.sin(t*.3)*14)+' 0)');
- qa('.y-cl').forEach(e=>{const i=+e.dataset.i;e.setAttribute('transform','translate('+n1(Math.sin(t*.05+i)*30)+' 0)');});
  // 잔해: 물길을 따라 돌며 가운데로 끌려가 가라앉음
  qa('.y-db').forEach(e=>{const i=+e.dataset.i,per=14-i*.8,a=((t/per+i*.143)%1),ang=i*1.7+a*(2+k*2)*TAU*.5,rr=(1-a)*(300-i*14),x=C[0]+Math.cos(ang)*rr*1.3,y=C[1]+Math.sin(ang)*rr*.3;
   const sink=seg(a,.75,1);e.setAttribute('transform','translate('+n1(x)+' '+n1(y+sink*6)+') rotate('+n1(ang/RAD*.3+i*40)+') scale('+n3((.6+.5*(y-SEA)/150)*(1-.5*sink))+')');e.setAttribute('opacity',n3(Math.min(1,a*6)*(1-sink)*(o.debris==null?1:o.debris)));});

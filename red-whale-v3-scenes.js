@@ -24,7 +24,7 @@ function redDefs(){
  '<mask id="rwHeadFrag" maskUnits="userSpaceOnUse" x="-320" y="-460" width="640" height="640"><g filter="url(#rwDis)"><ellipse cx="0" cy="-330" rx="230" ry="96" fill="url(#rwFragR)"/><ellipse cx="-150" cy="-250" rx="70" ry="60" fill="url(#rwFragR)" opacity=".5"/></g></mask>'+
  '<mask id="rwBackFrag" maskUnits="userSpaceOnUse" x="-320" y="-460" width="640" height="640"><g filter="url(#rwDis)"><ellipse cx="10" cy="-340" rx="210" ry="80" fill="url(#rwFragR)"/></g></mask>'+
  '<linearGradient id="rwHeat" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#ff6a3a" stop-opacity=".22"/><stop offset="1" stop-color="#ff6a3a" stop-opacity="0"/></linearGradient>'+
- '<filter id="rwSteam" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>'+
+ '<filter id="rwSteam" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter><radialGradient id="rwMistG"><stop stop-color="#e6c2b6"/><stop offset=".55" stop-color="#e6c2b6" stop-opacity=".75"/><stop offset="1" stop-color="#e6c2b6" stop-opacity="0"/></radialGradient><radialGradient id="rwSteamG"><stop stop-color="#f0c8b8" stop-opacity=".9"/><stop offset=".5" stop-color="#f0c8b8" stop-opacity=".45"/><stop offset="1" stop-color="#f0c8b8" stop-opacity="0"/></radialGradient>'+
  '<filter id="rwMudTex" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".02 .09" numOctaves="3" seed="21"/><feColorMatrix values="0 0 0 0 .05  0 0 0 0 .02  0 0 0 0 .02  0 0 0 -1.8 1.1"/></filter>'+
  '<radialGradient id="rwDeep"><stop stop-color="#ff1a2e" stop-opacity=".55"/><stop offset=".5" stop-color="#c00a20" stop-opacity=".2"/><stop offset="1" stop-color="#c00a20" stop-opacity="0"/></radialGradient>'+
  '<clipPath id="rwAboveBed"><rect width="'+W+'" height="'+(SEA+38)+'"/></clipPath>';
@@ -44,7 +44,7 @@ function scenery(){
   '<circle cx="812" cy="98" r="190" fill="url(#rwMoonG)"/>'+
   '<circle cx="812" cy="98" r="26" fill="#ecc9ba" opacity=".42" filter="url(#bwRimF)"/>'+
   '<rect y="'+(SEA-120)+'" width="'+W+'" height="120" fill="url(#rwHeat)" class="rw-heat"/>'+
-  '<g class="bw-mist" filter="url(#bwMist)"><rect x="-200" y="252" width="700" height="34" rx="17" fill="#e0b3a6" opacity=".07"/><rect x="560" y="228" width="760" height="40" rx="20" fill="#e0b3a6" opacity=".06"/></g>'+
+  '<g class="bw-mist"><ellipse cx="150" cy="269" rx="380" ry="29" fill="url(#rwMistG)" opacity=".09"/><ellipse cx="940" cy="248" rx="410" ry="32" fill="url(#rwMistG)" opacity=".08"/></g>'+
   '<g class="rw-far"></g>';
 }
 function bed(){
@@ -63,8 +63,8 @@ function bed(){
   '</g>'+
   '<ellipse class="rw-deep" cx="480" cy="'+(SEA+120)+'" rx="320" ry="70" fill="url(#rwDeep)" opacity="0" style="mix-blend-mode:screen"/>';
 }
-function steam(n){let s='<g class="rw-steam" filter="url(#rwSteam)" fill="#f0c8b8">';const r=seeded(44);for(let i=0;i<n;i++)s+='<ellipse data-x="'+n1(r()*W)+'" data-p="'+n3(r())+'" data-s="'+n3(.6+r()*.8)+'" rx="30" ry="14" opacity="0"/>';return s+'</g>';}
-function nearMist(){return '<g class="bw-mist" filter="url(#bwMist)"><rect x="-300" y="'+(SEA-16)+'" width="900" height="30" rx="15" fill="#e6c2b6" opacity=".06"/><rect x="420" y="'+(SEA-34)+'" width="900" height="26" rx="13" fill="#e6c2b6" opacity=".05"/></g>';}
+function steam(n){let s='<g class="rw-steam" fill="url(#rwSteamG)">';const r=seeded(44);for(let i=0;i<n;i++)s+='<ellipse data-x="'+n1(r()*W)+'" data-p="'+n3(r())+'" data-s="'+n3(.6+r()*.8)+'" rx="30" ry="14" opacity="0"/>';return s+'</g>';}
+function nearMist(){return '<g class="bw-mist"><ellipse cx="150" cy="'+(SEA-1)+'" rx="480" ry="27" fill="url(#rwMistG)" opacity=".08"/><ellipse cx="870" cy="'+(SEA-21)+'" rx="480" ry="25" fill="url(#rwMistG)" opacity=".065"/></g>';}
 // 열기(0=없음, 1=가장 뜨거움)에 따라 물이 뱃전 아래로 내려감. 바닥은 드러나지 않음.
 // 물이 있던 자리(수면 위 띠)는 하얗게 마름
 const DROP=38;
@@ -82,8 +82,8 @@ function paintBed(el,tr,level){
  qa('.bw-mist').forEach((m,i)=>m.setAttribute('transform','translate('+n1(Math.sin(tr*0.13+i*2)*50)+' 0)'));
  const hs=q('.rw-heat');if(hs)hs.style.opacity=n3(.4+.6*level+.15*Math.sin(tr*2.2));
  qa('.rw-steam ellipse').forEach(e=>{const x=+e.dataset.x,p=+e.dataset.p,s=+e.dataset.s,u=((tr*.18*s+p)%1);
-  e.setAttribute('cx',n1(x+Math.sin(tr*.8+p*9)*20));e.setAttribute('cy',n1(wy-20-u*170));e.setAttribute('rx',n1(6+u*14));e.setAttribute('ry',n1(22+u*30));
-  e.setAttribute('opacity',n3(level*.09*Math.sin(u*Math.PI)));});
+  e.setAttribute('cx',n1(x+Math.sin(tr*.8+p*9)*20));e.setAttribute('cy',n1(wy-20-u*170));e.setAttribute('rx',n1(14+u*22));e.setAttribute('ry',n1(34+u*44));
+  e.setAttribute('opacity',n3(level*.16*Math.sin(u*Math.PI)));});
  return wy;
 }
 // 내려간 물 위에 뜬 배(뱃전에 하얀 물자국이 남음)
@@ -114,7 +114,7 @@ function jolt(s,amp,f){return s>0?amp*Math.exp(-s*2.2)*Math.sin(s*(f||10)):0;}
 function haze(el,clear,tr){
  const {q,qa}=cacheQ(el);clear=clamp(clear);
  const m=q('.rw-hzmap');if(m)m.setAttribute('scale',n1(34-31*clear));
- const o=q('.rw-hzoff');if(o)o.setAttribute('dy',n1(-((tr*46)%400)));
+ const o=q('.rw-hzoff');if(o){const st=Math.floor(tr*10);if(o._st!==st){o._st=st;o.setAttribute('dy',n1(-((st/10*46)%400)));}}   // 아지랑이는 초당 10번만 다시 계산(필터가 무거움)
  qa('.rw-hz').forEach(g=>g.setAttribute('opacity',n3(.22+.78*clear)));
 }
 

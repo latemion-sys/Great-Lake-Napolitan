@@ -95,7 +95,7 @@ function starRefMarkup(){
 // 수평선 물안개: 구멍보다 앞에 있어(가까이) 언제나 보임 → 깊이감, 그리고 배 윤곽이 묻히지 않음
 function horizonMist(){
  return '<rect x="0" y="'+(SEA-64)+'" width="'+W+'" height="104" fill="url(#bkHazeH)"/>'+
-  '<g class="bk-mist" filter="url(#bwMist)"><rect x="-220" y="'+(SEA-30)+'" width="760" height="26" rx="13" fill="#b9ccd8" opacity=".09"/><rect x="460" y="'+(SEA-44)+'" width="820" height="30" rx="15" fill="#b9ccd8" opacity=".07"/></g>';
+  '<g class="bk-mist"><ellipse cx="160" cy="'+(SEA-17)+'" rx="410" ry="24" fill="url(#bwMistG)" opacity=".11"/><ellipse cx="870" cy="'+(SEA-29)+'" rx="440" ry="27" fill="url(#bwMistG)" opacity=".09"/></g>';
 }
 function night(){
  return '<rect width="'+W+'" height="'+H+'" fill="#02040a"/>'+
@@ -560,24 +560,25 @@ function v24Defs(){
  '<radialGradient id="bkMark"><stop offset=".55" stop-color="#ffcf7a" stop-opacity="0"/><stop offset=".82" stop-color="#ffe2a8" stop-opacity=".7"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>'+
  ['LitLw','LitRw'].map(id=>'<radialGradient id="bk'+id+'" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="300"><stop stop-color="#ffe0a0" stop-opacity=".9"/><stop offset=".4" stop-color="#c8904a" stop-opacity=".3"/><stop offset="1" stop-color="#c8904a" stop-opacity="0"/></radialGradient>').join('')+
  ['LitLc','LitRc'].map(id=>'<radialGradient id="bk'+id+'" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="300"><stop stop-color="#eef7ff" stop-opacity=".95"/><stop offset=".4" stop-color="#9fd0ff" stop-opacity=".35"/><stop offset="1" stop-color="#9fd0ff" stop-opacity="0"/></radialGradient>').join('')+
+ (window.FxNoise?FxNoise.pattern('bkSkinPat','bkskin',{cell:22,oct:3,rgb:[22,34,48],lo:.52,hi:.86,stretch:[1,2.2],seed:13},200,200):'')+
  '<filter id="bkPatchF" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="80"/></filter>';
 }
 /* 날개(v0.2.4): 빛을 거의 돌려주지 않는 검정 위에 젖은 앞전 윤기 · 말린 뒷전 그늘 · 흘러내리는 물 막 · 빛이 닿는 가장자리 */
 function wing2(cls,lit){
  let sh='';for(let i=0;i<7;i++)sh+='<ellipse class="bk-sh" data-i="'+i+'" rx="3" ry="10" fill="url(#bkSheet)" opacity="0"/>';
  return '<g class="'+cls+'" transform="translate(-9999 0)"><g clip-path="url(#bkWingCut)"><path d="'+WING+'" fill="#000"/>'+
-  '<g clip-path="url(#bkWingClip)"><rect x="-240" y="-460" width="400" height="490" fill="#0a121c" opacity=".22" filter="url(#bkSkin)"/></g>'+
+  '<g clip-path="url(#bkWingClip)"><rect x="-240" y="-460" width="400" height="490" fill="url(#bkSkinPat)" opacity=".5"/></g>'+
   '<path d="'+RIDGE+'" fill="url(#bkRidgeG)" opacity=".2"/><path d="'+HEM+'" fill="#000" opacity=".7"/>'+
-  '<path class="bk-rl" d="'+WING+'" fill="none" stroke="url(#bk'+lit+')" stroke-width="12" filter="url(#bkB3)" opacity="0"/>'+
+  '<path class="bk-rl" d="'+WING+'" fill="none" stroke="url(#bk'+lit+')" stroke-width="18" stroke-opacity=".55" stroke-linejoin="round" opacity="0"/><path class="bk-rl3" d="'+WING+'" fill="none" stroke="url(#bk'+lit+')" stroke-width="6" opacity="0"/>'+
   '<path class="bk-rl2" d="'+WING+'" fill="url(#bk'+lit+')" opacity="0"/>'+sh+'</g></g>';
 }
 function litWing(el,cls,gid,B,at,k){
  const w=cacheQ(el).q('.'+cls);if(!w)return;
  const a=w.querySelector('.bk-rl'),b=w.querySelector('.bk-rl2');if(!a)return;
- if(!at||k<=0){a.setAttribute('opacity','0');b.setAttribute('opacity','0');return;}
+ if(!at||k<=0){a.setAttribute('opacity','0');b.setAttribute('opacity','0');const c3=w.querySelector('.bk-rl3');if(c3)c3.setAttribute('opacity','0');return;}
  const sx=(B.flip?-1:1)*B.ws,c=Math.cos(-B.rot*RAD),sn=Math.sin(-B.rot*RAD),dx=at[0]-B.x,dy=at[1]-B.y;
  const g=el.querySelector('#'+gid);g.setAttribute('cx',n1((dx*c-dy*sn)/sx));g.setAttribute('cy',n1((dx*sn+dy*c)/B.ws));g.setAttribute('r',n1(240/B.ws));
- a.setAttribute('opacity',n3(clamp(k)));b.setAttribute('opacity',n3(.22*clamp(k)));
+ a.setAttribute('opacity',n3(clamp(k)));b.setAttribute('opacity',n3(.22*clamp(k)));const c3=w.querySelector('.bk-rl3');if(c3)c3.setAttribute('opacity',n3(.8*clamp(k)));
 }
 /* 작은 등불 뗏목(미끼): 세 장 판자 · 묶은 줄 · 대나무 막대 끝의 종이 등 */
 function decoyBody(){
@@ -631,10 +632,9 @@ function buoyMarkup(i){
 }
 function buoysMarkup(){return '<g class="bk-buoys">'+BUOYS.map((b,i)=>i).sort((a,b)=>BUOYS[a][1]-BUOYS[b][1]).map(buoyMarkup).join('')+'</g>';}
 function patchMarkup(){
- return '<g class="bk-patch" opacity="0"><path d="'+MANTA+'" fill="#010206" filter="url(#bkPatchF)"/><path d="'+MANTA+'" fill="#010206" transform="scale(.8)"/>'+
-  '<path d="'+MANTA+'" fill="none" stroke="#a8c0d4" stroke-width="70" stroke-opacity=".12" filter="url(#bkPatchF)"/></g>';
+ return '<g class="bk-patch" opacity="0"><path d="'+MANTA+'" fill="none" stroke="#a8c0d4" stroke-width="120" stroke-opacity=".05"/>'+[1.12,1.04,.96,.88,.8].map((k,i)=>'<path d="'+MANTA+'" fill="#010206" opacity="'+[.22,.3,.4,.6,1][i]+'" transform="scale('+k+')"/>').join('')+'</g>';
 }
-function threadMarkup(){return '<path class="fk-thg" fill="none" stroke="#9fd0ff" stroke-width="7" stroke-linecap="round" filter="url(#bkB3)" opacity="0"/><path class="fk-th" fill="none" stroke="#eef7ff" stroke-width="1.5" stroke-linecap="round" opacity="0"/>';}
+function threadMarkup(){return '<path class="fk-thg" fill="none" stroke="#9fd0ff" stroke-width="10" stroke-opacity=".3" stroke-linecap="round" opacity="0"/><path class="fk-th" fill="none" stroke="#eef7ff" stroke-width="1.5" stroke-linecap="round" opacity="0"/>';}
 function tipShadows(){return '<ellipse class="bk-tip" data-s="L" rx="1" ry="1" fill="url(#bkSwell)" opacity="0"/><ellipse class="bk-tip" data-s="R" rx="1" ry="1" fill="url(#bkSwell)" opacity="0"/>';}
 
 /* ---------- 공유 기하(게임 판정도 같은 함수를 씀) ---------- */
@@ -926,7 +926,7 @@ function strikePaint(el,t,tr,g){
  const fg={sideBuoy:sb,m:{L:-1,R:-1},st:{L:{pinned:true,ringAt:-1},R:{pinned:true,ringAt:-1}}};
  const R=forkScene(el,t,fg,{sink:hit!=null?hit+4.2:null,thread:hit!=null?1-seg(t,hit+3.8,hit+5):1,noRing:true});
  // 날개 사이의 '없음': 별을 지우는 몸 — 맞은 뒤 날개 끝에서부터 풀림
- const strain=hit==null?Math.sin(t*1.3)*6:0;
+ const strain=0;
  const P={x:480+strain,y:SEA-60+60*undo,rot:strain*.3,s:.52*(1-.55*undo)};
  placeHole(el,undo<1?P:null);
  const hp=q('.bk-holeP'),hr=q('.bk-holeR');if(hp){hp.setAttribute('opacity',n3(1-undo));hr.setAttribute('opacity',n3(1-undo));}

@@ -104,9 +104,9 @@ function armMarkup(cls){
   '<path class="ra-body" fill="url(#rwArmSkin)"/>'+
   '<path class="ra-palm" fill="url(#rwArmSkin)"/>';
  for(let i=0;i<5;i++)s+='<path class="ra-f" data-i="'+i+'" fill="url(#rwArmSkin)"/>';
- s+='<path class="ra-tex" fill="#000" filter="url(#rwSkinTex)" opacity=".5"/>'+
-  '<path class="ra-rim" fill="none" stroke="#ff9d86" stroke-opacity=".38" stroke-width="2" filter="url(#rwRim)"/>'+
-  '<path class="ra-shade" fill="none" stroke="#1a0206" stroke-opacity=".55" stroke-width="5" filter="url(#rwRim)"/>'+
+ s+='<path class="ra-tex" fill="'+(window.FxNoise?'url(#rwSkinPat)':'#000')+'" opacity=".5"'+(window.FxNoise?'':' filter="url(#rwSkinTex)"')+'/>'+
+  '<path class="ra-rim" fill="none" stroke="#ff9d86" stroke-opacity=".2" stroke-width="3.4" stroke-linejoin="round"/>'+
+  '<path class="ra-shade" fill="none" stroke="#1a0206" stroke-opacity=".32" stroke-width="7" stroke-linejoin="round"/>'+
   '<path class="ra-knuck" fill="none" stroke="#22030a" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>'+
   '<path class="ra-elbow" fill="none" stroke="#22030a" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>'+
   '<g class="ra-suck">';
@@ -152,7 +152,7 @@ function headDefs(){
  '<radialGradient id="rwSheenH" cx=".5" cy=".5" r=".5"><stop stop-color="#ffd2c4" stop-opacity=".3"/><stop offset="1" stop-color="#ffd2c4" stop-opacity="0"/></radialGradient>'+
  '<radialGradient id="rwPupil" cx=".5" cy=".5" r=".5"><stop stop-color="#ffb08a"/><stop offset=".4" stop-color="#ff3a22"/><stop offset="1" stop-color="#8a0610"/></radialGradient>'+
  '<radialGradient id="rwEyeGlow"><stop stop-color="#ff3a2a" stop-opacity=".45"/><stop offset="1" stop-color="#ff3a2a" stop-opacity="0"/></radialGradient>'+
- '<filter id="rwSkinTex" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".055 .07" numOctaves="3" seed="8"/><feColorMatrix values="0 0 0 0 .08  0 0 0 0 0  0 0 0 0 .02  0 0 0 -2.2 1.25"/><feComposite in2="SourceGraphic" operator="in"/></filter>'+
+ '<filter id="rwSkinTex" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".055 .07" numOctaves="3" seed="8"/><feColorMatrix values="0 0 0 0 .08  0 0 0 0 0  0 0 0 0 .02  0 0 0 -2.2 1.25"/><feComposite in2="SourceGraphic" operator="in"/></filter>'+(window.FxNoise?FxNoise.pattern('rwSkinPat','rwskin',{cell:20,oct:3,rgb:[20,0,5],lo:.5,hi:.82,stretch:[1,1.3],seed:8},180,180):'')+''+
  '<filter id="rwSkinFine" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".9 .55" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .06  0 0 0 0 .0  0 0 0 0 .01  0 0 0 -1.6 1.1"/></filter>'+
  '<filter id="rwSpots" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="turbulence" baseFrequency=".9" numOctaves="1" seed="3"/><feColorMatrix values="0 0 0 0 .2  0 0 0 0 .01  0 0 0 0 .04  0 0 0 -6 3.2"/><feComposite in2="SourceGraphic" operator="in"/></filter>'+
  '<filter id="rwRim" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.6"/></filter>'+
