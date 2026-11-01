@@ -64,6 +64,9 @@ pallidBattlePanel161=function(b){
 function doThrow(){
  if(!inMinigame()||busy||timer)return;
  syncGame();
+ // 애니메이션이 아직 첫 프레임을 그리지 못했어도 입력이 무시되지 않게 합니다.
+ if(!GAME.startAt)GAME.startAt=performance.now();
+ const battle=state.battle;
  const r=GAME.throwNow();
  if(r==null)return;
  busy=true;
@@ -82,9 +85,11 @@ function doThrow(){
  const btn=document.getElementById('pallidThrowBtn');if(btn)btn.disabled=true;
  timer=setTimeout(()=>{
   timer=null;busy=false;
-  const b=state.battle;
-  newAttempt(b?(r?b.won+1:b.won):0);  // 다음 조준: 맞혔으면 한 단계 어렵게
-  resolveCoin(r);                     // 기존 판정(피해·백화·진행)을 그대로 사용
+  if(state.battle!==battle||!inMinigame()){
+   syncGame();return; // 다른 전투나 사망 장면으로 바뀐 뒤 이전 작살 결과가 적용되는 것을 방지
+  }
+  newAttempt(r?battle.won+1:battle.won); // 다음 조준: 맞혔으면 한 단계 어렵게
+  resolveCoin(r);                         // 기존 판정(피해·백화·진행)을 그대로 사용
  },(GAME.reelAt+GAME.reelDur-GAME.throwAt)*1000+150);   // 망을 감은 명중은 이펙트가 끝까지 보이도록 조금 더 기다림
 }
 document.addEventListener('click',e=>{
