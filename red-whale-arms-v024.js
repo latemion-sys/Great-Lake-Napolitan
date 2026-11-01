@@ -2,21 +2,21 @@
    문어 빨판이 달린 사람 팔 모양의 촉수는 하나하나가 살아 있는 인어이자 고래의 중요한 몸. 여덟 개를 모두 없애면 고래가 죽는다.
    가열도: 0에서 시작. 페이즈를 넘기지 못하면 그 페이즈를 처음부터 다시 하며 가열도 +50. 100이 되면 배 전체가 녹아 사망.
    ① 1페이즈(작살을 맞춘 뒤) 촉수 1 연타 · 촉수 2 더 많은 연타 (스페이스 / 화면 아무 곳이나 연타)
-   ② 2페이즈(작살을 맞춘 뒤 힘겨루기) 촉수 3 힘 게이지가 적정 구간일 때 손을 떼면 찢어짐 · 촉수 4 적정 구간이 움직이고 촉수가 발버둥침
+   ② 2페이즈(작살을 맞춘 뒤 힘겨루기) 촉수 3 힘 게이지가 적정 구간일 때 손을 떼면 찢어짐 · 촉수 4 같은 방식(두 번째 팔)
       (PC: 마우스를 누른 채 아래로 끌어 당김 / 휴대폰: 손가락으로 아래로 끌기)
    ③ 3페이즈(작살을 맞추려는 순간 피함) 촉수 5 움직이는 방향의 반대로 4회 · 촉수 6 잠깐 반대로 움직이는 척하는 속임수
       (PC: 방향키 / 휴대폰: 방향키 모양 버튼)
-   ④ 4페이즈(작살을 맞추기 전 배에 달라붙음) 촉수 7 빨판 8개가 붙는 순서 기억(4초) 후 같은 순서로 누르기(16초)
-      촉수 8 균열을 따라 찢기 ×3 (PC: 왼쪽 버튼을 누른 채 균열을 따라 / 휴대폰: 한 손가락으로 끌기)
+   ④ 4페이즈(작살을 맞추기 전 배에 달라붙음) 촉수 7 빨판 4개가 붙는 순서 기억(4초) 후 같은 순서로 누르기(16초)
+      촉수 8 균열을 따라 찢기 ×2 (PC: 왼쪽 버튼을 누른 채 균열을 따라 / 휴대폰: 한 손가락으로 끌기)
    고래 전투는 기존 'whale' 전투(유효 타격 4: 페이즈마다 1)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
 (function(){
 'use strict';
 const RED=2,RAD=Math.PI/180;
 const labels=['내려가는 물','작살과 연타','힘겨루기','피하는 팔','배에 붙은 팔'];
 const MASH=[{add:9,decay:16,limit:5},{add:6.5,decay:22,limit:6}];
-const PULL={limit:12,zone:[[.58,.16],[.5,.14]]};
-const DIR={need:4,win:1.3,gapMin:.7,gapRand:.6,feint:.42};
-const SUCKN=8,SHOW=4,RECALL=16,CRACK={tol:34,limit:9};
+const PULL={limit:13,zone:[[.55,.2],[.52,.2]]};
+const DIR={need:4,win:1.5,gapMin:.7,gapRand:.6,feint:.42};
+const SUCKN=4,SHOW=4,RECALL=16,CRACKN=2,CRACK={tol:38,limit:10};
 const VEC={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]},OPP={up:'down',down:'up',left:'right',right:'left'},KEYDIR={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',KeyW:'up',KeyS:'down',KeyA:'left',KeyD:'right'};
 const G=window.RedHuntGame=window.RedHuntGame||{mode:null};
 const EASE=()=>(window.CalamityMang?window.CalamityMang.ease():1);
@@ -122,12 +122,12 @@ function dirPress(d){
 function suckClick(x,y){
  const S=G.suck;if(G.mode!=='p4'||G.arm!==0||!S||S.phase!=='recall'||G.done||G.locked)return;
  const V=window.RedWhaleV3&&RedWhaleV3.SUCK;const P=V||[];
- let best=-1,bd=1e9;P.forEach((p,i)=>{if(S.done.includes(i))return;const d=Math.hypot(p[0]-x,p[1]-y);if(d<bd){bd=d;best=i;}});
+ let best=-1,bd=1e9;P.forEach((p,i)=>{if(S.done.includes(i)||!S.order.includes(i))return;const d=Math.hypot(p[0]-x,p[1]-y);if(d<bd){bd=d;best=i;}});
  if(best<0||bd>40*(G.ease||1))return;
  const want=S.order[S.done.length];
  if(best!==want){failPhase(now(),'다른 빨판을 떼어 냈습니다 · 붙은 빨판들이 배를 달굽니다');return;}
  S.done.push(best);flash('떼어냄',true);
- if(S.done.length>=SUCKN)killArm(now(),'빨판 여덟 개를 순서대로 모두 떼어 냈습니다 · 팔이 떨어져 나갑니다!');
+ if(S.done.length>=SUCKN)killArm(now(),'빨판 네 개를 순서대로 모두 떼어 냈습니다 · 팔이 떨어져 나갑니다!');
  else setText('떼어냄 · '+(SUCKN-S.done.length)+'개 남았습니다');
 }
 function crackDown(x,y){
@@ -144,8 +144,8 @@ function crackMove(x,y){
  if(best>CRACK.tol*(G.ease||1)){C.drag=false;C.prog=0;flash('벗어남',false);setText('균열에서 벗어났습니다 · 시작점부터 다시 끄십시오.');return;}
  if(along>C.prog&&along-C.prog<.35)C.prog=along;
  if(C.prog>=.97){C.drag=false;C.idx++;C.prog=0;flash('찢음',true);
-  if(C.idx>=3)killArm(now(),'세 갈래 균열을 모두 따라 찢었습니다 · 마지막 팔이 끊어집니다!');
-  else{setText('균열 하나를 찢었습니다 · '+(3-C.idx)+'개 남았습니다');C.deadline=now()+CRACK.limit*(G.ease||1);}}
+  if(C.idx>=CRACKN)killArm(now(),'두 갈래 균열을 모두 따라 찢었습니다 · 마지막 팔이 끊어집니다!');
+  else{setText('균열 하나를 찢었습니다 · '+(CRACKN-C.idx)+'개 남았습니다');C.deadline=now()+CRACK.limit*(G.ease||1);}}
 }
 function crackUp(){const C=G.crack;if(C&&C.drag){C.drag=false;if(C.prog<.97){C.prog=0;setText('손을 뗐습니다 · 균열의 시작점부터 다시 끄십시오.');}}}
 
@@ -158,14 +158,14 @@ function tickGame(t,dt){
   if(ph===1){const m=MASH[G.arm];G.gauge=12;G.limit=m.limit*(G.ease||1);G.deadline=t+G.limit;G.hint='연타! · 스페이스 / 화면 아무 곳이나';G.hintNow=true;}
   if(ph===2){G.zone=PULL.zone[G.arm].slice();G.deadline=t+PULL.limit*(G.ease||1);G.zone[1]*=Math.min(1.4,G.ease||1);G.hint='누른 채 아래로 끌어 당기기 · 노란 구간에서 손을 떼기';G.hintNow=true;G.joltNext=t+rnd(1.2,2);}
   if(ph===3){G.rounds=0;newDir(t);G.hint='팔이 움직이는 반대쪽 방향키(▲▼◀▶)';}
-  if(ph===4&&G.arm===0){const order=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5);G.suck={order,done:[],phase:'show',showAt:t+.3};G.hint='빨판이 붙는 순서를 기억하십시오 (4초)';}
-  if(ph===4&&G.arm===1){G.crack={idx:0,prog:0,drag:false,deadline:t+CRACK.limit*(G.ease||1)};G.hint='빛나는 시작점부터 균열을 따라 끌기 (3개)';G.hintNow=true;}
+  if(ph===4&&G.arm===0){const order=[0,1,2,3,4,5,6,7].sort(()=>Math.random()-.5).slice(0,SUCKN);G.suck={order,done:[],phase:'show',showAt:t+.3};G.hint='빨판이 붙는 순서를 기억하십시오 (4초)';}
+  if(ph===4&&G.arm===1){G.crack={idx:0,prog:0,drag:false,deadline:t+CRACK.limit*(G.ease||1)};G.hint='빛나는 시작점부터 균열을 따라 끌기 (2개)';G.hintNow=true;}
   return;
  }
  if(G.phaseState!=='play')return;
  if(ph===1){G.gauge=Math.max(0,G.gauge-MASH[G.arm].decay*dt);if(t>G.deadline)failPhase(t,'팔을 끊어 내지 못했습니다');}
  if(ph===2){
-  if(G.arm===1){G.zone[0]=.42+.22*Math.sin((t-G.armStart)*1.1);   // 적정 구간이 조금씩 움직임
+  if(false){
    if(t>=G.joltNext){G.joltAt=t;G.joltOff=(Math.random()<.5?-1:1)*rnd(.12,.22);G.joltNext=t+rnd(1.3,2.2);flash('발버둥',false);}
    if(G.joltOff){G.joltOff*=Math.pow(.2,dt);if(G.pulling)G.tension=Math.max(0,Math.min(1,G.tension+G.joltOff*dt*3));}}
   if(t>G.deadline){G.pulling=false;failPhase(t,'힘겨루기에서 밀렸습니다');}
@@ -204,14 +204,14 @@ function gamePanel(mode){
  if(mode==='p1')return panel(2,'1페이즈 · 작살과 연타','작살이 팔을 꿰뚫었습니다. 팔은 살아 있는 인어이자 고래의 몸입니다. 밧줄을 끌어당기는 팔을 연타로 끊어 내십시오. 두 번째 팔은 더 굵습니다.',
   '스페이스 / 이펙트 화면 아무 곳이나 / 아래 버튼 연타 · 시간 안에 게이지를 끝까지 · 팔 2개',
   '<button type="button" class="danger rwg-big" id="rwgAct">밧줄을 당긴다 (연타)</button>');
- if(mode==='p2')return panel(3,'2페이즈 · 힘겨루기','작살이 박힌 팔과 힘을 겨룹니다. 알맞은 힘(노란 구간)에서 손을 떼면 팔이 찢어집니다. 두 번째 팔은 구간이 움직이고, 발버둥 칠 때마다 힘을 다시 맞춰야 합니다.',
+ if(mode==='p2')return panel(3,'2페이즈 · 힘겨루기','작살이 박힌 팔과 힘을 겨룹니다. 게이지가 알맞은 힘(노란 구간)에 닿았을 때 손을 떼면 팔이 찢어집니다. 두 번째 팔도 같은 방법으로 찢어 내십시오.',
   'PC: 이펙트 화면에서 마우스를 누른 채 아래로 끌어 당기고 노란 구간에서 놓기 · 휴대폰: 손가락으로 아래로 끌었다가 놓기 · 팔 2개',
   '');
  if(mode==='p3')return panel(4,'3페이즈 · 피하는 팔','작살을 맞추려는 순간 팔이 피하려 합니다. 팔이 움직이는 방향의 반대쪽으로 겨눠 4번 맞히면 팔이 부서집니다. 두 번째 팔은 잠깐 반대로 움직이는 척 속입니다. 실제로 움직이는 것을 보고 누르십시오.',
   'PC: 방향키(또는 W A S D) · 휴대폰: 이펙트 화면 안의 ▲▼◀▶ 버튼 · 너무 이르거나 틀리면 실패 · 팔 2개',
   '<div class="rwg-dpad-panel"><button type="button" data-dir="up">▲</button><button type="button" data-dir="left">◀</button><button type="button" data-dir="right">▶</button><button type="button" data-dir="down">▼</button></div>');
- if(mode==='p4')return panel(5,'4페이즈 · 배에 붙은 팔','작살을 맞추기도 전에 팔이 배에 달라붙어 배를 공격합니다. 빨판 여덟 개가 붙는 순서를 기억했다가 똑같은 순서로 떼어 내고, 마지막 팔은 균열을 따라 찢어 내십시오.',
-  '빨판: 4초 동안 순서를 보여 준 뒤 16초 안에 같은 순서로 누르기 · 균열: 빛나는 시작점부터 끝까지 누른 채 따라 끌기 ×3 (PC: 왼쪽 버튼 / 휴대폰: 손가락 하나)',
+ if(mode==='p4')return panel(5,'4페이즈 · 배에 붙은 팔','작살을 맞추기도 전에 팔이 배에 달라붙어 배를 공격합니다. 빨판 네 개가 붙는 순서를 기억했다가 똑같은 순서로 떼어 내고, 마지막 팔은 두 갈래 균열을 따라 찢어 내십시오.',
+  '빨판: 4초 동안 순서를 보여 준 뒤 16초 안에 같은 순서로 누르기 · 균열: 빛나는 시작점부터 끝까지 누른 채 따라 끌기 ×2 (PC: 왼쪽 버튼 / 휴대폰: 손가락 하나)',
   '');
  return '';
 }

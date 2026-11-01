@@ -802,15 +802,16 @@ function armsGame(el,t,tr,g){
  // ④ 빨판
  const S=g.suck;
  qa('.xs').forEach(e=>{const i=+e.dataset.i,p=SUCK[i];
-  if(ph!==4||g.arm!==0||!S||dead>0){e.setAttribute('opacity','0');return;}
+  if(ph!==4||g.arm!==0||!S||dead>0||!S.order.includes(i)){e.setAttribute('opacity','0');return;}
   e.setAttribute('transform','translate('+n1(p[0])+' '+n1(p[1]+Math.sin(tr*2+i)*2)+')');
   e.setAttribute('opacity',n3(seg(t,g.armStart+.6+i*.05,g.armStart+1+i*.05)));
-  const show2=S.showAt!=null?(()=>{const k=S.order.indexOf(i),a=S.showAt+k*.45;return bell(t,a,a+.08,a+.32,a+.42);})():0;
+  const show2=S.showAt!=null?(()=>{const k=S.order.indexOf(i),a=S.showAt+k*.8;return bell(t,a,a+.1,a+.5,a+.7);})():0;
   e.querySelector('.xs-l').setAttribute('opacity',n3(show2));
   e.querySelector('.xs-ok').setAttribute('opacity',S.done&&S.done.includes(i)?'1':'0');});
  // ④ 균열
  const C=g.crack;
  qa('.xc').forEach(e=>{const i=+e.dataset.i,pts=CRACKS3[i];
+  if(i>=2){e.setAttribute('opacity','0');return;}
   if(ph!==4||g.arm!==1||!C||dead>0||i<C.idx){e.setAttribute('opacity',ph===4&&g.arm===1&&C&&i<C.idx&&dead<1?'.55':'0');if(i<C?.idx)e.querySelector('.xc-hot').setAttribute('d',ribbonD(pts,7));return;}
   e.setAttribute('opacity',i===C.idx?'1':'.25');
   e.querySelector('.xc-base').setAttribute('d',ribbonD(pts,u=>4+5*Math.sin(u*Math.PI)));
