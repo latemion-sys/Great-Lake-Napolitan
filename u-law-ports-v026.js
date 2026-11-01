@@ -44,9 +44,12 @@
   if(!original)return '';
   if(!truth){
    const index=kind==='lyric'?1:kind==='law'?2:0;
+   // 진짜 노랫말도 한 구절이므로, 가짜 역시 두 후보 중 한 구절만 들려줍니다.
+   if(kind==='lyric')return choose(falseLore[id][index].split('\n').filter(Boolean));
    return falseLore[id][index];
   }
   // 참 전언은 정확히 지정된 호수의 원문에서만 읽습니다.
+  if(kind==='law')return original.law;
   const field=kind==='lyric'?'hints':'rumors';
   const entries=original[field]&&original[field].length?original[field]:original.hints||[];
   return choose(entries);
