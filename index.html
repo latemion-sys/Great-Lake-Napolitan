@@ -2565,7 +2565,7 @@ function pallidAction161(act){
  if(act==='pallidStrike161'&&hunt.phase==='approach'){
   pallidStartBattle161('pallidShell161','모든 것을 삼키는 창백한 고래 · 외피',500,1);return;
  }
- if(act==='pallidLure161'&&hunt.phase==='approach'&&hunt.ready){
+ if(act==='pallidLure161'&&(hunt.phase==='approach'||hunt.phase==='wound')&&hunt.ready){
   pallidStartBattle161('pallidLure161','모든 것을 삼키는 창백한 고래 · 입을 벌리게 할 작살',210,1);return;
  }
  if(act==='pallidEnter161'&&hunt.phase==='mouth'&&hunt.ready){
@@ -2680,8 +2680,8 @@ function pallidStory161(){
   return pallidPanel161('눈앞의 하얀 거체',detail,options);
  }
  if(h.phase==='wound')return pallidPanel161('사라지는 상처',
-  '작살이 피부에 박혔지만 깊이 들어가지 못합니다. 고래가 몸을 뒤틀자 벌어진 상처가 창백한 살점에 덮입니다. 그나마 눈길을 돌린 지금이 도망칠 기회입니다.',
-  [['고래의 시야에서 벗어난다','pallidRetreat161','primary']]);
+  '작살이 피부에 박혔지만 깊이 들어가지 못합니다. 고래가 몸을 뒤틀자 벌어진 상처가 창백한 살점에 덮입니다. 상처가 다 아물기 전에 다시 겨누거나, 고래의 시야에서 벗어날 수 있습니다.',
+  (h.ready?[['아물지 않은 상처에 작살을 겨눈다','pallidLure161','primary']]:[]).concat([['고래의 시야에서 벗어난다','pallidRetreat161',h.ready?'':'primary']]));
  if(h.phase==='mouth')return pallidPanel161('벌어진 입',
   '작살이 닿은 자리에서 거대한 입이 벌어집니다. 1등 항해사는 배를 안쪽으로 돌립니다. 밖에서는 죽일 수 없습니다. 이제 배를 통째로 삼켜지게 할지 결정해야 합니다.',
   [['벌어진 입으로 배를 돌진시킨다','pallidEnter161','primary'],['마지막 순간에 뱃머리를 돌려 달아난다','pallidRetreat161']]);
