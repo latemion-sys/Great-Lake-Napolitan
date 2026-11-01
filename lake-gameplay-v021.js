@@ -202,7 +202,7 @@ renderPlay=function(){
  const html=oldRouteRender021();
  return state.scene==='route'?html.replaceAll('제008호',''):html;
 };
-if(state.scene==='event'&&custom.has(state.current)&&!state.lakeStory?.scriptVersion021)
+if(state.scene==='event'&&custom.has(state.current)&&!state.lakeStory?.scriptVersion021&&!state.lakeStory?.scriptVersion022)
  state.lakeStory=makeStory014(LAKE_BY_ID157.get(state.current));
 window.GREAT_LAKE_RULES_021={ids:[...defs.keys()],custom:[...custom],added,make:makeStory014};
 })();
