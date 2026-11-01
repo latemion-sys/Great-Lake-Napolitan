@@ -81,3 +81,10 @@ body.landing025-active #mstat024{display:none!important}
  body.voyage025-active main.panel>.tabs button{font-size:12px;letter-spacing:-.03em}
  body.voyage025-active #mstat024 span{font-size:11px}
 }
+
+/* 휴대전화에서는 세로로 내려온 항해 현황 패널도 화면 너비에 맞게 표시 */
+@media(max-width:800px){
+ body.voyage025-active .shell>.layout{align-items:stretch}
+ body.voyage025-active .shell>.layout>main.panel,
+ body.voyage025-active .shell>.layout>.side{width:100%;max-width:100%;min-width:0}
+}
