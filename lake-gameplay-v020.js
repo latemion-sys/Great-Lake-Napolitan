@@ -146,7 +146,7 @@
    '</div></div>';
  };
  // 진행 중인 항해에는 호수 장면 교체만 적용. 기존 업적/다른 호수는 유지.
- if(state.scene==='event'&&byId.has(state.current)&&!state.lakeStory?.scriptVersion020)
+ if(state.scene==='event'&&byId.has(state.current)&&!state.lakeStory?.scriptVersion020&&!state.lakeStory?.scriptVersion022)
   state.lakeStory=makeStory014(LAKE_BY_ID157.get(state.current));
  const COUNTS_KEY='great-lake-napolitan-new-lake-passes-v020';
  let passes={};
