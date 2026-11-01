@@ -48,14 +48,35 @@
  document.addEventListener('input',e=>{
   if(state.scene==='start'&&e.target?.id==='captainNameInput')nameDraft025=e.target.value;
  });
+ // 시작 화면에서 이미 입력한 이름과 게임 소개를 항구 진입 화면에 중복 표시하지 않습니다.
  renderPlay=function(){
   if(state.scene==='start')return landing025();
-  return oldPlay();
+  const page=oldPlay();
+  if(state.scene==='port'){
+   return page.replace(/<div class="inset"><h3>선장 이름<\/h3>[\s\S]*?<\/div>/,'');
+  }
+  return page;
+ };
+ // 항구에서 이름을 바꾸는 기존 기능은 선원 관리 안에 보존합니다.
+ const oldCrew=renderCrew;
+ renderCrew=function(){
+  const page=oldCrew();
+  if(state.scene!=='port'||state.sea)return page;
+  const name=esc(String(state.captainName||'')).replace(/"/g,'&quot;');
+  return page+'<details class="captain-rename025">'+
+    '<summary>선장 이름 변경</summary>'+
+    '<div class="captain-rename-body025">'+
+     '<label for="captainNameInput">선장 이름 · 최대 16글자</label>'+
+     '<input id="captainNameInput" maxlength="16" autocomplete="off" placeholder="선장 이름" value="'+name+'">'+
+     '<p class="muted">이름을 비워 두면 ‘선장’으로 표시됩니다.</p>'+
+     button('선장 이름 저장','captainNameSave','','primary')+
+    '</div></details>';
  };
  render=function(){
   const value=oldRender();
   const isStart=state.scene==='start';
   document.body.classList.toggle('landing025-active',isStart&&tab==='play');
+  document.body.classList.toggle('voyage025-active',!isStart);
   const popup=document.getElementById('prologueOverlay156');
   if(popup&&isStart){
    popup.hidden=true;
@@ -65,5 +86,11 @@
   }
   return value;
  };
+ // 시작 버튼이 화면 아래에 있던 휴대전화에서도 항구 화면은 맨 위부터 보여 줍니다.
+ document.addEventListener('click',e=>{
+  if(e.target?.closest?.('button[data-act="enterPort"]')&&state.scene==='port'){
+   window.scrollTo({top:0,behavior:'auto'});
+  }
+ });
  render();
 })();
