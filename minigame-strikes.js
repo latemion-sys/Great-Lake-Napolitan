@@ -27,7 +27,7 @@ const API=window.MinigameStrikes={
  // 사망 장면을 잠시 보여 준 뒤 사망 처리
  kill(message,delay){
   if(typeof busy!=='undefined')busy=true;
-  setTimeout(()=>{busy=false;if(message&&typeof log==='function')log(message);if(typeof die==='function')die();},Math.max(0,(delay==null?1.8:delay)*1000));
+  return setTimeout(()=>{busy=false;if(message&&typeof log==='function')log(message);if(typeof die==='function')die();},Math.max(0,(delay==null?1.8:delay)*1000));
  }
 };
 })();
