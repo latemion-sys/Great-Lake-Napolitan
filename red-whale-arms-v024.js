@@ -115,14 +115,14 @@ function dirPress(d){
  if(G.mode!=='p3'||G.done||G.phaseState!=='play'||!P||G.locked)return;
  if(t<P.m){failPhase(t,P.fake&&t>=P.fakeAt?'속임수에 걸렸습니다':'너무 일찍 겨눴습니다');return;}
  if(d!==OPP[P.d]){failPhase(t,'팔이 간 쪽으로 겨눴습니다 · 작살이 빗나갑니다');return;}
- G.rounds++;G.stabAt=t;G.stabTo=G.lastHand||[520,190];flash('적중',true);
+ G.rounds++;G.stabAt=t;G.stabTo=G.lastHit||G.lastHand||[520,250];flash('적중',true);
  if(G.rounds>=DIR.need){G.dirNow=null;G.dirPlan=null;killArm(t+.25,G.arm===0?'네 번 모두 피할 곳을 막았습니다 · 팔이 꿰뚫려 끊어집니다!':'속임수를 꿰뚫어 봤습니다 · 3페이즈 통과');return;}
  setText('적중 · '+(DIR.need-G.rounds)+'번 남았습니다');newDir(t+.3);
 }
 /* ---------- ④ 빨판 순서 · 균열 ---------- */
 function suckClick(x,y){
  const S=G.suck;if(G.mode!=='p4'||G.arm!==0||!S||S.phase!=='recall'||G.done||G.locked)return;
- const V=window.RedWhaleV3&&RedWhaleV3.SUCK;const P=V||[];
+ const V=G.suckPos||(window.RedWhaleV3&&RedWhaleV3.SUCK);const P=V||[];
  let best=-1,bd=1e9;P.forEach((p,i)=>{if(S.done.includes(i)||!S.order.includes(i))return;const d=Math.hypot(p[0]-x,p[1]-y);if(d<bd){bd=d;best=i;}});
  if(best<0||bd>40*(G.ease||1))return;
  const want=S.order[S.done.length];

@@ -204,8 +204,8 @@ function frame(now){
 }
 const LIFT=34;
 function endAngle(hand,target){
- const p0=[hand[0]+30,hand[1]-14];
- return Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0])*180/Math.PI;
+ const p0=[hand[0]+30,hand[1]-14],HL=window.HarpoonLauncher;
+ return HL&&HL.flight?HL.flight(p0,target,1).ang:Math.atan2((target[1]-p0[1])+4*LIFT,target[0]-p0[0])*180/Math.PI;
 }
 function paint(el,t,hold){
  const q=s=>el.querySelector(s),qa=s=>el.querySelectorAll(s);
@@ -277,7 +277,8 @@ function paint(el,t,hold){
  const br=broll*Math.PI/180,toWorld=p=>[bx+BOAT_S*(p[0]*Math.cos(br)-p[1]*Math.sin(br)),by+BOAT_S*(p[0]*Math.sin(br)+p[1]*Math.cos(br))];
  const lampW=toWorld([51,-18.5]);
  const lg=q('.w3-lampglint');lg.setAttribute('cx',lampW[0].toFixed(1));lg.style.opacity=(0.4*lampK).toFixed(3);
- const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:!thrown}),30,-14):toWorld(armEnd);
+ const aimP=own?HL.smoothAim(el,'pl',HL.aimAt(toWorld,apply(M,targetLocal)),t):undefined;   // 상처 쪽으로 발사대를 돌려 겨눔
+ const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:!thrown,aim:aimP}),30,-14):toWorld(armEnd);
  const PC=HL?HL.pierce():{deep:0,pass:false,n:0};let hitAng=null;
 
  // 작살: 손에서 포물선으로 날아가 꽂히거나(명중) 튕겨 물에 빠짐(빗나감)
@@ -289,11 +290,10 @@ function paint(el,t,hold){
  if(!thrown){
   const a=-24-aim*14;pos=[hand[0]+Math.cos(a*Math.PI/180)*40,hand[1]+Math.sin(a*Math.PI/180)*40];ang=a;show=own?0:hold?1:clamp((t-1.2)/0.4);
  }else if(t<arrive){
-  const u=(t-thrownAt)/flyDur,e=u*(0.85+0.15*u);
+  const u=(t-thrownAt)/flyDur;
   const p0=[hand[0]+30,hand[1]-14];
-  pos=[p0[0]+(target[0]-p0[0])*e,p0[1]+(target[1]-p0[1])*e-4*LIFT*e*(1-e)];
-  const d=[target[0]-p0[0],(target[1]-p0[1])-4*LIFT*(1-2*e)];
-  ang=Math.atan2(d[1],d[0])*180/Math.PI;show=1;
+  const F=HL?HL.flight(p0,target,u):{pos:target,ang:0};   // 거의 곧게 날아가다 끝에서 완만하게 처짐
+  pos=F.pos;ang=F.ang;show=1;
  }else if(isHit){
   const e=endAngle(hand,target);
   pos=[target[0]+embed*Math.cos(e*Math.PI/180),target[1]+embed*Math.sin(e*Math.PI/180)];
@@ -315,7 +315,7 @@ function paint(el,t,hold){
  // 문구가 뜬 뒤: 박힌(빠진) 작살을 밧줄로 감아 들여 다시 장전
  let reeling=false;
  if(hold&&thrown&&HL&&GAME.reelAt!=null){
-  const home=own?HL.slideHome(toWorld,HL.ANGLE):{pos:[hand[0]+20,hand[1]-14],ang:-30};
+  const home=own?HL.slideHome(toWorld,aimP):{pos:[hand[0]+20,hand[1]-14],ang:-30};
   const RP=HL.reelPose(el,'pallid',t,GAME.reelAt,GAME.reelDur||1,{pos:[pos[0],Math.min(pos[1],SEA+12)],ang},home);
   if(RP){pos=RP.pos;ang=RP.ang;show=RP.show;reeling=true;splashAt=null;HL.bury(hp,null);}
  }
@@ -332,7 +332,7 @@ function paint(el,t,hold){
   tr.setAttribute('d','M'+back[0].toFixed(1)+','+back[1].toFixed(1)+' L'+tail[0].toFixed(1)+','+tail[1].toFixed(1));
   tr.style.opacity=(t<arrive?0.45:0.45*(1-(t-arrive)/0.35)).toFixed(3);
  }else tr.style.opacity='0';
- const anchor=toWorld(own?HL.anchorLocal():[40,-9]);
+ const anchor=toWorld(own?HL.anchorLocal(aimP):[40,-9]);
  const slack=!thrown?14:reeling?4:t<arrive?40:isHit?Math.max(3,26*Math.exp(-since*2.5))+Math.sin(t*3)*2:40+since*60;
  const ropeEnd=show?tail:[splashAt?splashAt.x:tail[0],SEA+2];
  const mid=[(ropeEnd[0]+anchor[0])/2,(ropeEnd[1]+anchor[1])/2+slack];

@@ -953,19 +953,22 @@ function strikePaint(el,t,tr,g){
  // 작살: 던짐 → (맞으면) 아무것도 없는 곳으로 빨려 들어감 / (빗나가면) 몸을 지나 물에 떨어짐 → 감아 들여 다시 장전
  const L=HL(),own=!!(L&&L.owned()),tw=R.tw;
  const thrown=!!(shot&&t>=shot.at),reelDone=!!(shot&&shot.reelAt!=null&&t>=shot.reelAt+shot.reelDur),out=thrown&&!reelDone&&!(hit!=null&&t>hit+.4);
- const hand=own?L.handFor(L.launch(el,tw,{loaded:!(thrown&&!reelDone)}),30,-14):tw(thrown&&!reelDone?[38,-24]:[33,-31]);
- const p0=[hand[0]+30,hand[1]-14],target=BODY,LIFT=40;
+ const aim=own&&L?L.smoothAim(el,'bk5',L.aimAt(tw,BODY),t):undefined;   // 몸 한가운데를 겨눔
+ const hand=own?L.handFor(L.launch(el,tw,{loaded:!(thrown&&!reelDone),aim}),30,-14):tw(thrown&&!reelDone?[38,-24]:[33,-31]);
+ if(shot&&!shot._p0&&thrown)shot._p0=[hand[0]+30,hand[1]-14];
+ const p0=shot&&shot._p0?shot._p0:[hand[0]+30,hand[1]-14],target=BODY;
+ const FL=e=>L?L.flight(p0,target,e):{pos:target,ang:0};
  const hpn=q('.bw-harpoon'),rope=q('.bw-rope');let pos=null,ang=-30,show=0;
  if(!thrown||reelDone){if(!own){pos=[hand[0]+20,hand[1]-14];show=1;}}
- else if(t<shot.arrive){const u=(t-shot.at)/(shot.arrive-shot.at),e=u*(.85+.15*u);pos=[p0[0]+(target[0]-p0[0])*e,p0[1]+(target[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((target[1]-p0[1])-4*LIFT*(1-2*e),target[0]-p0[0])/RAD;show=1;}
- else if(hit!=null){ang=Math.atan2(target[1]-p0[1]+4*LIFT,target[0]-p0[0])/RAD;pos=[target[0]+Math.cos(ang*RAD)*Math.min(60,since*160),target[1]+Math.sin(ang*RAD)*Math.min(60,since*160)];show=Math.max(0,1-since*2.5);}   // 아무것도 없는 곳으로 빨려 들어감
- else{const s2=Math.min(t-shot.arrive,.6),a0=Math.atan2(target[1]-p0[1]+4*LIFT,target[0]-p0[0]);pos=[target[0]+Math.cos(a0)*s2*420,Math.min(SEA+10,target[1]+Math.sin(a0)*s2*420+420*s2*s2)];ang=a0/RAD+s2*90;show=1;
-  const home=own?L.slideHome(tw,L.ANGLE):{pos:[hand[0]+20,hand[1]-14],ang:-30};
+ else if(t<shot.arrive){const F=FL((t-shot.at)/(shot.arrive-shot.at));pos=F.pos;ang=F.ang;show=1;}
+ else if(hit!=null){ang=FL(1).ang;pos=[target[0]+Math.cos(ang*RAD)*Math.min(60,since*160),target[1]+Math.sin(ang*RAD)*Math.min(60,since*160)];show=Math.max(0,1-since*2.5);}   // 아무것도 없는 곳으로 빨려 들어감
+ else{const s2=Math.min(t-shot.arrive,.6),a0=FL(1).ang*RAD;pos=[target[0]+Math.cos(a0)*s2*420,Math.min(SEA+10,target[1]+Math.sin(a0)*s2*420+240*s2*s2)];ang=a0/RAD+s2*40;show=1;
+  const home=own?L.slideHome(tw,aim):{pos:[hand[0]+20,hand[1]-14],ang:-30};
   const RP=L?L.reelPose(el,'bk5',t,shot.reelAt,shot.reelDur,{pos,ang},home):null;if(RP){pos=RP.pos;ang=RP.ang;show=RP.show;}}
  hpn.setAttribute('opacity',n3(show));
  if(pos)hpn.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
  if(L)L.paintHit(el,{s:hit!=null&&t>=hit?since:-1,p:target,ang,tier:L.pierce?L.pierce().n:0,through:90});
- if(thrown&&pos&&show&&(out||hit!=null&&t<hit+4)){const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&L?L.anchorLocal():[40,-9]);
+ if(thrown&&pos&&show&&(out||hit!=null&&t<hit+4)){const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&L?L.anchorLocal(aim):[40,-9]);
   rope.setAttribute('d','M'+n1(an[0])+','+n1(an[1])+' Q'+n1((an[0]+tail[0])/2)+','+n1((an[1]+tail[1])/2+(t<shot.arrive?34:8))+' '+n1(tail[0])+','+n1(tail[1]));rope.setAttribute('opacity',n3(.85*(hit!=null?1-seg(t,hit+2.6,hit+3.6):1)));}
  else rope.setAttribute('opacity','0');
  return R;

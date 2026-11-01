@@ -47,23 +47,34 @@ function paint(el,t,s,tw,anchor,opt){
  if(!c||!tw)return null;
  const T=times(s),own=!!(L&&L.owned());
  const isLoaded=loaded(s,t);
- const hand=own?L.handFor(L.launch(el,tw,{loaded:isLoaded,aim:o.aim}),30,-14):tw(isLoaded?[33,-31]:[38,-24]);
- const p0=[hand[0]+30,hand[1]-14];
+ // 발사대 겨눔: 쏘기 직전에 박힐 자리 쪽으로 천천히 돌아가고, 쏜 뒤에는 그 방향을 유지(작살이 발사대 축을 따라 곧게 나감)
+ const base=o.aim==null?(L?L.ANGLE:-16):o.aim;
+ let aim=base;
+ if(L&&own&&T&&anchor){
+  const want=L.aimAt(tw,anchor);
+  if(t<s.fireAt){const k=clamp((t-(s.fireAt-.7))/.55);aim=base+(want-base)*k*k*(3-2*k);c.aimF=null;}
+  else{if(c.aimF==null||c.aimFire!==s.fireAt){c.aimFire=s.fireAt;c.aimF=want;}aim=c.aimF;
+   if(T.reelEnd!=null&&t>=T.reelEnd){const k=clamp((t-T.reelEnd)/.6);aim=c.aimF+(base-c.aimF)*k*k*(3-2*k);}}
+ }
+ const hand=own?L.handFor(L.launch(el,tw,{loaded:isLoaded,aim}),30,-14):tw(isLoaded?[33,-31]:[38,-24]);
+ const muzzle=[hand[0]+30,hand[1]-14];
  let pos=null,ang=-30,show=0,stuck=false,since=-1;
+ // 비행: 거의 곧게 날아가다 끝에서 아래로 완만하게 처짐(날 끝 위치와 방향이 늘 일치)
+ const fly=(A,u)=>L?L.flight(c.p0,A,u,c.D):{pos:[c.p0[0]+(A[0]-c.p0[0])*u,c.p0[1]+(A[1]-c.p0[1])*u],ang:Math.atan2(A[1]-c.p0[1],A[0]-c.p0[0])/RAD};
  if(!T||isLoaded){
   if(!own){pos=[hand[0]+20,hand[1]-14];show=1;}
-  c.last=null;
+  c.p0=null;c.angF=null;
  }else{
-  const A=anchor||c.lastA||[p0[0]+200,p0[1]];if(anchor)c.lastA=anchor.slice();
-  if(t<T.arrive){const u=clamp((t-s.fireAt)/FLY),e=u*(.85+.15*u),lift=50;
-   pos=[p0[0]+(A[0]-p0[0])*e,p0[1]+(A[1]-p0[1])*e-4*lift*e*(1-e)];ang=Math.atan2((A[1]-p0[1])-4*lift*(1-2*e),A[0]-p0[0])/RAD;show=1;}
+  const A=anchor||c.lastA||[muzzle[0]+200,muzzle[1]];if(anchor)c.lastA=anchor.slice();
+  if(!c.p0||c.fire!==s.fireAt){c.fire=s.fireAt;c.p0=muzzle.slice();c.angF=null;c.D=L?L.dropFor(c.p0,A):10;}   // 쏜 순간의 발사구에서 출발
+  if(t<T.arrive){const u=clamp((t-s.fireAt)/FLY),F=fly(A,u*(.88+.12*u));pos=F.pos;ang=F.ang;show=1;}
   else{
-   if(c.ang0==null||c.fire!==s.fireAt){c.fire=s.fireAt;c.ang0=Math.atan2(A[1]-p0[1]+200,A[0]-p0[0])/RAD;}
+   if(c.angF==null)c.angF=fly(A,1).ang;   // 박힌 방향 = 날아와 닿은 방향
    since=t-T.arrive;stuck=true;
-   const sw=(o.sway==null?.5:o.sway),wob=Math.sin(t*2.3)*3*sw+Math.sin(t*5.1)*1.4*sw;
-   ang=c.ang0+wob;const d=ang*RAD,embed=o.water?-6:10;
+   const sw=(o.sway==null?.5:o.sway),wob=Math.sin(t*2.3)*2.4*sw+Math.sin(t*5.1)*1.1*sw;
+   ang=c.angF+wob;const d=ang*RAD,embed=o.water?-6:(o.embed==null?14:o.embed);
    pos=[A[0]+Math.cos(d)*embed,A[1]+Math.sin(d)*embed];show=o.water?.85:1;
-   const home=own?L.slideHome(tw,o.aim==null?L.ANGLE:o.aim):{pos:[hand[0]+20,hand[1]-14],ang:-30};
+   const home=own?L.slideHome(tw,aim):{pos:[hand[0]+20,hand[1]-14],ang:-30};
    const RP=L?L.reelPose(el,'ht',t,T.reelAt,T.rd,{pos,ang},home):null;
    if(RP){pos=RP.pos;ang=RP.ang;show=RP.show;stuck=false;}
   }
@@ -72,7 +83,7 @@ function paint(el,t,s,tw,anchor,opt){
  if(pos)c.hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
  // 밧줄: 날아가는 동안 처지고, 박힌 뒤 출렁이며, 감아 들일 때 팽팽
  if(pos&&show&&!isLoaded){
-  const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&L?L.anchorLocal(o.aim):[40,-9]);
+  const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&L?L.anchorLocal(aim):[40,-9]);
   const reeling=T.reelAt!=null&&t>=T.reelAt,sw=o.sway==null?.5:o.sway;
   const slack=t<T.arrive?34:reeling?3:10+12*sw+Math.sin(t*2.1)*(5+8*sw)+Math.sin(t*3.7+1)*3*sw;
   const mx=(an[0]+tail[0])/2+Math.sin(t*1.7)*4*sw,my=Math.min((an[1]+tail[1])/2+slack,SEA+30);

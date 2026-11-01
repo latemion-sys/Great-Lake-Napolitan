@@ -383,7 +383,21 @@ function reelPose(el,key,t,reelAt,dur,cur,home){
  return {pos:[x,y],ang:from.ang+da*turn*turn+Math.sin(t*14)*3*(1-e)*(k>.16?1:0),show:k<1?1:0,done:k>=1,k};
 }
 // 특수 작살이 돌아와 걸리는 자리: 장전 미끄럼(54)이 시작되는 발사대 앞 · 작살 그림의 날 끝 기준
+/* 겨눔: 작살은 거의 곧게 날아가다 중력에 아래로 완만하게 처짐. 박힐 자리에 닿으려면 처지는 만큼(drop)만 살짝 위를 겨눔.
+   aimAt(toWorld,target,drop) → 배 좌표계의 발사대 각도(도) */
+function dropFor(p0,target){const d=Math.hypot(target[0]-p0[0],target[1]-p0[1]);return Math.max(5,Math.min(26,d*.045));}
+function aimAt(toWorld,target,drop){
+ const o0=toWorld([0,0]),o1=toWorld([1,0]),boatDeg=Math.atan2(o1[1]-o0[1],o1[0]-o0[0])/RAD,P=toWorld(PIVOT);
+ const D=drop==null?dropFor(P,target):drop;
+ let a=Math.atan2((target[1]-P[1])-D,target[0]-P[0])/RAD-boatDeg;
+ return ((a-ANGLE)%360+540)%360-180+ANGLE;
+}
+/* 비행: 시작 p0 → 목표 A, e=0~1. 거의 직선, 가운데가 drop만큼 위로(→ 끝에서 아래로 완만히 처지며 박힘). 날 끝 위치와 방향 */
+function flight(p0,A,e,drop){const dx=A[0]-p0[0],dy=A[1]-p0[1],D=drop==null?dropFor(p0,A):drop;return {pos:[p0[0]+dx*e,p0[1]+dy*e+D*(e*e-e)],ang:Math.atan2(dy+D*(2*e-1),dx)/RAD};}
+// 발사대가 겨눌 곳으로 부드럽게 돌아감(장면마다 따로 기억)
+function smoothAim(el,key,want,t){const m=el._aimS||(el._aimS={}),c=m[key];if(!c||t<c.t||t-c.t>1){m[key]={a:want,t};return want;}
+ const k=1-Math.exp(-(t-c.t)*7);c.a+=(((want-c.a)%360+540)%360-180)*k;c.t=t;return c.a;}
 function slideHome(toWorld,aim){const a=aim==null?ANGLE:aim,d=a*RAD,p=toWorld([PIVOT[0]+Math.cos(d)*(TIP+54),PIVOT[1]+Math.sin(d)*(TIP+54)]),q=toWorld([PIVOT[0],PIVOT[1]]);return {pos:p,ang:Math.atan2(p[1]-q[1],p[0]-q[0])/RAD};}
 
-window.HarpoonLauncher={reelPose,slideHome,markup,flyMarkup,owned,launch,anchorLocal,handFor,rewind,hitMarkup,paintHit,passAngle,bury,tier,pierce,PASS_SPEED,PIVOT,ANGLE,LEFT,ARM,TIP,RELOAD};
+window.HarpoonLauncher={reelPose,slideHome,aimAt,smoothAim,flight,dropFor,markup,flyMarkup,owned,launch,anchorLocal,handFor,rewind,hitMarkup,paintHit,passAngle,bury,tier,pierce,PASS_SPEED,PIVOT,ANGLE,LEFT,ARM,TIP,RELOAD};
 })();

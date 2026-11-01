@@ -707,24 +707,49 @@ function armsDefs(){return '<radialGradient id="rxSuckG"><stop stop-color="#3a02
  '<radialGradient id="rxSuckL"><stop stop-color="#fff4e0"/><stop offset=".4" stop-color="#ffd2a0" stop-opacity=".8"/><stop offset="1" stop-color="#ff8a5a" stop-opacity="0"/></radialGradient>'+
  '<linearGradient id="rxCrack" x1="0" x2="1"><stop stop-color="#fff2d8"/><stop offset=".5" stop-color="#ffb86a"/><stop offset="1" stop-color="#ff6a3a"/></linearGradient>'+
  '<radialGradient id="rxHot"><stop offset=".55" stop-color="#ff5a2a" stop-opacity="0"/><stop offset="1" stop-color="#ff3a1a" stop-opacity=".55"/></radialGradient>'+
- '<linearGradient id="rxGauge" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#5a0a14"/><stop offset="1" stop-color="#ff7a4a"/></linearGradient>';}
+ '<linearGradient id="rxGauge" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#5a0a14"/><stop offset=".6" stop-color="#d8402a"/><stop offset="1" stop-color="#ffb070"/></linearGradient>'+
+ // 배에 달라붙은 빨판: 살 둔덕 · 방사형 주름 · 도톰한 테 · 깊은 컵 · 젖은 윤기
+ '<radialGradient id="rxMound"><stop stop-color="#7a0e1c" stop-opacity=".95"/><stop offset=".7" stop-color="#4a0610" stop-opacity=".8"/><stop offset="1" stop-color="#2a0208" stop-opacity="0"/></radialGradient>'+
+ '<linearGradient id="rxRidge" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#f6a8a0" stop-opacity=".0"/><stop offset=".5" stop-color="#f6a8a0" stop-opacity=".55"/><stop offset="1" stop-color="#8a1a26" stop-opacity=".3"/></linearGradient>'+
+ '<radialGradient id="rxOk"><stop offset=".6" stop-color="#fff1d8" stop-opacity="0"/><stop offset=".82" stop-color="#fff1d8" stop-opacity=".85"/><stop offset="1" stop-color="#ffd29a" stop-opacity="0"/></radialGradient>'+
+ // 방향 신호: 팔이 움직이는 쪽으로 번지는 빛의 꺾쇠(진짜는 따스한 흰빛, 속임수는 붉은 빛)
+ '<linearGradient id="rxChevR" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#ffe2c8" stop-opacity="0"/><stop offset=".55" stop-color="#ffe2c8" stop-opacity=".55"/><stop offset="1" stop-color="#fff6ea"/></linearGradient>'+
+ '<linearGradient id="rxChevF" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#ff6a5a" stop-opacity="0"/><stop offset=".55" stop-color="#ff7a6a" stop-opacity=".5"/><stop offset="1" stop-color="#ffb0a0"/></linearGradient>'+
+ '<radialGradient id="rxChevG"><stop stop-color="#ffe2c8" stop-opacity=".45"/><stop offset="1" stop-color="#ffe2c8" stop-opacity="0"/></radialGradient>'+
+ '<linearGradient id="rxTrack" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#1a0408"/><stop offset=".5" stop-color="#2e0a10"/><stop offset="1" stop-color="#12030a"/></linearGradient>';}
 function armsBuild(){
  let back='';for(let i=0;i<7;i++)back+=groundArm('xb'+i);
- let suck='';for(let i=0;i<8;i++)suck+='<g class="xs" data-i="'+i+'" opacity="0"><circle class="xs-l" r="40" fill="url(#rxSuckL)" opacity="0"/><circle r="24" fill="url(#rxSuckG)" stroke="#2a0208" stroke-width="1.5"/><circle class="xs-ok" r="30" fill="none" stroke="#fff1d8" stroke-width="3" opacity="0"/></g>';
+ let ridges='';for(let k=0;k<16;k++){const a=k/16*360;ridges+='<path d="M17,-2.4 Q23,-2.8 27,-.4 Q23,2.2 17,2.4 Z" fill="url(#rxRidge)" opacity=".55" transform="rotate('+(a+(k%2?5:-5))+')"/>';}
+ const cup='<ellipse rx="40" ry="34" fill="url(#rxMound)"/><circle r="27" fill="#5a0812" opacity=".6"/>'+ridges+
+  '<circle r="22" fill="url(#rwSuckRing)"/><circle r="11.5" fill="url(#rwSuckCup)"/>'+
+  '<path d="M-17,-9 A19,19 0 0 1 4,-19" fill="none" stroke="#ffe6dc" stroke-opacity=".55" stroke-width="2.6" stroke-linecap="round"/>'+
+  '<ellipse cx="-7" cy="-13" rx="4" ry="1.8" fill="#fff4ee" opacity=".6" transform="rotate(-25 -7 -13)"/>';
+ let suck='';for(let i=0;i<8;i++)suck+='<g class="xs" data-i="'+i+'" opacity="0"><circle class="xs-l" r="50" fill="url(#rxSuckL)" opacity="0"/>'+cup+'<circle class="xs-ok" r="36" fill="url(#rxOk)" opacity="0"/></g>';
  let cr='';for(let i=0;i<3;i++)cr+='<g class="xc" data-i="'+i+'" opacity="0"><path class="xc-base" fill="#1a0206" stroke="#ff8a5a" stroke-opacity=".55" stroke-width="1"/><path class="xc-hot" fill="url(#rxCrack)"/><circle class="xc-start" r="16" fill="url(#rxSuckL)"/><circle class="xc-end" r="9" fill="none" stroke="#ffe2c8" stroke-width="2"/></g>';
  return '<defs>'+armsDefs()+'</defs>'+scenery()+bed()+steam(14)+
   '<g class="xb-g">'+back+'</g>'+rwBoat()+
   '<path class="bw-rope" fill="none" stroke="#8a7d7a" stroke-opacity=".75" stroke-width="1.6" opacity="0"/>'+
   '<g class="xa-g">'+groundArm('xa0')+'</g>'+
-  '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+
-  '<g class="xd" opacity="0"><path class="xd-real" d="M-34,-20 L18,-20 L18,-40 L58,0 L18,40 L18,20 L-34,20 Z" fill="#ffe2c8" opacity=".9"/><path class="xd-fake" d="M-34,-20 L18,-20 L18,-40 L58,0 L18,40 L18,20 L-34,20 Z" fill="#ff8a7a" opacity="0"/></g>'+
+  '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+(window.HarpoonTether?HarpoonTether.markup():'')+
+  '<g class="xd" opacity="0"><ellipse cx="30" rx="70" ry="44" fill="url(#rxChevG)"/>'+['real','fake'].map(k=>'<g class="xd-'+k+'"'+(k==='fake'?' opacity="0"':' opacity=".95"')+'>'+[[-34,.35],[-8,.6],[18,1]].map(([x,o])=>'<path d="M'+(x-14)+',-30 Q'+(x+8)+',-14 '+(x+24)+',0 Q'+(x+8)+',14 '+(x-14)+',30 Q'+(x-2)+',0 '+(x-14)+',-30 Z" fill="url(#rxChev'+(k==='real'?'R':'F')+')" opacity="'+o+'"/>').join('')+'</g>').join('')+'</g>'+
   '<g class="xs-g">'+suck+'</g><g class="xc-g">'+cr+'</g>'+
-  '<g class="xg" opacity="0"><rect x="896" y="90" width="26" height="240" rx="13" fill="#12040a" stroke="#ffc8b8" stroke-opacity=".5"/><rect class="xg-zone" x="896" width="26" rx="6" fill="#ffd29a" opacity=".45"/><rect class="xg-fill" x="900" width="18" rx="9" fill="url(#rxGauge)"/><path class="xg-mark" d="M884,0 l-14,-9 l0,18 Z M934,0 l14,-9 l0,18 Z" fill="#fff1d8"/></g>'+
+  '<g class="xg" opacity="0"><rect x="890" y="84" width="38" height="252" rx="19" fill="#0a0204" opacity=".7"/><rect x="896" y="90" width="26" height="240" rx="13" fill="url(#rxTrack)" stroke="#ffc8b8" stroke-opacity=".35"/>'+
+   (()=>{let tk='';for(let k=1;k<12;k++)tk+='<path d="M898,'+(90+k*20)+' h6 M914,'+(90+k*20)+' h6" stroke="#ffc8b8" stroke-opacity=".18" stroke-width="1"/>';return tk;})()+
+   '<rect class="xg-zone" x="893" width="32" rx="8" fill="url(#rxSuckL)" opacity=".45"/><rect class="xg-fill" x="900" width="18" rx="9" fill="url(#rxGauge)"/>'+
+   '<g class="xg-mark"><ellipse cx="909" rx="22" ry="7" fill="url(#rxSuckL)" opacity=".7"/><path d="M886,0 Q880,-7 872,-9 Q876,0 872,9 Q880,7 886,0 Z M932,0 Q938,-7 946,-9 Q942,0 946,9 Q938,7 932,0 Z" fill="#fff1d8"/></g></g>'+
   '<circle class="bw-flash" r="70" fill="url(#bwFlash)" opacity="0"/>'+(window.HarpoonLauncher?window.HarpoonLauncher.hitMarkup():'')+
   drops('rw-blood',30,83,'#2a0307')+drops('rw-mudspray',30,9,'#f0c8b8')+
   '<rect class="xh" x="-20" y="-20" width="'+(W+40)+'" height="'+(H+40)+'" fill="url(#rxHot)" opacity="0"/>'+nearMist();
 }
 // g: RedHuntGame (mode p1~p4, arm 0/1, heat, intro/kill 시각, 각 미니게임 상태)
+function hitOnArm(A,tw){
+ if(!A||!A.spine||!A.spine.length)return null;
+ const m=tw([37,-29]),want=m[1]-26,n=A.spine.length;let best=null,bd=1e9;
+ for(const strict of [true,false]){
+  for(let i=Math.floor(n*.12);i<Math.floor(n*.85);i++){const p=A.spine[i],dx=Math.abs(p[0]-m[0]);if(strict&&p[0]<m[0]+70)continue;if(!strict&&dx<60)continue;const d=Math.abs(p[1]-want)+Math.abs(dx-240)*.15;if(d<bd){bd=d;best=p;}}
+  if(best)break;}
+ return best?best.slice():null;
+}
 function armsGame(el,t,tr,g){
  const {q,qa}=cacheQ(el);
  el.dataset.mode=g.mode||'';
@@ -754,7 +779,7 @@ function armsGame(el,t,tr,g){
   const D=g.dirNow||null;let dx=0,dy=0;
   if(D){const u=D.u||0,v=D.vec;dx=v[0]*110*u;dy=v[1]*70*u;}
   o=armPose(P.base,rise*(1-dead),{a:P.a+Math.sin(tr*1.4)*4,e:P.e,wr:P.wr,L1:P.L1,L2:P.L2,w:P.w,side:P.side,grip:.2+.3*Math.sin(tr*4)});
-  aimArm(o,[470+dx,170+dy],1);o.y+=dead*120;
+  aimArm(o,[500+dx,236+dy],1);o.y+=dead*120;
  }else{
   const wrap=g.arm===0;
   o=armPose([420,SEA+70],rise*(1-dead),{a:-150+Math.sin(tr*1.1)*2,e:wrap?-60:-40,wr:-30,L1:200,L2:190,w:wrap?58:64,side:-1,grip:.9});
@@ -763,35 +788,19 @@ function armsGame(el,t,tr,g){
  }
  A=paintGroundArm(el,'xa0',o,o===null?SEA:(ph===4?SEA+70:P.base[1]),rise>0&&dead<1?1:0);
  if(A&&A.hand)g.lastHand=A.hand.slice();
- // 작살: ①② 팔뚝에 박힌 채 밧줄이 배까지 팽팽 / ③ 던질 때마다 / ④ 없음
- const hp=q('.bw-harpoon'),rope=q('.bw-rope');
- // 한 발: 발사 → 박힘 → (성공 문구 뒤) 밧줄로 감아 들여 다시 장전 → 다음 발사
- const fired=ph!==3?g.introAt!=null&&t>=g.introAt:g.stabAt!=null&&t>=g.stabAt;
- const reelAt=ph===3?(g.stabAt!=null?g.stabAt+.42:null):g.reelAt,reelDur=ph===3?.5:(g.reelDur||1.05);
- const reelDone=reelAt!=null&&t>=reelAt+reelDur;
- const loaded=!fired||reelDone;
- const hand=own?HL.handFor(HL.launch(el,tw,{loaded}),30,-14):tw([33,-31]),p0=[hand[0]+30,hand[1]-14];
- let pos=null,ang=0,show=0,tgt=A&&A.elbow&&A.wrist?[(A.elbow[0]+A.wrist[0])/2,(A.elbow[1]+A.wrist[1])/2]:[560,220];
- // 팔이 끊어진 뒤: 작살은 끊어진 자리에서 빠져나와 그 자리에 머묾(감아 들이기 전)
+ // 작살(모든 페이즈): 발사대가 박힐 자리로 돌아 겨눔 → 망 감긴 작살이 포물선 그대로 날아가 박힘 → 밧줄로 이어져 출렁임
+ //  → 팔이 끊어지면 감아 들여 다시 장전. ③은 겨눌 때마다 한 발씩 쏘고 짧게 감아 들임
+ q('.bw-harpoon').setAttribute('opacity','0');q('.bw-rope').setAttribute('opacity','0');
+ // 박힐 자리: 곧게 날아가는 작살이 닿기 좋은 높이(뱃전보다 조금 위)의 팔뚝 · 배 앞쪽
+ let tgt=hitOnArm(A,tw)||[560,SEA-60];
  const fx=g.killAt!=null&&t>=g.killAt?g.killAt:g.failAt!=null&&t>=g.failAt?g.failAt:null;
  if(fx!=null){if(g._stuckK!==fx||!g._stuck){g._stuckK=fx;g._stuck=tgt.slice();}tgt=g._stuck;}
- if(fired&&!reelDone){
-  if(ph!==3){const s=t-g.introAt,fl=.45;
-   if(s<fl){const u=s/fl;pos=[lerp(p0[0],tgt[0],u),lerp(p0[1],tgt[1],u)-60*u*(1-u)];ang=Math.atan2(tgt[1]-p0[1]-60*(1-2*u),tgt[0]-p0[0])/RAD;show=1;}
-   else{ang=Math.atan2(tgt[1]-p0[1],tgt[0]-p0[0])/RAD;pos=[tgt[0]-Math.cos(ang*RAD)*20,tgt[1]-Math.sin(ang*RAD)*20];show=1;}}
-  else{const s=(t-g.stabAt)/.25,u=Math.min(1,s),tg=g.stabTo||tgt;pos=[lerp(p0[0],tg[0],u),lerp(p0[1],tg[1],u)];ang=Math.atan2(tg[1]-p0[1],tg[0]-p0[0])/RAD;show=1;}
-  const home=own?HL.slideHome(tw,HL.ANGLE):{pos:[hand[0]+20,hand[1]-14],ang:-30};
-  const RP=HL.reelPose(el,'red'+ph,t,reelAt,reelDur,{pos,ang},home);
-  if(RP){pos=RP.pos;ang=RP.ang;show=RP.show;}
- }
- else if(!own&&ph!==4){pos=[hand[0]+20,hand[1]-14];ang=-30;show=1;}
- const reeling=reelAt!=null&&t>=reelAt&&!reelDone;
- hp.setAttribute('opacity',String(show));if(pos)hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
- if(show&&pos&&fired&&!reelDone){const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&HL?HL.anchorLocal():[40,-9]);
-  const pull=reeling?1:ph===1?clamp((g.gauge||0)/100):ph===2?clamp(g.tension||0):.6,sl=Math.max(2,30*(1-pull)-6);
-  rope.setAttribute('d','M'+n1(an[0])+','+n1(an[1])+' Q'+n1((an[0]+tail[0])/2)+','+n1((an[1]+tail[1])/2+sl)+' '+n1(tail[0])+','+n1(tail[1]));rope.setAttribute('opacity','.9');}
- else rope.setAttribute('opacity','0');
- if(HL)HL.paintHit(el,{s:g.introAt!=null&&ph!==3?t-g.introAt-.45:g.stabAt!=null?t-g.stabAt-.25:-1,p:tgt,ang:ang,tier:HL.pierce().n,through:90});
+ else g.lastHit=tgt.slice();
+ let spec=null,anc=tgt;
+ if(ph===3){if(g.stabAt!=null){const last=g.killAt!=null&&g.killAt>=g.stabAt;spec={fireAt:g.stabAt,endAt:last?g.killAt+.2:g.stabAt+.47,free:!last,breakDur:.6,reelDur:last?1.05:.42};anc=g.stabTo||tgt;}}
+ else if(g.introAt!=null){const fail=g.failAt!=null&&g.failAt>=g.introAt&&g.killAt==null;spec={fireAt:g.introAt,endAt:g.killAt!=null?g.killAt:fail?g.failAt+.2:null,free:fail,breakDur:.6,reelDur:1.05};}
+ const pull=ph===1?clamp((g.gauge||0)/100):ph===2?clamp(g.tension||0):.4;
+ if(window.HarpoonTether)HarpoonTether.paint(el,t,spec,tw,anc,{color:'#9a1626',sway:.35+.9*(1-pull)+(g.joltAt!=null?Math.exp(-(t-g.joltAt)*3):0),lift:30,embed:16});
  // 끊어지는 순간: 섬광 · 피 · 김
  const fl=q('.bw-flash');
  const fk=g.killAt!=null?t-g.killAt:g.stabAt!=null?t-g.stabAt-.25:-1;
@@ -816,9 +825,14 @@ function armsGame(el,t,tr,g){
  else xd.setAttribute('opacity','0');
  // ④ 빨판
  const S=g.suck;
- qa('.xs').forEach(e=>{const i=+e.dataset.i,p=SUCK[i];
+ // 빨판은 배를 감은 팔 위에 붙음: 팔의 등줄기를 따라 자리를 잡고(판정도 같은 자리), 팔이 움직이면 함께 움직임
+ if(ph===4&&g.arm===0&&A&&A.spine&&A.spine.length){const n=A.spine.length,arr=[];
+  for(let i=0;i<8;i++){const k=Math.floor(n*(.14+.56*i/7)),p=A.spine[k],q2=A.spine[Math.min(n-1,k+1)],dx=q2[0]-p[0],dy=q2[1]-p[1],l=Math.hypot(dx,dy)||1,sd=(i%2?1:-1)*((A.widths&&A.widths[k])||40)*.18;
+   arr.push([p[0]-dy/l*sd,p[1]+dx/l*sd]);}
+  g.suckPos=arr;}
+ qa('.xs').forEach(e=>{const i=+e.dataset.i,p=(g.suckPos&&g.suckPos[i])||SUCK[i];
   if(ph!==4||g.arm!==0||!S||dead>0||!S.order.includes(i)){e.setAttribute('opacity','0');return;}
-  e.setAttribute('transform','translate('+n1(p[0])+' '+n1(p[1]+Math.sin(tr*2+i)*2)+')');
+  e.setAttribute('transform','translate('+n1(p[0])+' '+n1(p[1])+') scale(.78)');
   e.setAttribute('opacity',n3(seg(t,g.armStart+.6+i*.05,g.armStart+1+i*.05)));
   const show2=S.showAt!=null?(()=>{const k=S.order.indexOf(i),a=S.showAt+k*.8;return bell(t,a,a+.1,a+.5,a+.7);})():0;
   e.querySelector('.xs-l').setAttribute('opacity',n3(show2));

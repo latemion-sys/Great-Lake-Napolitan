@@ -110,7 +110,7 @@ function armMarkup(cls){
   '<path class="ra-knuck" fill="none" stroke="#22030a" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>'+
   '<path class="ra-elbow" fill="none" stroke="#22030a" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>'+
   '<g class="ra-suck">';
- for(let i=0;i<40;i++)s+='<g data-i="'+i+'"><circle fill="#f08a86" stroke="#5a0614" stroke-width="1.1" opacity=".9"/><circle class="in" fill="#3a0210" opacity=".85"/></g>';
+ for(let i=0;i<40;i++)s+='<g data-i="'+i+'"><circle fill="url(#rwSuckRing)" opacity=".95"/><circle class="in" fill="url(#rwSuckCup)"/></g>';
  return s+'</g></g>';
 }
 function paintArm(g,o){
@@ -129,7 +129,7 @@ function paintArm(g,o){
   if(!p){n.setAttribute('opacity','0');return;}
   n.setAttribute('opacity','1');const [o1,o2]=n._c||(n._c=n.querySelectorAll('circle'));
   o1.setAttribute('cx',n1(p[0]));o1.setAttribute('cy',n1(p[1]));o1.setAttribute('r',n1(Math.max(1.2,p[2])));
-  o2.setAttribute('cx',n1(p[0]));o2.setAttribute('cy',n1(p[1]));o2.setAttribute('r',n1(Math.max(.5,p[2]*.42)));});
+  o2.setAttribute('cx',n1(p[0]));o2.setAttribute('cy',n1(p[1]));o2.setAttribute('r',n1(Math.max(.5,p[2]*.5)));});
  return A;
 }
 
@@ -143,6 +143,9 @@ const ROOTS=(()=>{const r=seeded(33);return [-150,-92,-34,34,92,150].map((x,i)=>
 function headDefs(){
  return ''+
  '<linearGradient id="rwArmSkin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d42638"/><stop offset=".45" stop-color="#8a0c1e"/><stop offset="1" stop-color="#2a020a"/></linearGradient>'+
+ // 빨판: 살빛 테두리(가장자리는 도톰하고 밝게, 안쪽으로 꺼짐) · 깊은 컵(안쪽 벽에 붉은 빛, 바닥은 어둠)
+ '<radialGradient id="rwSuckRing" cx=".42" cy=".38" r=".62"><stop stop-color="#5a0a18"/><stop offset=".45" stop-color="#c8505a"/><stop offset=".7" stop-color="#f6a8a0"/><stop offset=".88" stop-color="#d86a6e"/><stop offset="1" stop-color="#4a0612"/></radialGradient>'+
+ '<radialGradient id="rwSuckCup" cx=".55" cy=".6" r=".6"><stop stop-color="#0e0004"/><stop offset=".55" stop-color="#2a0210"/><stop offset=".85" stop-color="#7a1424"/><stop offset="1" stop-color="#c04050"/></radialGradient>'+
  '<radialGradient id="rwMantle" cx=".66" cy=".24" r=".85"><stop stop-color="#e0303e"/><stop offset=".3" stop-color="#a0101f"/><stop offset=".66" stop-color="#4a0310"/><stop offset="1" stop-color="#160105"/></radialGradient>'+
  // 머리 피부: 창백한 고래와 같은 위→아래 명암 (달빛 받는 윗면 · 어두운 아랫면)
  '<linearGradient id="rwHSkin" gradientUnits="userSpaceOnUse" x1="60" y1="-400" x2="-40" y2="100"><stop stop-color="#d8505a"/><stop offset=".1" stop-color="#a81c2a"/><stop offset=".28" stop-color="#5e0614"/><stop offset=".5" stop-color="#2a020a"/><stop offset="1" stop-color="#0a0003"/></linearGradient>'+
