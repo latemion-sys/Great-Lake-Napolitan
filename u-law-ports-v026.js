@@ -35,13 +35,20 @@
   syncPortName();
   return beforeRender();
  };
+ // 거짓은 다른 호수의 진짜 법이 아니라, 해당 호수의 금기를 잘못 알려 주는 전용 전언에서 고릅니다.
+ const falseLore=window.GREAT_LAKE_FALSE_LORE_027;
+ if(!falseLore||sources.some(d=>!Array.isArray(falseLore[d.id])||falseLore[d.id].length!==3))
+  throw Error('호수별 가짜 전언 50종이 없습니다.');
  function sourceText(id,kind,truth){
   const original=byId.get(id);
   if(!original)return '';
-  const pool=truth?[original]:sources.filter(d=>d.id!==id);
-  const selection=choose(pool);
+  if(!truth){
+   const index=kind==='lyric'?1:kind==='law'?2:0;
+   return falseLore[id][index];
+  }
+  // 참 전언은 정확히 지정된 호수의 원문에서만 읽습니다.
   const field=kind==='lyric'?'hints':'rumors';
-  const entries=selection[field]&&selection[field].length?selection[field]:selection.hints||[];
+  const entries=original[field]&&original[field].length?original[field]:original.hints||[];
   return choose(entries);
  }
  // 선택한 정보의 정답 확률: 무료 28%, 선원 술집 60%, 작살잡이 고급 술집 90%.
@@ -56,9 +63,18 @@
   const candidates=shuffle([...new Set((state.offered||[]).filter(id=>byId.has(id)))]);
   if(candidates.length<spec.count)return;
   const ids=candidates.slice(0,spec.count);
-  const stories=ids.map(id=>{
-   const real=Math.random()<spec.chance;
-   const content=sourceText(id,cost===10?'lyric':'rumor',real);
+  // 무료 3개는 소문이 대부분 틀리고, 중간 가격의 노랫말 2개는 참·거짓이 섞이도록.
+  // 고급 술집의 법 1개는 높은 확률로 참이지만 반드시 진짜라는 보장은 없습니다.
+  const verified=ids.map(()=>Math.random()<spec.chance);
+  if(cost===0){
+   if(verified.every(Boolean))verified[rng(verified.length)]=false;
+   if(!verified.some(Boolean))verified[rng(verified.length)]=true;
+  }else if(cost===10&&verified.every(Boolean)){
+   verified[rng(verified.length)]=false;
+  }
+  const stories=ids.map((id,i)=>{
+   const sourceType=cost===0?'rumor':cost===10?'lyric':'law';
+   const content=sourceText(id,sourceType,verified[i]);
    return {lake:id,kind:spec.kind,text:content};
   });
   // 목격담은 아주 드물게만 들리며, 추가 전언을 만들지 않아 고급 술집은 항상 1개입니다.
