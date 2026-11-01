@@ -1,0 +1,19 @@
+/* 모든 것을 가라앉히는 노란 고래 · 미니게임 표시 */
+.yw3-scene.ywg-on{cursor:crosshair;touch-action:none;user-select:none;-webkit-user-select:none}
+.yw3-scene .ywg-hud{position:absolute;inset:0;z-index:6;pointer-events:none}
+.yw3-scene .ywg-hint{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);padding:5px 12px;border-radius:20px;background:#140e04cc;border:1px solid #e8c07055;color:#fbf0d8;font-size:12px;letter-spacing:.04em;white-space:nowrap;transition:border-color .1s,box-shadow .1s}
+.yw3-scene .ywg-hint:empty{display:none}
+.yw3-scene .ywg-hint.now{border-color:#ffd59a;color:#fff6e0;box-shadow:0 0 16px #ffcf7a99}
+.yw3-scene .ywg-verdict{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);font-size:30px;font-weight:700;letter-spacing:.3em;opacity:0;transition:opacity .2s;white-space:nowrap}
+.yw3-scene .ywg-verdict.on{opacity:1}
+.yw3-scene .ywg-verdict.good{color:#fff6e2;text-shadow:0 0 18px #ffcf7a,0 2px 8px #000}
+.yw3-scene .ywg-verdict.bad{color:#e8d2b0;text-shadow:0 0 16px #5a3a10,0 2px 8px #000}
+.yw3-scene .ywg-count{position:absolute;top:12px;right:16px;padding:3px 10px;border-radius:12px;background:#140e04cc;border:1px solid #e8c07055;color:#fbf0d8;font-size:12px}
+.yw3-scene .ywg-count:empty{display:none}
+.yw3-scene .ywg-suck{position:absolute;left:16px;top:34px;width:170px;height:14px;border-radius:7px;background:#140e04cc;border:1.5px solid #e8c07099;overflow:hidden}
+.yw3-scene .ywg-suck i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8a6420,#e8b040);transition:width .25s}
+.yw3-scene .ywg-suck.hot i{background:linear-gradient(90deg,#c87020,#ff8a30);box-shadow:0 0 12px #ff8a30}
+.yw3-scene .ywg-suck b{position:absolute;left:8px;top:-1px;font-size:10px;line-height:14px;color:#fff6e0;text-shadow:0 1px 3px #000;font-weight:600}
+.yw3-scene[data-stage="4"] .ywg-suck{display:none}
+.ywg-panel .ywg-big{font-size:17px;padding:14px 26px;touch-action:none;user-select:none;-webkit-user-select:none}
+@media(max-width:620px){.yw3-scene .ywg-hint{font-size:10px;bottom:36px;white-space:normal;width:84%;text-align:center}.yw3-scene .ywg-verdict{font-size:22px}.yw3-scene .ywg-suck{width:120px;top:26px}}

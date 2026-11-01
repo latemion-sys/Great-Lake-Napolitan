@@ -51,8 +51,8 @@ function flash(text,good){G.flash={at:now(),text,good};}
 function statusTags(){return tag('침식 '+(state.exposure||0)+' / 100')+' '+tag('정신력 '+state.mind+' / 100')+' '+tag('선원 '+(state.crew?state.crew.length:0)+'명');}
 function updateStatus(){const s=document.getElementById('bkgStatus');if(s)s.innerHTML=statusTags();if(MS())MS().refresh(G);}
 function finish(after){
- G.done='ok';busy=true;
- G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isBlackBattle()){G.mode=null;return;}G.mode=null;resolveCoin(true);},after*1000);
+ G.done='ok';busy=true;const ref=state.battle;
+ G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isBlackBattle()||state.battle!==ref){G.mode=null;return;}G.mode=null;resolveCoin(true);},after*1000);
 }
 // 공통 실패: 피해 → 다시 / 기회를 다 쓰면 사망
 function strike(h,m,logMsg,deathText){
