@@ -1,5 +1,5 @@
 /* 대호수 v0.2.4 · 항해 규칙 조정
-   - 인어 조우 10% · 고래 조우(호수에 들어설 때) 5%. 고래 조우의 일부는 희귀 고래(천가닥 줄기 고래 · 구멍 손바닥 고래)
+   - 평시 인어 조우 10%·고래 조우 5% 유지. 파도성 재해는 위험도별 6/12/20/30%이며, 발생 시 대개 고래나 인어가 동반됨.
    - 출항 전 이야기: 뱃노래 노랫말(싸고 애매함) / 구전으로 전해지는 법(비싸지만 자세함)
    - [대호수 주파]: 3등급 이상 선장이 항구에 돌아올 때 15% 확률로 제안. 랜덤 호수 15개, 장면마다 30초 안에 고르지 못하면 사망.
      끝까지 건너면 자금 + 선체 보강(최대 내구도 +10, 영구) + 기적 업적 [대호수를 주파한 선장]
@@ -7,6 +7,9 @@
 (function(){
 'use strict';
 const MERMAID_P=.10,WHALE_P=.05,RARE_SHARE=.3,CROSS_P=.15,CROSS_LAKES=15,CROSS_SEC=30,HULL_STEP=10,HULL_CAP=50;
+// 위험도는 호수 입장 시 단 한 번 파도성 재해가 발생하는 확률을 뜻합니다.
+const WAVE_RISK_028=[0,.06,.12,.20,.30],WAVE_WHALE_SHARE_028=.30,WAVE_MERMAID_SHARE_028=.50;
+const waveProbability028=risk=>WAVE_RISK_028[Math.max(1,Math.min(4,Math.round(Number(risk)||1)))];
 const COUNT_KEY='daehosu_ach_counts_v024',BONUS_KEY='daehosu_hull_bonus_v024';
 const store={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
 
@@ -54,15 +57,42 @@ function pickWhale(){
 const baseEnter=enterNextLake0131;
 enterNextLake0131=function(id){
  if(state.scene!=='route'||!state.offered.includes(id)||state.visited.includes(id))return baseEnter.apply(this,arguments);
- // 미리 정해 둔 자리 대신, 호수에 들어설 때마다 5%로 고래를 만남
+ const lake=LAKE_BY_ID157.get(id);
+ const risk=Math.max(1,Math.min(4,Math.round(Number(lake?.risk)||1)));
+ const wave=Math.random()<waveProbability028(risk);
+ const waveTypeRoll=wave?Math.random():1;
+ const waveKind=wave?(waveTypeRoll<WAVE_WHALE_SHARE_028?'whale':
+   waveTypeRoll<WAVE_WHALE_SHARE_028+WAVE_MERMAID_SHARE_028?'mermaid':'wave'):null;
+ // 기존의 평시 고래 5%, 인어 10% 기회를 남기고 파도 발생 시 별도로 동반 조우를 추가합니다.
+ const whaleEncounter=waveKind==='whale'||Math.random()<WHALE_P;
+ const mermaidEncounter=waveKind==='mermaid'||Math.random()<MERMAID_P;
  state.whalePlaces={};
+ state.waveHazard028=null;
  let rare=null;
- if(Math.random()<WHALE_P){const w=pickWhale();if(w.rare)rare=w.rare;else state.whalePlaces[id]=w.k;}
- const r=baseEnter.apply(this,arguments);
- state.normalMermaidDraw=Math.random()<MERMAID_P;
- if(rare&&state.scene!=='dead'&&state.current===id){state.rareWhale024={id:rare,lake:id};state.scene='rareWhale';sync();}
+ if(whaleEncounter){
+  const w=pickWhale();
+  if(w.rare)rare=w.rare;
+  else state.whalePlaces[id]=w.k;
+ }
+ const result=baseEnter.apply(this,arguments);
+ if(state.scene==='dead'||state.current!==id)return result;
+ state.normalMermaidDraw=mermaidEncounter;
+ if(wave){
+  const oldHull=state.hull,oldMind=state.mind;
+  takeDamage(2+2*risk,1+risk);
+  state.waveHazard028={
+   lake:id,risk,kind:waveKind,
+   hullLoss:Math.max(0,Math.round((oldHull-state.hull)*10)/10),
+   mindLoss:Math.max(0,Math.round((oldMind-state.mind)*10)/10)
+  };
+  log('21-'+String(id).padStart(2,'0')+'에 파도성 재해가 발생했습니다. 선체가 흔들리고 선원들이 동요합니다.');
+  if(!safeCheck())return result;
+ }
+ if(rare&&state.scene!=='dead'&&state.current===id){
+  state.rareWhale024={id:rare,lake:id};state.scene='rareWhale';sync();
+ }else if(wave)sync();
  else save();
- return r;
+ return result;
 };
 function rareScene(){
  const R=state.rareWhale024,d=R&&RARE[R.id];if(!d)return null;
@@ -230,11 +260,33 @@ setInterval(function(){
 },250);
 
 /* ---------- 화면 ---------- */
+function waveAlert028(wave){
+ if(!wave||state.current!==wave.lake)return '';
+ return '<div class="inset warning">'+
+  '<div class="small">파도성 재해 · 위험도 '+wave.risk+'단계</div>'+
+  '<h3>거센 파도가 뱃전을 덮쳤습니다.</h3>'+
+  '<p class="muted">선체가 흔들리고 선원들의 정신이 동요합니다. 물결 아래 무엇이 뒤따를지는 알 수 없습니다.</p>'+
+  tag('선체 피해 '+wave.hullLoss)+' '+tag('정신 피해 '+wave.mindLoss)+
+  '</div>';
+}
 const basePlay=renderPlay;
 renderPlay=function(){
- if(state.scene==='rareWhale'){const h=rareScene();if(h)return h;state.scene='event';}
+ if(state.scene==='rareWhale'){
+  const h=rareScene();
+  if(h)return waveAlert028(state.waveHazard028)+h;
+  state.scene='event';
+ }
  rollOffer();
  let page=basePlay.apply(this,arguments);
+ if(state.scene==='route'){
+  page=page.replace(/위험도 ([1-4])(?=<\/span>)/g,(_,grade)=>
+   '파도 위험 '+grade+'단계 · '+Math.round(waveProbability028(Number(grade))*100)+'%');
+  page=page.replace('<h2>이번 출항의 호수</h2>',
+   '<h2>이번 출항의 호수</h2><p class="muted">위험도는 호수 진입 시 파도성 재해가 발생할 확률입니다. 파도에 고래와 인어가 동반될 수 있습니다. 호수의 법을 어겼을 때의 판정과는 별개입니다.</p>');
+ }
+ if(state.waveHazard028&&['event','encounter','special','battle'].includes(state.scene)){
+  page=waveAlert028(state.waveHazard028)+page;
+ }
  if(state.scene==='port'&&!state.sea){
   if(state.crossResult024){const R=state.crossResult024;state.crossResult024=null;
    page='<div class="inset cross-offer-024"><h2>대호수를 주파했습니다</h2><p>'+R.money+'만 안(眼)을 받았습니다. 선체가 보강되어 최대 내구도가 <b>'+(100+R.bonus)+'</b>이 되었습니다'+(R.bonus>=HULL_CAP?' (보강 한도)':'')+'.</p></div>'+page;}
@@ -250,6 +302,16 @@ renderPlay=function(){
   page=timerHtml()+page;
  }
  return page;
+};
+const beforeHelpRisk028=renderHelp;
+renderHelp=function(){
+ const page=beforeHelpRisk028.apply(this,arguments);
+ const levels=WAVE_RISK_028.slice(1).map((p,i)=>
+  '<div class="stat"><small>위험도 '+(i+1)+'단계</small><strong>파도 '+Math.round(p*100)+'%</strong></div>').join('');
+ return page+'<div class="inset"><h3>호수 위험도와 파도</h3>'+
+  '<p>위험도는 해당 호수에 진입할 때 <b>파도성 재해</b>가 일어날 가능성을 뜻합니다. 입장할 때 한 번만 판정하며, 선택지를 누를 때마다 재추첨하지 않습니다.</p>'+
+  '<div class="stats">'+levels+'</div>'+
+  '<p class="muted">파도가 발생하면 선체와 정신에 피해를 입습니다. 대부분 고래나 인어가 동반되지만 파도만 일어날 수도 있습니다. 파도와 무관한 평시 고래·인어 조우 가능성은 별도로 유지됩니다. 위험도는 호수의 법을 어겼을 때의 즉사 확률이 아닙니다.</p></div>';
 };
 const baseSide=renderSide;
 renderSide=function(){
@@ -277,6 +339,9 @@ document.addEventListener('click',function(e){
 // 재시작 · 저장 복구 정리
 if(state.scene==='rareWhale'&&!state.rareWhale024){state.scene='event';}
 if(state.crossing024&&!state.sea)state.crossing024=null;
-window.Voyage024={hullBonus,crossing,startCrossing,pickWhale,RARE,MERMAID_P,WHALE_P,CROSS_P,timer:()=>({...timer})};
+window.Voyage024={hullBonus,crossing,startCrossing,pickWhale,RARE,MERMAID_P,WHALE_P,CROSS_P,
+ waveProbability:waveProbability028,waveRiskRates:WAVE_RISK_028.slice(1),
+ waveCompanions:{whale:WAVE_WHALE_SHARE_028,mermaid:WAVE_MERMAID_SHARE_028,waveOnly:1-WAVE_WHALE_SHARE_028-WAVE_MERMAID_SHARE_028},
+ timer:()=>({...timer})};
 render();
 })();
