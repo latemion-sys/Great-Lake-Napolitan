@@ -3,8 +3,10 @@
  'use strict';
  const oldPlay=renderPlay;
  const oldRender=render;
+ // 항해 안내를 열었다가 시작 화면으로 돌아와도 작성 중인 이름을 유지합니다.
+ let nameDraft025=null;
  function landing025(){
-  const name=String(state.captainName||'');
+  const name=String(nameDraft025===null?(state.captainName||''):nameDraft025);
   const safeName=esc(name).replace(/"/g,'&quot;');
   return '<section class="landing025" aria-label="대호수 시작 화면">'+
     '<header class="landing-top025">'+
@@ -43,6 +45,9 @@
     '<p class="landing-legal025">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</p>'+
   '</section>';
  }
+ document.addEventListener('input',e=>{
+  if(state.scene==='start'&&e.target?.id==='captainNameInput')nameDraft025=e.target.value;
+ });
  renderPlay=function(){
   if(state.scene==='start')return landing025();
   return oldPlay();
