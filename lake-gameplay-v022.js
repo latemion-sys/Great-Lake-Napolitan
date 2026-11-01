@@ -5,7 +5,7 @@
  if(!Array.isArray(raw)||raw.length!==48)throw Error('호수 수정본 48개가 없습니다.');
  const defs=new Map(raw.map(d=>[d.id,d])), pick=a=>a[rng(a.length)], side=()=>pick(['왼쪽','오른쪽']);
  const opposite=x=>x==='왼쪽'?'오른쪽':x==='오른쪽'?'왼쪽':'앞쪽';
- const format=(input,v)=>String(input||'').replace(/\{([^}]+)\}/g,(_,k)=>String(v[k]??''));
+ const format=(input,v)=>String(input||'').replace(/\{([^}]+)\}/g,(_,k)=>String(v[k]??'{'+k+'}'));
  const limits={7:4,11:4,12:4,13:4,16:4,19:4,23:4,30:4,38:4,39:4,42:4,44:4};
  for(const d of raw){
   if(typeof TEST_LAKE_IDS154!=='undefined')TEST_LAKE_IDS154.add(d.id);
@@ -24,12 +24,32 @@
  }
  function seed(st){
   const id=st.id,v=st.vars,dirs=['왼쪽','오른쪽'],full=['왼쪽','앞쪽','오른쪽'];
-  if([9,14,17,19,31,32,33,34,35,36,37,45,47,48].includes(id))v.N=([45,48].includes(id)?pick([3,4]):id===19||id===39||id===42?3:pick([2,3]));
+  if([9,14,17,19,31,32,33,34,35,36,37,45,47,48].includes(id))v.N=([35,45,48].includes(id)?pick([3,4]):id===19?3:pick([2,3]));
   if(id===39||id===42)v.N=3;
   if(id===36)v.N=pick([2,3]);
   if(id===46){v.M=2;v['건네는 것']=pick(['검은 고체','흰 액체']);}
-  if(id===25||id===29)v.N=pick([2,3]);
-  if(id===25){v['N-1']=v.N-1;v['N+1']=v.N+1;v['똑 × N']=Array(v.N).fill('똑.').join(' ');}
+  if(id===25||id===29)v.N=id===25?pick([2,3,4]):pick([2,3]);
+  if(id===25){
+   const count=v.N,words=['','한','두','세','네','다섯'];
+   v['N-1']=words[count-1];v['N+1']=words[count+1];
+   v['똑 × N']=Array(count).fill('똑').join(', ')+'.';
+   v.N=words[count];
+  }
+  if(id===30){
+   v.N=pick([3,4]);
+   const shoePlan=shuffle(['왼쪽','오른쪽','우리 배']);
+   if(v.N===4){
+    const extra=pick(['왼쪽','오른쪽','우리 배']);
+    const slots=[0,1,2,3].filter(i=>(i===0||shoePlan[i-1]!==extra)&&(i===3||shoePlan[i]!==extra));
+    shoePlan.splice(pick(slots),0,extra);
+   }
+   st.shoePlan=shoePlan;st.shoeMatchDone=false;
+  }
+  if(id===35){
+   st.moonPlan=shuffle([0,1,2]);
+   if(v.N===4)st.moonPlan.push(pick(st.moonPlan.slice(0,2)));
+   st.lastMovingMoon=null;
+  }
   if(id===6||id===41){
    const ends=['갈라진','깨진','둥글게 닳은','멀쩡한'];
    v['끝']=pick(ends);v['다른 끝']=pick(ends.filter(x=>x!==v['끝']));
@@ -55,7 +75,7 @@
  function enter(st,index){
   const v=st.vars,id=st.id;
   if([9,14,17,35,39].includes(id)){v['쪽']=side();v['반대쪽']=opposite(v['쪽']);}
-  if(id===6)v['손잡이 천']=pick([v['천'],...['검은','붉은','흰','푸른'].filter(x=>x!==v['천'])]);
+  if(id===6)v['손잡이 천']=Math.random()<.5?v['천']:pick(['검은','붉은','흰','푸른'].filter(x=>x!==v['천']));
   if(id===14){
    const same=st.count===0?Math.random()<.5:!st.seen.same?true:!st.seen.diff?false:Math.random()<.5;
    v['색']=same?v['우리 색']:pick(['붉은','푸른','노란'].filter(x=>x!==v['우리 색']));
@@ -73,6 +93,23 @@
    v['참 쪽']=pick(['왼쪽','앞쪽','오른쪽']);v['거짓 쪽']=pick(['왼쪽','앞쪽','오른쪽']);
    const rest=['왼쪽','앞쪽','오른쪽'].filter(x=>x!==v['참 쪽']);
    v['다른 쪽1']=rest[0];v['다른 쪽2']=rest[1];
+  }
+  if(id===30&&index===0){
+   v['앞코']=st.shoePlan[st.count];
+   v['신발']=pick(['끈이 풀린','굽이 닳은','아주 작은','진흙이 말라붙은','앞코가 해진']);
+   const safe=v['앞코']==='왼쪽'?'오른쪽':v['앞코']==='오른쪽'?'왼쪽':null;
+   v['자리']=safe&&!st.shoeMatchDone?safe:pick(['왼쪽','뱃머리 앞','오른쪽']);
+   if(safe&&v['자리']===safe)st.shoeMatchDone=true;
+  }
+  if(id===35){
+   if(index===0||index===1){
+    const places=shuffle(['왼쪽','앞쪽','오른쪽']);
+    v['하늘 쪽']=places[0];v['물 쪽']=places[1];
+    v['하늘 움직임']=pick(['하늘의 달이 조금 낮아진다.','하늘의 달이 물 끝 쪽으로 기운다.']);
+    v['물 움직임']=pick(['물의 달이 배 쪽으로 미끄러져 온다.','물의 달이 물 위에서 자리를 옮긴다.']);
+    st.lastMovingMoon=index===0?'하늘의 달':'물의 달';
+   }
+   if(index===3)v['사라진 달']=st.lastMovingMoon;
   }
   if(id===31){if(!v['낮은 쪽']){v['낮은 쪽']=side();v['높은 쪽']=opposite(v['낮은 쪽']);}v['반대쪽']=opposite(v['궤짝 쪽']);}
   if(id===32)v['말']=pick(['다 왔다.','앞을 봐.','조금만 더 왼쪽.']);
@@ -113,7 +150,8 @@
   seed(st);
   const v=st.vars,N=v.N;
   let min=limits[id]||3;
-  if([9,14,17,33,34,35,37,39,42,47].includes(id))min=Math.max(min,(N||2)+1);
+  if([9,14,17,30,33,34,35,37,39,42,47].includes(id))min=Math.max(min,(N||2)+1);
+  if(id===25)min=Math.max(min,4);
   if([29,31,32,36,48].includes(id))min=N+2;
   if(id===45)min=N+1;
   if(id===46)min=6;
@@ -125,7 +163,7 @@
   else if([1,2,3,4,6,7,8,10,18,21,22,24,26,27,28,33,40,41,43].includes(id))first=pick([0,0,1].filter(x=>x<defs.get(id).scenes.length));
   else if(id===14)first=0;
   else if([17,34,37,39,42,45,47].includes(id))first=st.plan[0]??0;
-  else if(id===35)first=rng(3);
+  else if(id===35)first=st.moonPlan[0];
   enter(st,first);
   return st;
  };
@@ -137,6 +175,7 @@
   if(!op)return;
   let valid=!op.death, next=op.targets.find(x=>x!==st.step)??op.targets[0];
   const prior=st.step,v=st.vars,N=v.N||2;
+  if(id===30&&prior===0)valid=actual===({'왼쪽':1,'오른쪽':0,'우리 배':2}[v['앞코']]);
   if(id===14&&prior===0){valid=(actual===(v['색']===v['우리 색']?0:1));}
   if(id===48&&prior===0){
    valid=actual<2&&(st.lastSide===null||(actual===0?'왼쪽':'오른쪽')!==st.lastSide);
@@ -177,6 +216,8 @@
     st.count++;
     next=st.count>=N?3:st.count===1&&N===2&&Math.random()<.5?2:1;
    }
+  }else if(id===30&&prior===0){
+   st.count++;next=st.count>=N?1:0;
   }else if(id===31&&prior<2){
    if(prior===0)v['궤짝 쪽']=v['높은 쪽'];
    st.count++;
@@ -194,7 +235,7 @@
   }else if(id===34&&prior<2){
    st.count++;next=st.count>=N?2:1-prior;
   }else if(id===35&&prior<3){
-   st.count++;next=st.count>=N?3:pick([0,1,2].filter(x=>x!==prior));
+   st.count++;next=st.count>=N?3:st.moonPlan[st.count];
   }else if(id===36){
    if(prior===0)next=pick([1,2]);
    else if(prior===1||prior===2){
