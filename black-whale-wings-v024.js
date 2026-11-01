@@ -8,9 +8,9 @@
             양쪽 날개 끝이 멈춘 부표를 짚는다 · 지나가며 흔든 부표를 짚거나 너무 일찍 · 늦게 짚으면 날개 위치 오판
    ④ 고정 : 짚어 둔 두 부표의 공명 굽쇠를, 날개가 다 펼쳐지는 순간(고리가 굽쇠에 닿는 순간) 울린다.
             한쪽만 묶이면 풀린 날개가 배를 감싸 안음(포옹) → 선원 하나가 인어가 됨
-   ⑤ 접지 못한 날개 : 토벌 장면
-   ③④의 실패는 공통 규칙(MinigameStrikes): 첫 실패는 피해 후 다시, 기회를 다 쓰면 사망.
-   고래 전투는 기존 'whale' 전투(유효 타격 3: 유인 · 관측 · 고정)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
+   ⑤ 접지 못한 날개 : 양쪽 날개 끝에서 몸 한가운데로 모이는 굽쇠의 울림이 만나는 순간 작살 → 토벌(성공 장면으로 이어짐)
+   ③④⑤의 실패는 공통 규칙(MinigameStrikes): 첫 실패는 피해 후 다시, 기회를 다 쓰면 사망.
+   고래 전투는 기존 'whale' 전투(유효 타격 4: 유인 · 관측 · 고정 · 토벌)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
 (function(){
 'use strict';
 const BLACK=3,SEA=336;
@@ -18,18 +18,19 @@ const labels=['별이 꺼지는 수평선','유인','관측','고정','접지 �
 const LURE={tries:3,v:92,near:46,far:330,tol:32,fly:.7};
 const WATCH={early:.3,late:2.6};
 const FIX={win:.2,lead:1.7,gapMin:.35,gapRand:.8};
+const STRIKE={win:.24,period:2.8,fly:.55};
 const G=window.BlackHuntGame=window.BlackHuntGame||{mode:null};
 const EASE=()=>(window.CalamityMang?window.CalamityMang.ease():1);
 const V=()=>window.BlackWhaleV3&&window.BlackWhaleV3.v24;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const MS=()=>window.MinigameStrikes;
 function isBlackBattle(){const b=state.battle;return state.scene==='battle'&&b&&b.type==='whale'&&b.index===BLACK;}
-function gameMode(){if(!isBlackBattle()||state.battle.need!==3)return null;return ['lure','watch','fork'][Math.max(0,Math.min(2,Number(state.battle.won)||0))];}
+function gameMode(){if(!isBlackBattle()||state.battle.need!==4)return null;return ['lure','watch','fork','strike'][Math.max(0,Math.min(3,Number(state.battle.won)||0))];}
 function stage(){
  if(state.scene==='dead'||!state.sea||state.current==null)return null;
  if(state.blackWhaleFinal===true&&state.scene!=='battle')return 4;
  if(state.scene==='encounter'&&state.encounter===BLACK)return 0;
- if(isBlackBattle())return Math.max(1,Math.min(3,(Number(state.battle.won)||0)+1));
+ if(isBlackBattle())return Math.max(1,Math.min(4,(Number(state.battle.won)||0)+1));
  return null;
 }
 function now(){return G.t0?(performance.now()-G.t0)/1000:0;}
@@ -43,6 +44,7 @@ function syncGame(){
   if(mode==='lure'){Object.assign(G,{tries:LURE.tries,used:0});newWhale(.6);}
   if(mode==='watch'){G.marks={};G.ok={};newRound(.2);}
   if(mode==='fork'){const w=state.blackWings024||{L:3,R:6};G.sideBuoy={L:w.L,R:w.R};G.win=FIX.win*G.ease;newFix(.2);}
+  if(mode==='strike'){const w=state.blackWings024||{L:1,R:6};G.sideBuoy={L:w.L,R:w.R};G.win=STRIKE.win*G.ease;G.meetAt=2.4;G.shot=null;}
  }
  if(!mode&&G.mode&&!G.timer){G.mode=null;G.ref=null;}
 }
@@ -202,12 +204,35 @@ function forkTick(t){
  fixResolve(t);
 }
 
+/* ---------- ⑤ 접지 못한 날개 ---------- */
+function strikeFire(){
+ if(G.mode!=='strike'||G.done||G.locked)return;
+ const t=now(),sh=G.shot;if(sh&&t<sh.reelAt+sh.reelDur)return;
+ if(t<.8)return;
+ const d=t-G.meetAt,hit=Math.abs(d)<=G.win;
+ G.shot={at:t,arrive:t+STRIKE.fly,hit,reelAt:t+STRIKE.fly+.7,reelDur:.95};
+ if(hit){
+  G.locked=true;
+  const V=window.BlackWhaleV3,T5=V&&V.v24&&V.v24.T5;
+  if(V&&T5)V.resume={stage:4,start:G.t0+(t+STRIKE.fly)*1000-(T5.throwAt+T5.fly)*1000};
+  setTimeout(()=>{if(G.mode!=='strike'||G.done)return;flash('토벌',true);
+   setText('작살이 날개 사이의 아무것도 없는 곳으로 빨려 들어갑니다 · 어둠이 날개 끝에서부터 풀립니다.');log('펼쳐진 채 묶인 검은 고래의 몸 한가운데로 작살을 던졌습니다.');finish(2.4);},STRIKE.fly*1000);
+  return;
+ }
+ setTimeout(()=>{if(G.mode!=='strike'||G.done)return;flash('빗나감',false);
+  const ok=strike(5,5,(d<0?'울림이 모이기 전에 던졌습니다.':'울림이 흩어진 뒤에 던졌습니다.')+' 작살이 어둠을 지나 물에 떨어지고, 날개가 굽쇠를 밀어냅니다.','날개가 굽쇠를 끊고 배 위로 접혀 듭니다.');
+  if(!ok)return;
+  setText((d<0?'너무 일찍 던졌습니다':'너무 늦게 던졌습니다')+' · 작살을 감아 들입니다. 남은 기회 '+MS().left(G)+'번');
+  G.meetAt=Math.max(G.meetAt+STRIKE.period,now()+2.4);},STRIKE.fly*1000);
+}
+function strikeTick(t){if(!G.locked&&!(G.shot&&t<G.shot.reelAt+G.shot.reelDur)&&t>G.meetAt+G.win+.3)G.meetAt+=STRIKE.period;}
+
 let lastTick=0;
 function tick(ms){
  lastTick=ms;
  if(G.mode&&!G.done&&G.t0&&isBlackBattle()){
   const t=now();
-  try{if(G.mode==='lure')lureTick(t);else if(G.mode==='watch')watchTick(t);else if(G.mode==='fork')forkTick(t);}catch(e){console.warn('검은 고래',e);}
+  try{if(G.mode==='lure')lureTick(t);else if(G.mode==='watch')watchTick(t);else if(G.mode==='fork')forkTick(t);else if(G.mode==='strike')strikeTick(t);}catch(e){console.warn('검은 고래',e);}
  }
  requestAnimationFrame(tick);
 }
@@ -233,6 +258,10 @@ function gamePanel(mode){
   '짚어 둔 두 부표에 공명 굽쇠를 매달았습니다. 날개가 물 위로 솟아 다 펼쳐지는 순간 굽쇠를 울리면, 울림이 날개 끝을 묶어 날개를 접지 못하게 합니다. 한쪽만 묶이면 풀린 날개가 배를 감싸 안습니다.',
   '고리가 굽쇠에 닿는 순간 · PC: 왼쪽 ←/A · 오른쪽 →/D · 휴대폰: 이펙트 화면의 왼쪽 · 오른쪽을 누르거나 아래 버튼 · 두 날개는 다 펼쳐지는 순간이 다릅니다',
   '<div class="bkg-steer"><button type="button" class="danger bkg-big" id="bkgForkL">◀ 왼쪽 굽쇠</button><button type="button" class="danger bkg-big" id="bkgForkR">오른쪽 굽쇠 ▶</button></div>');
+ if(mode==='strike')return panel(5,'접지 못한 날개',
+  '두 굽쇠가 같은 소리로 울며 날개를 펼친 채 묶고 있습니다. 그것은 날개를 접지 못합니다. 굽쇠의 울림이 양쪽 날개 끝에서 몸 한가운데로 모여 만나는 순간, 별이 지워진 그곳의 가장자리가 잠깐 드러납니다. 그 순간 작살을 던지십시오.',
+  '두 울림(빛 덩이)이 한가운데에서 만나 고리가 닿는 순간 · 스페이스 / 이펙트 화면 / 아래 버튼 · 이르거나 늦으면 작살이 어둠을 지나 물에 떨어짐(감아 들인 뒤 다시)',
+  '<button type="button" class="danger bkg-big" id="bkgStrike">작살을 던진다</button>');
  return '';
 }
 function sceneMarkup(n,game){return window.BlackWhaleV3?window.BlackWhaleV3.html(n,game?{game:true}:null):'';}
@@ -242,7 +271,7 @@ renderPlay=function(){
  syncGame();
  const n=stage();
  if(n===null)return previousPlay();
- if(n===4&&!isBlackBattle()){
+ if(n===4&&!isBlackBattle()&&state.blackWhaleFinal===true){
   return sceneMarkup(4)+
    '<div class="inset"><h2>'+esc(WHALES[BLACK].name)+' · 사냥 성공</h2>'+
    '<p>두 공명 굽쇠가 같은 소리로 울리는 동안, 그것은 날개를 접지 못했습니다. 아무것도 감싸지 못하게 된 그것의 날개 사이, 별빛이 지워진 곳으로 작살이 들어갔습니다. 어둠이 날개 끝에서부터 풀려 흩어지고, 지워졌던 별이 하나씩 돌아왔습니다. 그것은 펼친 날개 그대로 천천히 가라앉았습니다. 그것의 온몸이 어떤 모양이었는지는 끝내 아무도 보지 못했습니다.</p>'+
@@ -257,7 +286,7 @@ const previousHunt=huntWhale;
 huntWhale=function(){
  const black=state.scene==='encounter'&&state.encounter===BLACK;
  const r=previousHunt.apply(this,arguments);
- if(black&&isBlackBattle()){state.battle.need=3;state.blackWings024=null;sync();}
+ if(black&&isBlackBattle()){state.battle.need=4;state.blackWings024=null;sync();}
  return r;
 };
 const previousCoin=resolveCoin;
@@ -267,7 +296,6 @@ resolveCoin=function(win){
  if(success)state.blackWhaleFinal=true;
  const result=previousCoin(win);
  if(success&&state.scene==='dead')state.blackWhaleFinal=false;
- if(success)state.blackWings024=null;
  return result;
 };
 /* 처치 성공: 원래 흐름(afterWhale(3) → 호수 붕괴 · 이탈)은 성공 장면을 본 뒤 '항해 계속하기'를 누를 때 진행 */
@@ -290,6 +318,7 @@ function svgPoint(scene,ev){
 document.addEventListener('pointerdown',function(ev){
  if(!G.mode)return;
  const t=ev.target;
+ if(t.closest&&t.closest('#bkgStrike')){ev.preventDefault();strikeFire();return;}
  const fb=t.closest&&t.closest('[data-fork],#bkgForkL,#bkgForkR');
  if(fb){ev.preventDefault();if(G.mode==='fork')forkPress(fb.dataset.fork||(fb.id==='bkgForkL'?'L':'R'));return;}
  const scene=t.closest&&t.closest('.bk3-scene[data-game]');
@@ -299,10 +328,12 @@ document.addEventListener('pointerdown',function(ev){
  if(G.mode==='lure')lureThrow(p[0],p[1]);
  else if(G.mode==='watch')watchTap(p[0],p[1]);
  else if(G.mode==='fork')forkPress(p[0]<480?'L':'R');
+ else if(G.mode==='strike')strikeFire();
 });
 const isField=e=>e.target.closest&&e.target.closest('input,textarea,select,[contenteditable]');
 document.addEventListener('keydown',function(e){
  if(!G.mode||isField(e)||e.repeat)return;
+ if(G.mode==='strike'&&e.code==='Space'){e.preventDefault();strikeFire();return;}
  if(G.mode==='fork'){if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();forkPress('L');}if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();forkPress('R');}}
 });
 document.addEventListener('click',function(e){
@@ -313,5 +344,5 @@ document.addEventListener('click',function(e){
 });
 if(state.blackWhaleFinal&&(!state.sea||state.scene==='dead'||state.current==null)){state.blackWhaleFinal=false;state.blackDefer=false;save();}
 render();
-window.BLACK_WHALE_HUNT={stage,labels,game:G,lureThrow,watchTap,forkPress,newRound,newFix,newWhale};
+window.BLACK_WHALE_HUNT={stage,labels,game:G,strikeFire,lureThrow,watchTap,forkPress,newRound,newFix,newWhale};
 })();

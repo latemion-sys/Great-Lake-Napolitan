@@ -362,5 +362,28 @@ function tier(){return rings();}
 function pierce(){const n=rings();return n>=5?{pass:true,deep:0,n}:n>=4?{pass:false,deep:46,n}:{pass:false,deep:0,n};}
 const PASS_SPEED=1150;
 
-window.HarpoonLauncher={markup,flyMarkup,owned,launch,anchorLocal,handFor,rewind,hitMarkup,paintHit,passAngle,bury,tier,pierce,PASS_SPEED,PIVOT,ANGLE,LEFT,ARM,TIP,RELOAD};
+
+/* ---------- 감아 들이기: 박힌(또는 빠진) 작살을 밧줄로 감아 발사대(손)까지 끌고 와 다시 거는 동작 ----------
+   reelPose(el,key,t,reelAt,dur,cur,home)
+   - t < reelAt: 지금 자세(cur={pos,ang})를 기억만 하고 null
+   - 그 뒤: 박힌 자리에서 한 번 홱 뽑혀 나온 뒤, 밧줄에 끌려 물 위를 스치듯 처지며 home={pos,ang}까지 돌아옴.
+     돌아오는 동안 작살은 꼬리부터 끌려오다가 마지막에 겨눔 방향으로 돌아 걸림. {pos,ang,show,done,k}
+   home은 slideHome(toWorld,aim)(특수 작살: 발사대 앞, 장전 미끄럼이 시작되는 자리) 또는 손 자리 */
+function reelPose(el,key,t,reelAt,dur,cur,home){
+ const m=el._reel||(el._reel={});
+ if(reelAt==null||t<reelAt){if(cur&&cur.pos)m[key]={pos:cur.pos.slice(),ang:cur.ang};return null;}
+ const from=m[key]||cur;if(!from||!from.pos)return {pos:home.pos,ang:home.ang,show:0,done:true,k:1};
+ const k=Math.max(0,Math.min(1,(t-reelAt)/dur));
+ const fa=from.ang*RAD,yank=k<.16?Math.sin(k/.16*Math.PI)*9:0;          // 박힌 자리에서 홱 뽑힘
+ const u=k<.16?0:(k-.16)/.84,e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+ const sag=Math.sin(e*Math.PI)*Math.min(46,Math.hypot(home.pos[0]-from.pos[0],home.pos[1]-from.pos[1])*.14);
+ const x=from.pos[0]+(home.pos[0]-from.pos[0])*e-Math.cos(fa)*yank,y=from.pos[1]+(home.pos[1]-from.pos[1])*e-Math.sin(fa)*yank+sag;
+ let da=((home.ang-from.ang)%360+540)%360-180;
+ const turn=Math.max(0,(e-.55)/.45);
+ return {pos:[x,y],ang:from.ang+da*turn*turn+Math.sin(t*14)*3*(1-e)*(k>.16?1:0),show:k<1?1:0,done:k>=1,k};
+}
+// 특수 작살이 돌아와 걸리는 자리: 장전 미끄럼(54)이 시작되는 발사대 앞 · 작살 그림의 날 끝 기준
+function slideHome(toWorld,aim){const a=aim==null?ANGLE:aim,d=a*RAD,p=toWorld([PIVOT[0]+Math.cos(d)*(TIP+54),PIVOT[1]+Math.sin(d)*(TIP+54)]),q=toWorld([PIVOT[0],PIVOT[1]]);return {pos:p,ang:Math.atan2(p[1]-q[1],p[0]-q[0])/RAD};}
+
+window.HarpoonLauncher={reelPose,slideHome,markup,flyMarkup,owned,launch,anchorLocal,handFor,rewind,hitMarkup,paintHit,passAngle,bury,tier,pierce,PASS_SPEED,PIVOT,ANGLE,LEFT,ARM,TIP,RELOAD};
 })();

@@ -758,7 +758,7 @@ const now2=(u,txt,now)=>{if(!u.hint)return;set(u.hint,txt);u.hint.classList.togg
 function verdictOf(u,g,t,dur){const f=g.flash&&t-g.flash.at<(dur||1)?g.flash:null;setVerdict(u.verdict,f?f.text:'',f&&f.good?'good':'bad');}
 
 /* ---------- 2단계 · 유인 ---------- */
-const CAP24=['','고래가 지나가는 길목에 작은 등불 뗏목을 던지십시오. 작은 것을 보면 날개를 펼칩니다.','부표의 움직임으로 물밑 날개 끝을 읽으십시오. 날개 끝이 멈춘 부표를 짚으십시오.','날개가 다 펼쳐지는 순간 양쪽 공명 굽쇠를 울리십시오.',''];
+const CAP24=['','고래가 지나가는 길목에 작은 등불 뗏목을 던지십시오. 작은 것을 보면 날개를 펼칩니다.','부표의 움직임으로 물밑 날개 끝을 읽으십시오. 날개 끝이 멈춘 부표를 짚으십시오.','날개가 다 펼쳐지는 순간 양쪽 공명 굽쇠를 울리십시오.','접지 못한 날개 사이, 두 굽쇠의 울림이 몸 한가운데에서 만나는 순간 작살을 던지십시오.'];
 function lureBuild(){
  return night()+patchMarkup()+wakeMarkup('bk-wkP')+wingRef('bk-wLR')+wingRef('bk-wRR')+wakeMarkup('bk-wkL')+wakeMarkup('bk-wkR')+
   K.nearMist()+boatMarkup()+decoyMarkup()+wing2('bk-wL','LitLw')+wing2('bk-wR','LitRw')+drops('bk-drL',24,61,'#dbe8f2')+drops('bk-drR',24,67,'#dbe8f2')+
@@ -909,44 +909,83 @@ const S3v={title:'고정',loop:9,
  paint(el,t,tr){const g={sideBuoy:{L:1,R:6},m:{L:2.6,R:3.2},st:{L:t>=2.6?{pinned:true,ringAt:2.6}:{},R:t>=3.2?{pinned:true,ringAt:3.2}:{}}};forkScene(el,t,g);caption(el,S3v.caps,t);veil(el,tr<.6?1-tr/.6:.3*(t<.6?1-t/.6:seg(t,8.4,9)));}};
 /* ---------- 5단계 · 토벌(한 번 재생) ---------- */
 const T5={throwAt:4.4,fly:.55,dur:12.5};
+/* 5단계: 두 굽쇠의 울림이 날개 끝에서 몸 한가운데로 모여 만나는 순간(빛이 몸의 가장자리를 비춤) 작살을 던짐
+   g(게임)가 있으면 g.meetAt(울림이 만나는 시각) · g.shot={at,arrive,hit,reelAt,reelDur} · g.sideBuoy를 따름 */
+const BODY=[480,SEA-130];
+function strikeBuild(){
+ return forkBuild()+'<path class="bw-rope" fill="none" stroke="#8a9697" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
+  '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+rimMarkup()+
+  ['L','R'].map(sd=>{let tr='';for(let k=3;k>=1;k--)tr+='<circle class="pt" data-k="'+k+'" r="'+(14-k*3)+'" fill="url(#bkResoCore)" opacity="'+n3(.5-k*.12)+'"/>';return '<g class="bk-pls'+sd+'" opacity="0">'+tr+'<circle class="p0" r="30" fill="url(#bkResoCore)"/><circle class="p0" r="5" fill="#f4faff"/><circle class="p0" r="12" fill="url(#bkReso)"/></g>';}).join('')+
+  '<circle class="bk-apC" r="1" fill="url(#bkRing)" opacity="0"/>'+(HL()?HL().hitMarkup():'');
+}
+function strikePaint(el,t,tr,g){
+ const {q}=cacheQ(el),game=!!g;
+ const sb=game&&g.sideBuoy?g.sideBuoy:{L:1,R:6};
+ const shot=game?g.shot:{at:T5.throwAt,arrive:T5.throwAt+T5.fly,hit:true};
+ const hit=shot&&shot.hit?shot.arrive:null,since=hit!=null?t-hit:-1,undo=hit!=null?seg(t,hit+1.25,hit+4.25):0;
+ const fg={sideBuoy:sb,m:{L:-1,R:-1},st:{L:{pinned:true,ringAt:-1},R:{pinned:true,ringAt:-1}}};
+ const R=forkScene(el,t,fg,{sink:hit!=null?hit+4.2:null,thread:hit!=null?1-seg(t,hit+3.8,hit+5):1,noRing:true});
+ // 날개 사이의 '없음': 별을 지우는 몸 — 맞은 뒤 날개 끝에서부터 풀림
+ const strain=hit==null?Math.sin(t*1.3)*6:0;
+ const P={x:480+strain,y:SEA-70+60*undo,rot:strain*.3,s:.42*(1-.55*undo)};
+ placeHole(el,undo<1?P:null);
+ const hp=q('.bk-holeP'),hr=q('.bk-holeR');if(hp){hp.setAttribute('opacity',n3(1-undo));hr.setAttribute('opacity',n3(1-undo));}
+ // 울림이 만나는 순간: 양쪽 날개 끝에서 빛 덩이가 몸 한가운데로 모여듦
+ let meetK=0;
+ const mt=game?g.meetAt:null;
+ ['L','R'].forEach(side=>{const e=q('.bk-pls'+side);if(!e)return;
+  if(mt==null||hit!=null&&t>hit){e.setAttribute('opacity','0');return;}
+  const u=clamp(1-(mt-t)/1.5),tip=R.tips[side]||BODY;
+  if(t<mt-1.5||t>mt+.35){e.setAttribute('opacity','0');return;}
+  const at=uu=>{const e2=inOut(clamp(uu));return [lerp(tip[0],BODY[0],e2),lerp(tip[1],BODY[1],e2)-50*Math.sin(e2*Math.PI)];},c=at(u);
+  e.querySelectorAll('.p0').forEach(n=>{n.setAttribute('cx',n1(c[0]));n.setAttribute('cy',n1(c[1]));});
+  e.querySelectorAll('.pt').forEach(n=>{const k=+n.dataset.k,cc=at(u-k*.07);n.setAttribute('cx',n1(cc[0]));n.setAttribute('cy',n1(cc[1]));});
+  e.setAttribute('opacity',n3(t>mt?1-(t-mt)/.35:.6+.4*u));});
+ if(mt!=null&&hit==null)meetK=hump(seg(t,mt-.3,mt+.3));
+ paintApproach(el,'bk-apC',BODY,mt!=null&&hit==null&&!(shot&&t<(shot.reelAt||0)+(shot.reelDur||0))&&t>mt-1.1&&t<mt+.25?(mt-t)/1.1:null,.5);
+ placeRim(el,undo<1?P:null,BODY,hit!=null&&t>=hit?.9*hump(seg(since,0,1.6)):meetK*.8,true,.35*(1-undo)+.3*meetK);
+ paintMotes(el,[480,SEA-120],260,t,.9*hump(undo)+.5*meetK);
+ // 작살: 던짐 → (맞으면) 아무것도 없는 곳으로 빨려 들어감 / (빗나가면) 몸을 지나 물에 떨어짐 → 감아 들여 다시 장전
+ const L=HL(),own=!!(L&&L.owned()),tw=R.tw;
+ const thrown=!!(shot&&t>=shot.at),reelDone=!!(shot&&shot.reelAt!=null&&t>=shot.reelAt+shot.reelDur),out=thrown&&!reelDone&&!(hit!=null&&t>hit+.4);
+ const hand=own?L.handFor(L.launch(el,tw,{loaded:!(thrown&&!reelDone)}),30,-14):tw(thrown&&!reelDone?[38,-24]:[33,-31]);
+ const p0=[hand[0]+30,hand[1]-14],target=BODY,LIFT=40;
+ const hpn=q('.bw-harpoon'),rope=q('.bw-rope');let pos=null,ang=-30,show=0;
+ if(!thrown||reelDone){if(!own){pos=[hand[0]+20,hand[1]-14];show=1;}}
+ else if(t<shot.arrive){const u=(t-shot.at)/(shot.arrive-shot.at),e=u*(.85+.15*u);pos=[p0[0]+(target[0]-p0[0])*e,p0[1]+(target[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((target[1]-p0[1])-4*LIFT*(1-2*e),target[0]-p0[0])/RAD;show=1;}
+ else if(hit!=null){ang=Math.atan2(target[1]-p0[1]+4*LIFT,target[0]-p0[0])/RAD;pos=[target[0]+Math.cos(ang*RAD)*Math.min(60,since*160),target[1]+Math.sin(ang*RAD)*Math.min(60,since*160)];show=Math.max(0,1-since*2.5);}   // 아무것도 없는 곳으로 빨려 들어감
+ else{const s2=Math.min(t-shot.arrive,.6),a0=Math.atan2(target[1]-p0[1]+4*LIFT,target[0]-p0[0]);pos=[target[0]+Math.cos(a0)*s2*420,Math.min(SEA+10,target[1]+Math.sin(a0)*s2*420+420*s2*s2)];ang=a0/RAD+s2*90;show=1;
+  const home=own?L.slideHome(tw,L.ANGLE):{pos:[hand[0]+20,hand[1]-14],ang:-30};
+  const RP=L?L.reelPose(el,'bk5',t,shot.reelAt,shot.reelDur,{pos,ang},home):null;if(RP){pos=RP.pos;ang=RP.ang;show=RP.show;}}
+ hpn.setAttribute('opacity',n3(show));
+ if(pos)hpn.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
+ if(L)L.paintHit(el,{s:hit!=null&&t>=hit?since:-1,p:target,ang,tier:L.pierce?L.pierce().n:0,through:90});
+ if(thrown&&pos&&show&&(out||hit!=null&&t<hit+4)){const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&L?L.anchorLocal():[40,-9]);
+  rope.setAttribute('d','M'+n1(an[0])+','+n1(an[1])+' Q'+n1((an[0]+tail[0])/2)+','+n1((an[1]+tail[1])/2+(t<shot.arrive?34:8))+' '+n1(tail[0])+','+n1(tail[1]));rope.setAttribute('opacity',n3(.85*(hit!=null?1-seg(t,hit+2.6,hit+3.6):1)));}
+ else rope.setAttribute('opacity','0');
+ return R;
+}
 const S4v={title:'접지 못한 날개',dur:T5.dur,
  caps:[[0,'두 굽쇠가 같은 소리로 웁니다. 날개가 펼쳐진 채 멈춰 있습니다.'],[2.2,'접지 못한 날개 사이, 별이 지워진 곳이 그것의 몸입니다.'],[4.4,'작살이 아무것도 없는 곳으로 날아갑니다.'],[6.4,'어둠이 날개 끝에서부터 풀려 흩어집니다. 별이 돌아옵니다.'],[9.4,'그것은 펼친 날개 그대로 가라앉았습니다.']],
- build(){
-  return forkBuild()+'<path class="bw-rope" fill="none" stroke="#8a9697" stroke-opacity=".75" stroke-width="1.5" opacity="0"/>'+
-   '<g class="bw-harpoon" opacity="0">'+HARPOON+'</g>'+rimMarkup()+(HL()?HL().hitMarkup():'');
- },
+ build:strikeBuild,
  paint(el,t,tr){
-  const {q}=cacheQ(el);
-  const g={sideBuoy:{L:1,R:6},m:{L:-1,R:-1},st:{L:{pinned:true,ringAt:-1},R:{pinned:true,ringAt:-1}}};
-  const hit=T5.throwAt+T5.fly,since=t-hit,undo=seg(t,6.2,9.2);
-  const R=forkScene(el,t,g,{sink:8.6,thread:1-seg(t,8.2,9.4),noRing:true});
-  // 날개 사이의 '없음': 별을 지우는 몸 — 맞은 뒤 날개 끝에서부터 풀림
-  const P={x:480,y:SEA-70+60*undo,rot:0,s:.42*(1-.55*undo)};
-  placeHole(el,undo<1?P:null);
-  const hp=q('.bk-holeP'),hr=q('.bk-holeR');if(hp){hp.setAttribute('opacity',n3(1-undo));hr.setAttribute('opacity',n3(1-undo));}
-  placeRim(el,undo<1?P:null,[480,SEA-150],t>=hit?.9*hump(seg(since,0,1.6)):0,true,.35*(1-undo));
-  paintMotes(el,[480,SEA-120],260,t,.9*hump(undo));
-  // 작살: 특수 작살이면 발사대에서, 없으면 손으로
-  const L=HL(),own=!!(L&&L.owned()),tw=R.tw,thrown=t>=T5.throwAt;
-  const hand=own?L.handFor(L.launch(el,tw,{loaded:!thrown}),30,-14):tw(thrown?[38,-24]:[33,-31]);
-  const p0=[hand[0]+30,hand[1]-14],target=[480,SEA-130],LIFT=40;
-  const hpn=q('.bw-harpoon'),rope=q('.bw-rope');let pos=null,ang=-30,show=0;
-  if(!thrown){if(!own){pos=[hand[0]+20,hand[1]-14];show=1;}}
-  else if(t<hit){const u=(t-T5.throwAt)/T5.fly,e=u*(.85+.15*u);pos=[p0[0]+(target[0]-p0[0])*e,p0[1]+(target[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((target[1]-p0[1])-4*LIFT*(1-2*e),target[0]-p0[0])/RAD;show=1;}
-  else{ang=Math.atan2(target[1]-p0[1]+4*LIFT,target[0]-p0[0])/RAD;pos=[target[0]+Math.cos(ang*RAD)*Math.min(60,since*160),target[1]+Math.sin(ang*RAD)*Math.min(60,since*160)];show=Math.max(0,1-since*2.5);}   // 아무것도 없는 곳으로 빨려 들어가 사라짐
-  hpn.setAttribute('opacity',n3(show));
-  if(pos)hpn.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
-  if(L)L.paintHit(el,{s:t>=hit?since:-1,p:target,ang,tier:L.pierce?L.pierce().n:0,through:90});
-  if(thrown&&pos){const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&L?L.anchorLocal():[40,-9]);
-   rope.setAttribute('d','M'+n1(an[0])+','+n1(an[1])+' Q'+n1((an[0]+tail[0])/2)+','+n1((an[1]+tail[1])/2+(t<hit?34:8))+' '+n1(tail[0])+','+n1(tail[1]));rope.setAttribute('opacity',n3(.85*(1-seg(t,7,8))));}
-  else rope.setAttribute('opacity','0');
+  const sb=(typeof state!=='undefined'&&state&&state.blackWings024)||null;
+  strikePaint(el,t,tr,sb?{sideBuoy:sb,shot:{at:T5.throwAt,arrive:T5.throwAt+T5.fly,hit:true},meetAt:null}:null);
   caption(el,S4v.caps,t);
   veil(el,tr<.6?1-tr/.6:0);
  }};
-
-const GBUILD={1:lureBuild,2:watchBuild,3:forkBuild};
-const GAMEPAINT={1:lureGame,2:watchGame,3:forkGame};
-const GAMEMODE={1:'lure',2:'watch',3:'fork'};
+function strikeGame(el,t,tr,g){
+ strikePaint(el,t,tr,g);
+ const u=hud(el);verdictOf(u,g,t,1.2);
+ const busyShot=g.shot&&t<(g.shot.reelAt||0)+(g.shot.reelDur||0);
+ now2(u,g.done||busyShot?'':'두 울림이 몸 한가운데에서 만나는 순간 던지십시오',g.meetAt!=null&&Math.abs(g.meetAt-t)<(g.win||.22));
+ count(u,'');
+ caption(el,[[0,CAP24[4]]],0);
+ veil(el,t<.5?1-t/.5:0);
+}
+const GBUILD={1:lureBuild,2:watchBuild,3:forkBuild,4:strikeBuild};
+const GAMEPAINT={1:lureGame,2:watchGame,3:forkGame,4:strikeGame};
+const GAMEMODE={1:'lure',2:'watch',3:'fork',4:'strike'};
 const SCENES=[S0,S1v,S2v,S3v,S4v];
 function html(stage,opts){
  const i=Math.max(0,Math.min(4,Math.floor(+stage||0))),S=SCENES[i],game=!!(opts&&opts.game&&GBUILD[i]);
@@ -986,5 +1025,5 @@ function frame(now){
 requestAnimationFrame(frame);
 // 미니게임이 쓰는 기하
 API.geo={spotAt,cineHit:T4.throwAt+T4.fly,cineOpen:T4.close};
-API.v24={BUOYS,DECOY_AT,LURE_BOAT,PS,whaleAt,tipAt,decoyPos,wingBase,wingTipOf,forkTop};
+API.v24={T5,BUOYS,DECOY_AT,LURE_BOAT,PS,whaleAt,tipAt,decoyPos,wingBase,wingTipOf,forkTop};
 })();

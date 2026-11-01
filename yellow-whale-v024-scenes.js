@@ -208,24 +208,29 @@ function harpoonMarkup(){return '<path class="bw-rope" fill="none" stroke="#8a7a
 /* sh={at,to,bounce,hit,arrive} */
 function paintHarpoon(el,t,tw,sh){
  const {q}=cacheQ(el),L=HL(),own=!!(L&&L.owned());
- const thrown=!!(sh&&t>=sh.at);
- const hand=own?L.handFor(L.launch(el,tw,{loaded:!thrown||t>sh.at+1.6}),30,-14):tw(thrown&&t<sh.at+1.2?[38,-24]:[33,-31]);
+ const thrown=!!(sh&&t>=sh.at),reelAt=sh?sh.reelAt:null,reelDur=sh&&sh.reelDur||1;
+ const reelDone=!!(thrown&&reelAt!=null&&t>=reelAt+reelDur);
+ const out=thrown&&!reelDone;
+ const hand=own?L.handFor(L.launch(el,tw,{loaded:!out}),30,-14):tw(out?[38,-24]:[33,-31]);
  const hp=q('.bw-harpoon'),rope=q('.bw-rope');
  let pos=null,ang=-30,show=0;
- if(!thrown||t>sh.at+1.6){if(!own){pos=[hand[0]+20,hand[1]-14];show=1;}}
+ if(!out){if(!own){pos=[hand[0]+20,hand[1]-14];show=1;}if(L)L.paintHit(el,{s:-1,p:[0,0],ang:0,tier:0,through:70});}
  else{
   const p0=[hand[0]+30,hand[1]-14],tg=sh.to,LIFT=50,arr=sh.arrive;
   if(t<arr){const u=(t-sh.at)/(arr-sh.at),e=u*(.85+.15*u);pos=[p0[0]+(tg[0]-p0[0])*e,p0[1]+(tg[1]-p0[1])*e-4*LIFT*e*(1-e)];ang=Math.atan2((tg[1]-p0[1])-4*LIFT*(1-2*e),tg[0]-p0[0])/RAD;show=1;}
   else{const s=t-arr,ea=Math.atan2((tg[1]-p0[1])+4*LIFT,tg[0]-p0[0]);
-   if(sh.hit){ang=ea/RAD;pos=[tg[0]+Math.cos(ea)*6,tg[1]+Math.sin(ea)*6];show=s<.5?1:Math.max(0,1-(s-.5)*2);}
-   else{const dir=ea+Math.PI*.8,s2=s;pos=[tg[0]+Math.cos(dir)*s2*360,tg[1]+Math.sin(dir)*s2*360+340*s2*s2];ang=dir/RAD+s2*520;show=pos[1]<SEA+40?1:0;}}
+   if(sh.hit){ang=ea/RAD;pos=[tg[0]+Math.cos(ea)*6,tg[1]+Math.sin(ea)*6];show=1;}
+   else{const dir=ea+Math.PI*.8,s2=Math.min(s,.42);pos=[tg[0]+Math.cos(dir)*s2*300,Math.min(SEA+10,tg[1]+Math.sin(dir)*s2*300+380*s2*s2)];ang=dir/RAD+s2*520;show=1;}}   // 튕겨 나가 물에 떨어짐
+  const home=own?L.slideHome(tw,L.ANGLE):{pos:[hand[0]+20,hand[1]-14],ang:-30};
+  const RP=L?L.reelPose(el,'yw',t,reelAt,reelDur,{pos,ang},home):null;
+  if(RP){pos=RP.pos;ang=RP.ang;show=RP.show;}
   if(L)L.paintHit(el,{s:sh.hit&&t>=arr?t-arr:-1,p:tg,ang,tier:L.pierce?L.pierce().n:0,through:70});
  }
  hp.setAttribute('opacity',n3(show));if(pos)hp.setAttribute('transform','translate('+n1(pos[0])+' '+n1(pos[1])+') rotate('+n1(ang)+')');
- if(thrown&&pos&&show&&t<=sh.at+1.6){const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&L?L.anchorLocal():[40,-9]);
-  rope.setAttribute('d','M'+n1(an[0])+','+n1(an[1])+' Q'+n1((an[0]+tail[0])/2)+','+n1((an[1]+tail[1])/2+30)+' '+n1(tail[0])+','+n1(tail[1]));rope.setAttribute('opacity','.85');}
+ if(out&&pos&&show){const ar=ang*RAD,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)],an=tw(own&&L?L.anchorLocal():[40,-9]);
+  const reeling=reelAt!=null&&t>=reelAt;
+  rope.setAttribute('d','M'+n1(an[0])+','+n1(an[1])+' Q'+n1((an[0]+tail[0])/2)+','+n1((an[1]+tail[1])/2+(reeling?4:t<sh.arrive?30:16))+' '+n1(tail[0])+','+n1(tail[1]));rope.setAttribute('opacity','.85');}
  else rope.setAttribute('opacity','0');
- if(!thrown&&L)L.paintHit(el,{s:-1,p:[0,0],ang:0,tier:0,through:70});
 }
 /* ---------- 배 ---------- */
 function bob(t){return {y:Math.sin(t*1.4)*2+Math.sin(t*.6)*1.4,r:Math.sin(t*1.1+.6)*2.6};}
@@ -265,7 +270,7 @@ function ventScene(el,t,g){
  paintHarpoon(el,t,tw,g.shot);
  // 다음에 쏠 순간을 알려 주는 고리: 덮개가 떨릴 때부터 좁혀 와 열리는 순간 닿음
  const ring=cacheQ(el).q('.yw-ring'),c=g.cyc;
- if(ring){if(c&&!g.shot&&t>c.openAt-.9&&t<c.openEnd&&!(g.broken&&g.broken[c.i])){const v=VENTS[c.i],kk=Math.max(0,(c.openAt-t)/.9),p=coreAt(c.i,1);
+ if(ring){if(c&&!(g.shot&&g.shot.at>=c.start)&&t>c.openAt-.9&&t<c.openEnd&&!(g.broken&&g.broken[c.i])){const v=VENTS[c.i],kk=Math.max(0,(c.openAt-t)/.9),p=coreAt(c.i,1);
    ring.setAttribute('cx',n1(p[0]));ring.setAttribute('cy',n1(p[1]));ring.setAttribute('r',n1((22+150*kk)*v.s));ring.setAttribute('opacity',n3(t<c.openAt?.9:.5+.4*Math.sin(t*20)));}
   else ring.setAttribute('opacity','0');}
  return tw;
@@ -344,7 +349,7 @@ function hookGame(el,t,tr,g){
 function demoVent(t,i,stageNo,broken){
  const start=1,openAt=start+2.1,len=[1.1,.8,.55][stageNo-1]||1;
  const g={cyc:{i,start,openAt,openEnd:openAt+len,closeEnd:openAt+len+.35,end:openAt+len+1.6},broken:broken.slice(),brokeAt:broken.map(b=>b?-9:null),suck:22+stageNo*12,stageNo};
- if(t>openAt+.2){g.shot={at:openAt+.15,i,to:coreAt(i,1),arrive:openAt+.6,hit:true};}
+ if(t>openAt+.2){g.shot={at:openAt+.15,i,to:coreAt(i,1),arrive:openAt+.6,hit:true,reelAt:openAt+1.5,reelDur:1.05};}
  if(t>openAt+.6){g.broken[i]=true;g.brokeAt[i]=openAt+.6;g.cyc=null;}
  return g;
 }

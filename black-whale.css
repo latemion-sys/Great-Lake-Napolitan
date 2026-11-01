@@ -36,3 +36,4 @@
 .bk3-scene .bkg-forks button{pointer-events:auto;min-width:96px;padding:10px 14px;border-radius:14px;background:#04080ecc;border:1.5px solid #cfe6ffaa;color:#eef7ff;font-size:13px;letter-spacing:.04em;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 0 14px #9fd0ff33}
 .bk3-scene .bkg-forks button:active{background:#cfe6ff;color:#04080e}
 @media(max-width:620px){.bk3-scene .bkg-forks{bottom:44px;padding:0 6px}.bk3-scene .bkg-forks button{min-width:0;padding:8px 10px;font-size:11px}.bk3-scene[data-stage="3"] .bkg-hint{bottom:auto!important;top:30px}}
+.bk3-scene[data-stage="4"].bkg-on{cursor:crosshair}

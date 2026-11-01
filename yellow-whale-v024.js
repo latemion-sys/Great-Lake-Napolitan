@@ -57,17 +57,17 @@ function newCycle(delay){
  const left=[0,1,2].filter(i=>!G.broken[i]);if(!left.length)return;
  let pool=left.filter(i=>i!==G.last);if(!pool.length)pool=left;
  const i=pool[Math.floor(Math.random()*pool.length)],start=now()+delay,openAt=start+1.3+.7+rnd(0,.7),len=OPEN[left.length]*G.ease;
- G.cyc={i,start,openAt,openEnd:openAt+len,closeEnd:openAt+len+.35,end:openAt+len+1.7,shotAny:false};G.last=i;G.shot=null;
+ G.cyc={i,start,openAt,openEnd:openAt+len,closeEnd:openAt+len+.35,end:openAt+len+1.7,shotAny:false};G.last=i;if(!(G.shot&&now()<G.shot.reelAt+G.shot.reelDur))G.shot=null;
 }
 function addSuck(v){G.suck=Math.max(0,Math.min(100,G.suck+v));state.yellowSuck024=Math.round(G.suck);}
 function ventFire(i){
  if(G.mode!=='vent'||G.done||G.locked)return;
- const t=now(),c=G.cyc;if(!c||G.shot&&t<G.shot.at+1.3)return;
+ const t=now(),c=G.cyc;if(!c||G.shot&&t<G.shot.reelAt+G.shot.reelDur)return;
  if(i!=null&&i!==c.i)return;
  if(t<c.start+.8||t>c.closeEnd)return;               // 아직 솟지 않았거나 이미 내려감
  const g=GEO(),to=g.coreAt(c.i,1),open=t>=c.openAt&&t<c.openEnd;
  c.shotAny=true;
- G.shot={at:t,i:c.i,to,arrive:t+.45,hit:open};
+ G.shot={at:t,i:c.i,to,arrive:t+.45,hit:open,reelAt:t+(open?1.35:.95),reelDur:open?1.05:.8};   // 문구가 뜬 뒤 감아 들여 다시 장전
  if(open){
   G.locked=true;
   setTimeout(()=>{if(G.mode!=='vent'||G.done)return;
@@ -76,7 +76,7 @@ function ventFire(i){
    const left=remaining();
    setText(left?'황금빛 중심부를 꿰뚫었습니다 · 열수공이 부서집니다. 남은 열수공 '+left+'개':'마지막 열수공이 부서졌습니다 · 물길이 느려집니다.');
    log('노란 고래의 열수공 하나를 부쉈습니다. (남은 열수공 '+left+')');
-   finish(2.6);},450);
+   finish(2.7);},450);
   return;
  }
  setTimeout(()=>{if(G.mode!=='vent'||G.done)return;

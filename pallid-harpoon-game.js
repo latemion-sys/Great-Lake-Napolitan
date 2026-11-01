@@ -31,7 +31,7 @@ function newAttempt(won){
  const d=difficulty(won);
  GAME.half=d.half;GAME.period=d.period;
  GAME.zone=610+Math.random()*230;              // 상처 위치는 매 시도마다 조금씩 다름
- GAME.throwAt=null;GAME.hit=null;GAME.aimLocal=null;
+ GAME.throwAt=null;GAME.hit=null;GAME.aimLocal=null;GAME.reelAt=null;
 }
 function syncGame(){
  const on=inMinigame();
@@ -67,6 +67,8 @@ function doThrow(){
  const r=GAME.throwNow();
  if(r==null)return;
  busy=true;
+ const rg=window.CalamityMang?CalamityMang.rings():0;
+ GAME.reelAt=GAME.throwAt+.42+(r?(rg>=5?1.6:rg>=3?1.2:.85):.85);GAME.reelDur=1.0;   // 문구가 뜬 뒤 감아 들여 다시 장전
  const verdict=r?'ok':(window.MinigameStrikes?MinigameStrikes.strike(GAME):'retry');
  lastText=r?'명중 · 작살이 아물지 않은 상처에 깊이 박혔습니다.':verdict==='dead'?'빗나감 · 두 번째 실패입니다. 창백한 고래의 입이 배를 통째로 덮칩니다.':'빗나감 · 작살이 단단한 외피에 튕겨 물속으로 떨어졌습니다. 남은 기회 1번.';
  if(window.MinigameStrikes)MinigameStrikes.refresh(GAME);
@@ -83,7 +85,7 @@ function doThrow(){
   const b=state.battle;
   newAttempt(b?(r?b.won+1:b.won):0);  // 다음 조준: 맞혔으면 한 단계 어렵게
   resolveCoin(r);                     // 기존 판정(피해·백화·진행)을 그대로 사용
- },r?1500+(window.CalamityMang&&CalamityMang.rings()>=3?(CalamityMang.rings()>=5?1100:700):0):1750);   // 망을 감은 명중은 이펙트가 끝까지 보이도록 조금 더 기다림
+ },(GAME.reelAt+GAME.reelDur-GAME.throwAt)*1000+150);   // 망을 감은 명중은 이펙트가 끝까지 보이도록 조금 더 기다림
 }
 document.addEventListener('click',e=>{
  if(e.target.closest('#pallidThrowBtn')||(GAME.active&&e.target.closest('.w3-harpoon-scene')))doThrow();

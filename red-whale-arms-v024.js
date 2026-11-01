@@ -46,7 +46,7 @@ function syncGame(){
 }
 function startArm(ix,delay){
  const t=now()+delay,ph=+G.mode.slice(1);
- Object.assign(G,{arm:ix,armStart:t,killAt:null,flash:null,failAt:null,hintNow:false,introAt:null,
+ Object.assign(G,{arm:ix,armStart:t,killAt:null,reelAt:null,reelDur:1.05,flash:null,failAt:null,hintNow:false,introAt:null,
   gauge:null,deadline:null,tension:0,zone:null,joltAt:null,pulling:false,dirNow:null,rounds:0,stabAt:null,suck:null,crack:null,phaseState:'intro'});
  if(ph===1||ph===2){G.introAt=t+.9;G.hint='작살이 팔을 꿰뚫습니다';G.cap=ph===1?'작살이 박힌 팔이 밧줄을 끌어당깁니다. 연타해서 끊어 내십시오.':'작살이 박힌 팔과 힘겨루기를 합니다. 알맞은 힘에서 손을 떼면 팔이 찢어집니다.';}
  if(ph===3){G.hint='작살을 겨눕니다 · 팔이 피하려 합니다';G.cap='작살을 맞추려는 순간 팔이 피합니다. 팔이 움직이는 반대쪽으로 겨누십시오.';}
@@ -63,16 +63,17 @@ function armsDown(){const b=state.battle;return b&&b.type==='whale'&&b.index===R
 function killArm(t,msg){
  if(G.killAt!=null)return;
  G.killAt=t;G.phaseState='kill';flash('끊어냄',true);setText(msg);G.hint='';G.hintNow=false;
- if(G.arm===0){G.locked=true;setTimeout(()=>{G.locked=false;if(G.mode&&!G.done)startArm(1,.2);},1300);}
+ G.reelAt=t+.6;   // 문구가 뜬 뒤 작살을 감아 들여 다시 장전
+ if(G.arm===0){G.locked=true;setTimeout(()=>{G.locked=false;if(G.mode&&!G.done)startArm(1,.2);},1900);}
  else{
   G.done='ok';busy=true;
-  G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isRedBattle()){G.mode=null;return;}G.mode=null;resolveCoin(true);},1600);
+  const ref=state.battle;G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isRedBattle()||state.battle!==ref){G.mode=null;return;}G.mode=null;resolveCoin(true);},2000);
  }
 }
 // 페이즈 실패: 가열도 +50, 100이면 배가 녹아 사망. 아니면 이 페이즈를 처음부터
 function failPhase(t,why){
  if(G.done||G.failing)return;
- G.failing=true;G.failAt=t;flash('실패',false);G.hint='';
+ G.failing=true;G.failAt=t;flash('실패',false);G.hint='';G.reelAt=t+.4;
  state.redHeat024=heat()+50;G.heat=heat();updateStatus();
  if(heat()>=100){
   if(window.__BLUE_NODEATH){state.redHeat024=0;log('[테스트] 사망 대신 가열도를 되돌립니다.');}

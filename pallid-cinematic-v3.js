@@ -266,7 +266,8 @@ function paint(el,t,hold){
  const bx=BOAT_AT[0]-throwK*3;
  q('.w3-boat').setAttribute('transform','translate('+bx.toFixed(2)+' '+by.toFixed(2)+') rotate('+broll.toFixed(2)+') scale('+BOAT_S+')');
  // 겨누기: 팔을 뒤로 젖혔다가 던짐 (미니게임에서는 겨눈 채 숨 고르기)
- const thrown=t>thrownAt;
+ const reelDone=hold&&GAME.reelAt!=null&&t>=GAME.reelAt+(GAME.reelDur||1);
+ const thrown=t>thrownAt&&!reelDone;
  const aim=hold?clamp(t/0.6)*(0.92+0.08*Math.sin(t*2.2)):clamp((t-T.aim[0])/(T.aim[1]-T.aim[0]));
  const HL=window.HarpoonLauncher,own=!!(HL&&HL.owned());const armEnd=own?HL.ARM:thrown?[38,-24]:[37-aim*12,-30-aim*3];
  q('.w3-arm').setAttribute('d','M29,-23 L'+armEnd[0].toFixed(1)+','+armEnd[1].toFixed(1));
@@ -310,9 +311,16 @@ function paint(el,t,hold){
   splashAt={x:target[0]-70*land,s:s2-land};
   show=s2<land?1:0;
  }
+ // 문구가 뜬 뒤: 박힌(빠진) 작살을 밧줄로 감아 들여 다시 장전
+ let reeling=false;
+ if(hold&&thrown&&HL&&GAME.reelAt!=null){
+  const home=own?HL.slideHome(toWorld,HL.ANGLE):{pos:[hand[0]+20,hand[1]-14],ang:-30};
+  const RP=HL.reelPose(el,'pallid',t,GAME.reelAt,GAME.reelDur||1,{pos:[pos[0],Math.min(pos[1],SEA+12)],ang},home);
+  if(RP){pos=RP.pos;ang=RP.ang;show=RP.show;reeling=true;splashAt=null;HL.bury(hp,null);}
+ }
  hp.style.opacity=String(show);
- q('.w3-tip').style.opacity=hold&&isHit&&since>0&&!PC.pass?'0':'1';
- if(HL){if(!(isHit&&thrown&&t>=arrive))HL.bury(hp,null);HL.paintHit(el,{s:isHit&&t>=arrive?since:-1,p:target,ang:hitAng==null?0:hitAng,tier:PC.n,through:110});}   // 꽂힌 작살촉은 살 속에 숨김
+ q('.w3-tip').style.opacity=hold&&isHit&&since>0&&!PC.pass&&!reeling?'0':'1';
+ if(HL){if(!(isHit&&thrown&&t>=arrive)||reeling)HL.bury(hp,null);HL.paintHit(el,{s:isHit&&t>=arrive?since:-1,p:target,ang:hitAng==null?0:hitAng,tier:PC.n,through:110});}   // 꽂힌 작살촉은 살 속에 숨김
  hp.setAttribute('transform','translate('+pos[0].toFixed(1)+' '+pos[1].toFixed(1)+') rotate('+ang.toFixed(2)+')');
  // 밧줄: 작살 꼬리 ↔ 배. 날아가는 동안 처지고, 꽂힌 뒤 팽팽해짐
  const ar=ang*Math.PI/180,tail=[pos[0]-104*Math.cos(ar),pos[1]-104*Math.sin(ar)];
@@ -324,7 +332,7 @@ function paint(el,t,hold){
   tr.style.opacity=(t<arrive?0.45:0.45*(1-(t-arrive)/0.35)).toFixed(3);
  }else tr.style.opacity='0';
  const anchor=toWorld(own?HL.anchorLocal():[40,-9]);
- const slack=!thrown?14:t<arrive?40:isHit?Math.max(3,26*Math.exp(-since*2.5))+Math.sin(t*3)*2:40+since*60;
+ const slack=!thrown?14:reeling?4:t<arrive?40:isHit?Math.max(3,26*Math.exp(-since*2.5))+Math.sin(t*3)*2:40+since*60;
  const ropeEnd=show?tail:[splashAt?splashAt.x:tail[0],SEA+2];
  const mid=[(ropeEnd[0]+anchor[0])/2,(ropeEnd[1]+anchor[1])/2+slack];
  rope.setAttribute('d','M'+anchor[0].toFixed(1)+','+anchor[1].toFixed(1)+' Q'+mid[0].toFixed(1)+','+mid[1].toFixed(1)+' '+ropeEnd[0].toFixed(1)+','+ropeEnd[1].toFixed(1));
