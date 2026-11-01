@@ -234,7 +234,7 @@ const S0={title:'별이 꺼지는 수평선',loop:10,
  paint(el,t,tr){
   ambient(el,t,0);twinkle(el,t);
   const u=seg(t,1.0,8.8),near=inOut(clamp(u*1.6));
-  const P={x:lerp(-760,2100,u),y:SEA+90+180*(1-near)-300*Math.sin(Math.PI*u),rot:-24+40*u,s:lerp(.45,1.0,near)};
+  const P={x:lerp(-760,2100,u),y:SEA+90+180*(1-near)-300*Math.sin(Math.PI*u),rot:-24+40*u,s:lerp(.55,1.2,near)};
   const on=u>0&&u<1;
   placeHole(el,on?P:null);
   placeRim(el,on?P:null,MOON,.9*hump(seg(t,3.4,6.4)),false,.5*hump(u));
@@ -664,7 +664,7 @@ function decoyPos(D,t){
 }
 /* 날개 자리: 부표 i 위에서 솟는 날개(왼쪽 = 뒤집지 않음, 끝이 안쪽으로 말림) */
 function wingBase(i,side,rise,fold){
- const b=BUOYS[i],sc=PS(b[1]),ws=.4*sc,sg=side==='L'?1:-1,f=fold||0;
+ const b=BUOYS[i],sc=PS(b[1]),ws=.52*sc,sg=side==='L'?1:-1,f=fold||0;
  const x=b[0]-sg*128*ws+sg*170*sc*inOut(clamp(f*1.2)),y=b[1]+6+470*ws*(1-rise)+90*sc*inC(seg(f,.55,1));
  const rot=sg*(4+58*inOut(clamp(f)));
  return {x,y,rot,ws,flip:side==='R'};
@@ -769,7 +769,7 @@ function lureGame(el,t,tr,g){
  ambient(el,t,0);twinkle(el,t);placeHole(el,null);
  const wp=whaleAt(g.whale,t),patch=q('.bk-patch');
  if(wp&&wp.op>0){
-  patch.setAttribute('transform','translate('+n1(wp.x)+' '+n1(wp.y)+') scale('+n3(.3*wp.sc)+' '+n3(.1*wp.sc)+') rotate('+(wp.dir>0?90:-90)+')');
+  patch.setAttribute('transform','translate('+n1(wp.x)+' '+n1(wp.y)+') scale('+n3(.38*wp.sc)+' '+n3(.13*wp.sc)+') rotate('+(wp.dir>0?90:-90)+')');
   patch.setAttribute('opacity',n3(wp.op));
   const dive=g.whale.diveAt!=null?hump(seg(t,g.whale.diveAt,g.whale.diveAt+1.4)):0;
   paintWake(el,'bk-wkP',wp.x+wp.dir*105*wp.sc,wp.y,(wp.moving?.32:.12)*wp.op+.9*dive,t,wp.sc*.5,3);
@@ -779,7 +779,7 @@ function lureGame(el,t,tr,g){
  const sp=Wh&&Wh.spreadAt!=null&&dp?t-Wh.spreadAt:-1;
  if(sp>=0){
   const sc=dp.s/1.5,rise=outC(seg(sp,0,1.3)),curl=inOut(seg(sp,1.3,3));
-  const ws=.34*sc,BL={x:dp.x-200*sc+30*curl*sc,y:dp.y+8+470*ws*(1-rise),rot:2+12*curl,ws,flip:false},BR={x:dp.x+200*sc-30*curl*sc,y:BL.y,rot:-2-12*curl,ws,flip:true};
+  const ws=.44*sc,BL={x:dp.x-240*sc+30*curl*sc,y:dp.y+8+470*ws*(1-rise),rot:2+12*curl,ws,flip:false},BR={x:dp.x+240*sc-30*curl*sc,y:BL.y,rot:-2-12*curl,ws,flip:true};
   placeWing(el,'bk-wL',BL.x,BL.y,BL.rot,ws,false,{t,wet:rise});
   placeWing(el,'bk-wR',BR.x,BR.y,BR.rot,ws,true,{t:t+.3,wet:rise});
   const lan=[dp.x,dp.y-22*dp.s];litWing(el,'bk-wL','bkLitLw',BL,lan,rise*.9);litWing(el,'bk-wR','bkLitRw',BR,lan,rise*.9);
@@ -927,7 +927,7 @@ function strikePaint(el,t,tr,g){
  const R=forkScene(el,t,fg,{sink:hit!=null?hit+4.2:null,thread:hit!=null?1-seg(t,hit+3.8,hit+5):1,noRing:true});
  // 날개 사이의 '없음': 별을 지우는 몸 — 맞은 뒤 날개 끝에서부터 풀림
  const strain=hit==null?Math.sin(t*1.3)*6:0;
- const P={x:480+strain,y:SEA-70+60*undo,rot:strain*.3,s:.42*(1-.55*undo)};
+ const P={x:480+strain,y:SEA-60+60*undo,rot:strain*.3,s:.52*(1-.55*undo)};
  placeHole(el,undo<1?P:null);
  const hp=q('.bk-holeP'),hr=q('.bk-holeR');if(hp){hp.setAttribute('opacity',n3(1-undo));hr.setAttribute('opacity',n3(1-undo));}
  // 울림이 만나는 순간: 양쪽 날개 끝에서 빛 덩이가 몸 한가운데로 모여듦

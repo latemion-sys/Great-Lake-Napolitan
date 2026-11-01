@@ -145,9 +145,11 @@ function aimArm(o,target,k){
  o.a+=d*(k==null?1:k);return o;
 }
 /* 팔 자세: 땅속 뿌리에서 솟아(rise 0~1) 대상 쪽으로 뻗음 */
+const ARM_K=1.25;
 function armPose(base,rise,o){
  const up=inOut(rise);
- return Object.assign({x:base[0],y:base[1]+(1-up)*170,a:lerp(-90+(o.lean||0)*.3,o.a,up),L1:o.L1||150,e:lerp(10,o.e,up),L2:o.L2||140,wr:lerp(0,o.wr||0,up),w:o.w||42,grip:o.grip||0,spread:o.spread,side:o.side||1},o.extra||{});
+ const K=ARM_K;   // 재앙 고래: 팔을 더 길고 굵게
+ return Object.assign({x:base[0],y:base[1]+(1-up)*170*K,a:lerp(-90+(o.lean||0)*.3,o.a,up),L1:(o.L1||150)*K,e:lerp(10,o.e,up),L2:(o.L2||140)*K,wr:lerp(0,o.wr||0,up),w:(o.w||42)*K,grip:o.grip||0,spread:o.spread,side:o.side||1},o.extra||{});
 }
 
 /* =========================================================
