@@ -1,0 +1,41 @@
+/* 시작 화면 · 기존 대호수의 panel/inset/primary 색상 체계를 그대로 사용 */
+body.landing025-active .shell{max-width:1120px;min-height:100dvh;padding-top:24px}
+body.landing025-active .shell>header,
+body.landing025-active .shell>.layout>.side,
+body.landing025-active .shell>.layout>main>.tabs,
+body.landing025-active .shell>footer{display:none!important}
+body.landing025-active .shell>.layout{display:block}
+body.landing025-active .shell>.layout>main.panel{padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+body.landing025-active #prologueOverlay156{display:none!important}
+.landing025{color:var(--text);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif}
+.landing025 .landing-top025{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:radial-gradient(ellipse at 78% 100%,#24465c70,transparent 56%),linear-gradient(145deg,#1b2c3b,#101720 72%);padding:29px 34px 31px;box-shadow:0 7px 24px #0003;margin-bottom:16px}
+.landing025 .landing-top025:after{content:"";position:absolute;right:-38px;bottom:-90px;width:290px;height:200px;pointer-events:none;border:1px solid #7896b331;border-radius:50%;transform:rotate(-16deg);box-shadow:0 0 0 24px #537b9710,0 0 0 50px #537b9709,0 0 0 81px #537b9706}
+.landing025 .landing-kicker025{font-size:12px;color:var(--blue);font-weight:700;letter-spacing:.04em;margin:0 0 8px}
+.landing025 h1{position:relative;font-size:clamp(30px,5vw,45px);letter-spacing:-.06em;line-height:1.35;margin:2px 0 10px}
+.landing025 .landing-subtitle025{position:relative;color:var(--muted);font-size:14px;margin:0;max-width:620px}
+.landing025 .landing-grid025{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(285px,.8fr);gap:16px}
+.landing025 .landing-prologue025,.landing025 .landing-action025{border:1px solid var(--line);border-radius:17px;padding:26px 28px;background:#161b22;box-shadow:0 7px 24px #0003}
+.landing025 .landing-prologue025{border-top:3px solid #b79a6a}
+.landing025 .landing-sectionlabel025{font-size:12px;color:var(--gold);font-weight:700;letter-spacing:.06em}
+.landing025 h2{font-size:21px;margin:7px 0 20px;color:var(--text)}
+.landing025 .landing-prologue025 p{font-size:15px;color:#d5dee6;line-height:1.95;word-break:keep-all;overflow-wrap:anywhere;margin:0 0 15px}
+.landing025 .landing-prologue025 .landing-last025{border-left:3px solid #c4a477;background:#242b33;padding:14px 16px;margin:21px 0 0;border-radius:0 9px 9px 0;color:#f0e4d3;font-size:16px;line-height:1.8;font-weight:700}
+.landing025 .landing-action025{display:flex;flex-direction:column;gap:13px}
+.landing025 .landing-action025 h2{margin:3px 0 2px}
+.landing025 .landing-action025 .inset{margin:0;background:#202833;border:1px solid #343f4b}
+.landing025 .landing-action025 label{display:block;margin-bottom:8px;color:var(--muted);font-size:13px}
+.landing025 #captainNameInput{display:block;width:100%;background:#111a24;color:var(--text);border:1px solid #566879;border-radius:9px;padding:12px;font:inherit;font-size:14px}
+.landing025 #captainNameInput:focus-visible{outline:2px solid #9fc6ff;outline-offset:2px}
+.landing025 .landing-action025 .stack{margin-top:5px}
+.landing025 .landing-action025 .stack button.primary{font-weight:700;text-align:center;padding:13px 14px}
+.landing025 .landing-action025 .stack button:not(.primary){text-align:center}
+.landing025 .landing-action025 .landing-hint025{margin-top:auto;color:var(--muted);font-size:12px;line-height:1.7}
+.landing025 .landing-legal025{margin:15px 0 0;padding:12px 16px;border-radius:11px;border:1px solid #655231;background:#292318;color:#f0d7a9;font-size:12px;line-height:1.75}
+@media(max-width:800px){
+ body.landing025-active .shell{padding:12px}
+ .landing025 .landing-grid025{grid-template-columns:1fr}
+ .landing025 .landing-top025{padding:24px 21px}
+ .landing025 .landing-prologue025,.landing025 .landing-action025{padding:21px 20px}
+ .landing025 .landing-prologue025 p{font-size:14px;line-height:1.9}
+ .landing025 .landing-prologue025 .landing-last025{font-size:15px}
+}
