@@ -248,7 +248,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <link rel="stylesheet" href="./pallid-cinematic-v2.css?v=01513">
 <link rel="stylesheet" href="./pallid-v3.css?v=mg1029b">
 <link rel="stylesheet" href="./achievement-modal-v0161.css?v=0162">
-<link rel="stylesheet" href="./lake-boat-fx-v019.css?v=0194">
+<link rel="stylesheet" href="./lake-boat-fx-v019.css?v=refreshfx1201101">
 <link rel="stylesheet" href="./blue-whale-cinematic-v021.css?v=st1030">
 <link rel="stylesheet" href="./blue-whale-v3.css?v=cl1101a">
 <link rel="stylesheet" href="./red-whale-cinematic-v023.css?v=0230">
@@ -256,7 +256,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <link rel="stylesheet" href="./red-arms-v024.css?v=v0244">
 <link rel="stylesheet" href="./black-whale.css?v=v0244">
 <link rel="stylesheet" href="./yellow-whale-v024.css?v=v0242">
-<link rel="stylesheet" href="./mobile-v024.css?v=v0241">
+<link rel="stylesheet" href="./mobile-v024.css?v=refreshfx1201101">
 <link rel="stylesheet" href="./start-screen-v025.css?v=0253">
 </head>
 <body>
@@ -1678,7 +1678,7 @@ renderPlay=function(){
 // 구버전 진행 도중 변경된 사건 단계 이름을 무리하게 재사용하지 않는다.
 if(state.scene==='event'&&SCRIPTED_LAKE_MAP_015.has(state.current)){
  const old=state.lakeStory,def=SCRIPTED_LAKE_MAP_015.get(state.current);
- if(!old?.scripted||!def.nodes[old.step]||!Number.isInteger(old.turnLimit)||old.turnLimit<3||old.turnLimit>6){
+ if(!old?.scripted||(!old.scriptVersion022&&!def.nodes[old.step])||!Number.isInteger(old.turnLimit)||old.turnLimit<3||old.turnLimit>6){
   state.lakeStory=makeStory014(LAKE_BY_ID157.get(state.current));save();
  }
 }
