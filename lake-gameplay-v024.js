@@ -22,7 +22,7 @@
     step:0,turns:0,turnLimit:M+3+rng(4-M),vars:{M,'센 수':pick(['다섯','일곱','열']),
      '거짓 말':pick(['찾았다.','거기 있는 거 다 보여.','이제 나와도 돼.'])},
     plan:M===1?shuffle([1,2]):[1],visited37:0,order:shuffle([0,1,2,3])};
-   st.sceneText=String(d.scenes[0].text).replace(/\\{([^{}]+)\\}/g,(_,k)=>st.vars[k]??'');
+   st.sceneText=String(d.scenes[0].text).replace(/\{([^{}]+)\}/g,(_,k)=>st.vars[k]??'');
    return st;
   }
   if(!lake||lake.id!==8){
@@ -67,7 +67,7 @@
     st.step=st.visited37>=st.plan.length?3:st.plan[st.visited37];
    }else return mermaidDeath015(37);
    const scene=ids.get(37).scenes[st.step];
-   st.sceneText=String(scene.text).replace(/\\{([^{}]+)\\}/g,(_,k)=>st.vars[k]??'');
+   st.sceneText=String(scene.text).replace(/\{([^{}]+)\}/g,(_,k)=>st.vars[k]??'');
    st.order=shuffle(scene.choices.map((_,j)=>j));
    dispatchAchievement142('choice',{lake:37,stage:'scene'+prior,choice:0});
    if(state.normalMermaidDraw&&!state.mermaidResolved){
