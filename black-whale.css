@@ -21,7 +21,7 @@
 .bk3-scene .bkg-bar.hot i{background:linear-gradient(90deg,#ffcf7a,#fff2d0);box-shadow:0 0 10px #ffcf7a}
 .bk3-scene .bkg-time{top:56px;height:4px;border:1px solid #c8d6e844}
 .bk3-scene .bkg-time i{display:block;height:100%;width:100%;background:#e4edf5}
-.bk3-scene:not([data-stage="1"]) .bkg-bar,.bk3-scene:not([data-stage="1"]) .bkg-time{display:none}
+.bk3-scene .bkg-bar,.bk3-scene .bkg-time{display:none}
 .bk3-scene:not([data-lamp]) .bkg-pips{display:none}
 .bk3-scene[data-lamp] .bkg-count,.bk3-scene[data-lamp] .bkg-bar,.bk3-scene[data-lamp] .bkg-time,.bk3-scene[data-stage="4"] .bkg-count{display:none}
 .bkg-panel .bkg-big{font-size:17px;padding:14px 26px;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -29,3 +29,10 @@
 .bkg-panel .bkg-lamp i{display:inline-block;width:14px;height:20px;margin:0 2px;border-radius:7px 7px 4px 4px;background:#0a0e14;border:1px solid #5a6a80;vertical-align:middle}
 .bkg-panel .bkg-lamp i.on{background:radial-gradient(circle at 50% 60%,#fff2d0,#ffcf7a 55%,#b07a3a);border-color:#ffcf7a;box-shadow:0 0 8px #ffb84a}
 @media(max-width:620px){.bk3-scene .bkg-hint{font-size:10px;bottom:36px;white-space:normal;width:84%;text-align:center}.bk3-scene .bkg-verdict{font-size:22px}.bk3-scene .bkg-bar,.bk3-scene .bkg-time{width:58%}.bk3-scene .bkg-bar{top:30px}.bk3-scene .bkg-time{top:46px}}
+/* v0.2.4 · 유인 · 관측 · 고정 */
+.bk3-scene[data-stage="1"].bkg-on,.bk3-scene[data-stage="2"].bkg-on{cursor:crosshair}
+.bk3-scene .bkg-forks{position:absolute;left:0;right:0;bottom:62px;display:none;justify-content:space-between;padding:0 14px;z-index:7;pointer-events:none}
+.bk3-scene[data-stage="3"].bkg-on .bkg-forks{display:flex}
+.bk3-scene .bkg-forks button{pointer-events:auto;min-width:96px;padding:10px 14px;border-radius:14px;background:#04080ecc;border:1.5px solid #cfe6ffaa;color:#eef7ff;font-size:13px;letter-spacing:.04em;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 0 14px #9fd0ff33}
+.bk3-scene .bkg-forks button:active{background:#cfe6ff;color:#04080e}
+@media(max-width:620px){.bk3-scene .bkg-forks{bottom:44px;padding:0 6px}.bk3-scene .bkg-forks button{min-width:0;padding:8px 10px;font-size:11px}.bk3-scene[data-stage="3"] .bkg-hint{bottom:auto!important;top:30px}}
