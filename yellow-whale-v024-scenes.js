@@ -242,7 +242,11 @@ function boatY(el,t,k,sinkAt){
  const tw=boatPose(el,x,y,r,[37,-30]);lamp(el,t,tw,0);return tw;
 }
 /* ---------- HUD ---------- */
-function hudMarkup(){return '<div class="ywg-hud" aria-hidden="true"><span class="ywg-hint"></span><span class="ywg-verdict"></span><span class="ywg-count"></span><span class="ywg-suck"><i></i><b></b></span></div>';}
+function hudMarkup(){return '<div class="ywg-hud" aria-hidden="true"><span class="ywg-hint"></span><span class="ywg-verdict"></span><span class="ywg-count"></span><span class="ywg-suck"><i></i><b></b></span>'+
+ '<span class="yt-mash"><i></i><b></b><u></u></span>'+
+ '<span class="yt-fish"><span class="yf-track"><i class="yf-bar"></i><em class="yf-icon"><svg viewBox=\"-60 -12 70 24\"><path d=\"M-56,0 L-6,0\" stroke=\"#15191b\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><path d=\"M3,0 L-12,-6 L-8,0 L-12,6 Z\" fill=\"#eef2f0\"/><ellipse cx=\"-14\" rx=\"3\" ry=\"7\" fill=\"none\" stroke=\"#ffe2a0\" stroke-width=\"1.6\"/><ellipse cx=\"-22\" rx=\"3\" ry=\"7\" fill=\"none\" stroke=\"#ffe2a0\" stroke-width=\"1.6\"/></svg></em></span><span class="yf-prog"><i></i></span></span>'+
+ '<span class="yt-arr"></span></div>'+
+ '<span class="ywg-dpad"><button type="button" data-ydir="up">▲</button><button type="button" data-ydir="left">◀</button><button type="button" data-ydir="right">▶</button><button type="button" data-ydir="down">▼</button></span>';}
 function hud(el){const {q}=cacheQ(el);return {hint:q('.ywg-hint'),verdict:q('.ywg-verdict'),count:q('.ywg-count'),suck:q('.ywg-suck')};}
 function setTxt(n,t){if(n&&n.textContent!==t)n.textContent=t;}
 function setVerdict(n,t,cls){if(!n)return;setTxt(n,t);const c='ywg-verdict'+(t?' on '+(cls||''):'');if(n.className!==c)n.className=c;}
@@ -255,6 +259,8 @@ function ventBuild(){return '<g class="y-sky">'+skyMarkup()+'</g>'+seaMarkup()+d
 function ventState(g,i,t){
  const br=g.broken&&g.broken[i],o={broken:br,brokeAt:g.brokeAt?g.brokeAt[i]:null,active:false,rise:0,open:0,shiver:0};
  if(br){const s=o.brokeAt!=null?t-o.brokeAt:9;o.rise=lerp(1,.8,outC(seg(s,.6,2.4)))*(g.sinkAll!=null?1-inOut(seg(t,g.sinkAll,g.sinkAll+4)):1);return o;}
+ if(g.hold&&g.hold.i===i){o.active=true;o.rise=1;o.open=1;const k=g.tugKick!=null?Math.exp(-(t-g.tugKick)*6):0;o.shiver=.6+1.2*k;return o;}   // 작살이 박힌 채 버팀
+ if(g.sinkVent&&g.sinkVent.i===i&&t<g.sinkVent.at+1.4){o.rise=1-inOut(seg(t,g.sinkVent.at,g.sinkVent.at+1.2));o.open=1-seg(t,g.sinkVent.at,g.sinkVent.at+.3);return o;}
  const c=g.cyc;if(!c||c.i!==i){o.rise=0;return o;}
  o.active=true;o.riseAt=c.start;
  o.rise=t<c.start?0:t<c.start+1.3?outC((t-c.start)/1.3):t<c.closeEnd?1:1-inOut(seg(t,c.closeEnd,c.end));
@@ -282,12 +288,26 @@ function ventGame(el,t,tr,g){
  const u=hud(el),f=g.flash&&t-g.flash.at<1.1?g.flash:null;
  setVerdict(u.verdict,f?f.text:'',f&&f.good?'good':'bad');
  const c=g.cyc,open=c&&t>=c.openAt&&t<c.openEnd;
- setTxt(u.hint,g.done?'':!c||t<c.start+.6?'열수공이 섬처럼 솟기를 기다리십시오':open?'지금 · 솟은 열수공을 누르십시오':t<c.openAt?'솟은 열수공의 덮개가 떨립니다 · 아직입니다':'덮개가 닫힙니다');
+ setTxt(u.hint,g.done?'':g.tug&&!g.tug.done?({mash:'연타! 작살을 잡아당겨 열수공을 뜯어내십시오',fish:'누르고 있기 · 작살 표식을 달빛 막대 안에',arrows:'화살표를 차례대로 입력'})[g.tug.kind]:!c||t<c.start+.6?'열수공이 섬처럼 솟기를 기다리십시오':open?'지금 · 솟은 열수공을 누르십시오':t<c.openAt?'솟은 열수공의 덮개가 떨립니다 · 아직입니다':'덮개가 닫힙니다');
  if(u.hint)u.hint.classList.toggle('now',!!open&&!g.shot);
  setTxt(u.count,'부순 열수공 '+(g.broken?g.broken.filter(Boolean).length:0)+' / 3');
  hudSuck(u,(g.suck||0)/100);
+ paintTug(el,t,g);
  caption(el,[[0,CAP[g.stageNo||1]]],0);
  veil(el,t<.5?1-t/.5:0);
+}
+/* 뜯어내기 표시: 연타 게이지 · 달빛 막대(낚시) · 화살표 여덟 개 */
+const ARW={up:'▲',down:'▼',left:'◀',right:'▶'};
+function paintTug(el,t,g){
+ const {q}=cacheQ(el),T=g.tug,kind=T&&!T.done?T.kind:'';
+ if(el.dataset.tug!==kind)el.dataset.tug=kind;
+ if(kind==='mash'){const m=q('.yt-mash');m.querySelector('i').style.height=n1(T.v)+'%';m.querySelector('b').textContent='연타! '+(T.round+1)+' / 2';
+  m.querySelector('u').style.width=n1(100*clamp((T.deadline-t)/6.5))+'%';}
+ if(kind==='fish'){const f=q('.yt-fish');f.querySelector('.yf-bar').style.bottom=n1(T.bar*100)+'%';f.querySelector('.yf-icon').style.bottom=n1(T.icon*100)+'%';
+  f.querySelector('.yf-bar').classList.toggle('on',!!T.inBar);f.querySelector('.yf-prog i').style.height=n1(T.prog*100)+'%';f.querySelector('.yf-prog').classList.toggle('low',T.prog<.25);}
+ if(kind==='arrows'){const a=q('.yt-arr'),key=T.seq.join(',')+'|'+T.idx+'|'+T.cycle+'|'+(T.err&&t-T.err.at<.5?1:0);
+  if(a.dataset.k!==key){a.dataset.k=key;a.innerHTML='<b>'+(T.cycle+1)+' / 2 바퀴</b>'+T.seq.map((d,i)=>'<span class="'+(i<T.idx?'ok':i===T.idx?'now':'')+(T.err&&t-T.err.at<.5&&i===T.err.i?' bad':'')+'">'+ARW[d]+'</span>').join('');}
+  a.style.setProperty('--tl',n1(100*clamp((T.deadline-t)/9))+'%');}
 }
 /* ---------- 5단계 · 따개비 껍데기 건지기 ---------- */
 function shellBody(){

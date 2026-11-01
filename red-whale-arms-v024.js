@@ -68,7 +68,7 @@ function killArm(t,msg){
  if(G.arm===0){G.locked=true;setTimeout(()=>{G.locked=false;if(G.mode&&!G.done)startArm(1,.2);},1900);}
  else{
   G.done='ok';busy=true;
-  const ref=state.battle;G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isRedBattle()||state.battle!==ref){G.mode=null;return;}G.mode=null;resolveCoin(true);},2000);
+  const ref=state.battle;G.timer=setTimeout(()=>{G.timer=null;busy=false;if(state.battle!==ref)return;if(!isRedBattle()){G.mode=null;return;}G.mode=null;resolveCoin(true);},2000);
  }
 }
 // 페이즈 실패: 가열도 +50, 100이면 배가 녹아 사망. 아니면 이 페이즈를 처음부터

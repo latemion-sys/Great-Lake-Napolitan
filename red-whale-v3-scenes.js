@@ -822,7 +822,7 @@ function armsGame(el,t,tr,g){
  // ③ 방향
  const xd=q('.xd');
  if(ph===3&&g.dirNow&&A&&A.hand){const D=g.dirNow,vis=D.u>0?1:0;xd.setAttribute('opacity',String(vis));
-  const ang2=Math.atan2(D.vec[1],D.vec[0])/RAD;const hx=clamp((A.hand[0]+D.vec[0]*120)/W)*W,hy=Math.max(120,Math.min(SEA+60,A.hand[1]+D.vec[1]*100));xd.setAttribute('transform','translate('+n1(Math.max(110,Math.min(W-110,hx)))+' '+n1(hy)+') rotate('+n1(ang2)+') scale(1.75)');
+  const ang2=Math.atan2(D.vec[1],D.vec[0])/RAD;const hx=560+D.vec[0]*150*D.u,hy=215+D.vec[1]*90*D.u;xd.setAttribute('transform','translate('+n1(hx)+' '+n1(hy)+') rotate('+n1(ang2)+') scale(2.3)');   // 화면 한가운데 위쪽에 크게
   q('.xd-real').setAttribute('opacity',D.fake?'0':'.9');q('.xd-fake').setAttribute('opacity',D.fake?'.75':'0');}
  else xd.setAttribute('opacity','0');
  // ④ 빨판
@@ -842,7 +842,7 @@ function armsGame(el,t,tr,g){
  // ④ 균열: 배를 조이는 팔 위에 크게 갈라진 두 줄 — 빛나는 시작점에서 화살표를 따라 끝까지 끌기
  const C=g.crack;
  if(ph===4&&g.arm===1&&A&&A.spine&&A.spine.length){const n=A.spine.length,mk=(f0,f1,sg)=>{const out=[];for(let k=0;k<6;k++){const f=f0+(f1-f0)*k/5,ix=Math.min(n-2,Math.floor(n*f)),p=A.spine[ix],q2=A.spine[ix+1],dx=q2[0]-p[0],dy=q2[1]-p[1],l=Math.hypot(dx,dy)||1,w=((A.widths&&A.widths[ix])||50)*(.16+.08*(k%2))*(k%2?1:-1)*sg;out.push([p[0]-dy/l*w,p[1]+dx/l*w]);}return out;};
-  g.crackPts=[mk(.16,.46,1),mk(.5,.82,-1)];}
+  g.crackPts=[mk(.1,.36,1),mk(.4,.64,-1)];}
  const CR=g.crackPts||CRACKS3;
  qa('.xc').forEach(e=>{const i=+e.dataset.i,pts=CR[i];
   if(i>=2||!pts){e.setAttribute('opacity','0');return;}

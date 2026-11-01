@@ -55,7 +55,7 @@ function statusTags(){return tag('침식 '+(state.exposure||0)+' / 100')+' '+tag
 function updateStatus(){const s=document.getElementById('bkgStatus');if(s)s.innerHTML=statusTags();if(MS())MS().refresh(G);}
 function finish(after){
  G.done='ok';busy=true;const ref=state.battle;
- G.timer=setTimeout(()=>{G.timer=null;busy=false;if(!isBlackBattle()||state.battle!==ref){G.mode=null;return;}G.mode=null;resolveCoin(true);},after*1000);
+ G.timer=setTimeout(()=>{G.timer=null;busy=false;if(state.battle!==ref)return;if(!isBlackBattle()){G.mode=null;return;}G.mode=null;resolveCoin(true);},after*1000);
 }
 // 공통 실패: 피해 → 다시 / 기회를 다 쓰면 사망
 function strike(h,m,logMsg,deathText){
