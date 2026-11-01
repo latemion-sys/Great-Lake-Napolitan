@@ -4,7 +4,7 @@
  const all=window.GREAT_LAKE_SCRIPT_DATA_023,ids=new Set([9,14,49,50]);
  if(!Array.isArray(all)||all.length!==50)throw Error('호수 원문 50개 자료가 없습니다.');
  const source=new Map(all.map(x=>[x.id,x])),random=a=>a[rng(a.length)];
- const format=(x,vars)=>String(x||'').replace(/\{([^{}]+)\}/g,(_,k)=>String(vars[k]??''));
+ const format=(x,vars)=>String(x||'').replace(/\{([^{}]+)\}/g,(_,k)=>String(vars[k]??'{'+k+'}'));
  const correct=(text)=>({text,result:'→ 정답.',death:false,pass:false,targets:[]});
  const wrong=(text)=>({text,result:'→ 즉사.',death:true,pass:false,targets:[]});
  for(const id of [49,50]){
