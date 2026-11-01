@@ -2,7 +2,7 @@
 /* 이펙트 화면: 장면 전체(16:9)가 잘리지 않고 지금보다 크게 보이도록 */
 .pallid-cine-v2{height:auto!important;aspect-ratio:16/9;max-height:min(78vh,640px)}
 .pallid-cine-v2 svg{width:100%;height:100%}
-.lakefx{height:clamp(200px,34vw,320px)!important}
+.lakefx{height:clamp(240px,40.8vw,384px)!important}
 /* 미니게임 화면: 탭 · 끌기 중 스크롤 · 확대가 끼어들지 않게 */
 .pallid-cine-v2[data-game],.bwg-on,.rwg-on,.bkg-on,.rare-fx-024{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 button{touch-action:manipulation}
