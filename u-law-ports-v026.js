@@ -39,20 +39,22 @@
  const falseLore=window.GREAT_LAKE_FALSE_LORE_027;
  if(!falseLore||sources.some(d=>!Array.isArray(falseLore[d.id])||falseLore[d.id].length!==3))
   throw Error('호수별 가짜 전언 50종이 없습니다.');
+ // 두 술집의 참·거짓 문구는 실제 선원의 노래와 작살잡이의 입말로 별도 작성합니다.
+ // 호수 규칙의 원문 및 소문과 실제 통과 판정은 그대로 유지합니다.
+ const tavernSpeech=window.GREAT_LAKE_TAVERN_SPEECH_029;
+ if(!tavernSpeech||sources.some(d=>{
+  const entry=tavernSpeech[d.id];
+  return !entry||['lyricTrue','lyricFalse','lawTrue','lawFalse'].some(k=>typeof entry[k]!=='string'||!entry[k].trim());
+ }))throw Error('청새치·향유고래 항구선의 참거짓 구전 50종이 없습니다.');
  function sourceText(id,kind,truth){
   const original=byId.get(id);
   if(!original)return '';
-  if(!truth){
-   const index=kind==='lyric'?1:kind==='law'?2:0;
-   // 진짜 노랫말도 한 구절이므로, 가짜 역시 두 후보 중 한 구절만 들려줍니다.
-   if(kind==='lyric')return choose(falseLore[id][index].split('\n').filter(Boolean));
-   return falseLore[id][index];
+  if(kind==='lyric'||kind==='law'){
+   const key=kind+(truth?'True':'False');
+   return tavernSpeech[id][key];
   }
-  // 참 전언은 정확히 지정된 호수의 원문에서만 읽습니다.
-  if(kind==='law')return original.law;
-  const field=kind==='lyric'?'hints':'rumors';
-  const entries=original[field]&&original[field].length?original[field]:original.hints||[];
-  return choose(entries);
+  if(!truth)return falseLore[id][0];
+  return choose(original.rumors?.length?original.rumors:(original.hints||[]));
  }
  // 선택한 정보의 정답 확률: 무료 28%, 선원 술집 60%, 작살잡이 고급 술집 90%.
  const choices={
@@ -85,7 +87,7 @@
    const whales=WHALES.map((whale,i)=>({whale,i})).filter(x=>!huntedWhaleIndices143().includes(x.i));
    if(whales.length){
     const w=choose(whales);
-    stories[0].text+='\n작살잡이는 먼 물길에서 재앙의 고래를 목격했다고 덧붙였다. 그가 말한 이름은 ‘'+w.whale.name+'’이었다.';
+    stories[0].text+='\n그리고 말이야, 먼 물길에서 ‘'+w.whale.name+'’을 직접 봤어. 그건 웬만한 뱃사람이면 평생 잊지 못할 광경이지.';
     state.whaleHint024=w.i;
    }
   }
