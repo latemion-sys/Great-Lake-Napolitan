@@ -42,9 +42,9 @@ window.AchCount024={get:id=>counts[id]||0,bump(id){counts[id]=(counts[id]||0)+1;
 /* ---------- 고래 · 인어 조우 ---------- */
 const RARE={
  stem:{name:'천가닥 줄기 고래',power:190,need:2,loot:'꼬인 줄기 한 가닥',money:70,
-  desc:'수천 가닥의 줄기가 꼬이고 엉킨 채 수면 위로 솟아 있습니다. 끝이 보이지 않을 만큼 높습니다. 늘어진 가닥들이 실처럼 흔들리며 물과 뱃전을 더듬습니다. 그 아래 몸이 어떤 모양인지는 아무도 모릅니다.'},
+  desc:'굵기가 제각각인 촉수 수천 가닥이 서로 뒤얽힌 채 수면 위로 치솟아 있습니다. 멀리서 보면 호수 한가운데 뿌리를 내린 거대한 나무 같습니다. 그것은 움직이지 않습니다. 언제나 같은 자리에 서 있고, 다가오는 것을 기다릴 뿐입니다. 가까이 가면 가는 가닥들이 바람도 없이 흔들리며 뱃전을 더듬습니다.'},
  hole:{name:'구멍 손바닥 고래',power:210,need:2,loot:'구멍 난 손바닥 가죽',money:80,
-  desc:'구멍 고래의 일종입니다. 물 위로 드러난 것은 손가락이 네 개뿐인 거대한 손 모양의 기관 하나입니다. 그 손이 배를 움켜쥐면 손바닥에 뚫린 구멍에서 인어들이 기어 나옵니다. 본체는 끝내 물 위로 나오지 않지만, 물속 그림자를 보면 고래만 한 넙치에 거대한 손 두 개가 달린 모습입니다.'}
+  desc:'구멍 고래의 일종입니다. 물 위로 드러나는 것은 손가락이 네 개뿐인 거대한 손 모양의 기관 하나입니다. 그 손이 배를 움켜쥐면 손바닥에 뚫린 구멍마다 무언가가 꿈틀거리고, 이내 인어들이 기어 나옵니다. 본체는 끝내 물 위로 나오지 않습니다. 다만 물속의 그림자는 고래만 한 넙치에 거대한 손 두 개가 달린 모습입니다.'}
 };
 window.RareWhales024=RARE;
 function pickWhale(){
@@ -105,7 +105,8 @@ function rareScene(){
 function rareAvoid(){
  const R=state.rareWhale024;if(state.scene!=='rareWhale'||!R)return;
  state.rareWhale024=null;
- if(Math.random()<.18){takeDamage(10,6);log(RARE[R.id].name+'의 곁을 지나다 뱃전이 긁혔습니다.');if(!safeCheck())return;}
+ if(R.id!=='stem'&&Math.random()<.18){takeDamage(10,6);   // 천가닥 줄기 고래는 붙박이라 쫓아오지 않음
+ log(RARE[R.id].name+'의 곁을 지나다 뱃전이 긁혔습니다.');if(!safeCheck())return;}
  else log(RARE[R.id].name+'의 곁을 조용히 지나갔습니다.');
  state.scene='event';sync();
 }
