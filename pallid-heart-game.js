@@ -12,7 +12,13 @@ if(typeof pallidBattlePanel161!=='function'||typeof resolveCoin!=='function')ret
 const HG=window.PallidHeartGame=window.PallidHeartGame||{active:false};
 const KEYS=['ArrowLeft','ArrowUp','ArrowRight','ArrowDown'],GLYPH={ArrowLeft:'←',ArrowUp:'↑',ArrowRight:'→',ArrowDown:'↓'};
 const COUNT=10;
-let battleRef=null,timer=null,lastText='';
+let battleRef=null,timer=null,lastText='',deathTimer=null;
+function clearPending(){
+ // 종료된 시도의 사망 예약과 조준 예약을 새 시도로 가져오지 않습니다.
+ if(typeof timer==='number')clearTimeout(timer);
+ if(deathTimer!=null)clearTimeout(deathTimer);
+ timer=null;deathTimer=null;
+}
 
 function inMinigame(){return state.scene==='battle'&&state.battle&&state.battle.type==='pallidCore161';}
 function now(){return HG.startAt?(performance.now()-HG.startAt)/1000:0;}
@@ -21,11 +27,17 @@ function resetAim(){HG.throwAt=null;HG.hit=null;HG.aimPt=null;HG.aimStart=now();
 function syncGame(){
  const on=inMinigame();
  if(on&&(!HG.active||battleRef!==state.battle)){
+  clearPending();
+  // 전투 객체가 바뀌었다면 이전 실패의 입력 잠금을 해제합니다.
+  busy=false;
   Object.assign(HG,{active:true,startAt:0,phase:'keys',failAt:null,okAt:null,throwAt:null,hit:null,aimPt:null,
    radius:26,ampX:84,ampY:70,wx:2.3,wy:3.2,fails:0});
   battleRef=state.battle;lastText='';newSeq();
  }
- if(!on&&HG.active&&!timer){HG.active=false;battleRef=null;}
+ if(!on&&HG.active){
+  HG.active=false;battleRef=null;
+  clearPending();
+ }
 }
 
 /* ---- 전투 패널 ---- */
@@ -71,7 +83,7 @@ function pressKey(k){
  HG.failAt=t;
  const verdict=window.MinigameStrikes?MinigameStrikes.strike(HG):'retry';
  if(window.MinigameStrikes)MinigameStrikes.refresh(HG);
- if(verdict==='dead'){setText('어긋났습니다 · 두 번째 실패입니다. 거대한 심장이 배를 짓눌러 버립니다.');timer=1;MinigameStrikes.kill('심장의 박동에 짓눌려 배와 선원들이 창백한 고래 속에서 스러졌습니다.',1.9);return;}
+ if(verdict==='dead'){setText('어긋났습니다 · 두 번째 실패입니다. 거대한 심장이 배를 짓눌러 버립니다.');timer='fatal';deathTimer=MinigameStrikes.kill('심장의 박동에 짓눌려 배와 선원들이 창백한 고래 속에서 스러졌습니다.',1.9);return;}
  setText('어긋났습니다 · 심장의 박동이 손을 떨게 합니다. 처음부터 다시 입력하십시오. 남은 기회 1번.');
  takeDamage(0,4);addPallor155(5);
  log('심장의 박동에 작살잡이의 손이 떨렸습니다.');
@@ -89,7 +101,7 @@ function doThrow(){
  const verdict=hit?'ok':(window.MinigameStrikes?MinigameStrikes.strike(HG):'retry');
  if(window.MinigameStrikes)MinigameStrikes.refresh(HG);
  setText(hit?'명중 · 작살이 심장 속의 심장을 꿰뚫었습니다.':verdict==='dead'?'빗나감 · 두 번째 실패입니다. 거대한 심장이 배를 짓눌러 버립니다.':'빗나감 · 작살이 심장벽에 튕겨 나갔습니다. 남은 기회 1번.');
- if(verdict==='dead'){const bt=document.getElementById('hgThrowBtn');if(bt)bt.disabled=true;timer=1;busy=false;MinigameStrikes.kill('작살이 빗나간 사이, 심장의 박동에 배와 선원들이 짓눌렸습니다.',2.0);return;}
+ if(verdict==='dead'){const bt=document.getElementById('hgThrowBtn');if(bt)bt.disabled=true;timer='fatal';busy=false;deathTimer=MinigameStrikes.kill('작살이 빗나간 사이, 심장의 박동에 배와 선원들이 짓눌렸습니다.',2.0);return;}
  const btn=document.getElementById('hgThrowBtn');if(btn)btn.disabled=true;
  timer=setTimeout(()=>{
   timer=null;busy=false;
