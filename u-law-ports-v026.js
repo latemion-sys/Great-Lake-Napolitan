@@ -66,7 +66,7 @@
    const whales=WHALES.map((whale,i)=>({whale,i})).filter(x=>!huntedWhaleIndices143().includes(x.i));
    if(whales.length){
     const w=choose(whales);
-    stories[0].text+='\n작살잡이는 '+w.whale.name+'을(를) 먼 물길에서 보았다는 소문을 덧붙였다.';
+    stories[0].text+='\n작살잡이는 먼 물길에서 재앙의 고래를 목격했다고 덧붙였다. 그가 말한 이름은 ‘'+w.whale.name+'’이었다.';
     state.whaleHint024=w.i;
    }
   }
@@ -146,7 +146,7 @@
   const replacement='<p>U사 대호수의 법은 정박 항구에서 세 종류의 전언으로 들을 수 있습니다. 흘려들은 소문은 무료로 3개, 청새치 항구선의 노랫말은 10만 안에 2개, 향유고래 항구선의 구전 법은 20만 안에 1개를 들을 수 있습니다. 값이 비쌀수록 법이 사실일 가능성이 높으며, 참과 거짓을 구별해 주지는 않습니다. 고급 술집에서는 재앙 고래의 목격담을 아주 드물게 들을 수 있습니다. 구체적인 호수 규칙은 도움말에 공개하지 않습니다.</p>';
   return html.slice(0,at)+replacement+html.slice(end+4);
  };
- if(state.scene==='port'&&!state.dockedPortName026)portName();
+ if(['port','prep'].includes(state.scene)&&!state.dockedPortName026){portName();save();}
  render();
  window.GREAT_LAKE_PORT_LAWS_026={
   counts:{free:3,marlin:2,spermWhale:1},
