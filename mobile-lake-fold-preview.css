@@ -1,0 +1,40 @@
+/* 모바일 호수 선택지 화면 미리보기 전용: 기본 사이트에는 포함하지 않음 */
+.mobile-fold-preview > summary{display:none}
+.mobile-fold-preview > .mobile-fold-inner{display:block}
+@media(max-width:780px){
+ body.mobile-choice-preview .shell > header{
+   padding:0!important;margin-bottom:8px;border-color:#34495a;
+ }
+ body.mobile-choice-preview .shell > header .mobile-fold-preview > summary,
+ body.mobile-choice-preview .layout .mobile-fold-preview > summary{
+   display:flex;align-items:center;justify-content:space-between;gap:12px;
+   list-style:none;cursor:pointer;min-height:44px;padding:12px 15px;
+   color:#ecf3f9;font-size:14px;font-weight:700;
+   background:linear-gradient(90deg,#1b2936,#17222e);
+   -webkit-tap-highlight-color:transparent;
+ }
+ body.mobile-choice-preview .mobile-fold-preview > summary::-webkit-details-marker{display:none}
+ body.mobile-choice-preview .mobile-fold-preview > summary::after{
+   content:"펼치기 ▾";font-size:12px;font-weight:500;color:#a9c5dc;white-space:nowrap;
+ }
+ body.mobile-choice-preview .mobile-fold-preview[open] > summary::after{content:"접기 ▴"}
+ body.mobile-choice-preview .mobile-fold-preview > summary:focus-visible{
+   outline:2px solid #a9c5dc;outline-offset:-3px;border-radius:7px
+ }
+ body.mobile-choice-preview .shell > header .mobile-fold-inner{padding:10px 14px 14px}
+ body.mobile-choice-preview .layout > main{display:flex;flex-direction:column}
+ body.mobile-choice-preview .mobile-tab-fold-preview{
+   margin-bottom:8px;border:1px solid #34495a;border-radius:11px;overflow:hidden;background:#192532
+ }
+ body.mobile-choice-preview .mobile-tab-fold-preview .mobile-fold-inner{padding:8px}
+ body.mobile-choice-preview .mobile-tab-fold-preview .tabs{margin:0;flex-wrap:wrap!important;overflow:visible}
+ body.mobile-choice-preview .side{padding:0!important;overflow:hidden;border-color:#34495a}
+ body.mobile-choice-preview .side .mobile-fold-inner{padding:12px 14px}
+ body.mobile-choice-preview .side .mobile-fold-preview > summary{padding:13px 15px}
+ body.mobile-choice-preview .layout > main > #content{order:1}
+ body.mobile-choice-preview .layout > main > .mobile-tab-fold-preview{order:0}
+ body.mobile-choice-preview .mobile-fold-preview:not([open]) > .mobile-fold-inner{display:none}
+ body.mobile-choice-preview .lakefx{margin-top:6px}
+ body.mobile-choice-preview #content > .inset{scroll-margin-top:70px}
+ body.mobile-choice-preview .stack button{min-height:56px}
+}
