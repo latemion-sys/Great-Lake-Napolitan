@@ -256,6 +256,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <link rel="stylesheet" href="./red-arms-v024.css?v=v0241">
 <link rel="stylesheet" href="./black-whale.css?v=bk1031">
 <link rel="stylesheet" href="./mobile-v024.css?v=v0241">
+<link rel="stylesheet" href="./start-screen-v025.css?v=0253">
 </head>
 <body>
 <div class="ach-modal-mask-161" id="achievementsOverlay161" hidden aria-hidden="true">
@@ -606,17 +607,46 @@ function resolveCoin(win){const b=state.battle;if(!b)return;b.history.push(win?'
 function fleeBattle(){if(busy||state.scene!=='battle'||!state.battle)return;const b=state.battle;const p=b.type==='whale'?.64:.72;if(Math.random()>=p){takeDamage(b.type==='whale'?25:12,8);log('전투 중 도주에 실패했습니다.');if(!safeCheck())return;sync();return;}state.battle=null;log(b.name+'에게서 벗어났습니다.');if(b.type==='whale'){afterWhale(b.index);}else if(b.after==='complete'||b.after==='collapse')completeLake(false,'전투를 포기하고 호수 밖으로 빠져나왔습니다.');else{state.scene='event';sync();}}
 function button(text,act,value='',cls='',disabled=false){return '<button class="'+cls+'" data-act="'+act+'" data-value="'+esc(value)+'" '+(disabled?'disabled':'')+'>'+esc(text)+'</button>';}
 function tag(t){return '<span class="chip">'+esc(t)+'</span>';}
+/* 선원 전언의 호수 이름을 번호로만 표기합니다. 원문·판정은 유지합니다. */
+function sailorLakeNumber(id){
+ const n=Number(id);
+ return Number.isInteger(n)&&n>=1&&n<=50?'21-'+String(n).padStart(2,'0'):'';
+}
+function sailorStoryNumbered(id,raw){
+ let sentence=String(raw??'');
+ const number=sailorLakeNumber(id);
+ if(!number)return sentence;
+ const source=window.GREAT_LAKE_SCRIPT_DATA_024;
+ if(Array.isArray(source)){
+  const named=source.filter(d=>d&&d.name&&d.id).sort((a,b)=>b.name.length-a.name.length);
+  for(const d of named)sentence=sentence.split(d.name).join(sailorLakeNumber(d.id)||d.name);
+ }
+ // 특정되지 않은 다른 곳에 현재 호수 번호를 잘못 붙이지 않습니다.
+ sentence=sentence.replace(/(다른|여러|모든|어떤)\s+호수로/g,'$1 곳으로')
+                  .replace(/(다른|여러|모든|어떤)\s+호수/g,'$1 곳')
+                  .replace(/각\s+호수/g,'각 구역');
+ sentence=sentence.replace(/(21-\d{2})\s*(?:번(?:째)?)?\s*호수/g,'$1');
+ sentence=sentence.replace(/(?:이|그|저|해당)\s+호수/g,number);
+ sentence=sentence.replace(/(?<![가-힣])호수/g,number);
+ // 번호로 바뀌었을 때의 조사와 수식 관계를 보정합니다.
+ const 받침있는번호=/[013678]$/;
+ sentence=sentence.replace(/(21-\d{2})는(?=[\s.,!?]|$)/g,(_,id)=>id+(받침있는번호.test(id)?'은':'는'));
+ sentence=sentence.replace(/(21-\d{2})를(?=[\s.,!?]|$)/g,(_,id)=>id+(받침있는번호.test(id)?'을':'를'));
+ sentence=sentence.replace(/(21-\d{2})\s+한가운데/g,'$1의 한가운데');
+ return sentence;
+}
+
 function renderSide(){const stats=[['선장 등급',state.grade+'등급'],['소지 자금 (만 안(眼))',String(state.gold)],['승선 인원',state.crew.length+' / '+GRADE_CAP[state.grade]],['접근 가능 호수',LAKE_CAP[state.grade]+' / 100'],['누적 통과',state.count.lake+'개'],['이번 출항',state.sea?state.visited.length+' / '+state.offered.length:'항구']];$('stats').innerHTML=stats.map(s=>'<div class="stat"><small>'+s[0]+'</small><strong>'+s[1]+'</strong></div>').join('');$('meters').innerHTML=[['선체 내구도',state.hull,100],['정신 상태',state.mind,100]].map(s=>'<div class="barline"><span>'+s[0]+'</span><span>'+s[1]+' / '+s[2]+'</span></div><div class="meter '+(s[1]<=30?'alert':'')+'"><span style="width:'+clamp(s[1],0,100)+'%"></span></div>').join('');$('sidebarCrew').innerHTML=state.crew.length?state.crew.map(c=>'<div class="inset"><b>'+ROLE[c.role].name+'</b><span class="muted"> · 전투력 '+ROLE[c.role].power+'</span><br><small class="'+['good','normal','bad','worst'][c.condition]+'">'+CONDITIONS[c.condition]+'</small></div>').join(''):'<div class="inset warning">승선한 선원이 없습니다.</div>';$('logs').textContent=state.log.slice(0,10).join('\n\n');}
 function render(){renderSide();document.querySelectorAll('[data-act="tab"]').forEach(el=>el.classList.toggle('active',el.dataset.value===tab));$('content').innerHTML=tab==='ach'?renderAch():tab==='crew'?renderCrew():tab==='title'?renderTitles132():tab==='shop'?renderShop132():tab==='help'?renderHelp():renderPlay();}
 function renderPlay(){const s=state.scene;
 if(s==='dead')return '<div class="inset warning"><h2>항해 종료</h2><p>선장 등급, 선원, 자금, 항해 진행은 초기화되었습니다.</p><p><b>달성한 업적은 그대로 남습니다.</b></p>'+button('처음부터 다시 시작','restart','','primary')+'</div>';
 if(s==='start')return '<div class="inset"><div class="small">초기 플레이</div><h2>항구에 선 당신</h2><p>당신은 1등급 선장입니다. 일반적인 어선 정도의 크기를 지닌 강철 쪽배 한 척과 하급 선원 한 명을 데리고 U사의 항구에서 출발하려 합니다. 호수의 규칙은 문자로 남길 수 없어, 뱃사람들의 말로만 전해집니다.</p><p class="muted">죽음은 업적을 제외한 항해 진행을 초기화합니다. 살아서 귀환하면 출항을 거듭하고, 등급과 선원 규모를 키울 수 있습니다.</p>'+button('항구에서 준비 시작','enterPort','','primary')+'</div>';
 if(s==='port'){const next=state.grade+1;return '<div class="inset"><div class="small">항구 · 안전 구역</div><h2>다음 출항 준비</h2><p>15개의 서로 다른 호수 중 선장 등급에 따라 이번 항해에서 접근할 수 있는 구역이 무작위로 정해집니다. 재앙의 고래 다섯 마리 역시 매 출항마다 서로 다른 호수로 이동합니다.</p>'+button('새 출항 준비','prepare','','primary')+'</div><div class="inset"><h3>항구 시설</h3><p class="muted">선원 모집 및 승급은 위의 선원·승급 탭에서 진행할 수 있습니다.</p>'+button('선원 모집·승급 보기','tab','crew')+'</div><div class="inset"><h3>승급 현황</h3><p>통과 횟수 '+state.xp+'회 '+(next<=5?'/ 다음 등급 조건 '+RANK_XP[next]+'회':'/ 최고 등급')+'</p></div>';}
-if(s==='prep')return '<div class="inset"><div class="small">U사 출항 전 · 구전</div><h2>선원이 전하는 이야기</h2><p>항구에서 뱃사람들의 전언을 <b>무작위로 3개</b> 들을 수 있습니다. 그중 적어도 1개는 사실이며, 돈과 선장 등급이 높을수록 사실을 들을 가능성이 증가합니다. 참과 거짓은 표시되지 않습니다. 다섯 재앙 고래의 목격담은 고급 술집에서 드물게 들을 수 있습니다.</p><p class="muted">이야기는 이번 출항 중에만 제공됩니다. 호수의 규칙을 기록물로 남기지 않습니다.</p>'+(state.rumorBought?'<div class="stack">'+state.rumors.map((r,i)=>'<div class="rumor"><div class="small">전언 '+(i+1)+' · '+(r.lake?esc(LAKE_BY_ID157.get(r.lake).name):'먼바다의 목격담')+'</div>“'+esc(r.text)+'”</div>').join('')+'</div>':'<div class="stack">'+button('일반 정보 듣기 · 무료','rumor','0')+button('술값 20 만 안(眼) 지불','rumor','20','',state.gold<20)+button('고급 술집 · 정보료 50 만 안(眼)','rumor','50','primary',state.gold<50)+'</div>')+'<div class="row" style="margin-top:14px">'+button('출항하기','launch','','primary')+'</div></div><div class="inset"><h3>이번 항해에서 접근할 호수</h3><p class="muted">출항 후 목록을 확인할 수 있습니다. 다섯 재앙의 위치는 공개되지 않습니다.</p>'+tag('접근 구역 '+state.offered.length+'개')+'</div>';
+if(s==='prep')return '<div class="inset"><div class="small">U사 출항 전 · 구전</div><h2>선원이 전하는 이야기</h2><p>항구에서 뱃사람들의 전언을 <b>무작위로 3개</b> 들을 수 있습니다. 그중 적어도 1개는 사실이며, 돈과 선장 등급이 높을수록 사실을 들을 가능성이 증가합니다. 참과 거짓은 표시되지 않습니다. 다섯 재앙 고래의 목격담은 고급 술집에서 드물게 들을 수 있습니다.</p><p class="muted">이야기는 이번 출항 중에만 제공됩니다. 호수의 규칙을 기록물로 남기지 않습니다.</p>'+(state.rumorBought?'<div class="stack">'+state.rumors.map((r,i)=>'<div class="rumor"><div class="small">전언 '+(i+1)+' · '+(r.lake?esc(sailorLakeNumber(r.lake)):'먼바다의 목격담')+'</div>“'+esc(sailorStoryNumbered(r.lake,r.text))+'”</div>').join('')+'</div>':'<div class="stack">'+button('일반 정보 듣기 · 무료','rumor','0')+button('술값 20 만 안(眼) 지불','rumor','20','',state.gold<20)+button('고급 술집 · 정보료 50 만 안(眼)','rumor','50','primary',state.gold<50)+'</div>')+'<div class="row" style="margin-top:14px">'+button('출항하기','launch','','primary')+'</div></div><div class="inset"><h3>이번 항해에서 접근할 호수</h3><p class="muted">출항 후 목록을 확인할 수 있습니다. 다섯 재앙의 위치는 공개되지 않습니다.</p>'+tag('접근 구역 '+state.offered.length+'개')+'</div>';
 if(s==='route'){const list=state.offered.map(id=>{const l=LAKE_BY_ID157.get(id),seen=state.visited.includes(id);return '<div class="lake '+(seen?'locked':'')+'" style="border-left:5px solid '+l.hex+'"><div class="between"><span class="tag">제'+String(id).padStart(3,'0')+'호</span>'+tag('위험도 '+l.risk)+'</div><h3>'+esc(l.name)+'</h3><p class="muted">'+(l.mermaid?'인어가 출몰할 수 있는 구역':'불분명한 수면과 미확인 위험')+' · '+(l.id<=10?'예상 체류 3~6턴':'예상 체류 '+l.limit+'턴')+'</p>'+button(seen?'탐사 완료':'이 호수로 항해','lake',id,'primary',seen)+'</div>';}).join('');return '<div class="inset"><div class="between"><h2>이번 출항의 호수</h2>'+tag(state.visited.length+' / '+state.offered.length+' 통과·이탈')+'</div>'+(state.lastTransition?'<div class="result">'+esc(state.lastTransition)+'</div>':'')+'<p class="muted">선장의 등급에 해당하는 '+state.offered.length+'개의 호수를 50개 중 무작위로 배정했습니다. 모든 호수가 연속 항해로 이어질 수 있습니다.</p>'+button('항구로 귀환','return')+'</div><div class="lakegrid">'+list+'</div>';}
 if(s==='encounter'){const k=state.encounter,w=WHALES[k];return '<div class="inset warning"><div class="small">경고 · 5재앙의 고래</div><h2>'+esc(w.name)+'</h2><p>'+esc(w.description)+'</p><p class="muted">사냥 난이도 측정 불가. 현명한 선택은 도주입니다.</p>'+tag('현재 선체 '+state.hull+' / 100')+' '+tag('아군 전투력 '+crewPower())+'<div class="stack" style="margin-top:14px">'+button('즉시 회피한다','escapeWhale','','primary')+button('재앙의 고래를 사냥한다','huntWhale','','danger')+'</div></div>';}
 if(s==='special'){const k=state.specialPending,w=WHALES[k],possible=canHuntSpecial();return '<div class="inset warning"><div class="small">특이한 인어 조우</div><h2>'+esc(w.mermaid)+'</h2><p>'+esc(w.name)+'을 따르는 인어가 뱃머리 앞에 나타났습니다.</p><p class="muted">사냥 가능 조건: 3등급 이상의 선장 + 작살잡이 + 1등 항해사 + 일반 선원(하급·중급·상급)이 모두 승선해야 합니다.</p>'+tag(possible?'사냥 자격 충족':'사냥 자격 부족')+'<div class="stack" style="margin-top:14px">'+button('사냥을 시도한다','specialBattle','','primary',!possible)+button('인어를 피해 이동한다','avoidSpecial')+'</div></div>';}
-if(s==='event'){const l=activeLake();if(!l)return '<div class="inset">호수 정보를 찾을 수 없습니다.</div>';const law=lakeLaw(l),z=lakeZone(l);const seen=state.lakeRumorTruth?law.truth(z):law.false(z);return '<div class="inset" style="border-top:4px solid '+l.hex+'"><div class="between"><h2>구역: '+esc(l.name)+'</h2>'+tag('구역 특성 '+(l.feature||COLOR_GROUPS[l.hue].label))+' '+tag('창작 구역')+'</div><div class="inset"><div class="barline"><span>호수 상태</span><span>체류 1 / '+l.limit+'턴</span></div><div class="meter"><span style="width:'+(100/l.limit)+'%"></span></div><div class="small">선원이 전하는 이야기 · 진위 불명</div><p>“'+esc(state.blueTorn?'이곳의 호수가 찢어졌습니다. 지금은 어떤 전언도 믿기 어렵습니다.':seen)+'”</p></div><h3>발생 사건</h3><p>'+esc(law.event(z))+'</p>'+(state.ruleResolved?'<div class="result">'+esc(state.ruleResult)+'</div><div class="stack" style="margin-top:12px">'+button('다음으로','nextEvent','','primary')+'</div>':'<div class="stack">'+law.options.map((opt,i)=>button(opt,'rule',i)).join('')+'</div>')+'</div>';}
+if(s==='event'){const l=activeLake();if(!l)return '<div class="inset">호수 정보를 찾을 수 없습니다.</div>';const law=lakeLaw(l),z=lakeZone(l);const seen=state.lakeRumorTruth?law.truth(z):law.false(z);return '<div class="inset" style="border-top:4px solid '+l.hex+'"><div class="between"><h2>구역: '+esc(l.name)+'</h2>'+tag('구역 특성 '+(l.feature||COLOR_GROUPS[l.hue].label))+' '+tag('창작 구역')+'</div><div class="inset"><div class="barline"><span>호수 상태</span><span>체류 1 / '+l.limit+'턴</span></div><div class="meter"><span style="width:'+(100/l.limit)+'%"></span></div><div class="small">선원이 전하는 이야기 · '+esc(sailorLakeNumber(l.id))+' · 진위 불명</div><p>“'+esc(sailorStoryNumbered(l.id,state.blueTorn?'이곳의 호수가 찢어졌습니다. 지금은 어떤 전언도 믿기 어렵습니다.':seen))+'”</p></div><h3>발생 사건</h3><p>'+esc(law.event(z))+'</p>'+(state.ruleResolved?'<div class="result">'+esc(state.ruleResult)+'</div><div class="stack" style="margin-top:12px">'+button('다음으로','nextEvent','','primary')+'</div>':'<div class="stack">'+law.options.map((opt,i)=>button(opt,'rule',i)).join('')+'</div>')+'</div>';}
 if(s==='battle'){const b=state.battle;if(!b)return '<div class="inset">전투 정보가 없습니다.</div>';const numeric=b.type!=='whale';return '<div class="inset warning"><div class="small">해상 전투</div><h2>'+esc(b.name)+'</h2><p>아군 전투력: <b>'+crewPower()+'</b> / 적 전투력: <b>'+b.power+'</b><br>'+(numeric?'동전 앞면 확률: <b>'+pct(combatChance())+'</b>':'재앙의 고래: <b>사냥 난이도 측정 불가</b>')+'</p><p>유효 타격: <b>'+b.won+' / '+b.need+'</b></p><div class="coinpanel" id="coinPanel"><div class="small">앞면: 타격 성공 · 뒷면: 적의 반격</div><div class="coinstage"><div class="coin" id="coin"><div class="face">앞면</div><div class="face back">뒷면</div></div></div><p id="coinText">'+esc(state.lastCoin||'동전을 직접 던져 공격을 판정하십시오.')+'</p>'+button('동전 던지기','coin','','primary')+'</div><div class="stack" style="margin-top:12px">'+button('전투에서 도망친다','flee')+'</div><p class="muted">전투력 비교에 따라 앞면 확률이 계산됩니다. 동전이 실제로 회전한 후 승패가 적용됩니다.</p><div class="log">'+esc(b.history.slice(-6).join('\n'))+'</div></div>';}
 return '<div class="inset">알 수 없는 장면입니다. '+button('항구로 돌아가기','enterPort')+'</div>';}
 function renderCrew(){let html='<div class="inset"><h2>선원 명부 · 승급</h2><p>선장의 기본 전투력 '+(20+state.grade*8)+' / 선원 포함 실제 전투력 <b>'+crewPower()+'</b></p><p class="muted">선원이 나쁨 또는 최악 상태가 되면 인어로 변할 수 있습니다. 컨디션에 따라 전투력도 줄어듭니다.</p>';html+=state.crew.map(c=>'<div class="inset crew"><div><b>'+esc(ROLE[c.role].name)+'</b><small>전투력 기본 '+ROLE[c.role].power+' · 상태 <span class="'+['good','normal','bad','worst'][c.condition]+'">'+CONDITIONS[c.condition]+'</span></small></div></div>').join('');html+='</div>';html+='<div class="inset"><h3>등급 상승</h3>';if(state.grade<5){const n=state.grade+1;html+='<p>'+n+'등급 요구: 통과 '+RANK_XP[n]+'회 / '+RANK_COST[n]+' 만 안(眼)<br><span class="muted">현재 통과 '+state.xp+'회 · 보유 '+state.gold+' 만 안(眼)</span></p>'+button(n+'등급 승급','promote','','primary',state.sea||state.scene!=='port'||state.gold<RANK_COST[n]||state.xp<RANK_XP[n]);}else html+='<p>최고 5등급에 도달했습니다.</p>';html+='</div><div class="inset"><h3>선원 모집</h3><p class="muted">현재 최대 '+crewCapacity148()+'명. 선장은 인원수에 포함하지 않습니다. 모든 모집과 정비는 항구에서만 가능합니다.</p><div class="stack">';for(const [key,r] of Object.entries(ROLE)){html+=button(r.name+' · 전투력 '+r.power+' · '+r.cost+' 만 안(眼) ('+r.grade+'등급 이상)','recruit',key,'',state.sea||state.scene!=='port'||state.gold<r.cost||state.grade<r.grade||state.crew.length>=crewCapacity148());}html+='</div></div><div class="inset"><h3>수리·장비·회복</h3>'+button('항구 상점으로','tab','shop','primary')+'</div>';return html;}
@@ -1277,7 +1307,7 @@ function renderStory014(){
   '<p class="muted">'+esc(d.description)+'</p>'+
   '<div class="inset"><div class="barline"><span>호수 상태</span><span>체류 '+s.turns+'턴</span></div>'+
   '<div class="meter"><span style="width:'+Math.min(100,s.turns/(l.limit+6)*100)+'%"></span></div>'+
-  '<div class="small">선원이 전하는 이야기 · 진위 불명</div><p>“'+esc(seen)+'”</p></div>'+
+  '<div class="small">선원이 전하는 이야기 · '+esc(sailorLakeNumber(l.id))+' · 진위 불명</div><p>“'+esc(sailorStoryNumbered(l.id,seen))+'”</p></div>'+
   (s.result?'<div class="result">'+esc(s.result)+'</div>':'')+
   '<h3>발생 사건</h3><p>'+esc(node.text)+'</p>'+
   '<div class="stack">'+storyChoicesVisible014(s,node).map((o,i)=>button('▸ '+o.text,'storyChoice',String(i),'')).join('')+'</div></div>';
@@ -2243,7 +2273,7 @@ renderPlay=function(){
 renderHelp=function(){
  return '<div class="inset"><h2>항해 안내 · v0.1.5.8</h2>'+
  '<p>현재 항해 가능 호수는 총 15개입니다. 21-01~21-13과 21-17, 21-40이 등장합니다. 선장 등급별 접근 호수 수는 4 / 8 / 12 / 15 / 15개이며 출항마다 무작위로 정해집니다.</p>'+
- '<p>재앙의 고래는 현재 목숨에서 처치한 개체를 제외하고 출항마다 한 개체가 15개 호수 중 하나에 배치됩니다. 고래 사냥 난이도와 각 호수의 안전한 선택은 공개하지 않습니다.</p>'+
+ '<p>고래 사냥 난이도와 각 호수의 안전한 선택은 공개하지 않습니다.</p>'+
  '<p>각 호수에서는 인어를 만날 가능성이 있습니다. 전투는 동전 판정으로 진행합니다. 출항 준비와 선원 관리, 정신 상태와 호수 침식도는 기존 방식으로 작동합니다.</p>'+
  '<p>선장과 선박은 1~5등급이며 승선 정원은 두 등급 중 낮은 쪽으로 정해집니다. 모든 진행은 브라우저에 자동 저장되며 사망하면 업적을 제외한 현재 항해가 초기화됩니다.</p>'+
  '<p class="muted">이 게임은 Project Moon 세계관에 기반한 비영리 팬게임이며 호수와 일부 사건에는 비공식 창작 설정이 있습니다.</p></div>';
@@ -2842,6 +2872,11 @@ renderPlay=function(){
 <script src="./black-whale-gameplay.js?v=wrap1101"></script>
 <script src="./calamity-hunt.js?v=v0241"></script>
 <script src="./pallid-ward.js?v=pw1030b"></script>
-<script src="./voyage-v024.js?v=v0244"></script>
+<script src="./voyage-v024.js?v=risk028"></script>
+<script src="./start-screen-v025.js?v=0252"></script>
+<script src="./u-false-laws-v027.js?v=0271"></script>
+<script src="./u-tavern-speech-v029-a.js?v=0291"></script>
+<script src="./u-tavern-speech-v029-b.js?v=0291"></script>
+<script src="./u-law-ports-v026.js?v=0264"></script>
 </body>
 </html>
