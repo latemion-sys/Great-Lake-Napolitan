@@ -42,8 +42,8 @@ function syncGame(){
   for(const k of Object.keys(G))delete G[k];
   Object.assign(G,{mode,ref:state.battle,t0:performance.now(),done:null,text:'',ease:EASE(),fails:0});
   if(mode==='lure'){Object.assign(G,{tries:LURE.tries,used:0});newWhale(.6);}
-  if(mode==='watch'){G.marks={};G.ok={};newRound(.2);}
-  if(mode==='fork'){const w=state.blackWings024||{L:3,R:6};G.sideBuoy={L:w.L,R:w.R};G.win=FIX.win*G.ease;newFix(.2);}
+  if(mode==='watch'){G.marks={};G.ok={};newRound(.2);G.tether={fireAt:.7,endAt:null};}
+  if(mode==='fork'){const w=state.blackWings024||{L:3,R:6};G.sideBuoy={L:w.L,R:w.R};G.win=FIX.win*G.ease;newFix(.2);G.tether={fireAt:.6,endAt:null};}
   if(mode==='strike'){const w=state.blackWings024||{L:1,R:6};G.sideBuoy={L:w.L,R:w.R};G.win=STRIKE.win*G.ease;G.meetAt=2.4;G.shot=null;}
  }
  if(!mode&&G.mode&&!G.timer){G.mode=null;G.ref=null;}
@@ -73,6 +73,7 @@ function strike(h,m,logMsg,deathText){
 function newWhale(delay){
  const t=now()+delay,dir=Math.random()<.5?1:-1,lane=rnd(SEA+30,SEA+122),sc=V()?V().PS(lane):1;
  G.whale={lane,dir,x0:dir>0?-170:1130,t0:t,v:LURE.v*(.55+.45*sc)*rnd(.9,1.12)};
+ G.tether={fireAt:t+1.3,endAt:null};   // 떠오른 어둠에 망 감긴 작살을 박아 둠
  G.decoy=null;G.judged=false;G.locked=false;
 }
 function whaleNow(t){return V()&&G.whale?V().whaleAt(G.whale,t):null;}
@@ -92,15 +93,15 @@ function lureJudge(t){
  if(laneOK&&ahead>=near&&ahead<=LURE.far){
   const ta=D.land+Math.max(.2,(ahead-34*wp.sc)/W.v);W.stopAt=ta;W.spreadAt=ta;G.locked=true;
   setText('고래가 작은 불빛을 알아챘습니다 · 다가갑니다.');
-  setTimeout(()=>{if(G.mode!=='lure'||G.done)return;flash('날개를 펼침',true);setText('그것이 작은 것을 감싸 안으려 날개를 펼쳤습니다 · 이제 날개는 물밑으로 뻗어 있습니다.');
-   log('검은 고래가 작은 등불 뗏목을 감싸려 날개를 펼쳤습니다.');finish(3.4);},Math.max(0,ta-now())*1000);
+  setTimeout(()=>{if(G.mode!=='lure'||G.done)return;flash('날개를 펼침',true);if(G.tether)G.tether.endAt=now()+1.5;setText('그것이 작은 것을 감싸 안으려 날개를 펼쳤습니다 · 이제 날개는 물밑으로 뻗어 있습니다.');
+   log('검은 고래가 작은 등불 뗏목을 감싸려 날개를 펼쳤습니다.');finish(3.8);},Math.max(0,ta-now())*1000);
   return;
  }
  if(laneOK&&ahead>=0&&ahead<near){W.diveAt=D.land;lureFail(D.land,'놀람','너무 가까이 던졌습니다 · 고래가 놀라 물밑으로 자리를 옮깁니다');return;}
  W.diveAt=D.land+1.1;lureFail(D.land,'지나침',ahead<0?'이미 지나간 자리입니다 · 고래가 알아채지 못하고 자리를 옮깁니다':'길목을 벗어났습니다 · 고래가 알아채지 못하고 자리를 옮깁니다');
 }
 function lureFail(t,v,msg){
- G.locked=true;flash(v,false);
+ G.locked=true;flash(v,false);G.joltAt=t;if(G.tether&&G.tether.endAt==null){G.tether.endAt=now()+.5;G.tether.free=true;}   // 자리를 옮기며 작살이 빠짐
  takeDamage(0,3);log('검은 고래가 미끼를 지나쳐 자리를 옮겼습니다. 어둠 속에서 방향을 다시 찾아야 합니다.');updateStatus();if(!safeCheck())return;
  if(G.used>=G.tries){
   setText(msg+' · 남은 미끼가 없습니다. 고래가 멀어집니다.');
@@ -145,7 +146,7 @@ function watchTap(x,y){
  if(best===G.target[side]&&t>=G.arrive[side]-WATCH.early){
   G.ok[side]=true;G.marks[best]={};flash('날개 끝',true);
   if(G.ok.L&&G.ok.R){G.locked=true;state.blackWings024={L:G.target.L,R:G.target.R};
-   setText('양쪽 날개 끝을 모두 짚었습니다 · 그 부표에 공명 굽쇠를 매답니다.');log('검은 고래의 두 날개 끝 자리를 부표로 짚었습니다.');finish(1.8);}
+   setText('양쪽 날개 끝을 모두 짚었습니다 · 그 부표에 공명 굽쇠를 매답니다.');log('검은 고래의 두 날개 끝 자리를 부표로 짚었습니다.');if(G.tether)G.tether.endAt=now()+.3;finish(2.5);}
   else setText((side==='L'?'왼쪽':'오른쪽')+' 날개 끝을 짚었습니다 · 반대쪽을 읽으십시오.');
   return;
  }
@@ -153,7 +154,7 @@ function watchTap(x,y){
  watchFail(t,best===G.target[side]?'너무 일찍 짚었습니다 · 날개 끝이 아직 지나가는 중이었습니다':'지나가며 흔든 부표를 짚었습니다 · 날개 끝은 다른 곳에 있었습니다');
 }
 function watchFail(t,why){
- G.locked=true;G.reveal={at:t,L:G.target.L,R:G.target.R};flash('오판',false);
+ G.locked=true;G.reveal={at:t,L:G.target.L,R:G.target.R};flash('오판',false);G.joltAt=t;
  const ok=strike(7,5,'날개 위치를 잘못 짚었습니다. 물밑에서 솟은 날개 끝이 수면을 내려쳐 배가 크게 흔들립니다.','날개 위치를 잘못 짚었습니다 · 날개가 배 위로 휘어 듭니다.');
  if(!ok)return;
  setText(why+' · 남은 기회 '+MS().left(G)+'번');
@@ -184,12 +185,12 @@ function fixResolve(t){
  if(!(doneL&&doneR)||G.resolved)return;
  G.resolved=true;
  if(L.pinned&&R.pinned){G.locked=true;flash('날개를 묶음',true);
-  setText('두 굽쇠가 같은 소리로 웁니다 · 그것은 날개를 접지 못합니다.');log('공명 굽쇠로 검은 고래의 두 날개를 펼친 채 묶었습니다.');finish(2.6);return;}
+  setText('두 굽쇠가 같은 소리로 웁니다 · 그것은 날개를 접지 못합니다.');log('공명 굽쇠로 검은 고래의 두 날개를 펼친 채 묶었습니다.');if(G.tether)G.tether.endAt=now()+.4;finish(2.7);return;}
  G.locked=true;
  const at=Math.max(G.m.L,G.m.R)+G.win+.9;G.embraceAt=at;
  const one=L.pinned||R.pinned;
  setTimeout(()=>{if(G.mode!=='fork'||G.done)return;
-  flash('포옹',false);
+  flash('포옹',false);G.joltAt=now();
   let who='';
   if(state.crew&&state.crew.length){const c=state.crew[Math.floor(Math.random()*state.crew.length)];state.crew=state.crew.filter(x=>x.id!==c.id);who=(typeof ROLE!=='undefined'&&ROLE[c.role]?ROLE[c.role].name:'선원')+' 한 명이 날개에 감싸여 인어가 되었습니다.';}
   const ok=strike(6,7,(one?'한쪽 날개만 묶였습니다. 풀린 날개가 배를 감싸 안았습니다. ':'두 날개가 모두 접혀 배를 감싸 안았습니다. ')+who,'날개가 배를 감싸 안습니다 · 아무것도 보이지 않습니다.');

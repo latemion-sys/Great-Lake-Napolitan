@@ -50,7 +50,7 @@ function startArm(ix,delay){
   gauge:null,deadline:null,tension:0,zone:null,joltAt:null,pulling:false,dirNow:null,rounds:0,stabAt:null,suck:null,crack:null,phaseState:'intro'});
  if(ph===1||ph===2){G.introAt=t+.9;G.hint='작살이 팔을 꿰뚫습니다';G.cap=ph===1?'작살이 박힌 팔이 밧줄을 끌어당깁니다. 연타해서 끊어 내십시오.':'작살이 박힌 팔과 힘겨루기를 합니다. 알맞은 힘에서 손을 떼면 팔이 찢어집니다.';}
  if(ph===3){G.hint='작살을 겨눕니다 · 팔이 피하려 합니다';G.cap='작살을 맞추려는 순간 팔이 피합니다. 팔이 움직이는 반대쪽으로 겨누십시오.';}
- if(ph===4){G.hint=ix===0?'팔이 배에 달라붙습니다':'팔에 균열이 갑니다';G.cap=ix===0?'작살을 맞추기도 전에 팔이 배에 달라붙습니다. 빨판이 붙는 순서를 기억하십시오.':'팔이 배를 조입니다. 균열을 따라 찢어 내십시오.';}
+ if(ph===4){G.introAt=t+.3;G.hint=ix===0?'작살이 배에 달라붙은 팔을 꿰뚫습니다':'작살이 팔을 꿰뚫습니다 · 팔에 균열이 갑니다';G.cap=ix===0?'작살을 맞추기도 전에 팔이 배에 달라붙습니다. 빨판이 붙는 순서를 기억하십시오.':'팔이 배를 조입니다. 균열을 따라 찢어 내십시오.';}
  G.at=t;
 }
 function setText(t){G.text=t;const e=document.getElementById('rwgText');if(e)e.textContent=t;}

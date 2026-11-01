@@ -3,7 +3,7 @@
    ① 가라앉는 삼각형 : 조우 (사냥 / 회피)
    ②③④ 열수공 : 열수공 하나가 주기적으로 섬처럼 솟는다. 덮개가 떨리다 황금빛 중심부가 열리는 순간 그 열수공에 작살을 꽂는다.
             너무 일찍 쏘면 껍데기에 튕긴다. 남은 열수공이 적을수록 열려 있는 시간이 짧다(1.1초 → 0.8초 → 0.55초).
-   ⑤ 따개비 껍데기 : 부서진 열수공의 껍데기가 물길을 따라 가라앉는다. 갈고리를 던져 건져 올리면 토벌(고래는 삼백 년 동안 가라앉는다).
+   ⑤ 따개비 껍데기 : 부서진 열수공의 껍데기가 물길을 따라 가라앉는다. 작살을 꽂아 건져 올리면 토벌(고래는 삼백 년 동안 가라앉는다).
    흡입 위험: 남은 열수공 수만큼 계속 오르고, 튕기거나 놓치면 더 오른다. 열수공을 부수면 내려간다. 100%가 되면 배가 빨려 들어가 사망.
    ⑤의 실패(껍데기가 다 가라앉음)는 공통 규칙(MinigameStrikes).
    고래 전투는 기존 'whale' 전투(유효 타격 4: 열수공 셋 · 껍데기)를 그대로 쓰므로 전리품·업적·처치 기록은 기존대로 지급된다. */
@@ -13,7 +13,7 @@ const YELLOW=4,SEA=336;
 const labels=['가라앉는 삼각형','첫 번째 열수공','두 번째 열수공','세 번째 열수공','따개비 껍데기'];
 const OPEN=[0,.55,.8,1.1];                // 남은 열수공 수 → 열려 있는 시간
 const SUCK={rate:.95,bounce:12,miss:8,breakDrop:30};
-const HOOK={fly:.6,tol:46,dur:9.5};
+const HOOK={fly:.45,tol:48,dur:9.5};
 const G=window.YellowHuntGame=window.YellowHuntGame||{mode:null};
 const EASE=()=>(window.CalamityMang?window.CalamityMang.ease():1);
 const GEO=()=>window.YellowWhaleV3&&window.YellowWhaleV3.geo;
@@ -109,7 +109,7 @@ function newShell(delay){
 }
 function hookThrow(x,y){
  if(G.mode!=='hook'||G.done||G.locked||G.caught)return;
- const t=now();if(G.throw&&t<G.throw.arrive+.5)return;
+ const t=now();if(G.throw&&t<G.throw.arrive+.3+.15+.9+.1)return;   // 빗나간 작살을 감아 들여 다시 장전할 때까지
  if(t<G.shell.t0)return;
  const to=[Math.max(20,Math.min(940,x)),Math.max(SEA+8,Math.min(H_MAX(),y))];
  G.throw={at:t,arrive:t+HOOK.fly,to};
@@ -117,8 +117,8 @@ function hookThrow(x,y){
   const ta=now(),p=GEO().shellAt(G,G.throw.arrive);
   if(p&&p.d<1&&Math.hypot(p.x-to[0],(p.y-to[1])*1.4)<=HOOK.tol*G.ease){
    G.caught={at:ta,p:[p.x,p.y],d:p.d};G.locked=true;flash('건짐',true);
-   setText('갈고리가 따개비 껍데기를 걸었습니다 · 감아 올립니다.');log('노란 고래의 따개비 껍데기를 건져 올렸습니다.');finish(2.4);
-  }else{flash('빗나감',false);setText('갈고리가 빈 물에 떨어졌습니다 · 껍데기가 갈 자리를 노리십시오.');}
+   setText('작살이 따개비 껍데기에 꽂혔습니다 · 밧줄을 당겨 껍데기째 감아 올립니다.');log('노란 고래의 따개비 껍데기를 작살로 꿰어 건져 올렸습니다.');finish(2.4);
+  }else{flash('빗나감',false);setText('작살이 빈 물에 떨어졌습니다 · 감아 들여 다시 장전합니다. 껍데기가 갈 자리를 노리십시오.');}
  },HOOK.fly*1000);
 }
 function H_MAX(){return SEA+160;}
@@ -162,7 +162,7 @@ function gamePanel(mode){
    '<button type="button" class="danger ywg-big" id="ywgAct">작살을 쏜다</button>');}
  if(mode==='hook')return panel(5,'따개비 껍데기',
   '세 열수공이 모두 부서졌습니다. 마지막으로 부서진 열수공의 따개비 껍데기가 물길을 따라 돌며 가라앉습니다. 껍데기를 건져 올리면 그것은 더는 아무것도 가라앉히지 못합니다.',
-  '껍데기가 갈 자리의 물을 눌러 갈고리 던지기 · 갈고리는 '+HOOK.fly+'초 뒤에 떨어짐 · 껍데기가 다 가라앉으면 실패',
+  '껍데기가 갈 자리의 물을 눌러 작살 쏘기 · 작살은 '+HOOK.fly+'초 뒤에 닿음 · 빗나가면 감아 들여 다시 장전 · 껍데기가 다 가라앉으면 실패',
   '');
  return '';
 }

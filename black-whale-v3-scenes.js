@@ -540,7 +540,9 @@ function bar(u,fill,time,hot){if(u.bar){u.bar.firstChild.style.width=n1(clamp(fi
    3단계 관측: 물밑으로 뻗는 두 날개 끝이 지나가며 흔드는 부표를 보고, 날개 끝이 멈춘 부표를 짚음
    4단계 고정: 짚어 둔 두 부표의 공명 굽쇠를 날개가 다 펼쳐진 순간 울려 날개를 펼친 채 묶음
    5단계 토벌: 접지 못한 날개 사이, 아무것도 없는 곳으로 작살 */
-const PS=y=>clamp(.4+.6*(y-SEA)/170,.3,1.2);           // 수면 위 y → 원근 크기
+const PS=y=>clamp(.4+.6*(y-SEA)/170,.3,1.2);
+const BODYW=[480,SEA+84];   // 물밑에서 날개를 편 몸의 한가운데(작살이 박히는 자리)
+function jolt(g,t){return .5+(g.joltAt!=null?1.2*Math.exp(-Math.max(0,t-g.joltAt)*2.2):0);}           // 수면 위 y → 원근 크기
 const BUOYS=[[70,SEA+40],[178,SEA+102],[272,SEA+22],[362,SEA+82],[606,SEA+74],[694,SEA+20],[792,SEA+104],[892,SEA+46]];
 const BSC=i=>PS(BUOYS[i][1])*1.5;   // 부표 그림 크기
 const DECOY_AT=[480,SEA+64],LURE_BOAT=150;
@@ -762,7 +764,7 @@ const CAP24=['','고래가 지나가는 길목에 작은 등불 뗏목을 던지
 function lureBuild(){
  return night()+patchMarkup()+wakeMarkup('bk-wkP')+wingRef('bk-wLR')+wingRef('bk-wRR')+wakeMarkup('bk-wkL')+wakeMarkup('bk-wkR')+
   K.nearMist()+boatMarkup()+decoyMarkup()+wing2('bk-wL','LitLw')+wing2('bk-wR','LitRw')+drops('bk-drL',24,61,'#dbe8f2')+drops('bk-drR',24,67,'#dbe8f2')+
-  '<circle class="bk-aim" r="1" fill="url(#bkMark)" opacity="0"/>';
+  '<circle class="bk-aim" r="1" fill="url(#bkMark)" opacity="0"/>'+(window.HarpoonTether?HarpoonTether.markup():'');
 }
 function lureGame(el,t,tr,g){
  const {q,qa}=cacheQ(el);
@@ -792,6 +794,7 @@ function lureGame(el,t,tr,g){
  const tw=boatPose(el,LURE_BOAT,SEA+B.y,B.r,thr?[44,-40]:[37,-30]);lamp(el,t,tw,0);
  g.hand=tw([42,-36]);
  paintDecoy(el,D,t,{dim:sp>=0?.6*seg(sp,1.6,3.2):0});
+ if(window.HarpoonTether&&g.tether){const wa=wp?[wp.x+(wp.dir||1)*10*wp.sc,wp.y-4]:null;HarpoonTether.paint(el,t,g.tether,tw,wa,{color:'#0c141e',water:true,sway:jolt(g,t)});}
  // 누른 자리 표시
  const aim=q('.bk-aim');
  if(g.aim&&t-g.aim.at<.6){const k=1-(t-g.aim.at)/.6;aim.setAttribute('cx',n1(g.aim.p[0]));aim.setAttribute('cy',n1(g.aim.p[1]));aim.setAttribute('r',n1(14+30*(1-k)));aim.setAttribute('opacity',n3(k));}else aim.setAttribute('opacity','0');
@@ -804,12 +807,12 @@ function lureGame(el,t,tr,g){
 /* ---------- 3단계 · 관측 ---------- */
 function watchBuild(){
  return night()+tipShadows()+wingRef('bk-wLR')+wingRef('bk-wRR')+wakeMarkup('bk-wkL')+wakeMarkup('bk-wkR')+K.nearMist()+boatMarkup()+
-  decoyMarkup()+buoysMarkup()+wing2('bk-wL','LitLw')+wing2('bk-wR','LitRw')+drops('bk-drL',24,61,'#dbe8f2')+drops('bk-drR',24,67,'#dbe8f2');
+  decoyMarkup()+buoysMarkup()+wing2('bk-wL','LitLw')+wing2('bk-wR','LitRw')+drops('bk-drL',24,61,'#dbe8f2')+drops('bk-drR',24,67,'#dbe8f2')+(window.HarpoonTether?HarpoonTether.markup():'');
 }
 function watchGame(el,t,tr,g){
  const {qa}=cacheQ(el);
  ambient(el,t,0);twinkle(el,t);placeHole(el,null);
- boatAt(el,t,480,{lamp:0});
+ const twW=boatAt(el,t,480,{lamp:0});
  const D={at:-10,land:-9,from:DECOY_AT,to:DECOY_AT};
  paintDecoy(el,D,t,{dim:.55});
  const tL=g.paths?tipAt(g.paths.L,t-(g.r0||0)):null,tR=g.paths?tipAt(g.paths.R,t-(g.r0||0)):null;
@@ -825,6 +828,7 @@ function watchGame(el,t,tr,g){
    if(!watchGame._d)watchGame._d=dropParams(24,61,-160,-20,120,360);
    paintDrops(qa('.bk-dr'+side+' circle'),watchGame._d,BUOYS[i][0],BUOYS[i][1]-6,s-.15,40,420);});}
  else{hideWing(el,'bk-wL');hideWing(el,'bk-wR');paintWake(el,'bk-wkL',0,SEA,0,t,.3,5);paintWake(el,'bk-wkR',0,SEA,0,t,.3,9);}
+ if(window.HarpoonTether&&g.tether)HarpoonTether.paint(el,t,g.tether,twW,BODYW,{color:'#0c141e',water:true,sway:jolt(g,t)});
  const u=hud(el);verdictOf(u,g,t,1.1);
  const left=['L','R'].filter(s=>!(g.ok&&g.ok[s])).length;
  now2(u,g.done||hidden?'':'날개 끝이 멈춰 잠긴 부표를 누르십시오 · 지나가며 흔든 부표에 속지 마십시오',!!(tL&&tL.rest&&!(g.ok&&g.ok.L))||!!(tR&&tR.rest&&!(g.ok&&g.ok.R)));
@@ -877,7 +881,8 @@ function forkScene(el,t,g,opt){
  return {tw,tips};
 }
 function forkGame(el,t,tr,g){
- forkScene(el,t,g);
+ const FS=forkScene(el,t,g);
+ if(window.HarpoonTether&&g.tether)HarpoonTether.paint(el,t,g.tether,FS.tw,BODYW,{color:'#0c141e',water:true,sway:jolt(g,t)});
  const u=hud(el);verdictOf(u,g,t,1.1);
  const st=g.st||{},pend=['L','R'].filter(s=>!(st[s]&&(st[s].pinned||st[s].miss)));
  const hot=pend.some(s=>g.m&&Math.abs(g.m[s]-t)<(g.win||.2));
@@ -983,7 +988,7 @@ function strikeGame(el,t,tr,g){
  caption(el,[[0,CAP24[4]]],0);
  veil(el,t<.5?1-t/.5:0);
 }
-const GBUILD={1:lureBuild,2:watchBuild,3:forkBuild,4:strikeBuild};
+const GBUILD={1:lureBuild,2:watchBuild,3:()=>forkBuild()+(window.HarpoonTether?HarpoonTether.markup():''),4:strikeBuild};
 const GAMEPAINT={1:lureGame,2:watchGame,3:forkGame,4:strikeGame};
 const GAMEMODE={1:'lure',2:'watch',3:'fork',4:'strike'};
 const SCENES=[S0,S1v,S2v,S3v,S4v];

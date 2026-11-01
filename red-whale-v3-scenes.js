@@ -766,7 +766,7 @@ function armsGame(el,t,tr,g){
  // 작살: ①② 팔뚝에 박힌 채 밧줄이 배까지 팽팽 / ③ 던질 때마다 / ④ 없음
  const hp=q('.bw-harpoon'),rope=q('.bw-rope');
  // 한 발: 발사 → 박힘 → (성공 문구 뒤) 밧줄로 감아 들여 다시 장전 → 다음 발사
- const fired=ph<=2?g.introAt!=null&&t>=g.introAt:ph===3?g.stabAt!=null&&t>=g.stabAt:false;
+ const fired=ph!==3?g.introAt!=null&&t>=g.introAt:g.stabAt!=null&&t>=g.stabAt;
  const reelAt=ph===3?(g.stabAt!=null?g.stabAt+.42:null):g.reelAt,reelDur=ph===3?.5:(g.reelDur||1.05);
  const reelDone=reelAt!=null&&t>=reelAt+reelDur;
  const loaded=!fired||reelDone;
@@ -776,7 +776,7 @@ function armsGame(el,t,tr,g){
  const fx=g.killAt!=null&&t>=g.killAt?g.killAt:g.failAt!=null&&t>=g.failAt?g.failAt:null;
  if(fx!=null){if(g._stuckK!==fx||!g._stuck){g._stuckK=fx;g._stuck=tgt.slice();}tgt=g._stuck;}
  if(fired&&!reelDone){
-  if(ph<=2){const s=t-g.introAt,fl=.45;
+  if(ph!==3){const s=t-g.introAt,fl=.45;
    if(s<fl){const u=s/fl;pos=[lerp(p0[0],tgt[0],u),lerp(p0[1],tgt[1],u)-60*u*(1-u)];ang=Math.atan2(tgt[1]-p0[1]-60*(1-2*u),tgt[0]-p0[0])/RAD;show=1;}
    else{ang=Math.atan2(tgt[1]-p0[1],tgt[0]-p0[0])/RAD;pos=[tgt[0]-Math.cos(ang*RAD)*20,tgt[1]-Math.sin(ang*RAD)*20];show=1;}}
   else{const s=(t-g.stabAt)/.25,u=Math.min(1,s),tg=g.stabTo||tgt;pos=[lerp(p0[0],tg[0],u),lerp(p0[1],tg[1],u)];ang=Math.atan2(tg[1]-p0[1],tg[0]-p0[0])/RAD;show=1;}
@@ -791,7 +791,7 @@ function armsGame(el,t,tr,g){
   const pull=reeling?1:ph===1?clamp((g.gauge||0)/100):ph===2?clamp(g.tension||0):.6,sl=Math.max(2,30*(1-pull)-6);
   rope.setAttribute('d','M'+n1(an[0])+','+n1(an[1])+' Q'+n1((an[0]+tail[0])/2)+','+n1((an[1]+tail[1])/2+sl)+' '+n1(tail[0])+','+n1(tail[1]));rope.setAttribute('opacity','.9');}
  else rope.setAttribute('opacity','0');
- if(HL)HL.paintHit(el,{s:g.introAt!=null&&ph<=2?t-g.introAt-.45:g.stabAt!=null?t-g.stabAt-.25:-1,p:tgt,ang:ang,tier:HL.pierce().n,through:90});
+ if(HL)HL.paintHit(el,{s:g.introAt!=null&&ph!==3?t-g.introAt-.45:g.stabAt!=null?t-g.stabAt-.25:-1,p:tgt,ang:ang,tier:HL.pierce().n,through:90});
  // 끊어지는 순간: 섬광 · 피 · 김
  const fl=q('.bw-flash');
  const fk=g.killAt!=null?t-g.killAt:g.stabAt!=null?t-g.stabAt-.25:-1;

@@ -283,6 +283,8 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
   const by=wl+2.5*Math.sin(tr*3.1)+1.4*Math.sin(tr*5.3+1)-bump*5;
   const tw=boatPose(el,bx,by,pitch-bump*7,[38,-27]);
   lamp(el,tr,tw,0);
+  // 단계마다 이어지는 작살: 달아나는 푸른 등에 박혀 밧줄로 끌려감
+  if(g&&g.tether&&window.HarpoonTether){const mk=g.lastMissAt!=null?Math.exp(-(t-g.lastMissAt)*1.4):0;HarpoonTether.paint(el,t,g.tether,tw,[nx,ny-8],{color:'#9fd4ff',sway:.6+mk,water:ny>SEA+30});}
   q('.bw-lampglint').style.opacity='0';{const lr=q('.bw-lampref');if(lr)lr.setAttribute('opacity','0');}
   // 항적
   qa('.bw-wake path').forEach(p=>{const i=+p.dataset.i,x1=bx-40,yy=wl+3+i*2.2,len=120+i*70;
@@ -756,6 +758,7 @@ function evadeGame(el,t,tr,g){
   const roll=B.r-16*(pa!=null?bell(t,pa,pa+.12,pa+.35,pa+.8):0)+j*9;
   const tw=boatPose(el,X0-230*sw-j*5,SEA+B.y,roll,[37,-30]);
   lamp(el,tr,tw,ph==='up'?.15:0);
+  if(g.tether&&window.HarpoonTether)HarpoonTether.paint(el,t,g.tether,tw,[X0+150,SEA+92],{color:'#9fd4ff',water:true,sway:ph==='up'||ph==='dodge'||ph==='pierced'?1.4:.6});
  }
  // 늦게 솟는 물기둥 · 비 · 물결
  const base=ph==='dodge'?g.pressAt+.85:ph==='pierced'?g.failAt+.6:null,s=base!=null?t-base:-1;
@@ -802,7 +805,7 @@ function html(stage,opts){
  const i=Math.max(0,Math.min(4,Math.floor(+stage||0))),S=SCENES[i],game=!!(opts&&opts.game&&GAMECAP[i]);
  const svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" preserveAspectRatio="xMidYMid slice">'+
   '<defs>'+commonDefs()+marlinDefs('bwm')+'</defs>'+
-  S.build()+
+  S.build()+(game&&(i===2||i===3)&&window.HarpoonTether?HarpoonTether.markup():'')+
   '<rect class="bw-veil" width="'+W+'" height="'+H+'" fill="#010306" opacity="1"/></svg>';
  return '<div class="pallid-cine-v2 bw3-scene'+(game?' bwg-on':'')+'" data-stage="'+i+'"'+(game?' data-game="1"':'')+' role="img" aria-label="'+esc(NAME+' · '+(i+1)+'단계 '+S.title)+'">'+svg+
   '<span class="cine-top" aria-hidden="true">'+esc(NAME+' · '+S.title)+'</span>'+

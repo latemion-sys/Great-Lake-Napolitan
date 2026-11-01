@@ -298,7 +298,7 @@ function hookBody(){return '<path d="M0,-14 L0,6" stroke="#2a2a2a" stroke-width=
 function hookBuild(){
  return '<g class="y-sky">'+skyMarkup()+'</g>'+seaMarkup()+debrisMarkup()+boatMarkup()+ventsMarkup()+harpoonMarkup()+
   '<g class="y-shell"><ellipse class="ys-rp" rx="1" ry="1" fill="url(#yRipple)" opacity="0"/><g class="ys-b">'+shellBody()+'</g><rect class="ys-wet" x="-40" y="-40" width="80" height="80" fill="#2a2008" opacity="0"/></g>'+
-  '<path class="yh-rope" fill="none" stroke="#9a8a6a" stroke-width="1.4" opacity="0"/><g class="yh-hook" opacity="0">'+hookBody()+'</g>'+
+  '<path class="yh-rope" fill="none" stroke="#9a8a6a" stroke-width="1.4" opacity="0"/><g class="yh-hook" opacity="0">'+hookBody()+'</g>'+(window.HarpoonTether?HarpoonTether.markup():'')+
   drops('yh-sp',22,77,'#f4e4c0')+'<circle class="yh-aim" r="1" fill="url(#yRing)" opacity="0"/>';
 }
 // 껍데기 위치: 물길을 따라 돌며 가라앉음(depth 0→1)
@@ -312,32 +312,31 @@ function hookGame(el,t,tr,g){
  paintSea(el,t,.25,{debris:.6,under:.6});
  const tw=boatY(el,t,.1,null);
  [0,1,2].forEach(i=>paintVent(el,i,t,{broken:true,brokeAt:-9,rise:.8-.25*inOut(seg(t,0,10))}));
- paintHarpoon(el,t,tw,null);
  let p=shellAt(g,t);
- const caught=g.caught;
- if(caught){const s=clamp((t-caught.at)/1.6),an=tw([44,-30]);p={x:lerp(caught.p[0],an[0],inOut(s)),y:lerp(caught.p[1],an[1]+8,inOut(s))-30*hump(s),d:caught.d*(1-s)};}
+ const caught=g.caught,th=g.throw;
+ // 작살: 장전된 망 감긴 작살을 껍데기가 갈 자리로 발사 → 꽂히면 껍데기째 감아 올림 / 빗나가면 물에서 감아 들여 다시 장전
+ const HT=window.HarpoonTether;let R=null;
+ if(HT){const spec=th?{fireAt:th.at,endAt:caught?caught.at+.15:th.arrive+.3,free:!caught,breakDur:.35,reelDur:caught?1.3:.9}:null;
+  R=HT.paint(el,t,spec,tw,caught?caught.p:th?th.to:null,{color:'#e8c070',water:!caught,sway:.4});}
+ if(caught){const T=HT?HT.times({fireAt:th.at,endAt:caught.at+.15,breakDur:.35,reelDur:1.3}):null,an=tw([44,-30]);
+  if(T&&t>=T.reelEnd)p={x:an[0],y:an[1]+8,d:0,aboard:true};
+  else if(R&&R.pos&&T&&t>=T.reelAt){const ar=R.ang*RAD;p={x:R.pos[0]-Math.cos(ar)*8,y:R.pos[1]-Math.sin(ar)*8+6,d:0};}
+  else p={x:caught.p[0],y:caught.p[1],d:caught.d};}
  const sh=q('.y-shell'),b=q('.ys-b'),wet=q('.ys-wet'),rp=q('.ys-rp');
- if(p){const sc=.7+.5*(p.y-SEA)/150,sub=clamp(p.d*1.15);
+ if(p){const sc=p.aboard?.6:.7+.5*(p.y-SEA)/150,sub=clamp(p.d*1.15);
   b.setAttribute('transform','translate('+n1(p.x)+' '+n1(p.y+sub*10)+') rotate('+n1(Math.sin(t*1.3)*10+(caught?20:0))+') scale('+n3(sc*(1-.3*sub))+')');
   b.setAttribute('opacity',n3(1-.75*sub));
   rp.setAttribute('cx',n1(p.x));rp.setAttribute('cy',n1(p.y+4));const a=(t*.6)%1;rp.setAttribute('rx',n1((30+a*50)*sc));rp.setAttribute('ry',n1((5+a*7)*sc));rp.setAttribute('opacity',n3((1-a)*.7*(caught?0:1)));
   wet.setAttribute('opacity','0');sh.setAttribute('opacity','1');}
  else sh.setAttribute('opacity','0');
- // 갈고리: 던짐 → 물에 떨어짐 / 걸면 감아 올림
- const hk=q('.yh-hook'),rope=q('.yh-rope'),hd=tw([38,-26]);let hp=null;
- const th=g.throw;
- if(caught){hp=[p.x,p.y-10];}
- else if(th&&t<th.arrive+.5){const u=clamp((t-th.at)/(th.arrive-th.at)),e=u;hp=[lerp(hd[0],th.to[0],e),lerp(hd[1],th.to[1],e)-4*60*e*(1-e)];if(t>th.arrive)hp[1]+=(t-th.arrive)*40;}
- if(hp){hk.setAttribute('transform','translate('+n1(hp[0])+' '+n1(hp[1])+') rotate('+n1(caught?0:Math.sin(t*12)*20)+')');hk.setAttribute('opacity','1');
-  rope.setAttribute('d','M'+n1(hd[0])+','+n1(hd[1])+' Q'+n1((hd[0]+hp[0])/2)+','+n1((hd[1]+hp[1])/2+(caught?6:26))+' '+n1(hp[0])+','+n1(hp[1]-14));rope.setAttribute('opacity','.9');}
- else{hk.setAttribute('opacity','0');rope.setAttribute('opacity','0');}
+ q('.yh-hook').setAttribute('opacity','0');q('.yh-rope').setAttribute('opacity','0');
  if(!hookGame._sp)hookGame._sp=dropParams(22,77,-160,-20,60,170);
- paintDrops(el.querySelectorAll('.yh-sp circle'),hookGame._sp,th?th.to[0]:0,th?Math.min(th.to[1],SEA+2):0,th?t-th.arrive:-1,10,380);
+ paintDrops(el.querySelectorAll('.yh-sp circle'),hookGame._sp,th?th.to[0]:0,th?Math.min(th.to[1],SEA+2):0,th&&!caught?t-th.arrive:-1,10,380);
  const aim=q('.yh-aim');
  if(th&&t<th.arrive){aim.setAttribute('cx',n1(th.to[0]));aim.setAttribute('cy',n1(th.to[1]));aim.setAttribute('r',n1(14+10*Math.sin(t*12)));aim.setAttribute('opacity','.8');}else aim.setAttribute('opacity','0');
  const u=hud(el),f=g.flash&&t-g.flash.at<1.1?g.flash:null;
  setVerdict(u.verdict,f?f.text:'',f&&f.good?'good':'bad');
- setTxt(u.hint,g.done||caught?'':'껍데기가 갈 자리를 눌러 갈고리를 던지십시오 · 갈고리는 조금 늦게 떨어집니다');
+ setTxt(u.hint,g.done||caught?'':'껍데기가 갈 자리를 눌러 작살을 쏘십시오 · 작살은 조금 늦게 닿습니다');
  if(u.hint)u.hint.classList.toggle('now',!!(p&&!caught&&!th));
  setTxt(u.count,p&&!caught?'가라앉음 '+Math.round(clamp(p.d)*100)+'%':'');
  hudSuck(u,0);
@@ -369,10 +368,10 @@ const S1=ventDemoScene(1,'첫 번째 열수공',[[0,'열수공이 섬처럼 솟�
 const S2=ventDemoScene(2,'두 번째 열수공',[[0,'남은 열수공이 솟습니다.'],[3,'남은 것이 적을수록 중심부는 짧게 열립니다.']],2,[false,true,false]);
 const S3=ventDemoScene(3,'세 번째 열수공',[[0,'마지막 열수공이 솟습니다.'],[3,'중심부는 아주 잠깐만 열립니다.']],0,[false,true,true]);
 const S4={title:'따개비 껍데기',loop:8,
- caps:[[0,'부서진 열수공의 따개비 껍데기가 물길을 따라 가라앉습니다.'],[3,'갈고리를 던져 껍데기를 건져 올립니다.']],
+ caps:[[0,'부서진 열수공의 따개비 껍데기가 물길을 따라 가라앉습니다.'],[3,'작살을 꽂아 껍데기를 건져 올립니다.']],
  build:hookBuild,
- paint(el,t,tr){const g={shell:{t0:0,dur:9,a0:.5,w:.5,r0:120}};if(t>2.6){const p=shellAt(g,3.15);g.throw={at:2.6,arrive:3.15,to:[p.x,p.y]};}
-  if(t>3.15){const p=shellAt(g,3.15);g.caught={at:3.15,p:[p.x,p.y],d:p.d};g.throw=null;}
+ paint(el,t,tr){const g={shell:{t0:0,dur:9,a0:.5,w:.5,r0:120}};if(t>2.6){const p=shellAt(g,3.05);g.throw={at:2.6,arrive:3.05,to:[p.x,p.y]};}
+  if(t>3.05){const p=shellAt(g,3.05);g.caught={at:3.05,p:[p.x,p.y],d:p.d};}
   hookGame(el,t,tr,g);caption(el,S4.caps,t);veil(el,tr<.6?1-tr/.6:.3*(t<.6?1-t/.6:seg(t,7.4,8)));}};
 // 성공 장면: 삼백 년(한 번 재생)
 const S5={title:'삼백 년',dur:12,

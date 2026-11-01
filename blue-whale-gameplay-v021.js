@@ -62,6 +62,7 @@ function syncGame(){
   for(const k of Object.keys(G))if(k!=='resume')delete G[k];
   G.mode=mode;G.ref=state.battle;G.t0=performance.now();G.done=null;G.text='';
   G.ease=(window.CalamityMang?window.CalamityMang.ease():1);
+  if(mode==='chase'||mode==='evade')G.tether={fireAt:.7,endAt:null};   // 장전된 망 감긴 작살을 먼저 박아 둠
   if(mode==='chase')Object.assign(G,{need:CHASE_NEED,win:CHASE_WIN*G.ease,hits:0,misses:0,dir:null,pauseUntil:1.2,promptAt:null,lastHitAt:null,lastMissAt:null});
   if(mode==='evade')Object.assign(G,{need:EVADE_NEED,ok:0,round:-1,phase:'ready',nextAt:1.0});
   if(mode==='final')Object.assign(G,{phase:'wait',breachAt:1.2+Math.random()*1.4,thrownAt:null,hit:null,timed:false,shatter:false,clash:null,loseAt:null,snapAt:null});
@@ -170,9 +171,10 @@ function finalAutoMiss(t){
 /* ---------- 결과 처리 ---------- */
 function finish(kind,t,delay){
  G.done=kind;G.doneAt=t;busy=true;
+ if(kind==='ok'&&G.tether&&G.tether.endAt==null)G.tether.endAt=t+.2;   // 성공: 박힌 자리가 부서진 뒤 감아 들임
  if(kind==='fail')G.fatal=(G.fails||0)+1>=(window.MinigameStrikes?MinigameStrikes.limit():2)&&!(window.MinigameStrikes&&MinigameStrikes.noDeath());
- const wait={chase:{ok:1.1,fail:1.5},evade:{ok:1.9,fail:2.0},final:{ok:1.35,fail:2.3}}[G.mode][kind];
- const ms=Math.max(0,((delay!=null&&kind==='ok'?t+delay:t+wait)-now())*1000);
+ const wait={chase:{ok:2.4,fail:1.5},evade:{ok:2.4,fail:2.0},final:{ok:1.35,fail:2.3}}[G.mode][kind];
+ const ms=Math.max(0,((delay!=null&&kind==='ok'?t+Math.max(delay,G.tether&&G.mode!=='final'?2.4:0):t+wait)-now())*1000);
  const mode=G.mode;
  G.timer=setTimeout(()=>{G.timer=null;busy=false;resolveMinigame(mode,kind);},ms);
 }

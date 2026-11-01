@@ -120,6 +120,7 @@ function acidHtml(){
    '<path d="M1000,-20 L760,-20 Q800,30 870,46 Q950,64 1000,140 Z" fill="#0f0408"/>'+
    '<path d="M760,-20 Q800,30 870,46 Q950,64 1000,140" fill="none" stroke="#c97c78" stroke-opacity=".16" stroke-width="2"/>'+
   '</g>'+
+  (window.HarpoonTether?HarpoonTether.markup():'')+
   '<rect class="w5-veil" width="'+W+'" height="'+H+'" fill="#020103" opacity="0"/>'+
  '</g></svg>';
  return '<div class="pallid-cine-v2 pallid-cine-v3 w5-acid-scene" role="img" aria-label="'+esc(title[0]+' · '+title[1])+'">'+svg+
@@ -244,6 +245,10 @@ function paint(el,t,hold){
  const hurt=hold?t-GAME.failAt:9;
  if(hurt>=0&&hurt<1.2)rock+=Math.sin(hurt*26)*9*Math.exp(-hurt*3);
  q('.w5-boat').setAttribute('transform','translate('+bx.toFixed(1)+' '+by.toFixed(1)+') rotate('+rock.toFixed(2)+') scale('+BOAT_S+')');
+ // 단계마다 이어지는 작살: 통로의 살 주름에 박아 두고 밧줄을 당기며 건넘 → 통로가 찢겨 열리면 감아 들임
+ if(hold&&window.HarpoonTether){const rr=rock*Math.PI/180,tw=p=>[bx+BOAT_S*(p[0]*Math.cos(rr)-p[1]*Math.sin(rr)),by+BOAT_S*(p[0]*Math.sin(rr)+p[1]*Math.cos(rr))];
+  const spec={fireAt:.7,endAt:GAME.doneAt!=null?GAME.doneAt+.5:null};
+  HarpoonTether.paint(el,t,spec,tw,[800,300],{color:'#e8a8a0',sway:.5+(hurt>=0&&hurt<1.2?1.2*Math.exp(-hurt*2):0)});}
  const lampK=0.86+Math.sin(t*7.3)*.05+Math.sin(t*12.9+1.7)*.04;
  const lg=q('.w3-lampglow');if(lg)lg.style.opacity=lampK.toFixed(3);
  const lr=q('.w5-lampref');lr.setAttribute('cx',(bx+BOAT_S*51).toFixed(1));lr.setAttribute('cy',(surfaceY(bx+64,t,base,rough)+6).toFixed(1));lr.style.opacity=(0.55*lampK).toFixed(3);
