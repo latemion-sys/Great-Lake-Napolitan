@@ -145,7 +145,7 @@ function aimArm(o,target,k){
  o.a+=d*(k==null?1:k);return o;
 }
 /* 팔 자세: 땅속 뿌리에서 솟아(rise 0~1) 대상 쪽으로 뻗음 */
-const ARM_K=1.25;
+const ARM_K=1.35;
 function armPose(base,rise,o){
  const up=inOut(rise);
  const K=ARM_K;   // 재앙 고래: 팔을 더 길고 굵게
@@ -725,7 +725,9 @@ function armsBuild(){
   '<path d="M-17,-9 A19,19 0 0 1 4,-19" fill="none" stroke="#ffe6dc" stroke-opacity=".55" stroke-width="2.6" stroke-linecap="round"/>'+
   '<ellipse cx="-7" cy="-13" rx="4" ry="1.8" fill="#fff4ee" opacity=".6" transform="rotate(-25 -7 -13)"/>';
  let suck='';for(let i=0;i<8;i++)suck+='<g class="xs" data-i="'+i+'" opacity="0"><circle class="xs-l" r="50" fill="url(#rxSuckL)" opacity="0"/>'+cup+'<circle class="xs-ok" r="36" fill="url(#rxOk)" opacity="0"/></g>';
- let cr='';for(let i=0;i<3;i++)cr+='<g class="xc" data-i="'+i+'" opacity="0"><path class="xc-base" fill="#1a0206" stroke="#ff8a5a" stroke-opacity=".55" stroke-width="1"/><path class="xc-hot" fill="url(#rxCrack)"/><circle class="xc-start" r="16" fill="url(#rxSuckL)"/><circle class="xc-end" r="9" fill="none" stroke="#ffe2c8" stroke-width="2"/></g>';
+ let cr='';for(let i=0;i<3;i++){let gd='';for(let k=0;k<6;k++)gd+='<path class="xc-gd" data-k="'+k+'" d="M-9,-11 Q2,0 -9,11 Q-1,0 -9,-11 Z M1,-11 Q12,0 1,11 Q9,0 1,-11 Z" fill="#fff1d8" opacity="0"/>';
+  cr+='<g class="xc" data-i="'+i+'" opacity="0"><path class="xc-glow" fill="url(#rxSuckL)" opacity=".5"/><path class="xc-base" fill="#14010a" stroke="#ff9a6a" stroke-opacity=".75" stroke-width="2"/><path class="xc-hot" fill="url(#rxCrack)"/>'+gd+
+   '<circle class="xc-start" r="16" fill="url(#rxSuckL)"/><circle class="xc-ring" r="20" fill="none" stroke="#fff1d8" stroke-width="2.4" stroke-dasharray="6 5"/><path class="xc-end" d="M-12,-14 L10,0 L-12,14 L-6,0 Z" fill="#ffe2c8"/></g>';}
  return '<defs>'+armsDefs()+'</defs>'+scenery()+bed()+steam(14)+
   '<g class="xb-g">'+back+'</g>'+rwBoat()+
   '<path class="bw-rope" fill="none" stroke="#8a7d7a" stroke-opacity=".75" stroke-width="1.6" opacity="0"/>'+
@@ -820,7 +822,7 @@ function armsGame(el,t,tr,g){
  // ③ 방향
  const xd=q('.xd');
  if(ph===3&&g.dirNow&&A&&A.hand){const D=g.dirNow,vis=D.u>0?1:0;xd.setAttribute('opacity',String(vis));
-  const ang2=Math.atan2(D.vec[1],D.vec[0])/RAD;xd.setAttribute('transform','translate('+n1(A.hand[0]+D.vec[0]*70)+' '+n1(A.hand[1]+D.vec[1]*60)+') rotate('+n1(ang2)+') scale(.8)');
+  const ang2=Math.atan2(D.vec[1],D.vec[0])/RAD;const hx=clamp((A.hand[0]+D.vec[0]*120)/W)*W,hy=Math.max(120,Math.min(SEA+60,A.hand[1]+D.vec[1]*100));xd.setAttribute('transform','translate('+n1(Math.max(110,Math.min(W-110,hx)))+' '+n1(hy)+') rotate('+n1(ang2)+') scale(1.75)');
   q('.xd-real').setAttribute('opacity',D.fake?'0':'.9');q('.xd-fake').setAttribute('opacity',D.fake?'.75':'0');}
  else xd.setAttribute('opacity','0');
  // ④ 빨판
@@ -837,16 +839,26 @@ function armsGame(el,t,tr,g){
   const show2=S.showAt!=null?(()=>{const k=S.order.indexOf(i),a=S.showAt+k*.8;return bell(t,a,a+.1,a+.5,a+.7);})():0;
   e.querySelector('.xs-l').setAttribute('opacity',n3(show2));
   e.querySelector('.xs-ok').setAttribute('opacity',S.done&&S.done.includes(i)?'1':'0');});
- // ④ 균열
+ // ④ 균열: 배를 조이는 팔 위에 크게 갈라진 두 줄 — 빛나는 시작점에서 화살표를 따라 끝까지 끌기
  const C=g.crack;
- qa('.xc').forEach(e=>{const i=+e.dataset.i,pts=CRACKS3[i];
-  if(i>=2){e.setAttribute('opacity','0');return;}
-  if(ph!==4||g.arm!==1||!C||dead>0||i<C.idx){e.setAttribute('opacity',ph===4&&g.arm===1&&C&&i<C.idx&&dead<1?'.55':'0');if(i<C?.idx)e.querySelector('.xc-hot').setAttribute('d',ribbonD(pts,7));return;}
-  e.setAttribute('opacity',i===C.idx?'1':'.25');
-  e.querySelector('.xc-base').setAttribute('d',ribbonD(pts,u=>4+5*Math.sin(u*Math.PI)));
-  const pr=i===C.idx?C.prog||0:0;e.querySelector('.xc-hot').setAttribute('d',pr>0?ribbonD(partial(pts,pr),u=>3+4*Math.sin(u*Math.PI)):'M0,0');
-  const st=e.querySelector('.xc-start'),en=e.querySelector('.xc-end');st.setAttribute('cx',pts[0][0]);st.setAttribute('cy',pts[0][1]);st.setAttribute('r',n1(14+3*Math.sin(tr*6)));
-  en.setAttribute('cx',pts[pts.length-1][0]);en.setAttribute('cy',pts[pts.length-1][1]);});
+ if(ph===4&&g.arm===1&&A&&A.spine&&A.spine.length){const n=A.spine.length,mk=(f0,f1,sg)=>{const out=[];for(let k=0;k<6;k++){const f=f0+(f1-f0)*k/5,ix=Math.min(n-2,Math.floor(n*f)),p=A.spine[ix],q2=A.spine[ix+1],dx=q2[0]-p[0],dy=q2[1]-p[1],l=Math.hypot(dx,dy)||1,w=((A.widths&&A.widths[ix])||50)*(.16+.08*(k%2))*(k%2?1:-1)*sg;out.push([p[0]-dy/l*w,p[1]+dx/l*w]);}return out;};
+  g.crackPts=[mk(.16,.46,1),mk(.5,.82,-1)];}
+ const CR=g.crackPts||CRACKS3;
+ qa('.xc').forEach(e=>{const i=+e.dataset.i,pts=CR[i];
+  if(i>=2||!pts){e.setAttribute('opacity','0');return;}
+  if(ph!==4||g.arm!==1||!C||dead>0||i<C.idx){e.setAttribute('opacity',ph===4&&g.arm===1&&C&&i<C.idx&&dead<1?'.55':'0');if(i<C?.idx)e.querySelector('.xc-hot').setAttribute('d',ribbonD(pts,11));return;}
+  const cur=i===C.idx;e.setAttribute('opacity',cur?'1':'.3');
+  e.querySelector('.xc-glow').setAttribute('d',ribbonD(pts,u=>16+10*Math.sin(u*Math.PI)));
+  e.querySelector('.xc-base').setAttribute('d',ribbonD(pts,u=>8+9*Math.sin(u*Math.PI)));
+  const pr=cur?C.prog||0:0;e.querySelector('.xc-hot').setAttribute('d',pr>0?ribbonD(partial(pts,pr),u=>6+7*Math.sin(u*Math.PI)):'M0,0');
+  // 끌어야 할 방향: 균열을 따라 흘러가는 꺾쇠
+  e.querySelectorAll('.xc-gd').forEach(gd=>{const k=+gd.dataset.k,f=((tr*.45+k/6)%1);if(!cur||f<pr){gd.setAttribute('opacity','0');return;}
+   const p1=partial(pts,f),q1=p1[p1.length-1],p2=partial(pts,Math.min(1,f+.02)),q2=p2[p2.length-1],a=Math.atan2(q2[1]-q1[1],q2[0]-q1[0])/RAD;
+   gd.setAttribute('transform','translate('+n1(q1[0])+' '+n1(q1[1])+') rotate('+n1(a)+') scale(.9)');gd.setAttribute('opacity',n3(.85*Math.sin(f*Math.PI)));});
+  const st=e.querySelector('.xc-start'),rg=e.querySelector('.xc-ring'),en=e.querySelector('.xc-end'),z=pts[pts.length-1],y=pts[pts.length-2];
+  st.setAttribute('cx',n1(pts[0][0]));st.setAttribute('cy',n1(pts[0][1]));st.setAttribute('r',n1(20+5*Math.sin(tr*6)));
+  rg.setAttribute('cx',n1(pts[0][0]));rg.setAttribute('cy',n1(pts[0][1]));rg.setAttribute('r',n1(22+6*((tr*1.5)%1)));rg.setAttribute('opacity',n3(cur&&!(C.drag)?1-((tr*1.5)%1)*.7:0));
+  en.setAttribute('transform','translate('+n1(z[0])+' '+n1(z[1])+') rotate('+n1(Math.atan2(z[1]-y[1],z[0]-y[0])/RAD)+')');});
  hudArms(el,t,g,heat,ph);
  veil(el,t<.5?1-t/.5:0);
 }

@@ -167,7 +167,7 @@ const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const outC=x=>1-Math.pow(1-clamp(x),3);
 const inOut=x=>{x=clamp(x);return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;};
 function apply(m,p){return [m[0]*p[0]+m[2]*p[1]+m[4],m[1]*p[0]+m[3]*p[1]+m[5]];}
-const WHALE_K=1.22;
+const WHALE_K=1.34;
 function whaleMatrix(dx,dy,deg){
  const r=deg*Math.PI/180,c=Math.cos(r),s=Math.sin(r),[px,py]=PIVOT,K=WHALE_K;
  // translate(dx,dy) · rotate(deg, px, py) · scale(K, px, py) — 재앙 고래라 몸을 더 크게

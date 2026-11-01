@@ -50,7 +50,7 @@ function doRow(){
    setText('통과 · 위액이 다시 차오르기 전에 통로에 닿았습니다.');
    const btn=document.getElementById('pallidRowBtn');if(btn)btn.disabled=true;
    busy=true;
-   timer=setTimeout(()=>{timer=null;busy=false;GAME.active=false;pallidAction161('pallidAcidWait161');},2900);   // 통로가 찢겨 열린 뒤 작살을 감아 들일 때까지
+   timer=setTimeout(()=>{timer=null;busy=false;GAME.active=false;pallidAction161('pallidAcidWait161');},1500);
   }else setText('전진 · 위액이 빠진 틈에 노를 저어 나아갔습니다. ('+GAME.steps+'/3)');
   return;
  }

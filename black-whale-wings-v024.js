@@ -15,7 +15,8 @@
 'use strict';
 const BLACK=3,SEA=336;
 const labels=['별이 꺼지는 수평선','유인','관측','고정','접지 못한 날개'];
-const LURE={tries:3,v:92,near:46,far:330,tol:32,fly:.7};
+const LURE={tries:5,need:2,v:72,near:30,far:430,tol:58,fly:.7};   // 너그러운 길목 · 두 번 펼치게 해야 통과
+const WATCH_NEED=2;
 const WATCH={early:.3,late:2.6};
 const FIX={win:.2,lead:1.7,gapMin:.35,gapRand:.8};
 const STRIKE={win:.24,period:2.8,fly:.55};
@@ -43,8 +44,8 @@ function syncGame(){
   Object.assign(G,{mode,ref:state.battle,t0:performance.now(),done:null,text:'',ease:EASE(),fails:0});
   if(mode==='lure'){Object.assign(G,{tries:LURE.tries,used:0});newWhale(.6);}
   if(mode==='watch'){G.marks={};G.ok={};newRound(.2);G.tether={fireAt:.7,endAt:null};}
-  if(mode==='fork'){const w=state.blackWings024||{L:3,R:6};G.sideBuoy={L:w.L,R:w.R};G.win=FIX.win*G.ease;newFix(.2);G.tether={fireAt:.6,endAt:null};}
-  if(mode==='strike'){const w=state.blackWings024||{L:1,R:6};G.sideBuoy={L:w.L,R:w.R};G.win=STRIKE.win*G.ease;G.meetAt=2.4;G.shot=null;}
+  if(mode==='fork'){const w=state.blackWings024||{L:1,R:4};G.sideBuoy={L:w.L,R:w.R};G.win=FIX.win*G.ease;newFix(.2);G.tether={fireAt:.6,endAt:null};}
+  if(mode==='strike'){const w=state.blackWings024||{L:1,R:4};G.sideBuoy={L:w.L,R:w.R};G.win=STRIKE.win*G.ease;G.meetAt=2.4;G.shot=null;}
  }
  if(!mode&&G.mode&&!G.timer){G.mode=null;G.ref=null;}
 }
@@ -93,8 +94,12 @@ function lureJudge(t){
  if(laneOK&&ahead>=near&&ahead<=LURE.far){
   const ta=D.land+Math.max(.2,(ahead-34*wp.sc)/W.v);W.stopAt=ta;W.spreadAt=ta;G.locked=true;
   setText('고래가 작은 불빛을 알아챘습니다 · 다가갑니다.');
-  setTimeout(()=>{if(G.mode!=='lure'||G.done)return;flash('날개를 펼침',true);if(G.tether)G.tether.endAt=now()+1.5;setText('그것이 작은 것을 감싸 안으려 날개를 펼쳤습니다 · 이제 날개는 물밑으로 뻗어 있습니다.');
-   log('검은 고래가 작은 등불 뗏목을 감싸려 날개를 펼쳤습니다.');finish(3.8);},Math.max(0,ta-now())*1000);
+  setTimeout(()=>{if(G.mode!=='lure'||G.done)return;flash('날개를 펼침',true);if(G.tether)G.tether.endAt=now()+1.5;G.tether&&(G.tether.free=(G.lured||0)+1<LURE.need);setText('그것이 작은 것을 감싸 안으려 날개를 펼쳤습니다 · 이제 날개는 물밑으로 뻗어 있습니다.');
+   log('검은 고래가 작은 등불 뗏목을 감싸려 날개를 펼쳤습니다.');
+   G.lured=(G.lured||0)+1;
+   if(G.lured>=LURE.need){finish(3.8);return;}
+   setText('날개를 한 번 펼쳤습니다 ('+G.lured+' / '+LURE.need+') · 그것이 뗏목을 감싼 채 물러납니다. 한 번 더 유인하십시오.');
+   setTimeout(()=>{if(G.mode==='lure'&&!G.done){G.used=Math.max(0,G.used-1);newWhale(.6);}},3600);},Math.max(0,ta-now())*1000);
   return;
  }
  if(laneOK&&ahead>=0&&ahead<near){W.diveAt=D.land;lureFail(D.land,'놀람','너무 가까이 던졌습니다 · 고래가 놀라 물밑으로 자리를 옮깁니다');return;}
@@ -125,10 +130,10 @@ function lureTick(t){
 /* ---------- ③ 관측 ---------- */
 function newRound(delay){
  const v=V(),B=v.BUOYS,t=now()+delay,start={L:[468,SEA+70],R:[492,SEA+70]};
- const tgt={L:Math.floor(Math.random()*4),R:4+Math.floor(Math.random()*4)};
+ const tgt={L:Math.floor(Math.random()*3),R:3+Math.floor(Math.random()*3)};
  const paths={},arrive={};
  ['L','R'].forEach(side=>{
-  const i=tgt[side],mid=[0,1,2,3].map(k=>side==='L'?k:k+4).filter(k=>k!==i&&(side==='L'?B[k][0]>B[i][0]:B[k][0]<B[i][0]));
+  const i=tgt[side],mid=[0,1,2].map(k=>side==='L'?k:k+3).filter(k=>k!==i&&(side==='L'?B[k][0]>B[i][0]:B[k][0]<B[i][0]));
   const pick=mid.sort(()=>Math.random()-.5).slice(0,Math.min(mid.length,1+Math.floor(Math.random()*2))).sort((a,b)=>side==='L'?B[b][0]-B[a][0]:B[a][0]-B[b][0]);
   const pts=[start[side]],ts=[t+(side==='L'?1:1)+rnd(0,.5)+(side==='R'?rnd(.3,1.4):0)];
   pick.concat([i]).forEach((k,j)=>{pts.push([B[k][0]+rnd(-5,5),B[k][1]+rnd(-3,3)]);ts.push(ts[ts.length-1]+rnd(1.05,1.45));});
@@ -142,10 +147,12 @@ function watchTap(x,y){
  const v=V(),t=now();let best=-1,bd=1e9;
  v.BUOYS.forEach((b,i)=>{const sc=v.PS(b[1])*1.5,d=Math.hypot(b[0]-x,(b[1]-24*sc)-y)/sc;if(d<bd){bd=d;best=i;}});
  if(best<0||bd>58*G.ease)return;
- const side=best<4?'L':'R';if(G.ok[side])return;
+ const side=best<3?'L':'R';if(G.ok[side])return;
  if(best===G.target[side]&&t>=G.arrive[side]-WATCH.early){
   G.ok[side]=true;G.marks[best]={};flash('날개 끝',true);
-  if(G.ok.L&&G.ok.R){G.locked=true;state.blackWings024={L:G.target.L,R:G.target.R};
+  if(G.ok.L&&G.ok.R){G.locked=true;G.wins=(G.wins||0)+1;
+   if(G.wins<WATCH_NEED){setText('양쪽 날개 끝을 짚었습니다 ('+G.wins+' / '+WATCH_NEED+') · 날개가 다시 움직입니다. 한 번 더 읽으십시오.');setTimeout(()=>{if(G.mode==='watch'&&!G.done)newRound(.4);},1700);return;}
+   state.blackWings024={L:G.target.L,R:G.target.R};
    setText('양쪽 날개 끝을 모두 짚었습니다 · 그 부표에 공명 굽쇠를 매답니다.');log('검은 고래의 두 날개 끝 자리를 부표로 짚었습니다.');if(G.tether)G.tether.endAt=now()+.3;finish(2.5);}
   else setText((side==='L'?'왼쪽':'오른쪽')+' 날개 끝을 짚었습니다 · 반대쪽을 읽으십시오.');
   return;
@@ -249,11 +256,11 @@ function panel(no,title,desc,small,body){
 function gamePanel(mode){
  if(mode==='lure')return panel(2,'유인',
   '그것은 온순합니다. 작은 것을 보면 날개로 감싸 보호합니다. 감싸인 것들은 인어가 됩니다. 몸 전체가 어둠에 덮여 보이지 않고, 지나가는 자리의 별빛과 물빛이 지워질 뿐입니다. 고래가 지나가는 길목에 작은 등불 뗏목을 던져 날개를 펼치게 하십시오.',
-  '이펙트 화면의 물 위를 눌러 미끼 던지기 · 고래가 가는 방향 앞, 같은 줄(깊이)에 · 너무 가까우면 놀라고, 길목을 벗어나거나 지나간 자리면 알아채지 못함 → 고래가 자리를 옮김 · 미끼 '+LURE.tries+'개',
+  '고래 앞에 따스하게 빛나는 길목(점선 고리)을 누르면 등불 뗏목이 떨어짐 · 두 번 날개를 펼치게 하면 통과 · 너무 가깝거나 길목을 벗어나면 고래가 자리를 옮김 · 미끼 '+LURE.tries+'개',
   '');
  if(mode==='watch')return panel(3,'관측',
   '날개가 물밑으로 뻗어 있습니다. 보이지 않는 날개 끝이 지나가면 부표가 그쪽으로 끌려 기울고 잠깁니다. 날개 끝이 멈춘 자리의 부표는 잠긴 채 천천히 흔들립니다. 양쪽 날개 끝이 멈춘 부표를 하나씩 짚으십시오.',
-  '이펙트 화면에서 부표 누르기 · 왼쪽 날개는 왼쪽 부표 넷 중 하나, 오른쪽 날개는 오른쪽 부표 넷 중 하나 · 지나가며 흔든 부표나 너무 이른 · 늦은 짚기는 날개 위치 오판',
+  '이펙트 화면에서 부표 누르기 · 왼쪽 날개는 왼쪽 부표 셋 중 하나, 오른쪽 날개는 오른쪽 부표 셋 중 하나 · 두 번 읽으면 통과 · 지나가며 흔든 부표나 너무 이른 · 늦은 짚기는 날개 위치 오판',
   '');
  if(mode==='fork')return panel(4,'고정',
   '짚어 둔 두 부표에 공명 굽쇠를 매달았습니다. 날개가 물 위로 솟아 다 펼쳐지는 순간 굽쇠를 울리면, 울림이 날개 끝을 묶어 날개를 접지 못하게 합니다. 한쪽만 묶이면 풀린 날개가 배를 감싸 안습니다.',

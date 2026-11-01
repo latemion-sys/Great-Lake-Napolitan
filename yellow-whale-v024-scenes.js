@@ -12,7 +12,7 @@ const {W,H,SEA,clamp,outC,inC,inOut,seg,lerp,n1,n3,TAU,RAD,seeded,esc,commonDefs
 const NAME='모든 것을 가라앉히는 노란 고래';
 const HL=()=>window.HarpoonLauncher;
 const hump=x=>Math.sin(Math.PI*clamp(x));
-const VENTS=[{x:566,y:SEA+10,s:.78},{x:340,y:SEA+96,s:1.22},{x:790,y:SEA+82,s:1.14}];   // 재앙 고래: 열수공을 크게
+const VENTS=[{x:566,y:SEA+12,s:.9},{x:340,y:SEA+98,s:1.36},{x:792,y:SEA+86,s:1.28}];   // 재앙 고래: 열수공을 크게
 const C=[(VENTS[0].x+VENTS[1].x+VENTS[2].x)/3,(VENTS[0].y+VENTS[1].y+VENTS[2].y)/3];   // 삼각형 한가운데
 const BOATX=140;
 

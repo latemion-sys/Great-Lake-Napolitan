@@ -16,7 +16,7 @@
 (function(){
 'use strict';
 if(typeof renderPlay!=='function'||typeof huntWhale!=='function'||typeof renderShop132!=='function'||typeof beginBattle!=='function')return;
-const WHALES_OK=new Set([0,1,2,3]);   // 창백한 · 푸른 · 붉은 · 검은
+const WHALES_OK=new Set([0,1,2,3,4]);   // 창백한 · 푸른 · 붉은 · 검은 · 노란
 const HARPOON={name:'재앙 사냥용 특수 작살',cost:300,grade:5};
 const RING_COST=[0,5,10,25,40,50];   // 두른 망 개수별 선장 정신력
 const SHIN_TRY={cost:5,p:.6};

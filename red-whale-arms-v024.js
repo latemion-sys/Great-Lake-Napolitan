@@ -16,7 +16,7 @@ const labels=['내려가는 물','작살과 연타','힘겨루기','피하는 �
 const MASH=[{add:9,decay:16,limit:5},{add:6.5,decay:22,limit:6}];
 const PULL={limit:13,zone:[[.55,.2],[.52,.2]]};
 const DIR={need:4,win:1.5,gapMin:.7,gapRand:.6,feint:.42};
-const SUCKN=4,SHOW=4,RECALL=16,CRACKN=2,CRACK={tol:38,limit:10};
+const SUCKN=4,SHOW=4,RECALL=16,CRACKN=2,CRACK={tol:52,limit:12};
 const VEC={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]},OPP={up:'down',down:'up',left:'right',right:'left'},KEYDIR={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',KeyW:'up',KeyS:'down',KeyA:'left',KeyD:'right'};
 const G=window.RedHuntGame=window.RedHuntGame||{mode:null};
 const EASE=()=>(window.CalamityMang?window.CalamityMang.ease():1);
@@ -48,9 +48,10 @@ function startArm(ix,delay){
  const t=now()+delay,ph=+G.mode.slice(1);
  Object.assign(G,{arm:ix,armStart:t,killAt:null,reelAt:null,reelDur:1.05,flash:null,failAt:null,hintNow:false,introAt:null,
   gauge:null,deadline:null,tension:0,zone:null,joltAt:null,pulling:false,dirNow:null,rounds:0,stabAt:null,suck:null,crack:null,phaseState:'intro'});
- if(ph===1||ph===2){G.introAt=t+.9;G.hint='작살이 팔을 꿰뚫습니다';G.cap=ph===1?'작살이 박힌 팔이 밧줄을 끌어당깁니다. 연타해서 끊어 내십시오.':'작살이 박힌 팔과 힘겨루기를 합니다. 알맞은 힘에서 손을 떼면 팔이 찢어집니다.';}
+ if(ph===1||ph===2){G.introAt=t+1.25;   // 팔이 다 솟은 뒤에 쏨
+ G.hint='작살이 팔을 꿰뚫습니다';G.cap=ph===1?'작살이 박힌 팔이 밧줄을 끌어당깁니다. 연타해서 끊어 내십시오.':'작살이 박힌 팔과 힘겨루기를 합니다. 알맞은 힘에서 손을 떼면 팔이 찢어집니다.';}
  if(ph===3){G.hint='작살을 겨눕니다 · 팔이 피하려 합니다';G.cap='작살을 맞추려는 순간 팔이 피합니다. 팔이 움직이는 반대쪽으로 겨누십시오.';}
- if(ph===4){G.introAt=t+.3;G.hint=ix===0?'작살이 배에 달라붙은 팔을 꿰뚫습니다':'작살이 팔을 꿰뚫습니다 · 팔에 균열이 갑니다';G.cap=ix===0?'작살을 맞추기도 전에 팔이 배에 달라붙습니다. 빨판이 붙는 순서를 기억하십시오.':'팔이 배를 조입니다. 균열을 따라 찢어 내십시오.';}
+ if(ph===4){G.introAt=t+1.25;G.hint=ix===0?'작살이 배에 달라붙은 팔을 꿰뚫습니다':'작살이 팔을 꿰뚫습니다 · 팔에 균열이 갑니다';G.cap=ix===0?'작살을 맞추기도 전에 팔이 배에 달라붙습니다. 빨판이 붙는 순서를 기억하십시오.':'팔이 배를 조입니다. 균열을 따라 찢어 내십시오.';}
  G.at=t;
 }
 function setText(t){G.text=t;const e=document.getElementById('rwgText');if(e)e.textContent=t;}
@@ -133,13 +134,13 @@ function suckClick(x,y){
 }
 function crackDown(x,y){
  const C=G.crack;if(G.mode!=='p4'||G.arm!==1||!C||G.done||G.locked)return;
- const pts=window.RedWhaleV3.CRACKS3[C.idx];
+ const pts=(G.crackPts||window.RedWhaleV3.CRACKS3)[C.idx];
  if(Math.hypot(pts[0][0]-x,pts[0][1]-y)<=CRACK.tol*1.3*(G.ease||1)){C.drag=true;C.prog=0;}
 }
 function distToSeg(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy||1;let u=((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l;u=Math.max(0,Math.min(1,u));return [Math.hypot(p[0]-a[0]-u*dx,p[1]-a[1]-u*dy),u];}
 function crackMove(x,y){
  const C=G.crack;if(!C||!C.drag)return;
- const pts=window.RedWhaleV3.CRACKS3[C.idx];let best=1e9,along=0,total=0;const lens=[];
+ const pts=(G.crackPts||window.RedWhaleV3.CRACKS3)[C.idx];let best=1e9,along=0,total=0;const lens=[];
  for(let i=1;i<pts.length;i++){lens.push(Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));total+=lens[i-1];}
  let acc=0;for(let i=1;i<pts.length;i++){const [d,u]=distToSeg([x,y],pts[i-1],pts[i]);if(d<best){best=d;along=(acc+u*lens[i-1])/total;}acc+=lens[i-1];}
  if(best>CRACK.tol*(G.ease||1)){C.drag=false;C.prog=0;flash('벗어남',false);setText('균열에서 벗어났습니다 · 시작점부터 다시 끄십시오.');return;}
@@ -154,7 +155,7 @@ function crackUp(){const C=G.crack;if(C&&C.drag){C.drag=false;if(C.prog<.97){C.p
 function tickGame(t,dt){
  const ph=+G.mode.slice(1);
  if(G.killAt!=null||G.failing)return;
- if(G.phaseState==='intro'&&t>=G.at+(ph<=2?1.45:ph===3?1.0:.9)){
+ if(G.phaseState==='intro'&&t>=G.at+(ph===3?1.0:1.8)){
   G.phaseState='play';
   if(ph===1){const m=MASH[G.arm];G.gauge=12;G.limit=m.limit*(G.ease||1);G.deadline=t+G.limit;G.hint='연타! · 스페이스 / 화면 아무 곳이나';G.hintNow=true;}
   if(ph===2){G.zone=PULL.zone[G.arm].slice();G.deadline=t+PULL.limit*(G.ease||1);G.zone[1]*=Math.min(1.4,G.ease||1);G.hint='누른 채 아래로 끌어 당기기 · 노란 구간에서 손을 떼기';G.hintNow=true;G.joltNext=t+rnd(1.2,2);}
