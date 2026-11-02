@@ -105,3 +105,60 @@
 .hv-actions button.yield{border-color:#3e3530;color:#d8c4b0;background:#110f0d}
 .hv-lines p.now{font-size:clamp(14px,2.1vw,17px);margin:5px 0;line-height:1.7}
 .hv-ov.hv-chain{animation:none}
+
+/* ---------- 연출 FX ---------- */
+.hv-fxc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hv-fxc.back{z-index:0}.hv-fxc.front{z-index:2}
+.hv-svg{z-index:1}.hv-title,.hv-center{z-index:3}
+.hv-red{z-index:0}
+@keyframes hv-shake-k{0%,100%{transform:translate(0,0)}15%{transform:translate(-7px,4px)}30%{transform:translate(6px,-5px)}45%{transform:translate(-5px,-3px)}60%{transform:translate(4px,5px)}75%{transform:translate(-3px,2px)}90%{transform:translate(2px,-1px)}}
+@keyframes hv-shake-h{0%,100%{transform:translate(0,0) rotate(0)}10%{transform:translate(-14px,6px) rotate(-.6deg)}25%{transform:translate(12px,-9px) rotate(.5deg)}40%{transform:translate(-9px,-6px)}55%{transform:translate(8px,8px) rotate(-.3deg)}70%{transform:translate(-5px,3px)}85%{transform:translate(3px,-2px)}}
+@keyframes hv-thump-k{0%,100%{transform:scale(1)}25%{transform:scale(1.012)}50%{transform:scale(.996)}}
+.hv-ov.hv-shake{animation:hv-shake-k .6s linear}
+.hv-ov.hv-shake-hard{animation:hv-shake-h .7s linear}
+.hv-ov.hv-thump{animation:hv-thump-k .38s ease-out}
+.hv-flashscr{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(255,252,238,.95) 0%,rgba(255,226,170,.55) 26%,rgba(255,190,110,.12) 55%,rgba(255,190,110,0) 75%)}
+.hv-shatter .hv-flashscr{animation:hv-fl 1s ease-out forwards}
+@keyframes hv-fl{0%{opacity:0}8%{opacity:1}100%{opacity:0}}
+.hv-flashscr.red{background:radial-gradient(circle at 62% 36%,rgba(255,60,70,.6) 0%,rgba(140,0,20,.4) 35%,rgba(0,0,0,0) 75%)}
+.hv-cracked .hv-flashscr.red{animation:hv-fl .8s ease-out forwards}
+.hv-flashscr.warm{background:radial-gradient(circle at 50% 48%,rgba(255,226,150,.5) 0%,rgba(255,170,60,.18) 35%,rgba(0,0,0,0) 70%)}
+.hv-beat-fl .hv-flashscr.warm{animation:hv-fl .5s ease-out}
+.hv-shock{position:absolute;left:50%;top:50%;width:0;height:0;border-radius:50%;border:2px solid rgba(255,232,176,.95);transform:translate(-50%,-50%);opacity:0;pointer-events:none;z-index:2;
+ box-shadow:0 0 24px rgba(255,200,120,.55),inset 0 0 14px rgba(255,210,140,.45)}
+.hv-shock.c2{border-color:rgba(120,220,255,.45);border-width:1px;box-shadow:none}
+.hv-shock.c3{border-color:rgba(255,80,90,.4);border-width:1px;box-shadow:none}
+.hv-shatter .hv-shock{animation:hv-shock 1.2s cubic-bezier(.1,.7,.3,1) forwards}
+.hv-shatter .hv-shock.c2{animation-delay:.05s}.hv-shatter .hv-shock.c3{animation-delay:.1s}
+@keyframes hv-shock{0%{opacity:1;width:0;height:0}100%{opacity:0;width:170vmax;height:170vmax}}
+.hv-shatter .hv-svg{animation:hv-push 1.6s cubic-bezier(.2,.8,.3,1)}
+@keyframes hv-push{0%{transform:translate(-50%,-50%) scale(1)}12%{transform:translate(-50%,-50%) scale(1.09)}100%{transform:translate(-50%,-50%) scale(1)}}
+.hv-pillar{position:absolute;left:50%;top:-12%;height:62%;width:min(28vw,170px);transform:translateX(-50%) scaleX(0);opacity:0;pointer-events:none;z-index:0;filter:blur(12px);mix-blend-mode:screen;
+ background:linear-gradient(to bottom,rgba(255,240,205,0) 0%,rgba(255,232,180,.28) 55%,rgba(255,214,140,.55) 100%)}
+.hv-shatter .hv-pillar{animation:hv-pillar 4s ease-out .35s forwards}
+@keyframes hv-pillar{0%{opacity:0;transform:translateX(-50%) scaleX(0)}25%{opacity:1;transform:translateX(-50%) scaleX(1)}100%{opacity:.55;transform:translateX(-50%) scaleX(.8)}}
+.hv-pillar.gold{top:-10%;height:105%;background:linear-gradient(to bottom,rgba(255,220,150,0) 0%,rgba(255,206,110,.22) 45%,rgba(255,180,70,.42) 85%,rgba(255,200,110,0) 100%)}
+.hv-ignite .hv-pillar.gold{animation:hv-pillar 4.5s ease-out forwards}
+/* E.G.O 글자: 색이 갈라지며 새겨짐 */
+.hv-bloom .hv-big{animation:hv-glitch .8s steps(8) 3.7s both}
+@keyframes hv-glitch{0%{opacity:0;text-shadow:-8px 0 rgba(255,40,60,.8),8px 0 rgba(0,220,255,.8);transform:translateX(6px)}30%{opacity:1;text-shadow:5px 0 rgba(255,40,60,.7),-5px 0 rgba(0,220,255,.7);transform:translateX(-4px)}60%{text-shadow:-2px 0 rgba(255,40,60,.5),2px 0 rgba(0,220,255,.5);transform:translateX(2px)}100%{opacity:1;transform:none;text-shadow:0 0 14px rgba(255,214,140,.7),0 0 40px rgba(255,170,70,.35)}}
+/* 뒤틀림: 주사선 · 화면 금 · 붉은 고동 */
+.hv-scan{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity 2s;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.22) 0 1px,rgba(0,0,0,0) 1px 3px)}
+.hv-twist.turning .hv-scan{opacity:1}
+.hv-twist.turning .hv-red{animation:hv-redpulse 1.15s ease-in-out 2s infinite}
+@keyframes hv-redpulse{0%,100%{filter:brightness(1)}18%{filter:brightness(1.6)}32%{filter:brightness(1.1)}44%{filter:brightness(1.4)}}
+.hv-scrack{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;opacity:0}
+.hv-scrack path{fill:none;stroke:rgba(255,226,226,.75);stroke-width:.18;vector-effect:non-scaling-stroke;stroke-dasharray:200;stroke-dashoffset:200;filter:drop-shadow(0 0 1px rgba(0,0,0,.9))}
+.hv-cracked .hv-scrack{opacity:1}
+.hv-cracked .hv-scrack path{animation:hv-crack .45s ease-out var(--d) forwards;stroke-width:1.2}
+.hv-twist.named .hv-dbig{animation:hv-jit .16s steps(2) infinite,hv-stamp .5s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes hv-stamp{0%{transform:scale(1.8);opacity:0;filter:blur(6px)}100%{transform:scale(1);opacity:1;filter:none}}
+/* 신 발현: 등 뒤 빛살 · 心 · 발밑 물결 */
+.hv-srays path{stroke:#ffd890;stroke-width:1;stroke-linecap:round;opacity:0}
+.hv-shin.hv-ignite .hv-srays path{animation:hv-ray 3s ease-out forwards}
+.hv-glyph{font-size:250px;text-anchor:middle;fill:rgba(255,210,122,.5);stroke:#ffe2a8;stroke-width:1.2;opacity:0;font-family:'Noto Serif KR','Nanum Myeongjo','Batang',serif;filter:url(#hvFigGlow);transform-box:fill-box;transform-origin:center}
+.hv-shin.hv-ignite .hv-glyph{animation:hv-glyph-in 3.4s ease-out .2s forwards}
+@keyframes hv-glyph-in{0%{opacity:0;transform:scale(.85)}40%{opacity:.5}100%{opacity:.32;transform:scale(1.05)}}
+.hv-ripples ellipse{fill:none;stroke:#ffe0a0;stroke-width:.8;opacity:0;transform-box:fill-box;transform-origin:center;animation:hv-ripple 2.7s ease-out var(--d) infinite}
+@keyframes hv-ripple{0%{opacity:.7;transform:scale(.4)}100%{opacity:0;transform:scale(3.4)}}
+@media(prefers-reduced-motion:reduce){.hv-ov.hv-shake,.hv-ov.hv-shake-hard,.hv-ov.hv-thump{animation:none}}

@@ -38,69 +38,220 @@ log=function(message){
 
 /* ---------- 목소리가 고르는 말: 이 선장의 생애에서만 ----------
    목소리의 결: 다정하고 매혹적이며, 듣는 사람 하나만을 위해 말을 고른다. 약한 데를 정확히 짚고,
-   참아 온 갈망을 '병이 아니라 진짜 너'라고 부르며, 도시의 눈과 잣대(등급 · 장부 · 손실)에서 벗어나 다시 태어나라고 권한다.
-   거절하려는 마음은 체념이나 고집이라고 부드럽게 꾸짖는다. 판정마다 한 번 골라 저장하므로 다시 그려져도 같은 말이 이어진다. */
+   참아 온 갈망을 '병이 아니라 진짜 너'라고 부르며, 도시와 대호수의 잣대(등급 · 장부 · 손실 · 몫)에서 벗어나 다시 태어나라고 권한다.
+   거절하려는 마음은 체념이나 고집이라고 부드럽게 꾸짖는다.
+   · 갈래마다 15가지 이상(다시 왔을 때는 회차마다 10가지)에서 고르고, 이 선장이 이미 들은 말은 되도록 다시 고르지 않는다.
+   · 판정마다 한 번 골라 저장하므로 다시 그려져도 같은 말이 이어진다. */
 const ul=s=>s+(batchim(s)?'을':'를');
+const VOICE={
+ approach:[
+  '계속 부르고 있었어. 네가 너무 바빠서 못 들었을 뿐이지.',
+  '무서워할 것 없어. 나는 처음부터 네 쪽에 서 있었으니까.',
+  '다들 네 등급이랑 장부만 봤지. 나는 줄곧 네 마음을 보고 있었어.',
+  '숨 좀 돌려. 여기선 아무도 너한테 값을 매기지 않아.',
+  '드디어 조용해졌네. 이제야 네 진짜 목소리가 들려.',
+  '귀 막지 않아도 돼. 나는 너한테서 아무것도 빼앗으러 온 게 아니야.',
+  '노 젓는 소리, 선원들 숨소리… 다 걷어 내니까 네 소리만 남았네.',
+  '괜찮아, 여긴 물속이 아니야. 숨 쉬어도 돼.',
+  '오래 걸렸지? 너 같은 사람은 늘 마지막에야 귀를 열더라.',
+  '네가 무너질 때까지 기다린 게 아니야. 네가 멈춰 설 때까지 기다린 거야.',
+  '이 호수에서 너한테 말을 거는 건 물속 것들뿐이었지. 나는 달라.',
+  '겁먹은 얼굴 하지 마. 그 얼굴, 선원들 앞에서는 한 번도 못 지어 봤잖아.',
+  '지금 네 손, 떨리고 있어. 키를 놓쳐도 괜찮아. 내가 잡고 있을게.',
+  '누가 너한테 괜찮냐고 물어본 게 언제였어? 내가 물어볼게. 괜찮니?',
+  '쉿. 이제 아무도 네 명령을 기다리지 않아.',
+  '처음 듣는 목소리 같지? 아니야, 나는 네 안에 오래 있었어.',
+  '다정한 목소리가 낯설지? 이 도시는 너한테 그런 걸 들려준 적이 없으니까.'
+ ],
+ crewNamed:[
+  n=>ul(n)+' 마지막으로 본 게 너였지. 손을 뻗었는데, 닿지 않았잖아.',
+  n=>n+'… 물속으로 가라앉으면서도 너를 보고 있었어. 원망하는 얼굴이 아니었는데.',
+  n=>iga(n)+' 비늘 돋은 손으로 뱃전을 붙잡던 거, 기억나? 너는 그 손을 떼어 냈지.',
+  n=>n+'. 네가 지어 준 이름이야. 이제 그 이름을 불러 줄 사람은 너밖에 없어.',
+  n=>'장부에는 '+n+' 이름 옆에 줄 하나 그으면 끝이야. 네 마음엔 그렇게 안 되잖아.'
+ ],
+ crew:[
+  '또 한 사람이 물속으로 가 버렸어. 너는 그저 보고만 있었고.',
+  '방금 그 사람, 이름 한 번 제대로 불러 주지 못했지. 그게 제일 아프지?',
+  '물보라가 가라앉고 나니 갑판이 한 칸 비었네. 너는 그 빈자리를 또 세겠지.',
+  '그 사람 눈이 물빛으로 바뀌는 걸 봤잖아. 그 뒤로 네 눈도 조금 흐려졌어.',
+  '노 하나가 멈췄어. 너는 그 노를 대신 저으면서 아무렇지 않은 척하겠지.'
+ ],
+ mermaid:[
+  '방금 그 노래, 끝까지 듣고 싶었지? 부끄러워할 것 없어.',
+  '물속에서 부르던 얼굴들, 하나같이 다정했잖아. 도시의 누구보다도.',
+  '그것들이 무서웠던 게 아니야. 따라가고 싶어지는 네 마음이 무서웠던 거지.',
+  '비늘 사이로 보이던 그 눈, 너를 미워하지 않았어. 오히려 반가워했지.',
+  '물 밑으로 내려가면 장부도, 빚도, 출항 경비도 없어. 그 생각, 잠깐 했지?',
+  '그 노래가 네 이름을 불렀잖아. 이 도시에서 네 이름을 그렇게 다정하게 부른 사람이 있었니?'
+ ],
+ training:[
+  '빛의 고리 하나를 더 얻겠다고 스스로를 깎아 내다니. 누가 시킨 것도 아닌데.',
+  '더 강해져야 한다고, 더 버텨야 한다고. 그 말, 누구한테 배웠어?',
+  '마음을 쥐어짜서 힘을 만드는 거, 아프지? 쥐어짜지 않아도 되는 방법이 있어.'
+ ],
+ worn:[
+  '여기까지 오는 동안 한 번도 제대로 쉬어 본 적 없잖아.',
+  '끝까지 버티다가 끊어진 거야. 그건 약해서가 아니야.',
+  '줄은 원래 끊어지게 돼 있어. 너무 오래, 너무 세게 당겼으니까.',
+  '무엇 하나 크게 잘못한 것도 없는데, 너는 여기까지 와 버렸네.',
+  '호수가 조금씩 너를 갉아먹고 있었어. 너만 몰랐지.'
+ ],
+ // 도시와 대호수에서 머물며 그들의 잣대로 매겨진 삶 — [조건, 말]
+ measured:[
+  [c=>c.kills,()=>'재앙을 꿰뚫은 손이야. 도시는 그 손에 상금 몇 푼 쥐여 주고 끝냈지.'],
+  [c=>c.kills,()=>'고래를 쓰러뜨린 사람한테 도시가 해 준 건 다음 의뢰서뿐이었잖아.'],
+  [c=>c.g>=4,c=>c.g+'등급. 도시는 너를 그 숫자로만 기억할 거야. 네가 어떤 밤을 보냈는지는 빼고.'],
+  [c=>c.g>=4,c=>'선장 '+c.g+'등급. 다들 네게 기대기만 했고, 너는 누구에게도 기대지 못했지.'],
+  [c=>c.lakes>=10,c=>'호수를 '+c.lakes+'개나 건넜어. 그런데 항구에선 아무도 묻지 않았지. 괜찮았냐고.'],
+  [c=>c.lakes>=10,c=>'호수 '+c.lakes+'개. 도시에선 그게 경력 한 줄이야. 네 마음에 남은 건 한 줄로 안 끝나는데.'],
+  [c=>c.rets>=1,()=>'몇 번이고 배를 끌고 돌아왔지. 다음 출항 경비를 벌려고. 그게 사는 거라고 배웠으니까.'],
+  [c=>c.rets>=1,()=>'항구에 닿을 때마다 장부부터 펼쳤지. 네 마음은 펼쳐 볼 틈도 없이.'],
+  [c=>c.lakes<3&&!c.rets,()=>'이제 막 키를 잡았을 뿐인데, 도시는 벌써 너한테 값을 매기기 시작했어.'],
+  [c=>c.lakes<3&&!c.rets,()=>'첫 항해부터 이렇게 무너졌다고 부끄러워하지 마. 이 호수가, 이 도시가 그렇게 만든 거야.'],
+  [()=>1,()=>'도시는 고래기름 값은 매일 매겨도, 그걸 짜낸 사람 값은 한 번도 안 매겨.'],
+  [()=>1,()=>'항구 사람들은 네 배가 돌아왔는지만 물어. 네가 돌아왔는지는 묻지 않지.'],
+  [()=>1,()=>'고래잡이는 이름이 아니라 쓸모로 불리지. 작살잡이, 노잡이, 선장. 너는 누구였니?'],
+  [()=>1,()=>'항구 장부엔 귀항이랑 실종, 두 칸밖에 없어. 그 사이에서 네가 겪은 건 적을 데가 없지.'],
+  [()=>1,()=>'남부 사람들은 대호수를 일터라고 불러. 사람이 사라지는 일터.'],
+  [()=>1,()=>'도시는 너한테 버티는 법만 가르쳤어. 내려놓는 법은 가르쳐 주지 않았지.'],
+  [()=>1,()=>'날개 그늘 밑에 사는 사람들은 너희를 비린내 나는 뱃사람이라고 하겠지. 그 비린내가 네 피인 줄도 모르고.'],
+  [()=>1,()=>'이 호수에선 법을 어기면 죽고, 지켜도 조금씩 죽어. 그게 공평하다고 생각해?'],
+  [()=>1,()=>'항구 술집에서 다들 웃고 떠들 때, 너는 다음 출항 날짜를 세고 있었지.'],
+  [()=>1,()=>'빚이랑 경비랑 몫. 네 하루는 늘 남의 셈으로 끝났어.']
+ ],
+ // 갈망을 긍정하고 유혹하는 말
+ wish:[
+  c=>c.sn&&c.sn+'. 그 바람, 혼자 빛내기엔 너무 무겁지 않아?',
+  c=>c.sn&&c.sn+'… 거짓 없는 바람이란 거 알아. 그러니까 끝까지 가게 해 줄게.',
+  c=>c.sn&&c.sn+'. 그 이름을 붙일 만큼 간절했잖아. 그럼 망설일 이유가 없지.',
+  c=>c.p&&'‘'+c.p+'’. 네가 그렇게 말했지. 그걸 도시의 방식으로 이룰 수 있을 것 같아?',
+  c=>c.p&&'‘'+c.p+'’… 그 말, 나는 진심으로 들었어. 이제 정말로 이뤄 보자.',
+  c=>c.resolve&&'무너지기 직전까지 몰리고도 끝까지 버텼잖아. 이제 그만 내려놓아도 돼.'
+ ],
+ tempt:[
+  ()=>'그건 병이 아니야. 너무 오래 참아 온 마음일 뿐이야.',
+  ()=>'도시가 붙여 준 이름표는 이제 떼어 버려도 돼.',
+  ()=>'남의 눈에 맞춰 깎아 낸 모양 말고, 원래의 네 모양으로 돌아가자.',
+  c=>c.call+'조금만 솔직해지면 돼. 그러면 다시 태어날 수 있어.',
+  c=>c.call+'네가 바라는 너로 살아도, 아무도 너를 탓하지 못해.',
+  ()=>'갖고 싶었던 것, 되고 싶었던 것. 도시가 분수라며 접게 한 것들, 다시 펴 보자.',
+  ()=>'네가 정말 바라는 게 뭔지, 한 번이라도 소리 내서 말해 본 적 있어?',
+  ()=>'언제부터 네 바람보다 남의 계산을 먼저 하게 됐니?',
+  ()=>'화내고 싶으면 화내. 울고 싶으면 울어. 그게 그렇게 큰 죄였니?',
+  ()=>'참는 게 미덕이라고? 그건 참는 사람을 부리기 편한 사람들이 하는 말이야.',
+  ()=>'네 안에서 끓는 그거, 꺼트리지 마. 그게 진짜 너니까.',
+  ()=>'이번 한 번만, 네 마음이 하자는 대로 해 보자. 그다음은 내가 책임질게.',
+  ()=>'원하는 걸 원한다고 말하는 게 왜 부끄러워? 부끄러운 건 그걸 막아 온 쪽이야.',
+  ()=>'너는 모두를 위해 살았어. 이제 딱 한 번, 너를 위해 살아도 돼.',
+  ()=>'키를 놓아. 배가 어디로 가든, 처음으로 네가 가고 싶은 곳일 거야.',
+  ()=>'마음이 시키는 대로 하면 다 망가질 것 같지? 아니야, 처음으로 온전해지는 거야.',
+  c=>c.call+'네가 바라는 대로의 네가 되자. 아무것도 너를 막지 못하게 해 줄게.'
+ ],
+ again1:[
+  '또 왔구나. 지난번엔 돌아섰지? 괜찮아, 화나지 않았어.',
+  '다시 만났네. 그날 물러서던 네 뒷모습, 아직 기억하고 있어.',
+  '돌아올 줄 알았어. 한 번 들은 목소리는 잊히지 않거든.',
+  '지난번엔 아직이라고 했지. 그 아직이 오늘인가 봐.',
+  '그동안 잘 버텼어? 아니, 잘 버틴 얼굴은 아니네.',
+  '물러난 자리에서 한 걸음도 못 갔구나. 그럴 줄 알았어.',
+  '그때 줄어든 마음, 아직도 시리지? 내가 채워 줄 수 있어.',
+  '한 번 등을 돌린 사람한테 다시 말 거는 건, 나밖에 없을걸.',
+  '또 같은 자리야. 이번엔 조금 더 솔직해지자.',
+  '반가워. 너는 반갑지 않겠지만.'
+ ],
+ again2:[
+  '이번엔 돌아갈 데가 없다는 거, 너도 알지?',
+  '세 번째야. 여기서 더 버티는 건 용기가 아니라 고집이야.',
+  '두 번 물러났지. 세 번째엔 물러설 땅이 없어.',
+  '이제 네 마음엔 나 말고 남은 게 별로 없어. 잘 들어 봐.',
+  '마지막으로 물을게. 아주 다정하게.',
+  '줄어들 대로 줄어든 마음으로 또 버티겠다고? 그건 너를 벌주는 거야.',
+  '이번에도 돌아서면, 다음엔 내가 아니라 다른 게 너를 부를 거야.',
+  '여기까지 왔으면 알잖아. 끝은 늘 같은 자리에서 기다리고 있었어.',
+  '숨 쉴 틈도 없이 다시 왔네. 이번엔 놓치지 않을게.',
+  '마지막 기회야. 너한테도, 나한테도.'
+ ],
+ // 인정하려 할 때 반박
+ rebut:[
+  '인정한다고? 그건 도시가 너한테 가르쳐 준 체념이야.',
+  '뜻대로 되지 않는 세상이라면, 뜻대로 되는 네가 되면 되잖아.',
+  '다른 누군가의 탓으로 돌려도 괜찮아. 네가 짊어진 몫은 이미 넘쳤어.',
+  '네가 지키려던 것들, 어떻게든 되찾으면 되잖아. 내가 도와줄게.',
+  '받아들인다는 말, 참 착하지. 착한 사람부터 호수에 가라앉는다는 거 알아?',
+  '세상이 뜻대로 안 된다고 네 마음까지 뜻대로 안 될 필요는 없잖아.',
+  '다 내려놓은 척하는 그 얼굴, 선원들 앞에서 짓던 거잖아. 나한테까지 그러지 마.',
+  '인정하면 덜 아플 것 같지? 아니야. 조용히 아플 뿐이야.',
+  '그건 어른스러운 게 아니야. 지쳐서 그런 거지.',
+  '도시가 짜 놓은 판에서 진 걸 인정하겠다고? 판을 엎을 수도 있는데.',
+  '바꿀 수 없다고 누가 그랬어? 바꾸려고 해 본 적이나 있니?',
+  '너는 늘 물때를 기다리고, 바람을 기다리고, 허락을 기다렸지. 이번에도 기다리기만 할 거야?',
+  '잃은 사람들 앞에서도 어쩔 수 없었다고 말할 수 있어?',
+  '그 말 하려고 여기까지 버텨 온 거야? 너무 아깝잖아.',
+  '체념은 평온이 아니야. 마음이 조금씩 가라앉는 소리지.',
+  '그래, 세상은 네 뜻대로 안 돼. 그러니까 이제 네 뜻대로 하자는 거야.'
+ ]
+};
+// 이 선장이 이미 들은 말은 되도록 피함(생애마다 새로)
+function usedSet(){if(!Array.isArray(state.voiceUsed031))state.voiceUsed031=[];return state.voiceUsed031;}
+function makePicker(seed){
+ let n=0;const rnd=()=>R(seed*.0173+(n++)*3.71+.5),used=usedSet();
+ return arr=>{const list=arr.filter(Boolean);if(!list.length)return null;const fresh=list.filter(t=>!used.includes(t)),pool=fresh.length?fresh:list;
+  const t=pool[Math.floor(rnd()*pool.length)%pool.length];used.push(t);if(used.length>140)used.splice(0,used.length-140);return t;};
+}
 function composeVoice(j){
  if(j.seed031==null)j.seed031=Math.floor(Math.random()*1e6);
- let n=0;const rnd=()=>R(j.seed031*.0173+(n++)*3.71+.5);
- const pick=arr=>arr[Math.floor(rnd()*arr.length)];
+ const pick=makePicker(j.seed031);
  const k=Math.min(2,H.acceptTries()),m=H.memory(),r=H.record();
- const cap=String(state.captainName||'').trim(),call=cap?ah(cap)+', ':'';
+ const cap=String(state.captainName||'').trim();
  const why=String(j.why031||''),lost=Array.isArray(m.lost)?m.lost:[],named=lost.filter(c=>c.custom&&c.name),lastLost=lost[lost.length-1];
- const kills=(state.whaleKilled||[]).length,lakes=state.count?.lake||0,rets=state.count?.return||0,g=state.grade|0;
+ const C={call:cap?ah(cap)+', ':'',kills:(state.whaleKilled||[]).length,lakes:state.count?.lake||0,rets:state.count?.return||0,g:state.grade|0,
+  sn:state.shinName030?state.shinName030.replace(/\(望\)$/,''):'',p:m.purpose?String(m.purpose).slice(0,30)+(String(m.purpose).length>30?'…':''):'',resolve:r.resolve>=1};
  const L=['이제야 내 말을 귀담아 들어주는구나.'];
- // 다시 만났을 때 / 처음일 때
- if(k===1)L.push(pick(['또 왔구나. 지난번엔 돌아섰지? 괜찮아, 화나지 않았어.','다시 만났네. 그날 물러서던 네 뒷모습, 아직 기억하고 있어.']));
- else if(k===2)L.push(pick(['이번엔 돌아갈 데가 없다는 거, 너도 알지?','세 번째야. 여기서 더 버티는 건 용기가 아니라 고집이야.']));
- else L.push(pick(['계속 부르고 있었어. 네가 너무 바빠서 못 들었을 뿐이지.','무서워할 것 없어. 나는 처음부터 네 쪽에 서 있었으니까.','다들 네 등급이랑 장부만 봤지. 나는 줄곧 네 마음을 보고 있었어.','숨 좀 돌려. 여기선 아무도 너한테 값을 매기지 않아.','드디어 조용해졌네. 이제야 네 진짜 목소리가 들려.']));
- // 무엇이 마음을 무너뜨렸는지
+ L.push(pick(k===1?VOICE.again1:k===2?VOICE.again2:VOICE.approach));
+ // 무너뜨린 계기
  let usedNamed=null;
  if(/인어가 되는 것/.test(why)){
-  if(lastLost&&lastLost.custom){usedNamed=lastLost;L.push(pick([ul(lastLost.name)+' 마지막으로 본 게 너였지. 손을 뻗었는데, 닿지 않았잖아.',lastLost.name+'… 물속으로 가라앉으면서도 너를 보고 있었어. 원망하는 얼굴이 아니었는데.']));}
-  else L.push(pick(['또 한 사람이 물속으로 가 버렸어. 너는 그저 보고만 있었고.','방금 그 사람, 이름 한 번 제대로 불러 주지 못했지. 그게 제일 아프지?']));
- }else if(/인어와 마주/.test(why))L.push(pick(['방금 그 노래, 끝까지 듣고 싶었지? 부끄러워할 것 없어.','물속에서 부르던 얼굴들, 하나같이 다정했잖아. 도시의 누구보다도.','그것들이 무서웠던 게 아니야. 따라가고 싶어지는 네 마음이 무서웠던 거지.']));
- else if(why===''&&state.shinOpen)L.push('빛의 고리 하나를 더 얻겠다고 스스로를 깎아 내다니. 누가 시킨 것도 아닌데.');
- else L.push(pick(['여기까지 오는 동안 한 번도 제대로 쉬어 본 적 없잖아.','끝까지 버티다가 끊어진 거야. 그건 약해서가 아니야.']));
+  if(lastLost&&lastLost.custom){usedNamed=lastLost;L.push(pick(VOICE.crewNamed.map(f=>f(lastLost.name))));}
+  else L.push(pick(VOICE.crew));
+ }else if(/인어와 마주/.test(why))L.push(pick(VOICE.mermaid));
+ else if(why===''&&state.shinOpen)L.push(pick(VOICE.training));
+ else L.push(pick(VOICE.worn));
  // 잃은 사람들
  const rest=named.filter(c=>c!==usedNamed);
  if(!lost.length&&/인어가 되는 것/.test(why)){}
  else if(!lost.length)L.push(pick(['아직 아무도 잃지 않았지. 그걸 지키느라 네가 얼마나 닳았는지, 아무도 몰라.','모두를 지켰어. 그런데 너를 지켜 준 사람은 있었니?']));
  else if(rest.length>=2)L.push(rest.slice(-2).map(c=>c.name).join(', ')+'… 네가 직접 이름을 붙여 준 사람들이었잖아.');
  else if(rest.length===1)L.push(rest[0].name+'. 이름을 지어 준 그 순간부터, 너는 그 사람을 잃을 준비를 하고 있었어.');
- else if(lost.length>1)L.push(pick(['떠나보낸 사람이 '+lost.length+'명. 숫자로 세기 시작한 건 언제부터였을까.',lost.length+'명이야. 도시는 그걸 \'손실\'이라고 적겠지. 너는 아니잖아.']));
- // 도시의 눈으로 매겨진 행적
- if(kills)L.push(pick(['재앙을 꿰뚫은 손이야. 도시는 그 손에 상금 몇 푼 쥐여 주고 끝냈지.','고래를 쓰러뜨린 사람한테 도시가 해 준 건 다음 의뢰서뿐이었잖아.']));
- else if(g>=4)L.push(pick([g+'등급. 도시는 너를 그 숫자로만 기억할 거야. 네가 어떤 밤을 보냈는지는 빼고.','선장 '+g+'등급. 다들 네게 기대기만 했고, 너는 누구에게도 기대지 못했지.']));
- else if(lakes>=10)L.push(pick(['호수를 '+lakes+'개나 건넜어. 그런데 항구에선 아무도 묻지 않았지. 괜찮았냐고.','호수 '+lakes+'개. 도시에선 그게 경력 한 줄이야. 네 마음에 남은 건 한 줄로 안 끝나는데.']));
- else if(rets>=1)L.push(pick(['몇 번이고 배를 끌고 돌아왔지. 다음 출항 경비를 벌려고. 그게 사는 거라고 배웠으니까.','항구에 닿을 때마다 장부부터 펼쳤지. 네 마음은 펼쳐 볼 틈도 없이.']));
- else L.push(pick(['이제 막 키를 잡았을 뿐인데, 도시는 벌써 너한테 값을 매기기 시작했어.','첫 항해부터 이렇게 무너졌다고 부끄러워하지 마. 네 탓이 아니야. 이 호수가, 이 도시가 그렇게 만든 거야.']));
- // 품은 바람
- if(state.shinName030){const sn=state.shinName030.replace(/\(望\)$/,'');L.push(pick([sn+'. 그 바람, 혼자 빛내기엔 너무 무겁지 않아?',sn+'… 거짓 없는 바람이란 거 알아. 그러니까 끝까지 가게 해 줄게.']));}
- else if(m.purpose){const p=String(m.purpose).slice(0,30)+(String(m.purpose).length>30?'…':'');L.push('‘'+p+'’. 네가 그렇게 말했지. 그걸 도시의 방식으로 이룰 수 있을 것 같아?');}
- else if(r.resolve>=1)L.push('무너지기 직전까지 몰리고도 끝까지 버텼잖아. 이제 그만 내려놓아도 돼.');
- else L.push(pick(['네가 정말 바라는 게 뭔지, 한 번이라도 소리 내서 말해 본 적 있어?','갖고 싶었던 것, 되고 싶었던 것. 도시가 \'분수\'라며 접게 한 것들 말이야.','언제부터 네 바람보다 남의 계산을 먼저 하게 됐니?']));
- // 권유 → 답을 청함
- L.push(pick(['그건 병이 아니야. 너무 오래 참아 온 마음일 뿐이야.','도시가 붙여 준 이름표는 이제 떼어 버려도 돼.','남의 눈에 맞춰 깎아 낸 모양 말고, 원래의 네 모양으로 돌아가자.',call+'조금만 솔직해지면 돼. 그러면 다시 태어날 수 있어.',call+'네가 바라는 너로 살아도, 아무도 너를 탓하지 못해.']));
+ else if(lost.length>1)L.push(pick(['떠나보낸 사람이 '+lost.length+'명. 숫자로 세기 시작한 건 언제부터였을까.',lost.length+'명이야. 도시는 그걸 손실이라고 적겠지. 너는 아니잖아.']));
+ // 도시와 대호수의 잣대
+ const spec=VOICE.measured.filter(x=>x[0](C)&&x[0].toString()!=='()=>1').map(x=>x[1](C)),gen=VOICE.measured.filter(x=>x[0].toString()==='()=>1').map(x=>x[1](C));
+ L.push(pick(R(j.seed031+.31)<.55&&spec.length?spec:gen.concat(spec)));
+ // 갈망을 긍정하고 유혹
+ const wish=VOICE.wish.map(f=>f(C)).filter(Boolean);
+ if(wish.length&&R(j.seed031+.77)<.7)L.push(pick(wish));
+ L.push(pick(VOICE.tempt.map(f=>f(C))));
  L.push('그러니까, 답해 주렴.');
+ persist();
  return L;
 }
-const ACCEPT_TALK=[['인정한다고? 그건 도시가 너한테 가르쳐 준 체념이야.','뜻대로 되지 않는 세상이라면, 뜻대로 되는 네가 되면 되잖아.'],['다른 누군가의 탓으로 돌려도 괜찮아. 네가 짊어진 몫은 이미 넘쳤어.','네가 지키려던 것들, 어떻게든 되찾으면 되잖아. 내가 도와줄게.']];
+function composeAccept(j){
+ const pick=makePicker((j.seed031||1)+97);const a=pick(VOICE.rebut);let b=pick(VOICE.rebut.filter(t=>t!==a));persist();return [a,b];
+}
 const WITHDRAW_TALK=['그래, 아직은 괜찮아. 오늘은 여기까지만 하자.','도망치는 거 아니야. 잠깐 숨을 고르는 거지. 나는 기다릴 수 있어.','다시 무너지는 날, 내가 제일 먼저 네 이름을 불러 줄게.'];
 const TWIST_TALK=['그래, 그거면 돼. 이제 아무것도 참지 않아도 돼.','봐, 하나도 아프지 않지? 이게 원래의 너야.','애썼어. 이제 그만 내려놔. 나머지는 네 마음이 알아서 할 거야.'];
-const seedPick=(j,arr,salt)=>{const v=((j&&j.seed031)||7)+salt*131;return arr[Math.floor(R(v)*arr.length)%arr.length];};
-// 선택지: 도시에서 살아온 선장이 직접 하는 말
+// 선택지: 대호수에서 고래잡이배를 모는 선장이자 도시 사람이 직접 하는 말
 const SAY={
- force:'듣기 좋은 소리 집어치워. 이 도시에서 여기까지 버텨 온 건 나야. 내 머릿속에서 꺼져.',
- accept:'알아. 이 도시에서 뭐 하나 내 뜻대로 된 적 없었지. 그래도 그게 네 말을 들을 이유는 안 돼.',
- yield:'…그래. 이 도시는 날 한 번도 봐주지 않았어. 네 말대로 할게.',
- duty:'되돌릴 수 없는 건 못 되돌려. 그래도 남은 놈들 데리고 항구까지 가는 건 내 몫이야.',
- yield2:'…됐어. 어차피 이 도시에서 내 짐을 대신 들어 준 놈은 없었어.'
+ force:'그 입 닥쳐. 이 호수에서 작살 쥐고 여기까지 살아 나온 게 누군데. 내 배 키는 내가 잡아.',
+ accept:'…그래, 안다. 이 도시에서 뭐 하나 뜻대로 된 적 없었지. 물때도, 고래도, 선원들 목숨도. 그래도 그거랑 네 말 듣는 건 별개야.',
+ yield:'…이제 됐어. 장부 맞추고, 시신도 못 건지고, 또 출항하고. 그 짓 더는 못 하겠다. 네 말대로 해.',
+ duty:'잃은 놈들은 못 건진다. 그건 나도 알아. 그래도 남은 놈들 태우고 항구에 배 대는 것까진 선장인 내 몫이야.',
+ yield2:'…그만하자. 이 도시에서 내 짐 대신 져 준 놈, 하나도 없었어.'
 };
 
 /* ---------- 덧씌우는 화면 ---------- */
-let ov=null,ovKey='',timers=[],raf=0;
-function clearOv(){timers.forEach(clearTimeout);timers=[];if(raf)cancelAnimationFrame(raf);raf=0;if(ov){ov.remove();ov=null;}ovKey='';}
+let ov=null,ovKey='',timers=[],raf=0,raf2=0;
+function clearOv(){timers.forEach(clearTimeout);timers=[];if(raf)cancelAnimationFrame(raf);raf=0;if(raf2){cancelAnimationFrame(raf2);raf2=0;}if(ov){ov.remove();ov=null;}ovKey='';}
 const at=(ms,fn)=>{timers.push(setTimeout(fn,reduce?Math.min(ms,ms*.6):ms));};
 function want(){
  if(state.scene==='dead')return null;
@@ -161,7 +312,8 @@ function mountIntro(o,j){
 }
 function mountAccept2(o,j){
  const v=voiceShell(o);v.skip.remove();
- const end=showLines(v.lines,[seedPick(j,ACCEPT_TALK[0],1),seedPick(j,ACCEPT_TALK[1],2)],300,1400);
+ if(!Array.isArray(j.accept031)){j.accept031=composeAccept(j);persist();}
+ const end=showLines(v.lines,j.accept031,300,1400);
  at(end+300,()=>{v.acts.innerHTML=btn(SAY.duty,'egoAcceptDuty030','primary')+btn(SAY.yield2,'egoYield030','yield');v.acts.classList.add('on');});
 }
 function mountWithdraw(o,j){
@@ -174,6 +326,110 @@ function mountWithdraw(o,j){
 
 /* ---------- 사람 형체(선장): 정면, 외투 ---------- */
 const FIGURE='<g class="hv-fig"><circle cx="0" cy="-86" r="13"/><path d="M-9,-73 Q0,-70 9,-73 L26,-64 Q31,-61 32,-54 L36,-12 Q36,-8 33,-8 L30,-10 L26,-50 L24,-26 L28,36 Q29,44 20,46 L6,46 L3,8 L-3,8 L-6,46 L-20,46 Q-29,44 -28,36 L-24,-26 L-26,-50 L-30,-10 L-33,-8 Q-36,-8 -36,-12 L-32,-54 Q-31,-61 -26,-64 Z"/></g>';
+
+/* ---------- 연출 FX 공통: 화면 전체 입자(캔버스) · 섬광 · 충격파 · 흔들림 · 화면 금 · 빛기둥 ----------
+   E.G.O 개화: 껍질이 깨지는 순간 화면이 흔들리고 섬광 · 겹친 충격파(색이 갈라짐)가 퍼지며, 불꽃 파편이 사방으로 튀고 빛의 꽃잎과 빛가루가 흩날린다.
+   뒤틀림: 화면에 잡음 · 어긋난 줄(글리치)이 번지고, 아래에서 검붉은 먹물 같은 덩굴이 기어오르며 재가 떠오른다. 이름이 새겨질 때 화면 유리가 깨지듯 금이 간다.
+   신 발현: 고동마다 화면이 울리고, 발밑에서 금빛 빛기둥이 솟으며 등 뒤로 心 자와 빛살이 떠오르고, 불티가 화면 전체로 날아오른다. */
+function fxRoot(o,front){
+ const c=document.createElement('canvas');c.className='hv-fxc'+(front?' front':' back');
+ if(front)o.appendChild(c);else o.insertBefore(c,o.firstChild);
+ const dpr=Math.min(1.5,window.devicePixelRatio||1);
+ const fit=()=>{c.width=Math.round(innerWidth*dpr);c.height=Math.round(innerHeight*dpr);};fit();
+ return {c,g:c.getContext('2d'),dpr,fit};
+}
+function svgPt(o,x,y){const s=o.querySelector('.hv-svg');if(!s)return [innerWidth/2,innerHeight/2];const r=s.getBoundingClientRect();return [r.left+(x+200)/400*r.width,r.top+(y+200)/400*r.height];}
+// 흔들림은 CSS 애니메이션을 건드리지 않도록 Web Animations로(겹쳐도 화면이 다시 페이드되지 않게)
+const SHAKES={'hv-shake':[[0,0],[-7,4],[6,-5],[-5,-3],[4,5],[-3,2],[2,-1],[0,0]],'hv-shake-hard':[[0,0,0],[-14,6,-.6],[12,-9,.5],[-9,-6,0],[8,8,-.3],[-5,3,0],[3,-2,0],[0,0,0]]};
+function shake(o,cls,ms){if(reduce||!o.animate)return;
+ if(cls==='hv-thump'){o.animate([{transform:'scale(1)'},{transform:'scale(1.012)'},{transform:'scale(.996)'},{transform:'scale(1)'}],{duration:ms,easing:'ease-out'});return;}
+ const k=SHAKES[cls]||SHAKES['hv-shake'];o.animate(k.map(p=>({transform:'translate('+p[0]+'px,'+p[1]+'px) rotate('+(p[2]||0)+'deg)'})),{duration:ms,easing:'linear'});}
+function addEl(o,html){const d=document.createElement('div');d.innerHTML=html;const el=d.firstChild;o.appendChild(el);return el;}
+function loop(fn){const t0=performance.now();let last=t0;const f=now=>{const dt=Math.min(.05,(now-last)/1000);last=now;fn((now-t0)/1000,dt);raf2=requestAnimationFrame(f);};raf2=requestAnimationFrame(f);}
+
+function fxBloom(o){
+ const F=fxRoot(o,true),g=F.g,P=[];
+ addEl(o,'<div class="hv-pillar" aria-hidden="true"></div>');
+ addEl(o,'<div class="hv-flashscr" aria-hidden="true"></div>');
+ ['','c2','c3'].forEach(c=>addEl(o,'<div class="hv-shock '+c+'" aria-hidden="true"></div>'));
+ const burst=()=>{const [cx,cy]=svgPt(o,0,0);for(let i=0;i<90;i++){const a=R(i*3.3)*Math.PI*2,sp=(280+R(i*7.1)*620)*(.6+.4*R(i));P.push({k:'spark',x:cx,y:cy,px:cx,py:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:0,max:.7+R(i*2.2)*.8,w:1+R(i*5.5)*1.6});}};
+ at(2150,()=>{o.classList.add('hv-shatter');shake(o,'hv-shake',600);burst();});
+ let petalOn=false;at(2500,()=>{petalOn=true;});
+ loop((t,dt)=>{
+  F.c.width!==Math.round(innerWidth*F.dpr)&&F.fit();
+  const W=F.c.width/F.dpr,Hh=F.c.height/F.dpr;g.setTransform(F.dpr,0,0,F.dpr,0,0);g.clearRect(0,0,W,Hh);
+  if(petalOn&&P.filter(p=>p.k==='petal').length<46&&Math.random()<.5){const [cx,cy]=svgPt(o,0,0),a=Math.random()*Math.PI*2,r=20+Math.random()*60;
+   P.push({k:'petal',x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r,vx:Math.cos(a)*(40+Math.random()*90),vy:Math.sin(a)*(40+Math.random()*60)-30,life:0,max:3.5+Math.random()*2.5,rot:Math.random()*6,vr:(Math.random()-.5)*3,s:3+Math.random()*4});}
+  if(t>1&&Math.random()<.25)P.push({k:'mote',x:Math.random()*W,y:Hh+5,vx:(Math.random()-.5)*10,vy:-(12+Math.random()*26),life:0,max:5+Math.random()*4,s:.6+Math.random()*1.2});
+  g.globalCompositeOperation='lighter';
+  for(let i=P.length-1;i>=0;i--){const p=P[i];p.life+=dt;if(p.life>p.max){P.splice(i,1);continue;}const u=p.life/p.max;
+   if(p.k==='spark'){p.px=p.x;p.py=p.y;p.vx*=1-dt*2.6;p.vy=p.vy*(1-dt*2.6)+220*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
+    g.strokeStyle='rgba(255,'+(220-u*90|0)+','+(150-u*110|0)+','+(1-u).toFixed(3)+')';g.lineWidth=p.w*(1-u*.6);g.beginPath();g.moveTo(p.px-(p.x-p.px)*2,p.py-(p.y-p.py)*2);g.lineTo(p.x,p.y);g.stroke();}
+   else if(p.k==='petal'){p.vx*=1-dt*1.2;p.vy=p.vy*(1-dt*1.2)+26*dt;p.x+=p.vx*dt+Math.sin(p.life*2+p.rot)*12*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;
+    const al=Math.min(1,p.life*3)*(1-u);g.save();g.translate(p.x,p.y);g.rotate(p.rot);g.scale(1,.45+.35*Math.abs(Math.sin(p.life*2.4+p.rot)));
+    g.fillStyle='rgba(255,236,190,'+(al*.85).toFixed(3)+')';g.beginPath();g.ellipse(0,0,p.s,p.s*.55,0,0,Math.PI*2);g.fill();g.restore();}
+   else{p.x+=p.vx*dt;p.y+=p.vy*dt;g.fillStyle='rgba(255,226,170,'+(Math.sin(Math.PI*u)*.6).toFixed(3)+')';g.beginPath();g.arc(p.x,p.y,p.s,0,Math.PI*2);g.fill();}
+  }
+  g.globalCompositeOperation='source-over';
+ });
+}
+
+function fxTwist(o,B){
+ const BK=fxRoot(o,false),FR=fxRoot(o,true),A=[];
+ addEl(o,'<div class="hv-scan" aria-hidden="true"></div>');
+ addEl(o,'<div class="hv-flashscr red" aria-hidden="true"></div>');
+ // 화면 유리에 가는 금(이름이 새겨질 때)
+ let cr='';const ix=58+R(3)*10,iy=30+R(5)*12;for(let i=0;i<13;i++){const a=i/13*Math.PI*2+R(i)*.4;let x=ix,y=iy,d='M'+ix.toFixed(1)+','+iy.toFixed(1);const len=30+R(i*9)*60;
+  for(let s=1;s<=6;s++){const rr=len*s/6,aa=a+(R(i*7+s)-.5)*.35;x=ix+Math.cos(aa)*rr;y=iy+Math.sin(aa)*rr*1.3;d+=' L'+x.toFixed(1)+','+y.toFixed(1);}cr+='<path d="'+d+'" style="--d:'+(R(i*3)*.25).toFixed(2)+'s"/>';}
+ for(let r=1;r<=2;r++){let d='';for(let i=0;i<=13;i++){const a=i/13*Math.PI*2,rr=r*5+R(i*r)*3;d+=(i?' L':'M')+(ix+Math.cos(a)*rr).toFixed(1)+','+(iy+Math.sin(a)*rr*1.3).toFixed(1);}cr+='<path d="'+d+'" style="--d:.2s"/>';}
+ addEl(o,'<svg class="hv-scrack" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+cr+'</svg>');
+ const T=[];for(let i=0;i<16;i++)T.push({x:(i+.5)/16+(R(i*4)-.5)*.05,seed:R(i*7)*10,h:.35+R(i*9)*.45,w:5+R(i*3)*9,delay:R(i*5)*1.4});
+ let on=false,named=false;at(B,()=>{on=true;});
+ at(B+2700,()=>{named=true;o.classList.add('hv-cracked');shake(o,'hv-shake-hard',700);});
+ const t1=performance.now();
+ loop((t,dt)=>{
+  const now=(performance.now()-t1),k=on?Math.max(0,Math.min(1,(now-B)/2600)):0;
+  [BK,FR].forEach(F=>{F.c.width!==Math.round(innerWidth*F.dpr)&&F.fit();F.g.setTransform(F.dpr,0,0,F.dpr,0,0);F.g.clearRect(0,0,F.c.width,F.c.height);});
+  const W=innerWidth,Hh=innerHeight,g=BK.g,f=FR.g;
+  // 아래에서 기어오르는 먹물 덩굴(배경)
+  if(on)T.forEach((v,i)=>{const gk=Math.max(0,Math.min(1,(now-B)/1000/2.4-v.delay*.3));if(gk<=0)return;const top=Hh*(1-v.h*gk);let x=v.x*W,y=Hh+10;
+   g.beginPath();g.moveTo(x,y);const steps=18;for(let s=1;s<=steps;s++){const yy=Hh+10-(Hh+10-top)*s/steps;const xx=x+Math.sin(s*.7+v.seed+t*1.3)*14*(s/steps)+Math.sin(s*1.9+v.seed)*6;g.lineTo(xx,yy);}
+   g.strokeStyle='rgba(20,0,4,.92)';g.lineWidth=v.w;g.lineCap='round';g.lineJoin='round';g.stroke();g.strokeStyle='rgba(150,10,24,'+(.35*gk).toFixed(2)+')';g.lineWidth=1.2;g.stroke();});
+  // 재: 천천히 떠오름
+  if(on&&Math.random()<.5)A.push({x:Math.random()*W,y:Hh+8,vx:(Math.random()-.5)*14,vy:-(16+Math.random()*30),life:0,max:4+Math.random()*4,s:.8+Math.random()*1.8,r:Math.random()*6});
+  for(let i=A.length-1;i>=0;i--){const p=A[i];p.life+=dt;if(p.life>p.max){A.splice(i,1);continue;}const u=p.life/p.max;p.x+=p.vx*dt+Math.sin(p.life*2+p.r)*8*dt;p.y+=p.vy*dt;
+   g.fillStyle='rgba('+(110+R(i)*60|0)+',24,28,'+(Math.sin(Math.PI*u)*.65).toFixed(3)+')';g.fillRect(p.x,p.y,p.s,p.s*.7);}
+  // 잡음 · 글리치(앞)
+  if(on){const n=(140+260*k)|0;for(let i=0;i<n;i++){f.fillStyle='rgba(255,'+(Math.random()<.5?40:200)+','+(Math.random()<.5?60:210)+','+(Math.random()*.12*k).toFixed(3)+')';f.fillRect(Math.random()*W,Math.random()*Hh,1+Math.random()*2,1);}
+   if(Math.random()<.12+.25*k){const bars=1+(Math.random()*3|0);for(let b=0;b<bars;b++){const y=Math.random()*Hh,h=2+Math.random()*16,off=(Math.random()-.5)*40;
+    f.fillStyle='rgba(220,20,40,'+(.12+.18*k).toFixed(2)+')';f.fillRect(off,y,W,h);f.fillStyle='rgba(0,210,230,'+(.06+.1*k).toFixed(2)+')';f.fillRect(-off,y+h*.4,W,h*.5);
+    if(Math.random()<.4){f.fillStyle='rgba(0,0,0,.6)';f.fillRect(0,y+h,W,1+Math.random()*3);}}}}
+  if(named&&Math.random()<.04)shake(o,'hv-shake',260);
+ });
+}
+
+function fxShin(o){
+ const F=fxRoot(o,true),g=F.g,P=[];
+ addEl(o,'<div class="hv-pillar gold" aria-hidden="true"></div>');
+ addEl(o,'<div class="hv-flashscr warm" aria-hidden="true"></div>');
+ const thump=()=>{shake(o,'hv-thump',380);o.classList.remove('hv-beat-fl');void o.offsetWidth;o.classList.add('hv-beat-fl');};
+ at(2600,thump);at(3020,thump);
+ at(3000,()=>{o.classList.add('hv-ignite');const [cx,cy]=svgPt(o,0,-22);for(let i=0;i<70;i++){const a=R(i*2.7)*Math.PI*2,sp=160+R(i*5.3)*380;P.push({k:'spark',x:cx,y:cy,px:cx,py:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-80,life:0,max:.8+R(i)*.9,w:1+R(i*3)*1.4});}});
+ let on=false;at(3000,()=>{on=true;});
+ loop((t,dt)=>{
+  F.c.width!==Math.round(innerWidth*F.dpr)&&F.fit();const W=F.c.width/F.dpr,Hh=F.c.height/F.dpr;g.setTransform(F.dpr,0,0,F.dpr,0,0);g.clearRect(0,0,W,Hh);
+  if(on&&Math.random()<.9){const [fx,fy]=svgPt(o,(Math.random()-.5)*120,60),wide=Math.random()<.35;
+   P.push({k:'ember',x:wide?Math.random()*W:fx,y:wide?Hh+6:fy,vx:(Math.random()-.5)*20,vy:-(40+Math.random()*90),life:0,max:2+Math.random()*2.6,s:.6+Math.random()*1.8,ph:Math.random()*6});}
+  g.globalCompositeOperation='lighter';
+  for(let i=P.length-1;i>=0;i--){const p=P[i];p.life+=dt;if(p.life>p.max){P.splice(i,1);continue;}const u=p.life/p.max;
+   if(p.k==='spark'){p.px=p.x;p.py=p.y;p.vx*=1-dt*2.4;p.vy=p.vy*(1-dt*2.4)+60*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
+    g.strokeStyle='rgba(255,'+(214-u*80|0)+','+(120-u*90|0)+','+(1-u).toFixed(3)+')';g.lineWidth=p.w;g.beginPath();g.moveTo(p.px-(p.x-p.px)*2,p.py-(p.y-p.py)*2);g.lineTo(p.x,p.y);g.stroke();}
+   else{p.x+=p.vx*dt+Math.sin(p.life*3+p.ph)*16*dt;p.y+=p.vy*dt;const al=Math.sin(Math.PI*u)*(.6+.4*Math.sin(p.life*14+p.ph));
+    const gr=g.createRadialGradient(p.x,p.y,0,p.x,p.y,p.s*3);gr.addColorStop(0,'rgba(255,240,190,'+al.toFixed(3)+')');gr.addColorStop(1,'rgba(255,150,40,0)');g.fillStyle=gr;g.beginPath();g.arc(p.x,p.y,p.s*3,0,Math.PI*2);g.fill();}
+  }
+  g.globalCompositeOperation='source-over';
+ });
+}
 
 /* ---------- E.G.O 개화 ---------- */
 function mountBloom(o,j){
@@ -205,7 +461,8 @@ function mountBloom(o,j){
  const pg=o.querySelector('.hv-petals'),t0=performance.now();const spin=now=>{const t=(now-t0)/1000;if(pg&&t>2.4&&!reduce)pg.setAttribute('transform','rotate('+((t-2.4)*16).toFixed(2)+')');raf=requestAnimationFrame(spin);};raf=requestAnimationFrame(spin);
  let done=false;const finish=()=>{if(done)return;done=true;o.classList.add('out');at(700,()=>{const jj=state.mindJudge;if(jj&&jj.stage==='bloom'){jj.bloomFx031=true;persist();}clearOv();render();});};
  o.addEventListener('click',finish);
- at(5600,finish);
+ fxBloom(o);
+ at(6200,finish);
 }
 
 /* ---------- 뒤틀림 ---------- */
@@ -232,6 +489,7 @@ function mountTwist(o,j){
  raf=requestAnimationFrame(tick);
  at(B,()=>o.classList.add('turning'));
  at(B+2700,()=>o.classList.add('named'));
+ fxTwist(o,B);
  at(B+3600,()=>o.querySelector('.hv-actions').classList.add('on'));
  o.addEventListener('click',e=>{if(e.target.closest('button'))return;timers.forEach(clearTimeout);timers=[];o.classList.add('turning','named');o.querySelector('.hv-actions').classList.add('on');});
 }
@@ -262,8 +520,11 @@ function mountShin(o){
   '<filter id="hvFigGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="6"/></filter>'+
   '<filter id="hvRingGlow" x="-80%" y="-200%" width="260%" height="500%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
   '<filter id="hvSoftDot" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation=".8"/></filter></defs>'+
+  '<g class="hv-srays" transform="translate(0 -6)">'+Array.from({length:24},(_,i)=>{const a=i/24*Math.PI*2;return '<path d="M'+(Math.cos(a)*40).toFixed(1)+','+(Math.sin(a)*40).toFixed(1)+' L'+(Math.cos(a)*(170+R(i)*40)).toFixed(1)+','+(Math.sin(a)*(170+R(i)*40)).toFixed(1)+'"/>';}).join('')+'</g>'+
+  '<text class="hv-glyph" x="0" y="34" aria-hidden="true">心</text>'+
   '<g transform="translate(0 30)">'+
    '<ellipse class="hv-pool" cx="0" cy="47" rx="96" ry="13" fill="url(#hvPool)"/>'+
+   '<g class="hv-ripples">'+[0,1,2].map(i=>'<ellipse cx="0" cy="47" rx="30" ry="5" style="--d:'+(3.1+i*.9)+'s"/>').join('')+'</g>'+
    '<g class="hv-aura" filter="url(#hvHeat)">'+flames+'</g>'+
    '<g class="hv-figglow" filter="url(#hvFigGlow)">'+FIGURE+'</g>'+
    FIGURE+
@@ -306,6 +567,8 @@ function mountShin(o){
  raf=requestAnimationFrame(tick);
  let done=false;const finish=()=>{if(done)return;done=true;o.classList.add('out');at(700,()=>{delete state.shinFx031;persist();clearOv();});};
  o.addEventListener('click',finish);
+ fxShin(o);
+ const sr=o.querySelector('.hv-srays');if(sr){const t2=performance.now();const spin=()=>{if(!o.isConnected)return;sr.setAttribute('transform','translate(0 -6) rotate('+(((performance.now()-t2)/1000)*6).toFixed(2)+')');requestAnimationFrame(spin);};requestAnimationFrame(spin);}
  at(8600,finish);
 }
 const MOUNT={intro:mountIntro,accept2:mountAccept2,withdraw:mountWithdraw,bloom:mountBloom,twist:mountTwist,shin:mountShin};
