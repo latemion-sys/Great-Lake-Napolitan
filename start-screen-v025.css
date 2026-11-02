@@ -129,3 +129,12 @@ body.landing025-active .shell>.layout>main .tabs{display:none!important}
 .landing025 .chron-view027 summary{cursor:pointer;font-size:13px;color:var(--blue)}
 .landing025 .chron-view027 pre{margin:8px 0 0;max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-all;background:#10151c;border:1px solid #2a333e;border-radius:9px;padding:10px 12px;font-size:12px;line-height:1.7;color:#cdd6de;font-family:inherit}
 @media(max-width:800px){.landing025 .landing-chron027{padding:21px 18px}.landing025 .chron-btns027{width:100%}.landing025 .chron-btns027 button{flex:1}}
+
+/* 시작 화면의 선택 목적 입력란과 항구에서 보이는 현재 목적 */
+.landing025 #captainPurposeInput025{
+ display:block;width:100%;min-height:78px;box-sizing:border-box;resize:vertical;
+ background:#111a24;color:var(--text);border:1px solid #566879;
+ border-radius:9px;padding:12px;font:inherit;font-size:14px;line-height:1.65;
+}
+.landing025 #captainPurposeInput025:focus-visible{outline:2px solid #9fc6ff;outline-offset:2px}
+.captain-purpose-record025 p{margin:8px 0 0;line-height:1.7;overflow-wrap:anywhere;white-space:pre-wrap}
