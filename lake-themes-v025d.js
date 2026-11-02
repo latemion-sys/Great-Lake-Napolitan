@@ -74,58 +74,66 @@
 
  /* ───────── 21-12 · 파도 호수 ─────────
     「사방이 온통 벽청빛 파도로 일렁인다. 앞쪽에 유독 커다란 파도가 하나 솟아 있다. 그것은 무너지지 않는다.」
-    · 물: 벽청빛(짙은 청록). 사방에 뾰족한 잔파도가 쉼 없이 솟았다 꺼지고 배가 크게 흔들린다.
-    · 큰 파도: 배 앞에 높이 솟아 앞으로 말린 파도. 표면의 물은 계속 타고 오르고 물마루 거품은 끓지만,
-      모양은 그대로 서서 무너지지 않는다. */
+    · '커다란 파도'는 진짜 물결이 아니라 파도라고 부를 수밖에 없는 무언가다. 모양만 파도를 닮았다.
+      - 주위 물은 모두 일렁이는데, 그것만은 완전히 멈춰 있다(흔들림·흐름·거품의 움직임이 없음).
+      - 물이 아닌 듯한 무른 광택 없는 겉면에, 지층 같은 결이 겹겹이 모양을 따라 굳어 있다.
+      - 물마루의 '거품'은 갈고리처럼 굳은 말림이고, 그 끝에서 떨어지던 물방울들은 공중에 그대로 멈춰 있다.
+      - 밑동 둘레만 물결이 잦아들어 잔잔하고, 물에 비친 모습은 흔들리지 않는다.
+      - 표면을 미끄러지는 희미한 빛만이 그것이 단단한 무언가라는 걸 드러낸다.
+    · 주위 물: 벽청빛 잔파도가 사방에서 쉼 없이 솟았다 꺼지고 배가 크게 흔들린다. */
  THEMES[12]={
   skyTop:'#060c14',skyMid:'#13253a',skyHorizon:'#2e4f6e',moon:'#d8e8f4',
   seaTop:'#4f86a8',seaMid:'#244e6c',seaBottom:'#0a1e2e',
   crest:'#e6f4ff',swell:'#6a9ac0',hatch:'#dff0ff',boat:'#03070b',rim:'#9ab8cc',
   lamp:'#ffc055',lampCore:'#fff0c0',bob:1.7,drift:.8
  };
- const WV={x:530,base:136};
- // 큰 파도 윤곽(밑 오른쪽 → 등 → 물마루 → 앞으로 말린 입술 → 오목한 앞면 → 밑 왼쪽)
+ const WV={x:530,base:137};
  const WAVE_D='M150,8 C110,2 80,-40 48,-78 C30,-98 6,-108 -18,-104 C-40,-100 -56,-86 -64,-70 C-68,-62 -62,-56 -54,-60 C-48,-64 -46,-72 -38,-74 C-30,-76 -26,-66 -30,-52 C-38,-26 -70,-4 -120,8 Z';
+ // 물마루의 굳은 갈고리 말림
+ const CLAWS=[[-60,-66,-.4,1],[-50,-84,-.1,1.1],[-36,-96,.2,1.15],[-18,-103,.5,1.2],[2,-104,.75,1.15],[20,-99,1,1.05],[36,-90,1.25,.95]];
+ function claw(x,y,r,s){const c=Math.cos(r),sn=Math.sin(r),P=(u,v)=>f1(x+(u*c-v*sn)*s)+','+f1(y+(u*sn+v*c)*s);
+  return 'M'+P(-6,2)+' C'+P(-6,-6)+' '+P(2,-9)+' '+P(5,-4)+' C'+P(7,-1)+' '+P(4,2)+' '+P(1,0)+' C'+P(3,-3)+' '+P(0,-5)+' '+P(-2,-2)+' C'+P(-3,0)+' '+P(-1,3)+' '+P(-6,2)+' Z';}
+ // 공중에 멈춘 물방울
+ const DROPS=[[-66,-58,1.4],[-70,-44,1.1],[-64,-30,.9],[-74,-36,.8],[-58,-48,.7],[-72,-22,.7],[-60,-14,.6],[-78,-52,.6],[-52,-36,.5]];
  LAYERS[12]={
   under(th){
-   const n=N();let st='',fo='',sp='';for(let i=0;i<9;i++)st+='<path/>';for(let i=0;i<16;i++)fo+='<ellipse/>';for(let i=0;i<14;i++)sp+='<circle/>';
+   const n=N();
+   // 지층 같은 결: 모양을 따라 안쪽으로 겹겹이 줄어드는 띠
+   let bands='';const C=[40,10],cols=['#1c4660','#235472','#1a405a','#2a5e7e','#1e4a66','#2f6886','#214e6c','#3a7898'];
+   for(let k=0;k<8;k++){const f=1-k*.105;bands+='<path d="'+WAVE_D+'" fill="'+cols[k]+'" transform="translate('+f1(C[0]*(1-f))+' '+f1(C[1]*(1-f))+') scale('+f2(f)+')"/>';}
+   let lines='';for(let k=1;k<9;k++){const f=1-k*.105+.02;lines+='<path d="'+WAVE_D+'" transform="translate('+f1(C[0]*(1-f))+' '+f1(C[1]*(1-f))+') scale('+f2(f)+')"/>';}
+   let claws='';CLAWS.forEach(c=>{claws+='<path d="'+claw(c[0],c[1],c[2],c[3])+'"/>';});
+   let drops='';DROPS.forEach(d=>{drops+='<g><ellipse cx="'+d[0]+'" cy="'+d[1]+'" rx="'+f2(d[2])+'" ry="'+f2(d[2]*1.35)+'" fill="#bcd8e8" opacity=".85"/><circle cx="'+f1(d[0]-d[2]*.35)+'" cy="'+f1(d[1]-d[2]*.5)+'" r="'+f2(d[2]*.3)+'" fill="#fff"/></g>';});
    return '<defs>'+
-     '<linearGradient id="wvBody" x1="0" y1="1" x2=".2" y2="0"><stop stop-color="#0e2c44"/><stop offset=".45" stop-color="#2a6a8c"/><stop offset=".8" stop-color="#6cb0c8"/><stop offset="1" stop-color="#b8e6f0"/></linearGradient>'+
-     '<linearGradient id="wvFace" x1="1" y1="0" x2="0" y2="0"><stop stop-color="#000" stop-opacity="0"/><stop offset=".6" stop-color="#05121e" stop-opacity=".35"/><stop offset="1" stop-color="#05121e" stop-opacity=".6"/></linearGradient>'+
      '<clipPath id="wvClip"><path d="'+WAVE_D+'"/></clipPath>'+
-     (n?n.pattern('wvTex','wv-tex',{size:128,cell:16,oct:3,rgb:[220,240,255],lo:.6,hi:.95,stretch:[.5,2],seed:51},40,60):'')+
+     '<linearGradient id="wvShade" x1="1" y1="0" x2="0" y2="1"><stop stop-color="#000" stop-opacity="0"/><stop offset=".55" stop-color="#03101a" stop-opacity=".25"/><stop offset="1" stop-color="#03101a" stop-opacity=".6"/></linearGradient>'+
+     '<linearGradient id="wvSheen" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#cfe6f4" stop-opacity="0"/><stop offset=".5" stop-color="#cfe6f4" stop-opacity=".3"/><stop offset="1" stop-color="#cfe6f4" stop-opacity="0"/></linearGradient>'+
+     (n?n.pattern('wvMat','wv-mat',{size:128,cell:8,oct:3,rgb:[4,16,26],lo:.45,hi:.9,seed:52},50,50):'')+
+     '<linearGradient id="wvRefF" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'+
+     '<mask id="wvRefM" maskUnits="userSpaceOnUse" x="300" y="130" width="500" height="70"><rect x="300" y="'+(WV.base+4)+'" width="500" height="60" fill="url(#wvRefF)"/></mask>'+
+     '<radialGradient id="wvCalm"><stop stop-color="#2c5e80" stop-opacity=".95"/><stop offset=".7" stop-color="#2c5e80" stop-opacity=".6"/><stop offset="1" stop-color="#2c5e80" stop-opacity="0"/></radialGradient>'+
     '</defs>'+
+    // 밑동 둘레의 잔잔한 물 · 흔들리지 않는 비친 모습
+    '<ellipse cx="'+(WV.x+10)+'" cy="'+(WV.base+8)+'" rx="190" ry="20" fill="url(#wvCalm)"/>'+
+    '<g mask="url(#wvRefM)"><g transform="translate('+WV.x+' '+(WV.base+16)+') scale(1 -.7)" opacity=".5">'+bands+'</g></g>'+
     '<g class="wv" transform="translate('+WV.x+' '+WV.base+')">'+
-     '<path d="'+WAVE_D+'" fill="url(#wvBody)"/>'+
-     '<g clip-path="url(#wvClip)">'+(n?'<rect class="wv-tex" x="-140" y="-120" width="300" height="240" fill="url(#wvTex)" opacity=".35"/>':'')+
-      '<path d="'+WAVE_D+'" fill="url(#wvFace)"/><g class="wv-streak">'+st+'</g></g>'+
+     '<g clip-path="url(#wvClip)">'+bands+(n?'<rect x="-140" y="-120" width="300" height="140" fill="url(#wvMat)" opacity=".5"/>':'')+
+      '<g class="wv-lines" fill="none">'+lines+'</g>'+
+      '<path d="'+WAVE_D+'" fill="url(#wvShade)"/>'+
+      '<rect class="wv-sheen" x="-60" y="-120" width="60" height="150" fill="url(#wvSheen)" transform="skewX(-25)"/></g>'+
      '<path class="wv-rim" d="M-64,-70 C-56,-86 -40,-100 -18,-104 C6,-108 30,-98 48,-78" fill="none"/>'+
-     '<g class="wv-foam">'+fo+'</g><g class="wv-spray">'+sp+'</g>'+
+     '<g class="wv-claws">'+claws+'</g><g class="wv-drops">'+drops+'</g>'+
     '</g>';
   },
   surface(th){let s='';for(let i=0;i<4;i++)s+='<path class="wc-f" data-i="'+i+'"/><path class="wc-l" data-i="'+i+'"/>';return '<defs><linearGradient id="wcFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#9ccbe4" stop-opacity=".55"/><stop offset="1" stop-color="#2a5a7a" stop-opacity="0"/></linearGradient></defs><g class="wv-chop">'+s+'</g>';},
   paint(el,c){
    const {t,a,surf}=c;
-   // 큰 파도: 모양은 그대로, 표면의 물만 계속 타고 오름
-   el.querySelectorAll('.wv-streak path').forEach((p,i)=>{
-    const ph=((t*.35+i/9)%1),x=-110+i*28,len=40;let d='';
-    for(let s=0;s<=5;s++){const u=s/5,yy=10-(ph*120+u*len),xx=x+Math.sin(yy*.05+i)*4-u*6;d+=(s?' L':'M')+f1(xx)+','+f1(yy);}
-    p.setAttribute('d',d);p.style.opacity=(Math.sin(Math.PI*ph)*.45).toFixed(3);
-   });
-   const tx=el.querySelector('.wv-tex');if(tx)tx.setAttribute('transform','translate(0 '+f1(-((t*14)%60))+')');
-   // 물마루 거품: 제자리에서 끓음(무너지지 않음)
-   el.querySelectorAll('.wv-foam ellipse').forEach((e,i)=>{
-    const u=i/15,x=-64+u*112,y=u<.45?-70-(u/.45)*34:-104+((u-.45)/.55)*26,b=Math.sin(t*3+i*1.7)*.5+.5;
-    e.setAttribute('cx',f1(x+Math.sin(t*2+i)*1.5));e.setAttribute('cy',f1(y-1-b*2));e.setAttribute('rx',f1(4+b*3));e.setAttribute('ry',f1(2+b*1.6));e.style.opacity=(.55+.35*b).toFixed(3);
-   });
-   el.querySelectorAll('.wv-spray circle').forEach((e,i)=>{
-    const per=1.4+(i%4)*.3,ph=((t+i*.37)/per)%1,x=-60+((i*37)%110),y=-100+((i*13)%30)*.6;
-    e.setAttribute('cx',f1(x+ph*8*(i%2?1:-1)));e.setAttribute('cy',f1(y-Math.sin(Math.PI*ph)*10));e.setAttribute('r',f1(.6+(i%3)*.4));e.style.opacity=(Math.sin(Math.PI*ph)*.8).toFixed(3);
-   });
-   // 사방의 잔파도: 뾰족하게 솟았다 꺼짐
+   // 그것: 모양은 완전히 멈춰 있고, 희미한 빛만 겉면을 아주 느리게 미끄러짐
+   const sh=el.querySelector('.wv-sheen');sh.setAttribute('x',f1(-170+((t*9)%300)));
+   // 사방의 잔파도: 솟았다 꺼짐. 그것의 밑동 둘레에서만 잦아든다
    for(let i=0;i<4;i++){
     const y0=8+i*13,h=2.6+i*1.1;let d='',bot='';
-    for(let x=-20;x<=820;x+=5){const ph=x*(.09-i*.012)-t*(1.6+i*.3)+i*2,pk=Math.pow(Math.abs(Math.sin(ph)),2.4)*h,y=surf(x,t,a)+y0-pk;d+=(d?' L':'M')+x+','+f1(y);bot=' L'+x+','+f1(surf(x,t,a)+y0+3+i)+bot;}
+    for(let x=-20;x<=820;x+=5){const calm=1-Math.exp(-Math.pow((x-WV.x-10)/(110+i*20),2))*(1-i*.15),ph=x*(.09-i*.012)-t*(1.6+i*.3)+i*2,pk=Math.pow(Math.abs(Math.sin(ph)),2.4)*h*calm,y=surf(x,t,a)+y0-pk;d+=(d?' L':'M')+x+','+f1(y);bot=' L'+x+','+f1(surf(x,t,a)+y0+3+i)+bot;}
     const F=el.querySelector('.wc-f[data-i="'+i+'"]'),L=el.querySelector('.wc-l[data-i="'+i+'"]');
     F.setAttribute('d',d+bot+'Z');F.style.opacity=(.75-i*.12).toFixed(3);L.setAttribute('d',d);L.style.opacity=(.55-i*.1).toFixed(3);
    }
@@ -298,10 +306,9 @@
   '.lakefx .sl-pen{fill:#c83a3a}'+
   '.lakefx[data-lake="12"]{background:#050b12;border-color:#3e5a74}'+
   '.lakefx[data-lake="12"] .lfx-top{color:#dcecf8}'+
-  '.lakefx .wv-streak path{fill:none;stroke:#dff4ff;stroke-width:1.1;stroke-linecap:round}'+
-  '.lakefx .wv-rim{stroke:#f0fbff;stroke-width:1.6;stroke-opacity:.7;stroke-linecap:round}'+
-  '.lakefx .wv-foam ellipse{fill:#f4fbff}'+
-  '.lakefx .wv-spray circle{fill:#f4fbff}'+
+  '.lakefx .wv-rim{stroke:#a8d0e4;stroke-width:1.1;stroke-opacity:.45;stroke-linecap:round}'+
+  '.lakefx .wv-lines path{stroke:#6aa0c0;stroke-width:.6;stroke-opacity:.35}'+
+  '.lakefx .wv-claws path{fill:#9cc4d8;stroke:#d8ecf6;stroke-width:.5;stroke-opacity:.6}'+
   '.lakefx .wc-f{fill:url(#wcFill)}.lakefx .wc-l{fill:none;stroke:#e4f4ff;stroke-width:.7;stroke-linejoin:round}'+
   '.lakefx[data-lake="13"]{background:#0a0d08;border-color:#5a6a48}'+
   '.lakefx[data-lake="13"] .lfx-top{color:#e8f0d0}'+

@@ -21,3 +21,6 @@
 .lakefx .lfx-vignette{position:absolute;z-index:2;inset:0;pointer-events:none;box-shadow:inset 0 0 68px 14px #040a13}
 .lakefx .lfx-top{position:absolute;z-index:5;top:12px;left:16px;font-size:10px;letter-spacing:.21em;color:#c8d8de;text-shadow:0 2px 8px #000,0 0 8px #000}
 @media(max-width:620px){.lakefx{height:clamp(140px,40vw,180px)}.lakefx .lfx-top{letter-spacing:.09em;font-size:9px;top:9px;left:12px}}
+
+.lakefx .lfx-wake path{fill:none;stroke:var(--lfx-crest,#abc8c7);stroke-linecap:round;stroke-linejoin:round;stroke-opacity:0}
+.lakefx .lfx-wake .lfx-bow{stroke-width:1.6}

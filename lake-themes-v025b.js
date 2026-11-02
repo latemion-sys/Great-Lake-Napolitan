@@ -369,7 +369,7 @@
   // 21-08 없음
   '.lakefx[data-lake="8"]{background:#000;border-color:#141414;box-shadow:none}'+
   '.lakefx[data-lake="8"] .lfx-top,.lakefx[data-lake="8"] .lfx-crest,.lakefx[data-lake="8"] .lfx-fars,.lakefx[data-lake="8"] .lfx-horizon,.lakefx[data-lake="8"] .lfx-mist,'+
-  '.lakefx[data-lake="8"] .lfx-ripples,.lakefx[data-lake="8"] .lfx-reflection,.lakefx[data-lake="8"] .lfx-glint,.lakefx[data-lake="8"] .lfx-grain{display:none}'+
+  '.lakefx[data-lake="8"] .lfx-ripples,.lakefx[data-lake="8"] .lfx-wake,.lakefx[data-lake="8"] .lfx-reflection,.lakefx[data-lake="8"] .lfx-glint,.lakefx[data-lake="8"] .lfx-grain{display:none}'+
   '.lakefx[data-lake="8"] .lfx-boat{opacity:.5!important}'+
   '.lakefx[data-lake="8"] .lfx-hull,.lakefx[data-lake="8"] .lfx-deck,.lakefx[data-lake="8"] .lfx-stay{stroke-opacity:0}'+
   '.lakefx[data-lake="8"] .lfx-corner{background:none}'+
