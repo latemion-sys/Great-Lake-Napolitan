@@ -313,6 +313,127 @@
   }
  };
 
+ /* ───────── 21-03 · 묵빛 호수 ─────────
+    「물이 검다. 물속에도 검은 것들이 떠 있다. 배가 들어서자 그것들이 배를 향해 쏠린다.」
+    · 물: 먹물처럼 검고 무거운 물. 너울이 낮고 느리며, 수면엔 먹이 번진 듯한 동심 물무늬(먹 흘림)가 떠돈다.
+    · 하늘: 먹을 엷게 푼 듯한 잿빛 밤. 수평선엔 먹으로 그은 듯한 먼 산 능선이 겹겹이 흐리다.
+    · 물속의 검은 것들: 물보다 더 검은 덩어리들이 여러 깊이에 떠 있다. 모양이 천천히 일그러지고, 테두리만 희미하게 비친다.
+    · 배가 들어서면: 흩어져 있던 덩어리들이 하나둘 배 쪽으로 쏠려 든다. 움직이는 동안 길게 늘어나고 먹 자국을 끌며,
+      배 밑에 모여서는 배를 따라 미세하게 일렁인다. 모여든 자리 위 수면에 먹 고리가 번진다. */
+ THEMES[3]={
+  skyTop:'#05070a',skyMid:'#0d1319',skyHorizon:'#252f39',
+  moon:'#b9c5cd',
+  seaTop:'#2c3944',seaMid:'#161e26',seaBottom:'#06090c',
+  crest:'#9aa9b5',swell:'#4c5a68',hatch:'#c8d4dc',
+  boat:'#040506',rim:'#9fadb6',
+  lamp:'#ffbf47',lampCore:'#ffe39a',
+  bob:.72,drift:.7
+ };
+ // 검은 것들: [처음 x, 깊이(0 얕음~1 깊음), 크기, 배 기준 모일 자리 x, 쏠리기 시작하는 늦음(초)]
+ const INK=[
+  [150,.15,13,-74,1.0],[232,.55,18,-40,1.6],[300,.3,11,-96,2.4],[118,.8,22,-20,2.9],
+  [520,.2,14,48,1.2],[590,.6,19,84,1.9],[660,.35,12,18,2.6],[700,.85,24,-58,3.3],
+  [420,.7,16,110,2.1],[360,.95,26,64,3.8],[470,.45,10,-8,1.5],[255,.9,20,30,4.2]
+ ];
+ function inkPos(i,t,bx,SEA,surf,a){
+  const [x0,dep,sz,ox,dl]=INK[i];
+  const k=Math.min(1,Math.max(0,(t-dl)/(3.2+dep*2.4))),e=k*k*(3-2*k);
+  const y0=SEA+16+dep*44+Math.sin(t*.4+i)*3,ty=SEA+12+dep*22;
+  const wob=Math.sin(t*.7+i*1.9)*(6+10*(1-e));
+  return [x0+(bx+ox-x0)*e+wob,y0+(ty-y0)*e+Math.cos(t*.5+i)*2,e,k];
+ }
+ function blob(cx,cy,r,t,seed,sx,sy,ang){
+  const N=9;let pts=[];
+  for(let j=0;j<N;j++){
+   const th=j/N*Math.PI*2,rr=r*(1+.18*Math.sin(t*.9+seed+j*1.7)+.1*Math.sin(t*1.7+seed*2+j*2.9));
+   let x=Math.cos(th)*rr*sx,y=Math.sin(th)*rr*sy;
+   const ca=Math.cos(ang),sa=Math.sin(ang);pts.push([cx+x*ca-y*sa,cy+x*sa+y*ca]);
+  }
+  let d='M'+f1((pts[0][0]+pts[N-1][0])/2)+','+f1((pts[0][1]+pts[N-1][1])/2);
+  for(let j=0;j<N;j++){const p=pts[j],q=pts[(j+1)%N];d+=' Q'+f1(p[0])+','+f1(p[1])+' '+f1((p[0]+q[0])/2)+','+f1((p[1]+q[1])/2);}
+  return d+'Z';
+ }
+ LAYERS[3]={
+  sky(th){
+   // 먼 산 능선 세 겹(먹을 엷게 그은 듯) · 엷은 먹구름
+   const ridge=(base,amp,seed,step)=>{let d='M-20,'+(base+20);for(let x=-20;x<=820;x+=step){const y=base-Math.abs(Math.sin(x*.011+seed))*amp-Math.sin(x*.027+seed*2)*amp*.35-Math.sin(x*.063+seed)*amp*.12;d+=' L'+x+','+f1(y);}return d+' L820,'+(base+20)+'Z';};
+   return '<defs>'+
+     '<linearGradient id="mkR1" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#323d48" stop-opacity=".45"/><stop offset="1" stop-color="#3a4652" stop-opacity="0"/></linearGradient>'+
+     '<linearGradient id="mkR2" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#222b34" stop-opacity=".8"/><stop offset="1" stop-color="#222b34" stop-opacity=".1"/></linearGradient>'+
+     '<linearGradient id="mkR3" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#11171d" stop-opacity=".95"/><stop offset="1" stop-color="#11171d" stop-opacity=".35"/></linearGradient>'+
+     '<radialGradient id="mkCloud"><stop stop-color="#53606c" stop-opacity=".22"/><stop offset=".6" stop-color="#3a4550" stop-opacity=".08"/><stop offset="1" stop-color="#2a3440" stop-opacity="0"/></radialGradient>'+
+    '</defs>'+
+    '<ellipse cx="260" cy="44" rx="190" ry="10" fill="url(#mkCloud)"/><ellipse cx="560" cy="66" rx="220" ry="9" fill="url(#mkCloud)"/><ellipse cx="380" cy="88" rx="160" ry="6" fill="url(#mkCloud)"/>'+
+    '<path d="'+ridge(108,26,1.3,10)+'" fill="url(#mkR1)"/>'+
+    '<path d="'+ridge(116,20,4.1,8)+'" fill="url(#mkR2)"/>'+
+    '<path d="'+ridge(124,12,2.2,6)+'" fill="url(#mkR3)"/>';
+  },
+  under(th){
+   let b='',tr='';
+   for(let i=0;i<INK.length;i++){b+='<path class="mk-halo" data-i="'+i+'"/><path class="mk-ink" data-i="'+i+'"/>';tr+='<path class="mk-trail" data-i="'+i+'"/>';}
+   return '<defs>'+
+     '<radialGradient id="mkInk"><stop stop-color="#000000" stop-opacity=".96"/><stop offset=".55" stop-color="#020305" stop-opacity=".82"/><stop offset="1" stop-color="#060a0e" stop-opacity="0"/></radialGradient>'+
+     '<radialGradient id="mkInkDeep"><stop stop-color="#020406" stop-opacity=".7"/><stop offset=".6" stop-color="#05080b" stop-opacity=".4"/><stop offset="1" stop-color="#0a0f14" stop-opacity="0"/></radialGradient>'+
+     '<radialGradient id="mkHalo"><stop offset=".55" stop-color="#8fa2b2" stop-opacity="0"/><stop offset=".8" stop-color="#9fb2c2" stop-opacity=".13"/><stop offset="1" stop-color="#8fa2b2" stop-opacity="0"/></radialGradient>'+
+     '<linearGradient id="mkSheen" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#c8d4dc" stop-opacity="0"/><stop offset=".5" stop-color="#d8e2e8" stop-opacity=".5"/><stop offset="1" stop-color="#c8d4dc" stop-opacity="0"/></linearGradient>'+
+    '</defs>'+
+    '<g class="mk-moonref"><path/><path/><path/><path/><path/><path/></g>'+
+    '<g class="mk-trails">'+tr+'</g><g class="mk-inks">'+b+'</g>';
+  },
+  surface(th){
+   let rings='';for(let i=0;i<3;i++)rings+='<g class="mk-ring" data-i="'+i+'"><path/><path/></g>';
+   let sh='';for(let i=0;i<10;i++)sh+='<path/>';
+   return '<g class="mk-rings">'+rings+'</g><g class="mk-sheen">'+sh+'</g>';
+  },
+  paint(el,c){
+   const {t,a,surf,SEA,x:bx}=c;
+   const appear=Math.min(1,Math.max(0,(t-.2)/2));
+   // 검은 것들
+   el.querySelectorAll('.mk-ink').forEach(p=>{
+    const i=+p.dataset.i,[x0,dep,sz]=INK[i],P=inkPos(i,t,bx,SEA,surf,a),P2=inkPos(i,t-.18,bx,SEA,surf,a);
+    const vx=(P[0]-P2[0])/.18,vy=(P[1]-P2[1])/.18,sp=Math.min(1,Math.hypot(vx,vy)/40),ang=Math.atan2(vy,vx);
+    const r=sz*(1-.35*dep)*(1+.08*Math.sin(t*1.3+i));
+    p.setAttribute('d',blob(P[0],P[1],r,t,i*2.3,1+.9*sp,1-.3*sp,sp>.05?ang:Math.sin(t*.3+i)*.3));
+    p.setAttribute('fill',dep>.6?'url(#mkInkDeep)':'url(#mkInk)');
+    p.style.opacity=(appear*(1-.45*dep)*(.85+.15*Math.sin(t*.8+i))).toFixed(3);
+    p.style.stroke=dep<.5?'#8a9cac':'none';
+    const h=p.previousSibling;h.setAttribute('d',blob(P[0],P[1],r*1.45,t,i*2.3,1+.9*sp,1-.3*sp,sp>.05?ang:Math.sin(t*.3+i)*.3));h.setAttribute('fill','url(#mkHalo)');
+    h.style.opacity=(appear*(1-.6*dep)).toFixed(3);
+    // 먹 자국: 지나온 길을 따라 가늘어지며 옅어짐
+    const tr=el.querySelector('.mk-trail[data-i="'+i+'"]');
+    if(sp>.06){
+     let d='',L=[];for(let k=0;k<=6;k++)L.push(inkPos(i,t-k*.22,bx,SEA,surf,a));
+     const w0=r*.55*sp;let left='',right='';
+     for(let k=0;k<L.length;k++){const q=L[k],nq=L[Math.min(L.length-1,k+1)],dx=q[0]-nq[0],dy=q[1]-nq[1],dl=Math.hypot(dx,dy)||1,w=w0*(1-k/L.length);
+      left+=(k?' L':'M')+f1(q[0]-dy/dl*w)+','+f1(q[1]+dx/dl*w);right=' L'+f1(q[0]+dy/dl*w)+','+f1(q[1]-dx/dl*w)+right;}
+     tr.setAttribute('d',left+right+'Z');tr.style.opacity=(appear*sp*(1-.5*dep)*.55).toFixed(3);
+    }else tr.style.opacity='0';
+   });
+   // 달빛이 검은 수면에 길게 비침(끊긴 은빛 조각)
+   el.querySelectorAll('.mk-moonref path').forEach((p,i)=>{
+    const y=SEA+6+i*8+Math.sin(t*.6+i)*1.5,x=640+Math.sin(t*.35+i*1.3)*10-i*6,w=(46-i*5)*(.8+.2*Math.sin(t*1.1+i*2));
+    p.setAttribute('d','M'+f1(x-w)+','+f1(y)+' Q'+f1(x)+','+f1(y-1.6)+' '+f1(x+w)+','+f1(y)+' Q'+f1(x)+','+f1(y+1.4)+' '+f1(x-w)+','+f1(y)+'Z');
+    p.style.opacity=((.18-i*.022)*(.7+.3*Math.sin(t*1.7+i))).toFixed(3);
+   });
+   // 먹 고리: 검은 것들이 모인 자리 위 수면에 번지는 일그러진 동심 고리
+   el.querySelectorAll('.mk-ring').forEach(g=>{
+    const i=+g.dataset.i,src=[4,1,10][i],P=inkPos(src,t,bx,SEA,surf,a),gath=P[2];
+    const cx=P[0],cy=surf(cx,t,a)+3+i*2.5;
+    g.querySelectorAll('path').forEach((p,k)=>{
+     const ph=((t*.1+k/2+i*.29)%1),rx=(10+ph*70)*(.6+.4*gath),ry=rx*.13;
+     let d='';for(let s=0;s<=24;s++){const th=s/24*Math.PI*2,w=1+.12*Math.sin(th*3+t*.6+k+i)+.06*Math.sin(th*5-t*.4);d+=(s?' L':'M')+f1(cx+Math.cos(th)*rx*w)+','+f1(cy+Math.sin(th)*ry*w);}
+     p.setAttribute('d',d+'Z');p.style.opacity=(appear*(.05+.2*gath)*Math.sin(Math.PI*ph)).toFixed(3);
+    });
+   });
+   // 기름처럼 무거운 수면 광택: 물마루를 따라 짧은 은빛 결이 천천히 미끄러짐
+   el.querySelectorAll('.mk-sheen path').forEach((p,i)=>{
+    const per=6+i%4,ph=((t+i*1.37)/per)%1,cyc=Math.floor((t+i*1.37)/per),x=110+((cyc*211+i*157)%580)+ph*30,w=8+(i%3)*6;
+    let d='';for(let s=0;s<=4;s++){const xx=x-w+s*w/2;d+=(s?' L':'M')+f1(xx)+','+f1(surf(xx,t,a)+1+(i%3)*5);}
+    p.setAttribute('d',d);p.style.opacity=(Math.sin(Math.PI*ph)*.22).toFixed(3);
+   });
+  }
+ };
+
  // 붉은 호수 전용 색(위 공통 CSS가 푸른 톤으로 고정한 부분만 덮는다)
  const css=
   '.lakefx[data-lake="1"]{background:#0c0407;border-color:#6b3a40;box-shadow:inset 0 0 65px #0a0204,0 8px 30px #0008}'+
@@ -346,6 +467,17 @@
   
   
   '.lakefx .fl-petals ellipse{fill:#ffe6c8}'+
+  '.lakefx[data-lake="3"]{background:#06080b;border-color:#3e4954;box-shadow:inset 0 0 65px #020305,0 8px 30px #0008}'+
+  '.lakefx[data-lake="3"] .lfx-horizon{stroke:#9aa8b4;stroke-opacity:.14}'+
+  '.lakefx[data-lake="3"] .lfx-mist rect{fill:#aab6c0;opacity:.05}'+
+  '.lakefx[data-lake="3"] .lfx-corner{background:linear-gradient(90deg,#05070ac0,transparent 22%,transparent 78%,#05070ac0),linear-gradient(0deg,#020304e0,transparent 26%,transparent 76%,#05070aaa)}'+
+  '.lakefx[data-lake="3"] .lfx-vignette{box-shadow:inset 0 0 72px 18px #030406}'+
+  '.lakefx[data-lake="3"] .lfx-top{color:#c4ced6}'+
+  '.lakefx .mk-ink{stroke-width:.6;stroke-opacity:.17}'+
+  '.lakefx .mk-trail{fill:#000}'+
+  '.lakefx .mk-moonref path{fill:#d8e2e8}'+
+  '.lakefx .mk-ring path{fill:none;stroke:#a8b6c2;stroke-width:.55}'+
+  '.lakefx .mk-sheen path{fill:none;stroke:#cfdae2;stroke-width:.8;stroke-linecap:round}'+
   '.lakefx .fl-crest{fill:none;stroke:#ffb070;stroke-width:1.6;stroke-opacity:.45;stroke-dasharray:3 26 9 44;stroke-linecap:round;mix-blend-mode:screen}';
  const st=document.createElement('style');st.id='lake-themes-v025';st.textContent=css;document.head.appendChild(st);
 
