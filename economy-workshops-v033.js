@@ -70,8 +70,8 @@ function aliasMind(s){
  return s;
 }
 aliasMind(state);
-if(state.scene==='start'&&state.voyage===0&&state.gold===100){
- state.gold=50;
+if(state.scene==='start'&&state.voyage===0&&(state.gold===100||state.gold===50)){
+ state.gold=70;
 }
 const priorFresh=fresh;
 fresh=function(){return aliasMind(priorFresh.apply(this,arguments));};
