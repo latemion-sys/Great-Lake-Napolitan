@@ -70,6 +70,9 @@ function aliasMind(s){
  return s;
 }
 aliasMind(state);
+if(state.scene==='start'&&state.voyage===0&&state.gold===100){
+ state.gold=50;
+}
 const priorFresh=fresh;
 fresh=function(){return aliasMind(priorFresh.apply(this,arguments));};
 if(typeof save==='function')save();
@@ -88,7 +91,7 @@ takeDamage=function(h,m){
  if(m>0){
   if(state.sea&&!(h>0))state.lossesThisVoyage=(state.lossesThisVoyage||0)+1;
   const factor=typeof routeLengthFactor149==='function'?routeLengthFactor149():1;
-  const mang=(state.scene==='battle'&&state.battle?.mang)||state.scene==='blueHunt'||state.scene==='encounter'?window.CalamityMang.guard?.()||0:0;
+  const mang=(state.scene==='battle'&&state.battle&&(state.battle.type==='whale'||state.battle.mang))||state.scene==='blueHunt'||state.scene==='encounter'?window.CalamityMang.guard?.()||0:0;
   const base=Math.max(1,Math.ceil(m*factor*(1-Math.min(.65,mang))));
   window.CalamityMang.hurt(base,'항해 중 정신 피해.');
  }
@@ -97,7 +100,7 @@ takeDamage=function(h,m){
 safeCheck=function(){
  aliasMind(state);
  if((state.exposure||0)>=100){die();return false;}
- if(state.captainMind<=0&&!state.mindJudge)window.CalamityMang.hurt(1,'');
+ if(state.captainMind<=0&&!state.mindJudge)state.mindJudge={stage:'pending',draft:''};
  return true;
 };
 function effectsOf(item){
