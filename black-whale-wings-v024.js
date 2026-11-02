@@ -130,10 +130,11 @@ function lureTick(t){
 /* ---------- ③ 관측 ---------- */
 function newRound(delay){
  const v=V(),B=v.BUOYS,t=now()+delay,start={L:[468,SEA+70],R:[492,SEA+70]};
- const tgt={L:Math.floor(Math.random()*3),R:3+Math.floor(Math.random()*3)};
+ const SI={L:B.map((b,k)=>k).filter(k=>B[k][0]<480),R:B.map((b,k)=>k).filter(k=>B[k][0]>=480)};
+ const tgt={L:SI.L[Math.floor(Math.random()*SI.L.length)],R:SI.R[Math.floor(Math.random()*SI.R.length)]};
  const paths={},arrive={};
  ['L','R'].forEach(side=>{
-  const i=tgt[side],mid=[0,1,2].map(k=>side==='L'?k:k+3).filter(k=>k!==i&&(side==='L'?B[k][0]>B[i][0]:B[k][0]<B[i][0]));
+  const i=tgt[side],mid=SI[side].filter(k=>k!==i&&(side==='L'?B[k][0]>B[i][0]:B[k][0]<B[i][0]));
   const pick=mid.sort(()=>Math.random()-.5).slice(0,Math.min(mid.length,1+Math.floor(Math.random()*2))).sort((a,b)=>side==='L'?B[b][0]-B[a][0]:B[a][0]-B[b][0]);
   const pts=[start[side]],ts=[t+(side==='L'?1:1)+rnd(0,.5)+(side==='R'?rnd(.3,1.4):0)];
   pick.concat([i]).forEach((k,j)=>{pts.push([B[k][0]+rnd(-5,5),B[k][1]+rnd(-3,3)]);ts.push(ts[ts.length-1]+rnd(1.05,1.45));});
@@ -147,7 +148,7 @@ function watchTap(x,y){
  const v=V(),t=now();let best=-1,bd=1e9;
  v.BUOYS.forEach((b,i)=>{const sc=v.PS(b[1])*1.5,d=Math.hypot(b[0]-x,(b[1]-24*sc)-y)/sc;if(d<bd){bd=d;best=i;}});
  if(best<0||bd>58*G.ease)return;
- const side=best<3?'L':'R';if(G.ok[side])return;
+ const side=v.BUOYS[best][0]<480?'L':'R';if(G.ok[side])return;
  if(best===G.target[side]&&t>=G.arrive[side]-WATCH.early){
   G.ok[side]=true;G.marks[best]={};flash('날개 끝',true);
   if(G.ok.L&&G.ok.R){G.locked=true;G.wins=(G.wins||0)+1;

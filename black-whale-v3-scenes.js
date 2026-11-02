@@ -64,6 +64,8 @@ function bkDefs(){
  '<radialGradient id="bkPulse"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset=".86" stop-color="#03060c" stop-opacity=".85"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'+
  '<radialGradient id="bkRing"><stop offset=".62" stop-color="#ffd98a" stop-opacity="0"/><stop offset=".84" stop-color="#ffeac0" stop-opacity=".7"/><stop offset=".92" stop-color="#fff7e2" stop-opacity=".95"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>'+
  '<radialGradient id="bkBeamG" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="420"><stop stop-color="#ffe2a0" stop-opacity=".45"/><stop offset=".6" stop-color="#ffcf7a" stop-opacity=".12"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>'+
+ '<radialGradient id="bkByHalo"><stop stop-color="#ffd890" stop-opacity=".5"/><stop offset=".45" stop-color="#ffb860" stop-opacity=".18"/><stop offset="1" stop-color="#ff9a40" stop-opacity="0"/></radialGradient>'+
+ '<radialGradient id="bkByPil" cx=".5" cy=".1" r=".9"><stop stop-color="#ffe2a0" stop-opacity=".6"/><stop offset=".4" stop-color="#ffc870" stop-opacity=".22"/><stop offset="1" stop-color="#ffb050" stop-opacity="0"/></radialGradient>'+
  '<radialGradient id="bkGlow"><stop stop-color="#fff6dc"/><stop offset=".3" stop-color="#ffe2a0" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>'+
  '<radialGradient id="bkMote"><stop stop-color="#fff2d0" stop-opacity=".9"/><stop offset="1" stop-color="#ffcf7a" stop-opacity="0"/></radialGradient>'+
  '<linearGradient id="bkMembFade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset=".55" stop-color="#fff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'+
@@ -543,7 +545,7 @@ function bar(u,fill,time,hot){if(u.bar){u.bar.firstChild.style.width=n1(clamp(fi
 const PS=y=>clamp(.4+.6*(y-SEA)/170,.3,1.2);
 const BODYW=[480,SEA+84];   // 물밑에서 날개를 편 몸의 한가운데(작살이 박히는 자리)
 function jolt(g,t){return .5+(g.joltAt!=null?1.2*Math.exp(-Math.max(0,t-g.joltAt)*2.2):0);}           // 수면 위 y → 원근 크기
-const BUOYS=[[110,SEA+48],[236,SEA+98],[352,SEA+36],[608,SEA+40],[724,SEA+96],[850,SEA+50]];   // 양쪽 셋씩
+const BUOYS=[[118,SEA+50],[252,SEA+98],[360,SEA+38],[640,SEA+44],[808,SEA+92]];   // 다섯 개: 왼쪽 셋(0~2) · 오른쪽 둘(3~4)
 const BSC=i=>PS(BUOYS[i][1])*1.5;   // 부표 그림 크기
 const DECOY_AT=[480,SEA+64],LURE_BOAT=150;
 const BUOY_BODY='M-13,6 C-14,-8 -12,-26 -9,-34 C-6,-40 6,-40 9,-34 C12,-26 14,-8 13,6 Z';
@@ -627,9 +629,13 @@ function buoyMarkup(i){
   '<ellipse class="by-pool" cy="4" rx="60" ry="10" fill="url(#bkDcPool)" opacity=".7"/>'+
   '<ellipse class="by-sw" rx="46" ry="8" fill="url(#bkSwell)" opacity="0"/>'+
   '<ellipse class="by-mk" cy="-26" rx="1" ry="1" fill="url(#bkMark)" opacity="0"/>'+
+  '<ellipse class="by-pil" rx="1" ry="1" fill="url(#bkByPil)" opacity="0"/>'+
   '<g class="by-ref" opacity=".3"><g transform="scale(1 -.55)">'+buoyBody()+'</g></g>'+
-  '<g class="by-b">'+buoyBody()+
-   '<g class="by-lamp"><path d="M-4,-60 L-3,-69 L3,-69 L4,-60" fill="none" stroke="#4a443e" stroke-width="1.2"/><circle class="by-lt" cy="-64.5" r="2.6" fill="#ffe6b0"/><circle class="by-gl" cy="-64.5" r="30" fill="url(#bkGlow)" opacity=".5"/></g>'+
+  '<g class="by-b"><ellipse class="by-halo" cy="-34" rx="44" ry="50" fill="url(#bkByHalo)" opacity=".6"/>'+buoyBody()+
+   '<path class="by-rim" d="'+BUOY_BODY+'" fill="none" stroke="#ffd98e" stroke-width="1.6" stroke-linejoin="round" opacity=".55"/>'+
+   '<path class="by-band" d="M-12,-21 L12,-21" stroke="#fff2c8" stroke-width="2.4" stroke-linecap="round" opacity=".5"/>'+
+   '<g class="by-lamp"><path d="M-4,-60 L-3,-69 L3,-69 L4,-60" fill="none" stroke="#4a443e" stroke-width="1.2"/><circle class="by-gl" cy="-64.5" r="46" fill="url(#bkGlow)" opacity=".5"/><circle class="by-lt" cy="-64.5" r="3.2" fill="#fff4d0"/>'+
+    '<g class="by-star" transform="translate(0 -64.5)" opacity="0"><path d="M-26,0 L26,0 M0,-18 L0,18" stroke="#fff6dc" stroke-width="1.3" stroke-linecap="round"/><path d="M-9,-9 L9,9 M-9,9 L9,-9" stroke="#ffe8b0" stroke-width=".8" stroke-linecap="round"/><circle r="6" fill="#fffaf0"/></g></g>'+
    forkMarkup()+'</g>'+
   '<ellipse rx="16" ry="3.2" fill="#03070c" opacity=".85"/><ellipse class="by-foam" cy="1" rx="20" ry="3.2" fill="url(#bkFoam)"/></g>';
 }
@@ -702,7 +708,7 @@ function buoyState(i,t,tips){
  k=Math.min(1.2,k);
  const wind=4.5*Math.sin(t*1.25+i*1.7)+2.6*Math.sin(t*2.7+i*.9),bob=1.6*Math.sin(t*1.9+i*2.3)+1*Math.sin(t*3.1+i);
  const dip=k*10+rest*(5+2*Math.sin(t*2.4+i));
- const tilt=wind*(1-.6*Math.min(1,k))+vx*24+rest*(9*Math.sin(t*1.6+i)+(i<4?8:-8));
+ const tilt=wind*(1-.6*Math.min(1,k))+vx*24+rest*(9*Math.sin(t*1.6+i)+(BUOYS[i][0]<480?8:-8));
  return {sc,k,rest,dy:bob+dip,tilt};
 }
 function paintBuoys(el,t,tips,opt){
@@ -719,7 +725,12 @@ function paintBuoys(el,t,tips,opt){
   g.querySelectorAll('.by-rp').forEach(e=>{const kk=+e.dataset.k,a=((t*(.35+.5*S.k)+kk*.5+i*.13)%1);
    e.setAttribute('cx',n1(b[0]));e.setAttribute('cy',n1(b[1]+2));e.setAttribute('rx',n1((18+a*(50+60*S.k))*sc));e.setAttribute('ry',n1((3+a*(8+8*S.k))*sc));e.setAttribute('opacity',n3((1-a)*(.25+.65*Math.min(1,S.k))));});
   const lt=g.querySelector('.by-lt'),gl=g.querySelector('.by-gl'),blink=.55+.45*Math.max(0,Math.sin(t*2.6+i*1.3)),sub=1-.7*Math.min(1,S.k);
-  lt.setAttribute('opacity',n3(.6+.4*blink*sub));gl.setAttribute('opacity',n3((.55+.35*blink)*sub+.1));
+  const sub2=Math.max(.55,sub),flare=Math.pow(Math.max(0,Math.sin(t*1.6+i*2.1)),14);   // 등대처럼 주기적으로 번쩍
+  lt.setAttribute('opacity',n3(.75+.25*blink*sub2));gl.setAttribute('opacity',n3(Math.min(1,(.6+.3*blink)*sub2+.15+.4*flare)));
+  const star=g.querySelector('.by-star');if(star){star.setAttribute('opacity',n3(flare*sub2));star.setAttribute('transform','translate(0 -64.5) scale('+n3(.6+.6*flare)+') rotate('+n1(t*20+i*30)+')');}
+  const halo=g.querySelector('.by-halo');if(halo)halo.setAttribute('opacity',n3((.45+.25*blink+.3*flare)*sub2));
+  const rim=g.querySelector('.by-rim');if(rim)rim.setAttribute('opacity',n3((.4+.3*blink+.3*flare)*sub2));
+  const pil=g.querySelector('.by-pil');if(pil){pil.setAttribute('cx',n1(b[0]+Math.sin(t*2+i)*2*sc));pil.setAttribute('cy',n1(b[1]+22*sc));pil.setAttribute('rx',n1(10*sc*(1+.3*flare)));pil.setAttribute('ry',n1(34*sc));pil.setAttribute('opacity',n3((.5+.3*blink+.2*flare)*sub2));}
   const pl=g.querySelector('.by-pool');if(pl){pl.setAttribute('cx',n1(b[0]));pl.setAttribute('cy',n1(b[1]+3));pl.setAttribute('rx',n1(70*sc));pl.setAttribute('ry',n1(12*sc));pl.setAttribute('opacity',n3((.45+.35*blink)*sub));}
   const fk=o.forks&&o.forks[i];
   g.querySelector('.by-lamp').setAttribute('opacity',fk?'0':'1');
