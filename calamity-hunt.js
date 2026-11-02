@@ -6,8 +6,8 @@
    [정신력 0 판정] 동전 판정. 뒤틀리면 그대로 엔딩, E.G.O를 개화하면 이름을 새긴다(비우면 '개화 E.G.O').
      - 이미 개화한 선장이 다시 0이 되면, E.G.O가 붙잡아 주면 버티고 아니면 뒤틀린다.
      - 재앙 사냥 도중에 0이 되면 사냥 단계가 끝난 뒤 판정한다.
-   [신과 망] E.G.O를 개화한 뒤에만 항구 상점에서 수련을 시도할 수 있다. 신을 먼저 열고 망을 하나씩 연다.
-     신 5 · 60% / 망1 10 · 50% / 망2 20 · 40% / 망3 40 · 30% / 망4 60 · 30% / 망5 80 · 30% (선장 정신력 소모, 실패해도 소모)
+   [신과 망] 선장 4등급부터 선원에 대한 기억으로 일생에 한 번 발현을 시도한다.
+     발현 즉시 1망이 열리고, 2망부터 기존의 정신력 소모와 성공 확률을 유지한다.
    [망 두르기] 선장 정신력 망1 5 · 망2 10 · 망3 25 · 망4 40 · 망5 50
      - 동전 앞면 확률 +3 · 6 · 9 · 12 · 15%p (인어 전투는 1개부터 두를 수 있음, 재앙 사냥의 동전 판정에도 적용)
      - 받는 피해: 4망 -15% · 5망 -30%
@@ -19,7 +19,6 @@ if(typeof renderPlay!=='function'||typeof huntWhale!=='function'||typeof renderS
 const WHALES_OK=new Set([0,1,2,3,4]);   // 창백한 · 푸른 · 붉은 · 검은 · 노란
 const HARPOON={name:'재앙 사냥용 특수 작살',cost:300,grade:5};
 const RING_COST=[0,5,10,25,40,50];   // 두른 망 개수별 선장 정신력
-const SHIN_TRY={cost:5,p:.6};
 const MANG_TRY=[{cost:10,p:.5},{cost:20,p:.4},{cost:40,p:.3},{cost:60,p:.3},{cost:80,p:.3}];
 const MIN_RINGS=3,MAX_RINGS=5;
 const MERMAID_HIT={normal:5,special:10,blueMermaid:10,pallidMermaid161:10};
@@ -39,7 +38,7 @@ function judging(){return !!state.mindJudge;}
 function migrate(){
  if(typeof state!=='object'||!state)return;
  if(state.captainMind==null)state.captainMind=100;
- if(!state.shinOpen)state.shinLevel=0;          // 예전 방식(돈 · 통과 횟수) 수련 기록은 E.G.O 없이 인정하지 않음
+ if(!state.shinOpen)state.shinLevel=0;          // 신을 발현하기 전에는 망이 개방되지 않음
 }
 migrate();
 
@@ -193,7 +192,7 @@ function missing(){
  if(state.grade<HARPOON.grade)m.push('선장 '+HARPOON.grade+'등급');
  const h=harp();
  if(!h)m.push(HARPOON.name);else if(h.damaged)m.push('특수 작살 정비');
- if(!state.shinOpen)m.push('신 발현');
+ if(!state.shinOpen&&state.grade>=4)m.push('신 발현');
  else if(shin()<MIN_RINGS)m.push('망 '+MIN_RINGS+'개 개방(현재 '+shin()+'개)');
  else if(cm()<=ringCost(MIN_RINGS))m.push('망 '+MIN_RINGS+'개를 두를 선장 정신력('+(ringCost(MIN_RINGS)+1)+' 이상)');
  return m;
@@ -208,10 +207,10 @@ function ringButtons(act,from,perkOf){
 }
 function huntBlock(){
  const m=missing();
- let h='<div class="inset" style="margin-top:12px"><div class="small">재앙 사냥 조건 · 특수 작살과 신과 망</div>';
+ let h='<div class="inset" style="margin-top:12px"><div class="small">재앙 사냥 조건</div>';
  if(m.length){
   h+='<p style="color:#ffb3a8">사냥할 수 없습니다. 부족한 것: '+m.map(esc).join(' · ')+'</p>'+
-   '<p class="muted">재앙의 고래는 특수 작살에 신을 실어, 망을 '+MIN_RINGS+'개 이상 두른 손으로만 꿰뚫을 수 있습니다. 신을 발현한 선장만이 망을 익힐 수 있습니다.</p>'+
+   '<p class="muted">'+(state.grade<4?'재앙의 고래와 맞서려면 더 많은 항해 경험과 특수 작살이 필요합니다.':'재앙의 고래는 특수 작살에 신을 실어, 망을 '+MIN_RINGS+'개 이상 두른 손으로만 꿰뚫을 수 있습니다.')+'</p>'+
    button('재앙의 고래를 사냥한다 (조건 부족)','mangHunt','0','danger',true);
  }else{
   h+='<p>신을 끌어올려 특수 작살에 망을 몇 개 두를지 고르십시오. 고리가 하나 늘 때마다 정신적 부담이 거의 두 배가 됩니다. 4개부터는 받는 피해가 줄어듭니다.</p><p>'+
