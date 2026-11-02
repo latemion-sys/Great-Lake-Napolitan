@@ -1,0 +1,22 @@
+/* 신(心) 발현 회상 사건과 검은 화면의 따스한 목소리 */
+.heart-invitation-030{margin-top:12px;border-color:#71899c}
+.heart-invitation-030>p{color:#cad7e2;font-style:italic;line-height:1.8}
+.heart-memory-030{max-width:760px;margin:0 auto;line-height:1.75}
+.heart-memory-030 label{display:block;margin:15px 0 6px;color:#c9d9e9;font-weight:600}
+.heart-memory-030 input,.heart-memory-030 textarea{display:block;width:100%;min-width:0;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #566d7b;background:#101a25;color:#f1f5f8;font:inherit;line-height:1.6}
+.heart-memory-030 textarea{resize:vertical}
+.heart-memory-030 .stack{margin-top:18px}
+.heart-warning-030{padding:12px 14px;border-left:3px solid #e3a389;color:#ffc7ad;background:rgba(111,52,41,.15)}
+.heart-voice-cover-030{position:fixed;inset:0;z-index:2147483000;background:#020202;overflow-y:auto;display:flex;justify-content:center;align-items:center;overscroll-behavior:contain}
+.heart-voice-030{position:relative;isolation:isolate;box-sizing:border-box;width:min(96%,800px);min-height:min(92svh,740px);padding:clamp(28px,7vh,78px) clamp(20px,6vw,64px);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:44px;color:#ffdfa4;text-align:center}
+.heart-voice-light-030{position:absolute;z-index:-1;top:22%;left:50%;width:min(80vw,570px);height:220px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(255,208,116,.105) 0%,rgba(255,202,117,.035) 35%,transparent 74%);filter:blur(18px);pointer-events:none}
+.heart-voice-words-030{max-width:650px;text-shadow:0 0 9px rgba(255,199,107,.32),0 0 28px rgba(255,197,117,.13);font-size:clamp(17px,3vw,23px);font-weight:400;line-height:2.5;letter-spacing:.035em}
+.heart-voice-words-030 p{margin:14px 0;color:#ffdfaa;animation:heart-voice-appear-030 1.6s ease-out both}
+.heart-voice-words-030 p:nth-child(2){animation-delay:.35s}
+.heart-voice-words-030 p:nth-child(3){animation-delay:.7s}
+.heart-voice-actions-030{display:grid;width:min(100%,580px);gap:12px}
+.heart-voice-actions-030 button{border:1px solid #655740;border-radius:12px;padding:14px 18px;background:#14120f!important;color:#ffe4ba!important;min-height:48px;white-space:normal;line-height:1.45;font:inherit;cursor:pointer}
+.heart-voice-actions-030 button:hover,.heart-voice-actions-030 button:focus-visible{border-color:#e9bd7e;background:#272018!important;outline-color:#d2ad7b}
+@keyframes heart-voice-appear-030{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.heart-voice-030{min-height:95svh;gap:26px}.heart-voice-words-030{line-height:2.15}.heart-voice-actions-030{gap:9px}.heart-voice-actions-030 button{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.heart-voice-words-030 p{animation:none}}
