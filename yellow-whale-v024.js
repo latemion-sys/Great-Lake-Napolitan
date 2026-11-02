@@ -82,13 +82,13 @@ function ventFire(i){
 }
 /* 명중 뒤: 박힌 작살로 열수공을 뜯어냄
    첫 번째 열수공 = 연타로 두 번 잡아당겨 뜯어냄 · 두 번째 = 달빛 막대 안에 작살 표식을 붙잡아 진행도 채우기 · 세 번째 = 방향 8개 두 바퀴 */
-const TUG={mash:{add:8,decay:20,limit:6.5,need:2},fish:{bar:.28,prog0:.32,gain:.24,loss:.17},arrows:{n:8,need:2,limit:9}};
+const TUG={mash:{add:8,decay:20,limit:6.5,need:2},fish:{bar:.3,prog0:.35,gain:.17,loss:.13,accel:.00026,vmax:.0085,turn:.010,lazy:60},arrows:{n:8,need:2,limit:9}};
 const ARR=['up','down','left','right'];
 function startTug(i){
  const t=now(),kind=['mash','fish','arrows'][Math.max(0,Math.min(2,(G.stageNo||1)-1))];
  G.hold={i,at:t};G.tug={kind,at:t};G.locked=false;
  if(kind==='mash'){Object.assign(G.tug,{v:10,round:0,deadline:t+TUG.mash.limit*G.ease});setText('작살이 박혔습니다 · 연타해서 열수공을 뜯어내십시오 (두 번 잡아당김)');}
- if(kind==='fish'){Object.assign(G.tug,{bar:.36,vel:0,icon:.5,iv:0,itgt:.5,inext:t+.6,prog:TUG.fish.prog0,hold:false});setText('작살이 박혔습니다 · 누르고 있으면 달빛 막대가 떠오르고, 놓으면 가라앉습니다. 작살 표식을 막대 안에 붙잡아 두십시오.');}
+ if(kind==='fish'){Object.assign(G.tug,{bar:.32,vel:0,icon:.46,iv:0,itgt:.46,prog:TUG.fish.prog0,hold:false,acc:0});setText('작살이 박혔습니다 · 누르고 있으면 달빛 막대가 떠오르고, 놓으면 가라앉습니다. 작살 표식을 막대 안에 붙잡아 두십시오.');}
  if(kind==='arrows'){newSeq(t,0);setText('작살이 박혔습니다 · 화살표 여덟 개를 차례로 입력해 밧줄을 비틀어 뜯어내십시오 (두 바퀴)');}
 }
 function newSeq(t,cyc){G.tug.seq=Array.from({length:TUG.arrows.n},()=>ARR[Math.floor(Math.random()*4)]);G.tug.idx=0;G.tug.cycle=cyc;G.tug.deadline=t+TUG.arrows.limit*G.ease;G.tug.err=null;}
@@ -127,12 +127,25 @@ function tugTick(t,dt){
  const T2=G.tug;if(!T2||T2.done)return;
  if(T2.kind==='mash'){T2.v=Math.max(0,T2.v-TUG.mash.decay*dt);if(t>T2.deadline)tugLose('잡아당기는 힘이 모자랐습니다');}
  if(T2.kind==='fish'){
-  const F=TUG.fish;T2.vel+=(T2.hold?2.6:-2.1)*dt;T2.vel*=Math.pow(.25,dt);T2.bar+=T2.vel*dt;
-  if(T2.bar<0){T2.bar=0;T2.vel=Math.max(0,T2.vel)*-.3;}if(T2.bar>1-F.bar){T2.bar=1-F.bar;T2.vel=Math.min(0,T2.vel)*-.3;}
-  if(t>=T2.inext){T2.itgt=.08+Math.random()*.84;T2.inext=t+.5+Math.random()*1.1;}
-  T2.iv+=(T2.itgt-T2.icon)*3.2*dt;T2.iv*=Math.pow(.3,dt);T2.icon=Math.max(.03,Math.min(.97,T2.icon+T2.iv*dt*2.2));
-  const inBar=T2.icon>=T2.bar&&T2.icon<=T2.bar+F.bar;T2.inBar=inBar;
-  T2.prog=Math.min(1,Math.max(0,T2.prog+(inBar?F.gain/G.ease*G.ease*G.ease:-F.loss/G.ease)*dt));
+  /* 스타듀 밸리 낚시와 같은 방식(초당 60번 고정 단계)
+     · 막대: 누르고 있으면 위로 가속, 놓으면 아래로 가속(관성이 있어 천천히 붙고 천천히 멈춤) · 바닥에 닿으면 조금 튀어 오름 · 천장에서는 멈춤
+     · 작살 표식(고래): 가끔 새 목표 높이를 정하고 그쪽으로 부드럽게 끌려감
+     · 진행도: 표식이 막대 안이면 차오르고, 밖이면 빠짐 */
+  const F=TUG.fish;T2.acc=(T2.acc||0)+dt;
+  while(T2.acc>=1/60){T2.acc-=1/60;
+   T2.vel+=(T2.hold?1:-1)*F.accel;
+   if(T2.hold&&T2.vel<0)T2.vel+=F.accel*.5;          // 누르는 순간 떨어지던 힘을 조금 더 빨리 잡아 줌
+   if(!T2.hold&&T2.vel>0)T2.vel-=F.accel*.3;
+   T2.vel=Math.max(-F.vmax,Math.min(F.vmax,T2.vel));
+   T2.bar+=T2.vel;
+   if(T2.bar<0){T2.bar=0;T2.vel=-T2.vel*.45;if(Math.abs(T2.vel)<F.accel*2)T2.vel=0;}
+   if(T2.bar>1-F.bar){T2.bar=1-F.bar;T2.vel=0;}
+   if(Math.random()<F.turn){const span=.15+Math.random()*.45;T2.itgt=Math.max(.04,Math.min(.96,T2.icon+(Math.random()<.5?-1:1)*span));}
+   if(Math.abs(T2.itgt-T2.icon)>.004){const ac=(T2.itgt-T2.icon)/(F.lazy+Math.random()*30);T2.iv+=(ac-T2.iv)/5;}else T2.iv*=.9;
+   T2.icon=Math.max(.02,Math.min(.98,T2.icon+T2.iv));
+   const inBar=T2.icon>=T2.bar-.01&&T2.icon<=T2.bar+F.bar+.01;T2.inBar=inBar;
+   T2.prog=Math.min(1,Math.max(0,T2.prog+(inBar?F.gain*G.ease:-F.loss/G.ease)/60));
+  }
   if(T2.prog>=1)tugWin();else if(T2.prog<=0)tugLose('작살 표식을 놓쳤습니다');
  }
  if(T2.kind==='arrows'&&t>T2.deadline)tugLose('시간 안에 비틀지 못했습니다');
