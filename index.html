@@ -983,7 +983,7 @@ completeLake=function(success,msg){
  const returned=state.count.return,id=state.current;
  beforeComplete132(success,msg);
  if(success&&id!==null&&state.scene==='port'&&!state.sea&&state.count.return>returned){
-  const count=state.visited.length,earned=gainMoney148(count*6);
+  const count=Math.max(0,state.count.lake-(state.lakeAtDeparture034??(state.count.lake-state.visited.length))),earned=gainMoney148(count*6);
   log('항해 완료 정산: 통과 호수 '+count+'곳 × 6만 안 = '+unitMoney(earned)+' 수령.');
   sync();
  }
@@ -1758,7 +1758,7 @@ buyGear132=function(id){
 function buyKit148(id){
  migrate148();const k=KITS148.find(x=>x.id===id);
  if(!k||!inShop132()||state.preparations[id])return;
- const cost=k.base+k.step*state.shipGrade;
+ const cost=Math.ceil(k.base+k.step*state.shipGrade);
  if(state.gold<cost)return;
  state.gold-=cost;state.preparations[id]=true;
  log(k.name+'을 준비했습니다. 다음 항해에 효력이 있습니다.');
@@ -1862,7 +1862,7 @@ renderShop132=function(){
  else out+='<p>최고 등급의 선박을 보유하고 있습니다.</p>';
  out+='</div><div class="inset"><h3>항해 준비</h3><div class="stack">';
  for(const k of KITS148){
-  const price=k.base+k.step*state.shipGrade,done=!!state.preparations[k.id];
+  const price=Math.ceil(k.base+k.step*state.shipGrade),done=!!state.preparations[k.id];
   out+=button(k.name+' · '+unitMoney(price)+' · '+k.description+(done?' [준비 완료]':''),
   'voyageKit',k.id,'',!ready||done||state.gold<price);
  }
@@ -2894,7 +2894,7 @@ renderPlay=function(){
 <script src="./yellow-whale-v024-scenes.js?v=v0251"></script>
 <script src="./yellow-whale-v024.js?v=v0251"></script>
 <script src="./whale-death-v024.js?v=v0247"></script>
-<script src="./calamity-hunt.js?v=economy1103b"></script>
+<script src="./calamity-hunt.js?v=fishmarket1103a"></script>
 <script src="./pallid-ward.js?v=pw1030b"></script>
 <script src="./voyage-v024.js?v=economy1103b"></script>
 <script src="./start-screen-v025.js?v=purpose1103" onerror="document.documentElement.classList.remove('ss025-wait')"></script>
@@ -2908,7 +2908,7 @@ renderPlay=function(){
 <script src="./heart-gl-v032.js?v=gl1102f"></script>
 <script src="./whale-gl-v033.js?v=wgl1102"></script>
 <script src="./heart-scenes-v031.js?v=hs1102r"></script>
-<script src="./economy-workshops-v033.js?v=economy1103a"></script>
+<script src="./economy-workshops-v033.js?v=fishmarket1103a"></script>
 <script src="./fish-market-v034.js?v=fishmarket1103a"></script>
 </body>
 </html>
