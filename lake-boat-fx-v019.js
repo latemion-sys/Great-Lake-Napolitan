@@ -26,6 +26,7 @@
  };
  const FX=window.GREAT_LAKE_FX=window.GREAT_LAKE_FX||{};
  FX.theme=FX.theme||function(lake,def){return {};};
+ FX.ENTER_SECONDS=ENTER_SECONDS;   // 호수별 층이 '배가 도착한 뒤'를 계산할 때 씀
 
  // 진입 연출은 같은 호수 안에서 장면이 바뀌어도 다시 재생하지 않는다.
  let entryKey=null,entryAt=null;

@@ -9,11 +9,16 @@
  const boatTf=c=>'translate('+f2(c.x)+' '+f2(c.y)+') rotate('+f2(c.roll)+') scale('+c.s+')';
  const toWorld=(c,p)=>{const r=c.roll*Math.PI/180;return [c.x+c.s*(p[0]*Math.cos(r)-p[1]*Math.sin(r)),c.y+c.s*(p[0]*Math.sin(r)+p[1]*Math.cos(r))];};
 
+ // 배가 중앙에 도착한 시각(초). 도착 뒤에 일어나야 하는 일은 이 시각부터 센다.
+ // (화면이 다시 그려져도 진입 시각은 이어지므로, 진입 연출 길이로 계산한다)
+ function arrived(el,c){const A=FX.ENTER_SECONDS||8;return c.t<A?-1:c.t-A;}
+
  /* ───────── 21-16 · 에메랄드빛 호수 ─────────
     「물이 불투명한 에메랄드빛이다. 긴 머리카락이 물에서 올라와 있다. 발치에 빗이 놓여 있다.」
     · 물: 속이 비치지 않는 짙은 에메랄드빛. 보석처럼 탁한 광택.
-    · 머리카락: 뱃머리 곁의 물에서 긴 머리카락 한 타래가 올라와 늘어지고, 끝은 수면 위로 흩어져 떠 있다.
-      (머리카락만 보이고 그 아래는 보이지 않는다) 젖은 윤이 흐르고, 물살에 천천히 흔들린다.
+    · 머리카락: 배가 중앙에 멈춘 뒤, 배 바로 앞(보는 쪽) 물 밑에 검은 그늘이 번지고 젖은 머리카락 몇 타래가
+      물을 뚫고 올라와 뱃전을 타고 넘어 갑판 위에 걸쳐진다. 젖어서 타래로 뭉치고, 물이 뚝뚝 떨어진다.
+      물 밑의 것은 보이지 않는다(머리카락만).
     · 빗: 배 위, 선원의 발치(갑판)에 빗 하나가 놓여 있다. */
  THEMES[16]={
   skyTop:'#040806',skyMid:'#0c1a14',skyHorizon:'#24402f',moon:'#d0f0dc',
@@ -21,17 +26,26 @@
   crest:'#bff0d4',swell:'#3a9a72',hatch:'#d8ffe8',boat:'#030605',rim:'#9cc8b0',
   lamp:'#ffc055',lampCore:'#fff0c0',bob:.9,drift:.6
  };
- const HAIR=72;
+ // 젖은 머리카락 타래: [물에서 나오는 x(배 기준), 갑판 위 끝 x, 가닥 수, 늦음(초), 굵기]
+ // [뱃전에 걸치는 x(배 기준), 타래 너비, 가닥 수, 늦음(초), 갑판 위로 넘어가는 거리]
+ const LOCKS=[[-36,10,18,.9,9],[-23,12,22,.2,12],[-10,13,24,0,14],[3,11,22,.45,10],[15,9,16,.7,7],[27,7,12,1.1,5]];
+ let HS=[];LOCKS.forEach((L,li)=>{for(let j=0;j<L[2];j++)HS.push({li,j,n:L[2]});});
  LAYERS[16]={
   under(th){
-   const n=N();let fl='';for(let i=0;i<HAIR;i++)fl+='<path data-i="'+i+'"/>';
-   return '<defs>'+(n?n.pattern('emStone','em-stone',{size:256,cell:34,oct:4,rgb:[200,255,226],lo:.55,hi:.92,stretch:[2.2,1],seed:61},260,70):'')+'</defs>'+
+   const n=N();let fl='';for(let i=0;i<44;i++)fl+='<path data-i="'+i+'"/>';
+   return '<defs>'+(n?n.pattern('emStone','em-stone',{size:256,cell:34,oct:4,rgb:[200,255,226],lo:.55,hi:.92,stretch:[2.2,1],seed:61},260,70):'')+
+    '<radialGradient id="emShade"><stop stop-color="#020806" stop-opacity=".85"/><stop offset=".6" stop-color="#03120c" stop-opacity=".45"/><stop offset="1" stop-color="#062a1c" stop-opacity="0"/></radialGradient></defs>'+
     (n?'<g class="em-v"><rect x="0" y="126" width="1600" height="80" fill="url(#emStone)" opacity=".28" clip-path="url(#lfxBelow)"/></g>':'')+
-    '<g class="em-float">'+fl+'</g>';   // 수면에 흩어져 뜬 머리카락 끝
+    '<ellipse class="em-shade" fill="url(#emShade)"/>'+
+    '<g class="em-float">'+fl+'</g>';
   },
   surface(th){
-   let s='';for(let i=0;i<HAIR;i++)s+='<path data-i="'+i+'"/>';
-   return '<g class="em-hair">'+s+'</g><ellipse class="em-ring"/><ellipse class="em-ring b"/>'+
+   let h='';HS.forEach((S,i)=>h+='<path data-i="'+i+'" pathLength="100"/>');
+   let hl='';LOCKS.forEach((L,i)=>hl+='<path class="em-wet" data-l="'+i+'" pathLength="100"/>');
+   let dr='';for(let i=0;i<10;i++)dr+='<ellipse/>';
+   return '<g class="em-ring-g"><ellipse class="em-ring"/><ellipse class="em-ring b"/><ellipse class="em-ring c"/></g>'+
+    '<g clip-path="url(#lfxAbove)"><g class="em-hair-g"><g class="em-hair">'+h+'</g><g class="em-wets">'+hl+'</g></g></g>'+   // 물빛이 불투명해 물속 부분은 보이지 않음
+    '<g class="em-drips">'+dr+'</g>'+
     '<g class="em-comb"><path d="M-4.6,-1.4 L4.6,-1.4 Q5.2,-1.4 5.2,-.8 L5.2,0 L-5.2,0 L-5.2,-.8 Q-5.2,-1.4 -4.6,-1.4 Z" fill="#e8dcc0"/>'+
      '<path d="M-4.4,0 L-4.4,1.6 M-3.4,0 L-3.4,1.6 M-2.4,0 L-2.4,1.6 M-1.4,0 L-1.4,1.6 M-.4,0 L-.4,1.6 M.6,0 L.6,1.6 M1.6,0 L1.6,1.6 M2.6,0 L2.6,1.6 M3.6,0 L3.6,1.6 M4.5,0 L4.5,1.6" stroke="#d8caa8" stroke-width=".42"/>'+
      '<path d="M-4.2,-1 L4,-1" stroke="#fffaf0" stroke-width=".35" opacity=".8"/><circle class="em-glint" cx="2.6" cy="-1.1" r="1.2" fill="#fffbe8"/></g>';
@@ -39,27 +53,53 @@
   paint(el,c){
    const {t,a,surf}=c;
    const v=el.querySelector('.em-v');if(v)v.setAttribute('transform','translate('+f1(-((t*3)%260))+' 0)');
-   // 머리카락이 올라온 자리: 뱃머리 앞 가까운 물
-   const bx=c.x+104*c.s,by=surf(bx,t,a)+5,app=sm((t-.3)/2.5);
+   const ta=arrived(el,c);                       // 도착 뒤 지난 시간(도착 전엔 -1)
+   const rise=ta<0?0:sm((ta-.8)/1.6);           // 물 밑 그늘 · 물결
+   // 물 밑 그늘과 수면 고리: 배 바로 앞(보는 쪽) 물
+   const w0=toWorld(c,[-4,10]);
+   const sh=el.querySelector('.em-shade');sh.setAttribute('cx',f1(w0[0]));sh.setAttribute('cy',f1(surf(w0[0],t,a)+9));sh.setAttribute('rx',f1(70*rise));sh.setAttribute('ry',f1(9*rise));sh.style.opacity=f2(rise);
+   el.querySelectorAll('.em-ring').forEach((e,k)=>{const ph=((Math.max(0,ta)*.4+k/3)%1);e.setAttribute('cx',f1(w0[0]+(k-1)*18));e.setAttribute('cy',f1(surf(w0[0],t,a)+7));e.setAttribute('rx',f1(10+ph*46));e.setAttribute('ry',f1(1.6+ph*4));e.style.opacity=(rise*(1-ph)*.22).toFixed(3);});
+   // 머리카락: 배 좌표계(배와 함께 흔들림)
+   const hg=el.querySelector('.em-hair-g');hg.setAttribute('transform',boatTf(c));
+   const ends=[];
    el.querySelectorAll('.em-hair path').forEach(p=>{
-    const i=+p.dataset.i,u=i/HAIR,seed=R(i);
-    // 한 타래로 물에서 솟아 둥글게 넘어가 늘어지고, 끝은 수면을 따라 흘러간다(부드러운 곡선)
-    const x0=bx+(u-.5)*6+Math.sin(i*1.7)*1.5,y0=by+1,H=(26+seed*14+Math.sin(u*Math.PI)*6)*app,reach=(26+seed*26)*app;
-    const sw=Math.sin(t*.5+i*.13)*3+Math.sin(t*1.3+i*.7)*1.2,dir=u<.18?1:-1;      // 몇 가닥은 반대쪽으로
-    const p1=[x0+dir*1.5,y0-H*.7],p2=[x0-dir*reach*.25+sw,y0-H*1.05],p3=[x0-dir*reach*.75+sw*1.4,y0-H*.35];
-    const e=[x0-dir*reach+sw*1.6,surf(x0-dir*reach,t,a)+1.2],tail=[e[0]-dir*(10+seed*24),surf(e[0]-dir*(10+seed*24),t,a)+1.6+Math.sin(t*.8+i)*.8];
-    let d='M'+f1(x0)+','+f1(y0)+' C'+f1(p1[0])+','+f1(p1[1])+' '+f1(p2[0])+','+f1(p2[1])+' '+f1(p3[0])+','+f1(p3[1])+
-     ' S'+f1(e[0]+dir*2)+','+f1(e[1]-6)+' '+f1(e[0])+','+f1(e[1])+' Q'+f1((e[0]+tail[0])/2)+','+f1(e[1]+2+Math.sin(t+i)*1.2)+' '+f1(tail[0])+','+f1(tail[1]);
-    p.setAttribute('d',d);p.style.opacity=(app*(.65+.35*seed)).toFixed(3);
-    p.style.strokeWidth=(.22+seed*.38).toFixed(2);p.style.stroke=i%6===0?'#5a6a5c':i%4===0?'#2e2622':'#120e0c';
+    const S=HS[+p.dataset.i],L=LOCKS[S.li],u=S.n>1?S.j/(S.n-1)-.5:0,seed=R(S.li*31+S.j),seed2=R(S.li*17+S.j*3+5);
+    const g=ta<0?0:sm((ta-1.2-L[3]-seed*.3)/2.6);      // 물에서 나와 뱃전을 타고 올라 갑판 위로 넘어가며 자라남
+    if(g<=0){p.style.opacity='0';return;}
+    // 뱃전 위는 한 타래로 모이고, 아래(물 쪽)로 갈수록 갈라져 퍼진다. 갑판 위로 넘어간 끝은 조금씩 흩어진다
+    const top=L[0]+u*L[1]*.55,ph=seed*6.28,wav=.5+seed2*.7,pts=[];
+    const N2=16;
+    for(let k=0;k<=N2;k++){const q=k/N2;let x,y;
+     if(q<.25){const r=q/.25;y=17-r*10;x=top+u*L[1]*(1.5-r*.6)+Math.sin(t*.8+ph+r*3)*1.2*(1-r);}                 // 물속에서 올라옴(아래쪽은 퍼짐)
+     else if(q<.72){const r=(q-.25)/.47;y=7-r*15.6;x=top+u*L[1]*(.9-r*.9)+Math.sin(y*.55+ph)*wav*(1-r*.6);}         // 뱃전을 타고 오름(물결치는 젖은 머리)
+     else{const r=(q-.72)/.28;y=-8.8-Math.sin(Math.min(1,r*1.6)*Math.PI*.5)*(2.2+L[1]*.14)*(1-r*r)-(1-r)*.4+r*.5;x=top-r*L[4]*(.6+seed*.7)+u*r*4+Math.sin(r*5+ph)*.6;}          // 뱃전을 넘어 갑판 위에 걸쳐짐
+     pts.push(f1(x)+','+f1(y));}
+    p.setAttribute('d','M'+pts.join(' L'));
+    p.style.strokeDasharray=f1(g*100)+' 200';
+    const hl=(S.j%4===0)||(seed2>.8);
+    p.style.stroke=hl?(seed>.5?'#728a78':'#56685a'):(S.j%3===0?'#2c362e':'#151b17');p.style.opacity=(hl?.9:.95).toFixed(2);
+    p.style.strokeWidth=(hl?.32:.34+seed*.3).toFixed(2);
+    if(S.j===Math.floor(S.n/2))ends[S.li]={cx:top,cy:-9.6,g};
    });
-   // 물 위로 흩어진 머리카락 끝
+   // 젖은 윤: 타래마다 한 줄의 밝은 결
+   el.querySelectorAll('.em-wet').forEach(p=>{const li=+p.dataset.l,L=LOCKS[li],E=ends[li];if(!E){p.style.opacity='0';return;}
+    p.setAttribute('d','M'+f1(E.cx+.8)+',7 C'+f1(E.cx+1.6)+',2 '+f1(E.cx-.4)+',-3 '+f1(E.cx+.4)+','+f1(E.cy+.6)+' Q'+f1(E.cx-1)+','+f1(E.cy-.6)+' '+f1(E.cx-L[4]*.6)+',-8.8');
+    p.style.strokeDasharray=f1(E.g*100)+' 200';p.style.opacity=(.55*E.g).toFixed(2);});
+   // 물에 떠서 흩어진 가닥(물 밑의 타래에서 이어짐)
    el.querySelectorAll('.em-float path').forEach(p=>{
-    const i=+p.dataset.i,seed=R(i+90),ang=Math.PI*(.82+seed*.3)*(i%3?1:-1),L=(40+seed*70)*app;let d='';
-    for(let s=0;s<=10;s++){const k=s/10,xx=bx+Math.cos(ang)*L*k+Math.sin(t*.7+i+k*6)*2*k,yy=by+2+Math.abs(Math.sin(ang))*L*k*.18+Math.sin(t*.8+i*2+k*7)*.6;d+=(s?' L':'M')+f1(xx)+','+f1(Math.max(yy,surf(xx,t,a)+1));}
-    p.setAttribute('d',d);p.style.opacity=(app*.55).toFixed(3);p.style.strokeWidth=(.3+seed*.4).toFixed(2);
+    // 뱃전 아래 물에서 수면을 따라 펼쳐진 가닥: 배 쪽에서 보는 쪽(화면 아래)으로, 좌우로 퍼짐
+    const i=+p.dataset.i,seed=R(i+90),L=LOCKS[i%LOCKS.length],g0=ta<0?0:sm((ta-1.4-L[3])/2.4);if(g0<=0){p.style.opacity='0';return;}
+    const o=toWorld(c,[L[0]+(seed-.5)*L[1]*1.4,6]),side=(seed-.5)*2,Ln=(6+seed*14)*g0;let d='';
+    for(let s2=0;s2<=9;s2++){const k=s2/9,xx=o[0]+side*Ln*k*1.3+Math.sin(t*.7+i+k*5)*(1+2*k),yy=surf(o[0],t,a)+2+k*Ln*.45+Math.sin(k*3+i)*1.2*k+Math.sin(t*.8+i*2+k*7)*.4;d+=(s2?' L':'M')+f1(xx)+','+f1(yy);}
+    p.setAttribute('d',d);p.style.opacity=(g0*.7).toFixed(3);p.style.strokeWidth=(.25+seed*.4).toFixed(2);p.style.stroke=i%5===0?'#3a4a3e':'#0e1310';
    });
-   el.querySelectorAll('.em-ring').forEach((e,k)=>{const ph=((t*.35+k*.5)%1);e.setAttribute('cx',f1(bx));e.setAttribute('cy',f1(by+1));e.setAttribute('rx',f1(8+ph*40));e.setAttribute('ry',f1(1.6+ph*4));e.style.opacity=(app*(1-ph)*.45).toFixed(3);});
+   // 머리카락에서 떨어지는 물방울
+   el.querySelectorAll('.em-drips ellipse').forEach((e,i)=>{
+    const L=LOCKS[i%LOCKS.length],E=ends[i%LOCKS.length];if(!E||E.g<.6){e.style.opacity='0';return;}
+    const per=1.1+(i%4)*.35,ph=((t+i*.53)/per)%1,p0=toWorld(c,[L[0]+((i*7)%5-2)*L[1]*.15,3]);
+    const y=p0[1]+ph*ph*22,yw=surf(p0[0],t,a)+3;e.setAttribute('cx',f1(p0[0]));e.setAttribute('cy',f1(Math.min(y,yw)));e.setAttribute('rx','.45');e.setAttribute('ry',f1(.6+ph*.5));
+    e.style.opacity=(y<yw?.75:0).toFixed(2);
+   });
    // 빗: 선원의 발치(갑판 위)
    const cb=el.querySelector('.em-comb');cb.setAttribute('transform',boatTf(c)+' translate(16.5 -9.4) rotate(-6)');
    el.querySelector('.em-glint').style.opacity=(.35+.55*Math.pow(Math.max(0,Math.sin(t*1.3)),6)).toFixed(3);
@@ -161,7 +201,7 @@
     e.setAttribute('cx',f1(x));e.setAttribute('cy',f1(surf(x,t,a)+2+(i%4)*8));e.setAttribute('rx',f1(4+Math.sin(Math.PI*ph)*10));e.setAttribute('ry','1');e.style.opacity=(Math.sin(Math.PI*ph)*.55).toFixed(3);});
    // 뱃전의 세 물건: 배가 멈춘 뒤 하나가 선원 쪽으로 조금 밀려남
    const g=el.querySelector('.rp-g');g.setAttribute('transform',boatTf(c));
-   if(el._rpk==null)el._rpk=Math.floor(Math.random()*3);
+   const rk=(typeof state!=='undefined'?state.voyage+':'+state.current+':'+(state.visited||[]).length:'');if(FX._rpKey!==rk){FX._rpKey=rk;FX._rpk=Math.floor(Math.random()*3);}el._rpk=FX._rpk;
    const push=sm((c.enter-.97)/.03)*sm(((t-6.2)/1.2));
    el.querySelectorAll('.rp-i').forEach(it=>{const k=+it.dataset.k,x=34+k*5.4-(k===el._rpk?push*3:0),y=x<38?-8.1:-8.1-Math.pow((x-38)/17,2)*9,wob=k===el._rpk&&push>0&&push<1?Math.sin(t*30)*.15:0;
     it.setAttribute('transform','translate('+f1(x)+' '+f1(y+wob)+') scale(1.5)');});
@@ -171,8 +211,8 @@
  /* ───────── 21-20 · 덮는 호수 ─────────
     「배 앞쪽이 뿌옇다. 수면에서 어떤 것이 올라와 뱃전을 덮는다. 숨을 내쉬기가 힘들어진다.」
     · 배 앞쪽: 뿌연 흰 기운이 뱃머리 앞을 가린다.
-    · 어떤 것: 수면에서 희뿌연 막 같은 것이 올라와 뱃전을 넘어 배를 덮어 간다(정체는 드러내지 않음).
-      가장자리는 물결치듯 기어오르고, 배가 멈춘 뒤 점점 높이 덮인다.
+    · 어떤 것: 배가 멈춘 뒤, 수면에서 희뿌연 막 같은 것이 올라와 뱃전을 넘어 배를 덮어 간다(정체는 드러내지 않음).
+      가장자리는 물결치듯 기어오르며 점점 높이 덮인다.
     · (숨이 막히는 느낌은 그리지 않음) */
  THEMES[20]={
   skyTop:'#08090a',skyMid:'#1e2221',skyHorizon:'#4a514e',moon:'#e8ece8',
@@ -201,16 +241,16 @@
    const fg=el.querySelector('.cv-fog');if(fg)fg.setAttribute('transform','translate('+f1(-((t*5)%600))+' '+f1(Math.sin(t*.2)*3)+')');
    // 덮어 오는 것: 배 좌표계에서 물(아래)부터 뱃전 위로 기어오름
    const g=el.querySelector('.cv-g');g.setAttribute('transform',boatTf(c));
-   const k=sm((t-1.2)/6);
+   const ta=arrived(el,c),k=ta<0?0:sm((ta-.6)/6);   // 배가 멈춘 뒤에야 물에서 올라와 덮기 시작
    const env=x=>Math.pow(Math.max(0,Math.sin(Math.PI*(x+64)/132)),.7);   // 가운데는 높이, 양끝은 물에 붙음
-   const top=(x,ph)=>{const wv=Math.sin(x*.16+t*1.4+ph)*1.8+Math.sin(x*.063-t*.8+ph*2)*2.4+Math.sin(x*.41+t*2.3+ph)*.6;return 6-(env(x)*(12+k*12))+wv*env(x)*(.5+.5*k);};
+   const top=(x,ph)=>{const wv=Math.sin(x*.16+t*1.4+ph)*1.8+Math.sin(x*.063-t*.8+ph*2)*2.4+Math.sin(x*.41+t*2.3+ph)*.6;return 9-(env(x)*(2+k*22))+wv*env(x)*(.3+.7*k);};
    const shape=ph=>{let up='';for(let x=-64;x<=68;x+=3){up+=(up?' L':'M')+x+','+f1(top(x,ph));}return up;};
    const up=shape(0),up2=shape(2.1);
    const sheet=up+' L68,9 Q2,15 -64,9 Z';
    el.querySelector('.cv-sheet').setAttribute('d',sheet);const tx=el.querySelector('.cv-tex');if(tx)tx.setAttribute('d',up2+' L68,9 Q2,15 -64,9 Z');
    el.querySelector('.cv-rim').setAttribute('d',up);
    el.querySelectorAll('.cv-drip path').forEach((p,i)=>{const x=-40+i*20+Math.sin(t*.5+i)*3,y=top(x,0),L=2+3*(.5+.5*Math.sin(t*1.2+i*1.7));p.setAttribute('d','M'+f1(x-1.2)+','+f1(y)+' Q'+f1(x)+','+f1(y+L*1.6)+' '+f1(x+1.2)+','+f1(y));});
-   g.style.opacity=(.25+.75*sm((t-.6)/1.5)).toFixed(3);
+   g.style.opacity=(ta<0?0:sm((ta-.2)/1.4)).toFixed(3);
    el.querySelectorAll('.cv-ring').forEach((e,i)=>{const ph=((t*.3+i*.5)%1),p=toWorld(c,[2,8]);e.setAttribute('cx',f1(p[0]));e.setAttribute('cy',f1(surf(p[0],t,a)+3));e.setAttribute('rx',f1(60+ph*60));e.setAttribute('ry',f1(4+ph*5));e.style.opacity=((1-ph)*.4*k).toFixed(3);});
   }
  };
@@ -219,6 +259,8 @@
   '.lakefx[data-lake="16"]{background:#040806;border-color:#3a6a52}.lakefx[data-lake="16"] .lfx-top{color:#d8f4e4}'+
   '.lakefx .em-hair path,.lakefx .em-float path{fill:none;stroke:#120e0c;stroke-linecap:round;stroke-linejoin:round}'+
   '.lakefx .em-float path{stroke:#1a1410}'+
+  '.lakefx .em-wet{fill:none;stroke:#bfe8d0;stroke-width:.35;stroke-linecap:round}'+
+  '.lakefx .em-drips ellipse{fill:#d8fbe8}'+
   '.lakefx .em-ring{fill:none;stroke:#c8f4dc;stroke-width:.7}'+
   '.lakefx[data-lake="17"]{background:#04060e;border-color:#3e5288}.lakefx[data-lake="17"] .lfx-top{color:#dce6ff}'+
   '.lakefx .jk-sheen path{fill:#cfdcff}'+
