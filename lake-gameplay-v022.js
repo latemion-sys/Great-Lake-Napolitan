@@ -67,7 +67,7 @@
   if(id===45){
    const order=shuffle([0,1,2]);if(v.N===4)order.splice(2,0,order[0]);st.plan=order;
   }
-  if(id===48)st.straightAfter=1+rng(v.N-1);
+  if(id===48){st.straightAfter=1+rng(v.N-1);st.lastResult48='';}
  }
  function bellOrder(st){
   const q=shuffle(['큰','가운데','작은']);['첫째','둘째','셋째'].forEach((k,i)=>st.vars[k]=q[i]);
@@ -264,8 +264,9 @@
   }else if(id===48){
    if(prior===0){
     st.lastSide=actual===0?'왼쪽':'오른쪽';st.count++;
+    st.lastResult48='갈래가 등 뒤로 닫힌다.';
     next=st.count>=N?2:!st.straightUsed&&st.count===st.straightAfter?1:0;
-   }else if(prior===1){st.straightUsed=true;next=0;}
+   }else if(prior===1){st.straightUsed=true;st.lastResult48='물이 말없이 이어진다.';next=0;}
   }
   if(next===undefined||!defs.get(id).scenes[next])return mermaidDeath015(id);
   enter(st,next);
@@ -284,7 +285,7 @@
    '<p class="muted">'+esc(format(d.description,st.vars))+'</p>'+
    '<div class="inset"><div class="barline"><span>호수 체류</span><span>'+st.turns+' / '+st.turnLimit+'턴</span></div>'+
    '<div class="meter"><span style="width:'+Math.min(100,100*st.turns/st.turnLimit)+'%"></span></div></div>'+
-   '<h3>발생 사건</h3><p>'+esc(st.sceneText)+'</p><div class="stack">'+
+   '<h3>발생 사건</h3>'+(l.id===48&&st.lastResult48?'<p class="result">'+esc(st.lastResult48)+'</p>':'')+'<p>'+esc(st.sceneText)+'</p><div class="stack">'+
    st.order.map((j,k)=>button('▸ '+format(scene.choices[j].text,st.vars),'storyChoice',String(k),'')).join('')+
    '</div></div>';
  };
