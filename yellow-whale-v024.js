@@ -81,14 +81,16 @@ function ventFire(i){
   safeCheck();},450);
 }
 /* 명중 뒤: 박힌 작살로 열수공을 뜯어냄
-   첫 번째 열수공 = 연타로 두 번 잡아당겨 뜯어냄 · 두 번째 = 달빛 막대 안에 작살 표식을 붙잡아 진행도 채우기 · 세 번째 = 방향 8개 두 바퀴 */
-const TUG={mash:{add:8,decay:20,limit:6.5,need:2},fish:{bar:.3,prog0:.35,gain:.17,loss:.13,accel:.00026,vmax:.0085,turn:.010,lazy:60},arrows:{n:8,need:2,limit:9}};
+   첫 번째 열수공 = 연타로 두 번 잡아당겨 뜯어냄 · 두 번째 = 누른 채 배 쪽으로 끌어당겨 밧줄 감기(몸부림칠 땐 손을 늦춤) · 세 번째 = 방향 8개 두 바퀴 */
+const TUG={mash:{add:8,decay:20,limit:6.5,need:2},pull:{prog0:.3,per:1/1350,maxStep:42,back:.03,thrashBack:.08,warn:.75,dur:1.15,gap:[2.0,3.3],ten:1/120,tenDecay:.6,calmTen:1/2600},arrows:{n:8,need:2,limit:9}};
 const ARR=['up','down','left','right'];
 function startTug(i){
- const t=now(),kind=['mash','fish','arrows'][Math.max(0,Math.min(2,(G.stageNo||1)-1))];
+ const t=now(),kind=['mash','pull','arrows'][Math.max(0,Math.min(2,(G.stageNo||1)-1))];
  G.hold={i,at:t};G.tug={kind,at:t};G.locked=false;
  if(kind==='mash'){Object.assign(G.tug,{v:10,round:0,deadline:t+TUG.mash.limit*G.ease});setText('작살이 박혔습니다 · 연타해서 열수공을 뜯어내십시오 (두 번 잡아당김)');}
- if(kind==='fish'){Object.assign(G.tug,{bar:.32,vel:0,icon:.46,iv:0,itgt:.46,prog:TUG.fish.prog0,hold:false,acc:0});setText('작살이 박혔습니다 · 누르고 있으면 달빛 막대가 떠오르고, 놓으면 가라앉습니다. 작살 표식을 막대 안에 붙잡아 두십시오.');}
+ if(kind==='pull'){const v=GEO().VENTS[i],c=[v.x,v.y-60*v.s],bt=[GEO().BOATX+20,336-20],dx=bt[0]-c[0],dy=bt[1]-c[1],dl=Math.hypot(dx,dy)||1;
+  Object.assign(G.tug,{prog:TUG.pull.prog0,ten:0,grab:null,dir:[dx/dl,dy/dl],pullV:0,thrash:null,nextThrash:t+2.4+Math.random()*.8,hauled:0});
+  setText('작살이 박혔습니다 · 누른 채로 배 쪽(←)으로 끌어당기십시오. 놓았다가 다시 잡아 여러 번 당기고, 고래가 몸부림칠 땐 손을 늦추십시오.');}
  if(kind==='arrows'){newSeq(t,0);setText('작살이 박혔습니다 · 화살표 여덟 개를 차례로 입력해 밧줄을 비틀어 뜯어내십시오 (두 바퀴)');}
 }
 function newSeq(t,cyc){G.tug.seq=Array.from({length:TUG.arrows.n},()=>ARR[Math.floor(Math.random()*4)]);G.tug.idx=0;G.tug.cycle=cyc;G.tug.deadline=t+TUG.arrows.limit*G.ease;G.tug.err=null;}
@@ -116,7 +118,18 @@ function tugPress(){
   if(T2.v>=100){T2.round++;if(T2.round>=TUG.mash.need){tugWin();return;}
    T2.v=12;T2.deadline=now()+TUG.mash.limit*G.ease;flash('헐거워짐',true);setText('열수공이 헐거워졌습니다 · 한 번 더 잡아당기십시오!');}}
 }
-function tugHold(on){const T2=G.tug;if(T2&&T2.kind==='fish')T2.hold=!!on;}
+function tugHold(on){const T2=G.tug;if(T2&&T2.kind==='pull'&&!on)T2.grab=null;}
+// 끌어당기기: 누른 지점에서 배 쪽 방향으로 움직인 거리만큼 밧줄을 감는다. 반대쪽 움직임은 손을 옮기는 것으로 보고 무시.
+function pullGrab(p){const T2=G.tug;if(!T2||T2.kind!=='pull'||T2.done||!p)return;T2.grab={p0:p,last:p,at:now()};}
+function pullMove(p){
+ const T2=G.tug;if(!T2||T2.kind!=='pull'||T2.done||!T2.grab||!p)return;
+ const P=TUG.pull,l=T2.grab.last,d=(p[0]-l[0])*T2.dir[0]+(p[1]-l[1])*T2.dir[1];T2.grab.last=p;T2.grab.cur=p;
+ if(d<=0)return;
+ const step=Math.min(d,P.maxStep);T2.pullV+=step;T2.hauled+=step;G.tugKick=now();
+ if(T2.thrash&&now()>=T2.thrash.at){T2.ten=Math.min(1.2,T2.ten+step*P.ten/G.ease);}       // 몸부림칠 때 당기면 밧줄이 팽팽해짐
+ else{T2.prog=Math.min(1,T2.prog+step*P.per*G.ease);T2.ten=Math.min(1.2,T2.ten+step*P.calmTen);}
+ if(T2.prog>=1)tugWin();
+}
 function tugArrow(d){
  const T2=G.tug;if(G.mode!=='vent'||G.done||!T2||T2.kind!=='arrows'||T2.done)return;
  if(T2.seq[T2.idx]===d){T2.idx++;G.tugKick=now();
@@ -126,27 +139,15 @@ function tugArrow(d){
 function tugTick(t,dt){
  const T2=G.tug;if(!T2||T2.done)return;
  if(T2.kind==='mash'){T2.v=Math.max(0,T2.v-TUG.mash.decay*dt);if(t>T2.deadline)tugLose('잡아당기는 힘이 모자랐습니다');}
- if(T2.kind==='fish'){
-  /* 스타듀 밸리 낚시와 같은 방식(초당 60번 고정 단계)
-     · 막대: 누르고 있으면 위로 가속, 놓으면 아래로 가속(관성이 있어 천천히 붙고 천천히 멈춤) · 바닥에 닿으면 조금 튀어 오름 · 천장에서는 멈춤
-     · 작살 표식(고래): 가끔 새 목표 높이를 정하고 그쪽으로 부드럽게 끌려감
-     · 진행도: 표식이 막대 안이면 차오르고, 밖이면 빠짐 */
-  const F=TUG.fish;T2.acc=(T2.acc||0)+dt;
-  while(T2.acc>=1/60){T2.acc-=1/60;
-   T2.vel+=(T2.hold?1:-1)*F.accel;
-   if(T2.hold&&T2.vel<0)T2.vel+=F.accel*.5;          // 누르는 순간 떨어지던 힘을 조금 더 빨리 잡아 줌
-   if(!T2.hold&&T2.vel>0)T2.vel-=F.accel*.3;
-   T2.vel=Math.max(-F.vmax,Math.min(F.vmax,T2.vel));
-   T2.bar+=T2.vel;
-   if(T2.bar<0){T2.bar=0;T2.vel=-T2.vel*.45;if(Math.abs(T2.vel)<F.accel*2)T2.vel=0;}
-   if(T2.bar>1-F.bar){T2.bar=1-F.bar;T2.vel=0;}
-   if(Math.random()<F.turn){const span=.15+Math.random()*.45;T2.itgt=Math.max(.04,Math.min(.96,T2.icon+(Math.random()<.5?-1:1)*span));}
-   if(Math.abs(T2.itgt-T2.icon)>.004){const ac=(T2.itgt-T2.icon)/(F.lazy+Math.random()*30);T2.iv+=(ac-T2.iv)/5;}else T2.iv*=.9;
-   T2.icon=Math.max(.02,Math.min(.98,T2.icon+T2.iv));
-   const inBar=T2.icon>=T2.bar-.01&&T2.icon<=T2.bar+F.bar+.01;T2.inBar=inBar;
-   T2.prog=Math.min(1,Math.max(0,T2.prog+(inBar?F.gain*G.ease:-F.loss/G.ease)/60));
-  }
-  if(T2.prog>=1)tugWin();else if(T2.prog<=0)tugLose('작살 표식을 놓쳤습니다');
+ if(T2.kind==='pull'){
+  const P=TUG.pull;
+  if(!T2.thrash&&t>=T2.nextThrash){T2.thrash={warn:t,at:t+P.warn*G.ease,end:t+P.warn*G.ease+P.dur};setText('고래가 몸부림치려 합니다 · 손을 늦추십시오!');}
+  const th=T2.thrash&&t>=T2.thrash.at;
+  if(T2.thrash&&t>=T2.thrash.end){T2.thrash=null;T2.nextThrash=t+P.gap[0]+Math.random()*(P.gap[1]-P.gap[0]);setText('몸부림이 멎었습니다 · 다시 끌어당기십시오!');}
+  T2.prog=Math.max(0,T2.prog-(th?P.thrashBack:P.back)/G.ease*dt);
+  T2.ten=Math.max(0,T2.ten-P.tenDecay*dt);T2.pullV*=Math.pow(.02,dt);
+  if(T2.ten>=1)tugLose('몸부림칠 때 억지로 당겨 밧줄이 끊어질 듯 팽팽해졌습니다');
+  else if(T2.prog<=0)tugLose('열수공이 작살을 끌고 내려갔습니다');
  }
  if(T2.kind==='arrows'&&t>T2.deadline)tugLose('시간 안에 비틀지 못했습니다');
 }
@@ -222,7 +223,7 @@ function panel(no,title,desc,small,body){
 }
 function gamePanel(mode){
  if(mode==='vent'){const n=G.stageNo||1,left=remaining();
-  const TT=["명중하면 박힌 작살을 연타로 잡아당겨 열수공을 통째로 뜯어냅니다. 두 번 잡아당겨야 뜯어집니다.", "명중하면 오른쪽에 창이 뜹니다. 누르고 있으면 달빛 막대가 떠오르고, 놓으면 가라앉습니다. 작살 표식이 달빛 막대 안에 있으면 진행도가 차오릅니다. 가득 차면 뜯어지고, 비면 작살이 빠집니다.", "명중하면 화살표 여덟 개가 뜹니다. 차례대로 입력하면 한 바퀴, 두 바퀴를 비틀면 뜯어집니다. 틀리면 그 바퀴를 처음부터 다시 합니다."],KK=["연타: 스페이스 / 이펙트 화면 / 아래 버튼", "달빛 막대: 스페이스 · 이펙트 화면 · 아래 버튼을 누르고 있기 / 놓기", "방향: PC 방향키(또는 W A S D) · 휴대폰 화면 안의 ▲▼◀▶ 버튼"];
+  const TT=["명중하면 박힌 작살을 연타로 잡아당겨 열수공을 통째로 뜯어냅니다. 두 번 잡아당겨야 뜯어집니다.", "명중하면 박힌 작살의 밧줄을 끌어당깁니다. 누른 채로(모바일은 손가락을 댄 채로) 배 쪽으로 끌어 밧줄을 감고, 놓았다가 다시 잡아 여러 번 당기십시오. 고래가 몸부림칠 때 억지로 당기면 밧줄이 팽팽해져 작살이 빠집니다. 가만히 있으면 열수공이 밧줄을 끌고 내려갑니다.", "명중하면 화살표 여덟 개가 뜹니다. 차례대로 입력하면 한 바퀴, 두 바퀴를 비틀면 뜯어집니다. 틀리면 그 바퀴를 처음부터 다시 합니다."],KK=["연타: 스페이스 / 이펙트 화면 / 아래 버튼", "끌어당기기: PC는 이펙트 화면을 좌클릭한 채 배 쪽(←)으로 끌기 · 휴대폰은 화면을 누른 채 배 쪽으로 끌기", "방향: PC 방향키(또는 W A S D) · 휴대폰 화면 안의 ▲▼◀▶ 버튼"];
   return panel(n+1,['첫 번째','두 번째','세 번째'][n-1]+' 열수공',
    '황토빛 등껍질 위 열수공 하나가 섬처럼 솟습니다. 좁혀 오는 고리가 황금빛 중심부에 닿는 순간(덮개가 열릴 때) 망 감긴 작살을 꽂으십시오. '+TT[n-1],
    '① 고리가 중심부에 닿을 때 열수공을 누르기 · 스페이스 · 아래 버튼 (너무 일찍 쏘면 튕김) ② '+KK[n-1]+' · 흡입 위험이 100%가 되면 사망',
@@ -283,14 +284,18 @@ document.addEventListener('pointerdown',function(ev){
  if(!G.mode)return;
  const t=ev.target;
  const db=t.closest&&t.closest('[data-ydir]');if(db){ev.preventDefault();tugArrow(db.dataset.ydir);return;}
- if(t.closest&&t.closest('#ywgAct')){ev.preventDefault();if(G.mode==='vent'){if(G.tug){if(G.tug.kind==='fish')tugHold(true);else tugPress();}else ventFire(null);}return;}
+ if(t.closest&&t.closest('#ywgAct')){ev.preventDefault();if(G.mode==='vent'){if(G.tug){if(G.tug.kind!=='pull')tugPress();}else ventFire(null);}return;}
  const scene=t.closest&&t.closest('.yw3-scene[data-game]');
  if(!scene)return;
  ev.preventDefault();
  const p=svgPoint(scene,ev);if(!p)return;
- if(G.mode==='vent'){if(G.tug){if(G.tug.kind==='fish')tugHold(true);else if(G.tug.kind==='mash')tugPress();return;}const i=ventAtPoint(p[0],p[1]);if(i!=null)ventFire(i);}
+ if(G.mode==='vent'){if(G.tug){if(G.tug.kind==='pull'){pullGrab(p);try{scene.setPointerCapture&&scene.setPointerCapture(ev.pointerId);}catch(e){}}else if(G.tug.kind==='mash')tugPress();return;}const i=ventAtPoint(p[0],p[1]);if(i!=null)ventFire(i);}
  else if(G.mode==='hook')hookThrow(p[0],p[1]);
 });
+document.addEventListener('pointermove',function(ev){
+ const T2=G.tug;if(G.mode!=='vent'||!T2||T2.kind!=='pull'||!T2.grab)return;
+ const scene=document.querySelector('.yw3-scene[data-game]');if(!scene)return;ev.preventDefault();pullMove(svgPoint(scene,ev));
+},{passive:false});
 const isField=e=>e.target.closest&&e.target.closest('input,textarea,select,[contenteditable]');
 ['pointerup','pointercancel'].forEach(n=>document.addEventListener(n,()=>{if(G.mode==='vent')tugHold(false);}));
 document.addEventListener('keyup',e=>{if(G.mode==='vent'&&e.code==='Space')tugHold(false);});
@@ -299,7 +304,7 @@ document.addEventListener('keydown',function(e){
  if(!G.mode||isField(e)||e.repeat)return;
  if(G.mode==='vent'){const K={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',KeyW:'up',KeyS:'down',KeyA:'left',KeyD:'right'}[e.code];
   if(G.tug&&G.tug.kind==='arrows'&&K){e.preventDefault();tugArrow(K);return;}
-  if(e.code==='Space'){e.preventDefault();if(G.tug){if(G.tug.kind==='fish')tugHold(true);else tugPress();}else ventFire(null);}}
+  if(e.code==='Space'){e.preventDefault();if(G.tug){if(G.tug.kind!=='pull')tugPress();}else ventFire(null);}}
 });
 document.addEventListener('click',function(e){
  const b=e.target?.closest?.('button[data-act]');
