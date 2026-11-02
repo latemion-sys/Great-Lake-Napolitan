@@ -725,13 +725,15 @@ function paintBuoys(el,t,tips,opt){
   g.querySelectorAll('.by-rp').forEach(e=>{const kk=+e.dataset.k,a=((t*(.35+.5*S.k)+kk*.5+i*.13)%1);
    e.setAttribute('cx',n1(b[0]));e.setAttribute('cy',n1(b[1]+2));e.setAttribute('rx',n1((18+a*(50+60*S.k))*sc));e.setAttribute('ry',n1((3+a*(8+8*S.k))*sc));e.setAttribute('opacity',n3((1-a)*(.25+.65*Math.min(1,S.k))));});
   const lt=g.querySelector('.by-lt'),gl=g.querySelector('.by-gl'),blink=.55+.45*Math.max(0,Math.sin(t*2.6+i*1.3)),sub=1-.7*Math.min(1,S.k);
-  const sub2=Math.max(.55,sub),flare=Math.pow(Math.max(0,Math.sin(t*1.6+i*2.1)),14);   // 등대처럼 주기적으로 번쩍
-  lt.setAttribute('opacity',n3(.75+.25*blink*sub2));gl.setAttribute('opacity',n3(Math.min(1,(.6+.3*blink)*sub2+.15+.4*flare)));
+  const LK=o.lit?(o.lit[i]||0):1;                           // 관측 단계: 켜진 부표만 1, 나머지는 등이 꺼짐
+  const sub2=Math.max(.55,sub)*LK,flare=o.lit?LK*(.35+.65*Math.pow(Math.max(0,Math.sin(t*5.2+i)),6)):Math.pow(Math.max(0,Math.sin(t*1.6+i*2.1)),14);   // 켜진 등은 빠르게 번쩍임
+  lt.setAttribute('opacity',n3(o.lit?.12+.88*LK:.75+.25*blink*sub2));lt.setAttribute('fill',o.lit&&LK<.05?'#3a342c':'#fff4d0');
+  gl.setAttribute('opacity',n3(o.lit?LK*(.8+.2*blink):Math.min(1,(.6+.3*blink)*sub2+.15+.4*flare)));gl.setAttribute('r',o.lit&&LK?'58':'46');
   const star=g.querySelector('.by-star');if(star){star.setAttribute('opacity',n3(flare*sub2));star.setAttribute('transform','translate(0 -64.5) scale('+n3(.6+.6*flare)+') rotate('+n1(t*20+i*30)+')');}
   const halo=g.querySelector('.by-halo');if(halo)halo.setAttribute('opacity',n3((.45+.25*blink+.3*flare)*sub2));
-  const rim=g.querySelector('.by-rim');if(rim)rim.setAttribute('opacity',n3((.4+.3*blink+.3*flare)*sub2));
+  const rim=g.querySelector('.by-rim');if(rim)rim.setAttribute('opacity',n3(o.lit?.16+.6*LK:(.4+.3*blink+.3*flare)*sub2));
   const pil=g.querySelector('.by-pil');if(pil){pil.setAttribute('cx',n1(b[0]+Math.sin(t*2+i)*2*sc));pil.setAttribute('cy',n1(b[1]+22*sc));pil.setAttribute('rx',n1(10*sc*(1+.3*flare)));pil.setAttribute('ry',n1(34*sc));pil.setAttribute('opacity',n3((.5+.3*blink+.2*flare)*sub2));}
-  const pl=g.querySelector('.by-pool');if(pl){pl.setAttribute('cx',n1(b[0]));pl.setAttribute('cy',n1(b[1]+3));pl.setAttribute('rx',n1(70*sc));pl.setAttribute('ry',n1(12*sc));pl.setAttribute('opacity',n3((.45+.35*blink)*sub));}
+  const pl=g.querySelector('.by-pool');if(pl){pl.setAttribute('cx',n1(b[0]));pl.setAttribute('cy',n1(b[1]+3));pl.setAttribute('rx',n1(70*sc));pl.setAttribute('ry',n1(12*sc));pl.setAttribute('opacity',n3((.45+.35*blink)*sub*(o.lit?LK:1)));}
   const fk=o.forks&&o.forks[i];
   g.querySelector('.by-lamp').setAttribute('opacity',fk?'0':'1');
   g.querySelector('.by-fk').setAttribute('opacity',fk?'1':'0');
@@ -773,7 +775,7 @@ const now2=(u,txt,now)=>{if(!u.hint)return;set(u.hint,txt);u.hint.classList.togg
 function verdictOf(u,g,t,dur){const f=g.flash&&t-g.flash.at<(dur||1)?g.flash:null;setVerdict(u.verdict,f?f.text:'',f&&f.good?'good':'bad');}
 
 /* ---------- 2단계 · 유인 ---------- */
-const CAP24=['','고래가 지나가는 길목에 작은 등불 뗏목을 던지십시오. 작은 것을 보면 날개를 펼칩니다.','부표의 움직임으로 물밑 날개 끝을 읽으십시오. 날개 끝이 멈춘 부표를 짚으십시오.','날개가 다 펼쳐지는 순간 양쪽 공명 굽쇠를 울리십시오.','접지 못한 날개 사이, 두 굽쇠의 울림이 몸 한가운데에서 만나는 순간 작살을 던지십시오.'];
+const CAP24=['','고래가 지나가는 길목에 작은 등불 뗏목을 던지십시오. 작은 것을 보면 날개를 펼칩니다.','부표의 움직임으로 물밑 날개 끝을 읽으십시오. 날개 끝이 멈추면 그 부표의 등이 켜집니다. 등이 켜진 부표를 짚으십시오.','날개가 다 펼쳐지는 순간 양쪽 공명 굽쇠를 울리십시오.','접지 못한 날개 사이, 두 굽쇠의 울림이 몸 한가운데에서 만나는 순간 작살을 던지십시오.'];
 function lureBuild(){
  return night()+patchMarkup()+wakeMarkup('bk-wkP')+wingRef('bk-wLR')+wingRef('bk-wRR')+wakeMarkup('bk-wkL')+wakeMarkup('bk-wkR')+
   K.nearMist()+boatMarkup()+decoyMarkup()+wing2('bk-wL','LitLw')+wing2('bk-wR','LitRw')+drops('bk-drL',24,61,'#dbe8f2')+drops('bk-drR',24,67,'#dbe8f2')+
@@ -841,7 +843,10 @@ function watchGame(el,t,tr,g){
  paintDecoy(el,D,t,{dim:.55});
  const tL=g.paths?tipAt(g.paths.L,t-(g.r0||0)):null,tR=g.paths?tipAt(g.paths.R,t-(g.r0||0)):null;
  const hidden=g.reveal!=null;
- paintBuoys(el,t,hidden?[]:[tL,tR],{marks:g.marks});
+ // 등불: 평소엔 모두 꺼져 있고, 날개 끝이 멈춰 잠긴 부표(눌러야 하는 부표)에만 등이 켜진다
+ const lit={},tt=t-(g.r0||0);
+ if(!hidden&&g.target&&g.arrive)['L','R'].forEach(side=>{if(g.ok&&g.ok[side])return;const k=clamp((tt-(g.arrive[side]-.3))/.25);if(k>0)lit[g.target[side]]=k;});
+ paintBuoys(el,t,hidden?[]:[tL,tR],{marks:g.marks,lit});
  qa('.bk-tip').forEach(e=>{const T=e.dataset.s==='L'?tL:tR;if(!T||hidden){e.setAttribute('opacity','0');return;}const sc=PS(T.p[1]);
   e.setAttribute('cx',n1(T.p[0]));e.setAttribute('cy',n1(T.p[1]+4));e.setAttribute('rx',n1(70*sc));e.setAttribute('ry',n1(10*sc));e.setAttribute('opacity',n3(T.before?0:.22));});
  // 오판: 날개 끝이 실제 자리에서 솟아 물을 내려침
@@ -855,7 +860,7 @@ function watchGame(el,t,tr,g){
  if(window.HarpoonTether&&g.tether)HarpoonTether.paint(el,t,g.tether,twW,BODYW,{color:'#0c141e',water:true,sway:jolt(g,t)});
  const u=hud(el);verdictOf(u,g,t,1.1);
  const left=['L','R'].filter(s=>!(g.ok&&g.ok[s])).length;
- now2(u,g.done||hidden?'':'날개 끝이 멈춰 잠긴 부표를 누르십시오 · 지나가며 흔든 부표에 속지 마십시오',!!(tL&&tL.rest&&!(g.ok&&g.ok.L))||!!(tR&&tR.rest&&!(g.ok&&g.ok.R)));
+ now2(u,g.done||hidden?'':'날개 끝이 멈춰 등이 켜진 부표를 누르십시오 · 지나가며 흔든 부표에 속지 마십시오',!!(tL&&tL.rest&&!(g.ok&&g.ok.L))||!!(tR&&tR.rest&&!(g.ok&&g.ok.R)));
  count(u,'짚은 날개 '+(2-left)+' / 2');
  caption(el,[[0,CAP24[2]]],0);
  veil(el,t<.5?1-t/.5:0);
