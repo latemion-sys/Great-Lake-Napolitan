@@ -414,6 +414,7 @@ const ACH=[
 ];
 const TIER={common:'일반',rare:'희귀',hero:'영웅',legend:'전설',myth:'신화',miracle:'기적',unique:'유일'};
 const SAVE_KEY='great-lake-napolitan-v011';
+ACH.push({id:'fish_100_unique_v034',tier:'legend',name:'나는 100개의 물고기를 안다',desc:'서로 다른 물고기 100종류를 낚아 본다.'});
 const ACH_SAVE_KEY='great-lake-napolitan-permanent-achievements';
 const ACH_RESET_KEY_153='great-lake-napolitan-achievements-reset-revision';
 const ACH_RESET_REVISION_153='v0.1.5.3';
@@ -498,7 +499,7 @@ DISTINCT_NEW_ACH.forEach(([id,name,desc,challenge],i)=>{
  ACH.push({id,name,desc,challenge,tier});
 });
 
-function fresh(){return {grade:1,gold:50,hull:100,mind:100,exposure:0,shipGrade:1,preparations:{},captainName:'',xp:0,crew:[{id:1,role:'lower',condition:1}],nextCrew:2,voyage:0,offered:[],visited:[],whalePlaces:{},whaleSeen:[],whaleKilled:[],rumors:[],rumorBought:false,sea:false,current:null,scene:'start',ruleResolved:false,ruleResult:'',blueTorn:false,forceMermaid:false,mermaidResolved:false,battle:null,encounter:null,lastCoin:null,achievements:[],count:{lake:0,return:0,special:0,rumors:0},log:['항구의 새벽. 첫 항해를 준비하십시오.']};}
+function fresh(){return {grade:1,gold:70,hull:100,mind:100,exposure:0,shipGrade:1,preparations:{},captainName:'',xp:0,crew:[{id:1,role:'lower',condition:1}],nextCrew:2,voyage:0,offered:[],visited:[],whalePlaces:{},whaleSeen:[],whaleKilled:[],rumors:[],rumorBought:false,sea:false,current:null,scene:'start',ruleResolved:false,ruleResult:'',blueTorn:false,forceMermaid:false,mermaidResolved:false,battle:null,encounter:null,lastCoin:null,achievements:[],count:{lake:0,return:0,special:0,rumors:0},log:['항구의 새벽. 첫 항해를 준비하십시오.']};}
 let state=fresh(), tab='play',busy=false;
 let permanentAchievements=[];
 try{const old=JSON.parse(localStorage.getItem(ACH_SAVE_KEY));if(Array.isArray(old))permanentAchievements=old.filter(id=>ACH.some(a=>a.id===id)||/^lake_(?:5[1-9]|[6-9][0-9]|100)$/.test(id));}catch(e){console.warn('업적 복구 실패:',e);}
@@ -873,7 +874,7 @@ function renameCrew0131(id){
 }
 function sellFish0131(){
  if(state.sea||state.scene!=='port'||state.fish<=0)return;
- const sold=state.fish,nominal=sold*4,earn=gainMoney148(nominal);state.fish=0;
+ const sold=state.fish,nominal=sold*6,earn=gainMoney148(nominal);state.fish=0;
  state.prog.fishSold+=sold;state.prog.goldPeak=Math.max(state.prog.goldPeak,state.gold);
  log('물고기 '+sold+'마리를 판매해 '+earn+' 만 안(眼)을 받았습니다.');sync();
 }
@@ -883,7 +884,7 @@ renderPlay=function(){
   return previousRenderPlay0131()+'<div class="log-update"><h3>업데이트 내역 · V.0.1.3.1</h3><ul><li>출항 이후 자동 항해 방식과 호수별 인어 조우 확률 변경</li><li>선원·작살잡이·1등 항해사 이름 지정 기능</li><li>인어 사냥 보상으로 고래기름 추가 및 물고기 판매 기능</li><li>호수별 업적과 추가 업적, 등급별 업적 공개 방식 변경</li><li>사망 이후에도 업적 보관 유지</li></ul></div>';
  }
  if(state.scene==='port'){
-  return previousRenderPlay0131()+'<div class="inset"><h3>어획물 거래</h3><p>보유 물고기 '+state.fish+'마리 · 판매가 한 마리당 4 만 안(眼)</p>'+button('물고기 판매','sellFish','','primary',state.fish===0)+'</div>';
+  return previousRenderPlay0131()+'<div class="inset"><h3>어획물 거래</h3><p>보유 물고기 '+state.fish+'마리 · 판매가 한 마리당 6 만 안(眼)</p>'+button('물고기 판매','sellFish','','primary',state.fish===0)+'</div>';
  }
  if(state.scene==='route'&&state.routeChoiceCount>0){
   /* 저장 데이터나 예외 경로로 재진입해도 다시 호수를 고르게 하지 않습니다. */
@@ -982,8 +983,8 @@ completeLake=function(success,msg){
  const returned=state.count.return,id=state.current;
  beforeComplete132(success,msg);
  if(success&&id!==null&&state.scene==='port'&&!state.sea&&state.count.return>returned){
-  const count=state.visited.length,earned=gainMoney148(count*4);
-  log('항해 완료 정산: 통과 호수 '+count+'곳 × 4만 안 = '+unitMoney(earned)+' 수령.');
+  const count=Math.max(0,state.count.lake-(state.lakeAtDeparture034??(state.count.lake-state.visited.length))),earned=gainMoney148(count*6);
+  log('항해 완료 정산: 통과 호수 '+count+'곳 × 6만 안 = '+unitMoney(earned)+' 수령.');
   sync();
  }
 };
@@ -1757,7 +1758,7 @@ buyGear132=function(id){
 function buyKit148(id){
  migrate148();const k=KITS148.find(x=>x.id===id);
  if(!k||!inShop132()||state.preparations[id])return;
- const cost=k.base+k.step*state.shipGrade;
+ const cost=Math.ceil(k.base+k.step*state.shipGrade);
  if(state.gold<cost)return;
  state.gold-=cost;state.preparations[id]=true;
  log(k.name+'을 준비했습니다. 다음 항해에 효력이 있습니다.');
@@ -1861,7 +1862,7 @@ renderShop132=function(){
  else out+='<p>최고 등급의 선박을 보유하고 있습니다.</p>';
  out+='</div><div class="inset"><h3>항해 준비</h3><div class="stack">';
  for(const k of KITS148){
-  const price=k.base+k.step*state.shipGrade,done=!!state.preparations[k.id];
+  const price=Math.ceil(k.base+k.step*state.shipGrade),done=!!state.preparations[k.id];
   out+=button(k.name+' · '+unitMoney(price)+' · '+k.description+(done?' [준비 완료]':''),
   'voyageKit',k.id,'',!ready||done||state.gold<price);
  }
@@ -2893,7 +2894,7 @@ renderPlay=function(){
 <script src="./yellow-whale-v024-scenes.js?v=v0251"></script>
 <script src="./yellow-whale-v024.js?v=v0251"></script>
 <script src="./whale-death-v024.js?v=v0247"></script>
-<script src="./calamity-hunt.js?v=economy1103b"></script>
+<script src="./calamity-hunt.js?v=fishmarket1103a"></script>
 <script src="./pallid-ward.js?v=pw1030b"></script>
 <script src="./voyage-v024.js?v=economy1103b"></script>
 <script src="./start-screen-v025.js?v=purpose1103" onerror="document.documentElement.classList.remove('ss025-wait')"></script>
@@ -2907,6 +2908,7 @@ renderPlay=function(){
 <script src="./heart-gl-v032.js?v=gl1102f"></script>
 <script src="./whale-gl-v033.js?v=wgl1102"></script>
 <script src="./heart-scenes-v031.js?v=hs1102r"></script>
-<script src="./economy-workshops-v033.js?v=economy1103a"></script>
+<script src="./economy-workshops-v033.js?v=fishmarket1103a"></script>
+<script src="./fish-market-v034.js?v=fishmarket1103a"></script>
 </body>
 </html>
