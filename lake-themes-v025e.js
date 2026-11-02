@@ -101,7 +101,7 @@
     e.style.opacity=(y<yw?.75:0).toFixed(2);
    });
    // 빗: 선원의 발치(갑판 위)
-   const cb=el.querySelector('.em-comb');cb.setAttribute('transform',boatTf(c)+' translate(16.5 -9.4) rotate(-6)');
+   const cb=el.querySelector('.em-comb');cb.setAttribute('transform',boatTf(c)+' translate(16.5 -9.4) rotate(-6)');cb.style.opacity=(ta<0?0:sm((ta-.3)/1.2)).toFixed(2);   // 배가 멈춘 뒤 어느새 발치에
    el.querySelector('.em-glint').style.opacity=(.35+.55*Math.pow(Math.max(0,Math.sin(t*1.3)),6)).toFixed(3);
   }
  };
@@ -171,8 +171,8 @@
     「물이 귤빛이다. 어느새 눈앞에 돌멩이 하나와 접힌 종이 한 장, 녹슨 가위가 나란히 놓여 있다.
       아무도 올려놓지 않았다. 그중 하나가 우리 쪽으로 조금 밀려난다.」
     · 물: 귤빛. 따뜻한 주황 물에 껍질 같은 잔 광택.
-    · 뱃전(선원 앞, 뱃머리 쪽 갑판)에 돌멩이·접힌 종이·녹슨 가위가 나란히 놓여 있고, 배가 멈춘 뒤 그중 하나(매번 무작위)가
-      선원 쪽으로 조금 밀려난다. */
+    · 배가 멈춘 뒤, 뱃전(선원 앞, 뱃머리 쪽 갑판)에 어느새 돌멩이·접힌 종이·녹슨 가위가 나란히 놓여 있고,
+      잠시 뒤 그중 하나(매번 무작위)가 선원 쪽으로 조금 밀려난다. */
  THEMES[19]={
   skyTop:'#0c0604',skyMid:'#2a140a',skyHorizon:'#6a3618',moon:'#ffe0b8',
   seaTop:'#e8944a',seaMid:'#b0581e',seaBottom:'#3a1606',
@@ -202,7 +202,8 @@
    // 뱃전의 세 물건: 배가 멈춘 뒤 하나가 선원 쪽으로 조금 밀려남
    const g=el.querySelector('.rp-g');g.setAttribute('transform',boatTf(c));
    const rk=(typeof state!=='undefined'?state.voyage+':'+state.current+':'+(state.visited||[]).length:'');if(FX._rpKey!==rk){FX._rpKey=rk;FX._rpk=Math.floor(Math.random()*3);}el._rpk=FX._rpk;
-   const push=sm((c.enter-.97)/.03)*sm(((t-6.2)/1.2));
+   const ta=arrived(el,c),show=ta<0?0:sm((ta-.2)/1.4),push=ta<0?0:sm((ta-3)/1.2);   // 배가 멈춘 뒤 '어느새' 놓여 있고, 잠시 뒤 하나가 밀려남
+   g.style.opacity=show.toFixed(2);
    el.querySelectorAll('.rp-i').forEach(it=>{const k=+it.dataset.k,x=34+k*5.4-(k===el._rpk?push*3:0),y=x<38?-8.1:-8.1-Math.pow((x-38)/17,2)*9,wob=k===el._rpk&&push>0&&push<1?Math.sin(t*30)*.15:0;
     it.setAttribute('transform','translate('+f1(x)+' '+f1(y+wob)+') scale(1.5)');});
   }
