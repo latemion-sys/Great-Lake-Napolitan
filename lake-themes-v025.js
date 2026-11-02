@@ -419,6 +419,141 @@
   }
  };
 
+ /* ───────── 21-04 · 우윳빛 호수 ─────────
+    「물이 온통 우윳빛이다. 앞쪽에 흰 모래톱이 길게 누워 있다. 갈매기들이 그 위에 앉아 있다. 물들이 모래톱 가장자리에 닿지 않고 비켜 간다.」
+    구체적인 것만 그린다: 우윳빛 물 · 흰 모래톱 · 앉아 있는 갈매기들 · 모래톱을 비켜 흐르는 물.
+    · 물: 불투명하고 걸쭉한 우유색. 너울이 둔하고, 수면에 얇은 막 같은 주름과 크림빛 광택이 번진다.
+    · 모래톱: 배 앞(화면 앞쪽)에 길게 누운 흰 모래 띠. 낮은 둔덕과 바람 물결 자국, 모래 알갱이 결, 조개껍데기·작은 돌.
+    · 갈매기: 모래톱 위에 앉아 고개를 돌리고, 깃을 고르고, 가끔 날개를 털썩 편다.
+    · 비켜 가는 물: 모래톱 둘레에 물이 닿지 않은 마른 틈이 있고, 흐르는 물결이 가장자리 앞에서 휘어 비켜 간다. */
+ THEMES[4]={
+  skyTop:'#a6a398',skyMid:'#cbc7b9',skyHorizon:'#ebe6d6',
+  moon:'#fffbe8',
+  seaTop:'#f6f2e5',seaMid:'#e4ddc7',seaBottom:'#c7bfa6',
+  crest:'#ffffff',swell:'#b8ae94',hatch:'#8c836c',
+  boat:'#15120e',rim:'#4c463c',
+  lamp:'#ffb347',lampCore:'#ffe7a8',
+  bob:.8,drift:.8
+ };
+ const SB={x0:226,x1:742,base:174,h:10.5};           // 모래톱(배 앞, 화면 앞쪽)
+ const sbTaper=x=>{const u=(x-SB.x0)/(SB.x1-SB.x0);return u<=0||u>=1?0:Math.pow(Math.sin(Math.PI*u),.55)*(u<.5?1:.92);};
+ const sbTop=x=>SB.base-SB.h*sbTaper(x)*(1+.22*Math.sin(x*.031+.6)+.12*Math.sin(x*.083+2.1)+.06*Math.sin(x*.21));
+ const sbBot=x=>SB.base+2.6*sbTaper(x);
+ function sbPath(off){
+  let top='',bot='';
+  for(let x=SB.x0-off*3;x<=SB.x1+off*3;x+=4){const k=sbTaper(Math.min(SB.x1-.1,Math.max(SB.x0+.1,x)));top+=(top?' L':'M')+x+','+f1(sbTop(x)-off*(.6+k*.4));}
+  for(let x=SB.x1+off*3;x>=SB.x0-off*3;x-=4)bot+=' L'+x+','+f1(sbBot(x)+off*.55);
+  return top+bot+'Z';
+ }
+ // 갈매기(오른쪽을 봄, 원점 = 발 밑). 몸 길이 약 15
+ const GULL_BODY=
+  '<ellipse class="gl-sh" cx="-1" cy=".6" rx="8.5" ry="1.4" fill="#8a826c" opacity=".35"/>'+
+  '<path d="M-9.5,-4.6 L-13.2,-6.2 L-12.4,-4.2 L-13.6,-3.4 L-9.2,-3.2 Z" fill="#1a1a1c"/>'+                  // 검은 꼬리깃(날개 끝)
+  '<path d="M-10,-3.6 C-9,-8.6 -2,-10.2 4,-8.6 C7.6,-7.6 8.6,-4.6 7.2,-2.4 C5,-.2 -3.4,.2 -7.6,-1.2 C-9.2,-1.8 -10.2,-2.6 -10,-3.6 Z" fill="url(#glBody)"/>'+
+  '<path d="M-10.4,-4.2 C-8,-7.4 -2,-8.8 3.4,-8.2 C2,-6.4 -2.6,-5 -7,-4.6 C-8.4,-4.4 -9.6,-4.2 -10.4,-4.2 Z" fill="url(#glWing)"/>'+          // 회색 날개 덮깃
+  '<path d="M-10.4,-4.2 C-9.6,-4.3 -8.8,-4.4 -8,-4.5" stroke="#111" stroke-width="1.6" stroke-linecap="round"/>'+
+  '<circle cx="-9.3" cy="-4.9" r=".45" fill="#f4f2ea"/>'+                                                    // 날개 끝 흰 점
+  '<path d="M-6.8,-5.6 C-3.6,-6.8 .4,-7.2 2.6,-6.8" fill="none" stroke="#7d8189" stroke-width=".35" opacity=".7"/>'+
+  '<g class="gl-h"><path d="M3.4,-8.4 C3.2,-11.6 5.4,-13.4 7.6,-13 C9.6,-12.6 10.6,-11 10.2,-9.4 C9.8,-8 8.4,-7.2 6.6,-7 C5,-6.8 3.6,-7.2 3.4,-8.4 Z" fill="url(#glBody)"/>'+
+   '<path d="M9.8,-10.6 L13.6,-10.2 L13.9,-9.6 L12.8,-9.4 L9.9,-9.4 Z" fill="#f2c23a"/><circle cx="12.6" cy="-9.55" r=".42" fill="#d0402c"/>'+
+   '<circle cx="8.3" cy="-11.3" r=".62" fill="#1a1612"/><circle cx="8.45" cy="-11.45" r=".18" fill="#fff"/></g>'+
+  '<g class="gl-wing" opacity="0"><path d="M-2,-7.5 C-6,-14 -12,-17 -18,-16 C-13,-13 -9,-10 -5,-7.2 Z" fill="url(#glWing)"/><path d="M-18,-16 L-15,-14.6 L-16.2,-16.6 Z" fill="#111"/>'+
+   '<path d="M3,-7.6 C6,-14 11,-17.4 16,-17 C12,-13.6 8.4,-10.4 5,-7.4 Z" fill="url(#glWing)"/><path d="M16,-17 L13.2,-15.4 L14.4,-17.4 Z" fill="#111"/></g>';
+ // 갈매기 자리: [x, 크기, 방향(1 오른쪽/-1 왼쪽), 버릇 0앉음 1깃고르기 2날개털기]
+ const GULLS=[[268,.82,1,0],[312,.95,-1,1],[356,1,1,0],[401,.9,1,2],[447,1.05,-1,0],[489,.92,1,1],[536,1,-1,0],[578,.88,1,0],[624,.96,-1,2],[668,.84,1,1],[706,.78,-1,0]];
+ LAYERS[4]={
+  sky(th){
+   const N=window.FxNoise;
+   return '<defs>'+
+     '<radialGradient id="mlSun"><stop stop-color="#fffef6" stop-opacity=".95"/><stop offset=".2" stop-color="#fffbe8" stop-opacity=".55"/><stop offset=".55" stop-color="#f6efd8" stop-opacity=".16"/><stop offset="1" stop-color="#efe6cc" stop-opacity="0"/></radialGradient>'+
+     '<radialGradient id="mlCloud"><stop stop-color="#f8f4e8" stop-opacity=".55"/><stop offset=".6" stop-color="#ece6d4" stop-opacity=".18"/><stop offset="1" stop-color="#e2dcc8" stop-opacity="0"/></radialGradient>'+
+     '<linearGradient id="mlFog" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f2eee2" stop-opacity="0"/><stop offset=".7" stop-color="#f4f0e4" stop-opacity=".7"/><stop offset="1" stop-color="#f6f2e6" stop-opacity=".95"/></linearGradient>'+
+     (N?N.pattern('mlHaze','ml-haze',{size:256,cell:96,oct:4,rgb:[255,252,240],lo:.4,hi:.95,stretch:[3,1],seed:41},640,120):'')+
+    '</defs>'+
+    '<circle cx="600" cy="46" r="120" fill="url(#mlSun)"/><circle cx="600" cy="46" r="11" fill="#fffef8" opacity=".85"/>'+
+    '<ellipse cx="250" cy="38" rx="200" ry="12" fill="url(#mlCloud)"/><ellipse cx="470" cy="70" rx="240" ry="10" fill="url(#mlCloud)"/><ellipse cx="180" cy="92" rx="160" ry="7" fill="url(#mlCloud)"/>'+
+    (N?'<rect class="ml-haze" x="-40" y="-10" width="900" height="140" fill="url(#mlHaze)" opacity=".32"/>':'')+
+    '<rect x="0" y="96" width="800" height="40" fill="url(#mlFog)"/>';
+  },
+  under(th){
+   const N=window.FxNoise;let fl='';for(let i=0;i<10;i++)fl+='<path data-i="'+i+'"/>';
+   let wr='';for(let i=0;i<7;i++)wr+='<path data-i="'+i+'"/>';
+   return '<defs>'+
+     (N?N.pattern('mlMilk','ml-milk',{size:256,cell:40,oct:3,rgb:[176,164,132],lo:.5,hi:.95,stretch:[2.4,1],seed:23},300,90):'')+
+     '<linearGradient id="mlSheen" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffffff" stop-opacity=".75"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>'+
+    '</defs>'+
+    (N?'<rect y="125" width="800" height="80" fill="url(#mlMilk)" opacity=".35" clip-path="url(#lfxBelow)"/>':'')+
+    '<g class="ml-sheen"><path/><path/><path/></g>'+
+    '<g class="ml-wrinkle">'+wr+'</g>'+
+    '<g class="ml-flow">'+fl+'</g>';
+  },
+  surface(th){
+   const N=window.FxNoise;
+   let rip='';for(let k=0;k<5;k++){let d='';for(let x=SB.x0+40+k*7;x<SB.x1-40;x+=6){const u=x+k*13;d+=(d?' L':'M')+x+','+f1(sbTop(x)+1.6+k*1.05+Math.sin(u*.18)*.6);}rip+='<path d="'+d+'"/>';}
+   let bits='';const R=(n)=>{const v=Math.sin(n*91.7)*43758.5;return v-Math.floor(v);};
+   for(let i=0;i<34;i++){const x=SB.x0+30+R(i)*(SB.x1-SB.x0-60),y=sbTop(x)+1.4+R(i+50)*(sbBot(x)-sbTop(x)-2);
+    bits+=R(i+9)<.35?'<path d="M'+f1(x-1.2)+','+f1(y)+' q1.2,-1.6 2.4,0 z" fill="#f2e6d8" stroke="#b9a68c" stroke-width=".25"/>':'<ellipse cx="'+f1(x)+'" cy="'+f1(y)+'" rx="'+f1(.4+R(i+3)*.6)+'" ry="'+f1(.3+R(i+4)*.3)+'" fill="'+(R(i+7)<.5?'#a99f88':'#c9bfa6')+'"/>';}
+   let gl='';GULLS.forEach((g,i)=>{gl+='<g class="gl" data-i="'+i+'"><g class="gl-s">'+GULL_BODY+'</g></g>';});
+   return '<defs>'+
+     '<linearGradient id="sbSand" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fffdf5"/><stop offset=".45" stop-color="#f6f0e0"/><stop offset=".8" stop-color="#e2d8c0"/><stop offset="1" stop-color="#cdbfa2"/></linearGradient>'+
+     '<linearGradient id="sbGap" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8f8670" stop-opacity=".0"/><stop offset=".5" stop-color="#8f8670" stop-opacity=".55"/><stop offset="1" stop-color="#8f8670" stop-opacity=".1"/></linearGradient>'+
+     '<linearGradient id="glBody" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffffff"/><stop offset=".7" stop-color="#eeeee8"/><stop offset="1" stop-color="#c9c8c0"/></linearGradient>'+
+     '<linearGradient id="glWing" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a8adb6"/><stop offset="1" stop-color="#8a909a"/></linearGradient>'+
+     (N?N.pattern('sbGrain','sb-grain',{size:128,cell:6,oct:2,rgb:[150,136,104],lo:.55,hi:.9,seed:5},64,64):'')+
+    '</defs>'+
+    '<path class="sb-gap" d="'+sbPath(4.5)+'" fill="url(#sbGap)"/>'+          // 물이 닿지 않은 마른 틈(그늘)
+    '<path class="sb-edge" d="'+sbPath(6.5)+'" fill="none"/>'+                 // 비켜 간 물의 가장자리(밝은 테)
+    '<path d="'+sbPath(0)+'" fill="url(#sbSand)"/>'+
+    (N?'<path d="'+sbPath(0)+'" fill="url(#sbGrain)" opacity=".22"/>':'')+
+    '<g class="sb-rip">'+rip+'</g>'+bits+
+    '<path class="sb-lip" d="'+(()=>{let d='';for(let x=SB.x0+6;x<=SB.x1-6;x+=4)d+=(d?' L':'M')+x+','+f1(sbTop(x)+.4);return d;})()+'"/>'+
+    '<g class="gls">'+gl+'</g>';
+  },
+  paint(el,c){
+   const {t,a,surf,SEA}=c;
+   // 우유 막 광택: 수면 바로 아래 넓은 크림빛 띠가 느리게 번들거림
+   el.querySelectorAll('.ml-sheen path').forEach((p,i)=>{
+    let d='',e='';for(let x=-20;x<=820;x+=20){const y=surf(x,t,a)+2+i*7+Math.sin(x*.012+t*(.3+i*.1)+i)*2;d+=(d?' L':'M')+x+','+f1(y);e=' L'+x+','+f1(y+3+i)+e;}
+    p.setAttribute('d',d+e+'Z');p.style.opacity=((.3-i*.07)*(.75+.25*Math.sin(t*.7+i*2))).toFixed(3);
+   });
+   // 얇은 막 주름: 둔하게 접혔다 펴지는 짧은 주름
+   el.querySelectorAll('.ml-wrinkle path').forEach((p,i)=>{
+    const per=6+i,ph=((t+i*1.7)/per)%1,cyc=Math.floor((t+i*1.7)/per),x=140+((cyc*173+i*233)%520),y=surf(x,t,a)+5+(i%3)*5,w=10+(i%4)*5;
+    let d='';for(let s=0;s<=6;s++){const xx=x-w+s*w/3;d+=(s?' L':'M')+f1(xx)+','+f1(y+Math.sin(s*1.9+t*.8+i)*.9);}
+    p.setAttribute('d',d);p.style.opacity=(Math.sin(Math.PI*ph)*.35).toFixed(3);
+   });
+   // 비켜 흐르는 물결: 왼쪽에서 오른쪽으로 흐르다 모래톱 앞에서 위·아래로 휘어 비켜 감(가장자리에 닿지 않음)
+   el.querySelectorAll('.ml-flow path').forEach((p,i)=>{
+    const lane=i<5?i:i-5,above=i<5,y0=above?SB.base-15-lane*3.6:SB.base+7+lane*4.2;
+    let d='';
+    for(let x=150;x<=780;x+=6){
+     const k=sbTaper(x),push=above?-(SB.h*k*1.05+5*k)*(1-lane*.12):(4.6*k+3*k)*(1-lane*.1);
+     const y=y0+push+Math.sin(x*.05-t*1.1+i)*.7;d+=(x>150?' L':'M')+x+','+f1(y);
+    }
+    p.setAttribute('d',d);p.style.strokeDashoffset=f1(-t*(10+lane*2));
+    p.style.opacity=((above?.5:.42)-lane*.06).toFixed(3);
+   });
+   // 비켜 간 물 가장자리: 아주 조금씩 숨 쉬듯 떨어졌다 다가옴(닿지는 않음)
+   const edge=el.querySelector('.sb-edge');edge.style.opacity=(.55+.2*Math.sin(t*1.3)).toFixed(3);
+   // 갈매기
+   el.querySelectorAll('.gl').forEach(g=>{
+    const i=+g.dataset.i,[x,s,dir,hab]=GULLS[i],y=sbTop(x)+.6;
+    const br=Math.sin(t*2.2+i)*.12;
+    g.setAttribute('transform','translate('+x+' '+f1(y)+') scale('+f1(s*dir*.9)+' '+f1(s*.9)+')');
+    const S=g.firstChild;S.setAttribute('transform','translate(0 '+f1(br)+')');
+    const h=S.querySelector('.gl-h'),w=S.querySelector('.gl-wing');
+    // 고개: 이따금 두리번거림 · 깃 고르기(고개를 숙여 등에 댐)
+    const look=Math.sin(t*.45+i*2.3),turn=look>.82?-1:1;
+    let rot=Math.sin(t*1.1+i)*4,ty=0,tx=0;
+    if(hab===1){const pc=((t+i)%7)/7;if(pc>.68&&pc<.9){const q=Math.sin(Math.PI*(pc-.68)/.22);rot=-110*q;tx=-4*q;ty=3*q;}}
+    h.setAttribute('transform','translate('+f1(tx)+' '+f1(ty)+') rotate('+f1(rot)+' 5 -7.6)'+(turn<0?' translate(13.4 0) scale(-1 1)':''));
+    // 날개 털기: 몇 초에 한 번 날개를 위로 펼쳤다 접음
+    let wo=0;if(hab===2){const pc=((t+i*1.3)%9)/9;if(pc>.8&&pc<.92)wo=Math.sin(Math.PI*(pc-.8)/.12);}
+    w.setAttribute('opacity',f1(wo));w.setAttribute('transform','translate(0 '+f1(2*(1-wo))+') scale(1 '+f1(.3+.7*wo)+')');
+   });
+  }
+ };
+
  // 붉은 호수 전용 색(위 공통 CSS가 푸른 톤으로 고정한 부분만 덮는다)
  const css=
   '.lakefx[data-lake="1"]{background:#0c0407;border-color:#6b3a40;box-shadow:inset 0 0 65px #0a0204,0 8px 30px #0008}'+
@@ -459,6 +594,22 @@
   '.lakefx[data-lake="3"] .lfx-vignette{box-shadow:inset 0 0 72px 18px #030406}'+
   '.lakefx[data-lake="3"] .lfx-top{color:#c4ced6}'+
   '.lakefx .mk-moonref path{fill:#d8e2e8}'+
+  '.lakefx[data-lake="4"]{background:#d9d4c4;border-color:#a9a08a;box-shadow:inset 0 0 50px #8a826e55,0 8px 30px #0006}'+
+  '.lakefx[data-lake="4"] .lfx-horizon{stroke:#8a8270;stroke-opacity:.25}'+
+  '.lakefx[data-lake="4"] .lfx-mist rect{fill:#ffffff;opacity:.35}'+
+  '.lakefx[data-lake="4"] .lfx-corner{background:linear-gradient(90deg,#9a927e66,transparent 20%,transparent 80%,#9a927e66),linear-gradient(0deg,#8a826e55,transparent 24%,transparent 80%,#8a826e33)}'+
+  '.lakefx[data-lake="4"] .lfx-vignette{box-shadow:inset 0 0 60px 10px #7a72604d}'+
+  '.lakefx[data-lake="4"] .lfx-grain{opacity:.12;background:repeating-linear-gradient(0deg,transparent 0 2px,#5a52400d 3px 4px)}'+
+  '.lakefx[data-lake="4"] .lfx-top{color:#3e382d;text-shadow:0 1px 6px #fff8,0 0 2px #fff6}'+
+  '.lakefx[data-lake="4"] .lfx-crest{stroke-opacity:.7}'+
+  '.lakefx[data-lake="4"] .lfx-ripple{stroke:#a59b80}'+
+  '.lakefx .ml-sheen path{fill:url(#mlSheen)}'+
+  '.lakefx .ml-wrinkle path{fill:none;stroke:#a89e84;stroke-width:.6;stroke-linecap:round}'+
+  '.lakefx .ml-flow path{fill:none;stroke:#ffffff;stroke-width:1.6;stroke-opacity:.75;stroke-linecap:round;stroke-dasharray:34 18 10 44}'+
+  '.lakefx .ml-flow path[data-i="2"],.lakefx .ml-flow path[data-i="4"],.lakefx .ml-flow path[data-i="7"]{stroke:#b3a98e;stroke-width:.7}'+
+  '.lakefx .sb-edge{stroke:#ffffff;stroke-width:1.4;stroke-linejoin:round}'+
+  '.lakefx .sb-rip path{fill:none;stroke:#d9cdb2;stroke-width:.55;stroke-linecap:round}'+
+  '.lakefx .sb-lip{fill:none;stroke:#ffffff;stroke-width:.9;stroke-opacity:.9;stroke-linecap:round}'+
   '.lakefx[data-lake="3"] .lfx-crest{opacity:0}'+
   '.lakefx[data-lake="3"] .lfx-far{stroke-opacity:.06!important}'+
   '.lakefx .mk-fibs path{fill:none;stroke:#8696a6;stroke-linecap:round;stroke-linejoin:round}'+
