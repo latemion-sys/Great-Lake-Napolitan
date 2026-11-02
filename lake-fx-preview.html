@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>호수 진입 이펙트 미리보기</title>
+<style>
+:root{color-scheme:dark}
+body{margin:0;background:#07080c;color:#d8dde3;font:14px/1.6 system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+header{padding:16px 16px 6px;max-width:1500px;margin:0 auto}
+h1{font-size:17px;margin:0 0 4px}
+p{margin:0 0 8px;color:#9aa5ae}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{background:#141821;color:#d8dde3;border:1px solid #39424d;border-radius:8px;padding:7px 12px;font:inherit;cursor:pointer}
+button.on{border-color:#c95a62;color:#ffd7d2}
+.wrap{display:flex;flex-wrap:wrap;gap:16px;padding:8px 16px 24px;max-width:1500px;margin:0 auto;align-items:flex-start}
+figure{margin:0}
+figcaption{font-size:12px;color:#8b96a0;margin-bottom:6px}
+iframe{border:1px solid #2a3038;border-radius:10px;background:#000;display:block}
+#desk{width:min(1000px,calc(100vw - 32px));height:640px}
+#mob{width:390px;height:640px}
+</style></head><body>
+<header>
+<h1>호수 진입 이펙트 미리보기</h1>
+<p>실제 게임 화면을 해당 호수의 사건 장면으로 바로 엽니다. 이 페이지는 확인용이며 본 사이트에는 아직 적용되지 않았습니다.</p>
+<div class="bar" id="lakes"><button data-id="1" class="on">21-01 · 붉은 호수</button></div>
+<div class="bar"><button id="replay">진입 장면 다시 보기</button></div>
+</header>
+<div class="wrap">
+ <figure><figcaption>데스크톱</figcaption><iframe id="desk" src="index.html"></iframe></figure>
+ <figure><figcaption>모바일 (390px)</figcaption><iframe id="mob" src="index.html"></iframe></figure>
+</div>
+<script>
+let lakeId=1;
+function enter(f){
+ try{
+  const w=f.contentWindow;
+  w.eval('state.sea=true;state.current='+lakeId+';state.scene="event";state.visited=['+lakeId+'];state.ruleResolved=false;state.voyage=(state.voyage||0)+1;'+
+   'state.lakeStory=makeStory014(LAKE_BY_ID157.get('+lakeId+'));render();');
+  const fx=w.document.querySelector('.lakefx');if(fx)w.scrollTo(0,fx.getBoundingClientRect().top+w.scrollY-70);
+ }catch(e){console.warn(e);}
+}
+for(const f of document.querySelectorAll('iframe'))f.addEventListener('load',()=>setTimeout(()=>enter(f),600));
+document.getElementById('replay').onclick=()=>document.querySelectorAll('iframe').forEach(enter);
+document.getElementById('lakes').onclick=e=>{const b=e.target.closest('button');if(!b)return;lakeId=+b.dataset.id;
+ document.querySelectorAll('#lakes button').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('iframe').forEach(enter);};
+</script>
+</body></html>
