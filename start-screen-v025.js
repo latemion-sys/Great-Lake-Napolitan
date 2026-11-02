@@ -5,9 +5,20 @@
  const oldRender=render;
  // 항해 안내를 열었다가 시작 화면으로 돌아와도 작성 중인 이름을 유지합니다.
  let nameDraft025=null;
+ const DEFAULT_PURPOSE025='살아서 항구로 돌아온다.';
+ const MAX_PURPOSE025=120;
+ let purposeDraft025=null;
+ function purpose025(raw){return String(raw==null?'':raw).replace(/\s+/g,' ').trim().slice(0,MAX_PURPOSE025)||DEFAULT_PURPOSE025;}
+ // 이미 항해 중인 기존 저장도 목적이 없으면 기본 목적을 이어받습니다.
+ if(state.scene!=='start'&&state.scene!=='dead'&&!String(state.captainPurpose||'').trim()){
+  state.captainPurpose=DEFAULT_PURPOSE025;
+  save();
+ }
  function landing025(){
   const name=String(nameDraft025===null?(state.captainName||''):nameDraft025);
   const safeName=esc(name).replace(/"/g,'&quot;');
+  const draft=String(purposeDraft025===null?(state.captainPurpose||''):purposeDraft025);
+  const safePurpose=esc(draft.slice(0,MAX_PURPOSE025));
   return '<section class="landing025" aria-label="대호수 시작 화면">'+
     '<header class="landing-top025">'+
       '<div class="landing-kicker025">대호수 항해 시뮬레이션 · v0.1.9.0</div>'+
@@ -33,6 +44,11 @@
            '<input id="captainNameInput" maxlength="16" autocomplete="off" placeholder="이름을 입력하십시오" value="'+safeName+'">'+
            '<p class="muted" style="font-size:12px;margin:9px 0 0">이름을 비워 두면 ‘선장’으로 표시됩니다.</p>'+
           '</div>'+
+          '<div class="inset landing-purpose025">'+
+           '<label for="captainPurposeInput025">선장의 목적 · 선택 사항 (최대 120글자)</label>'+
+           '<textarea id="captainPurposeInput025" rows="3" maxlength="120" autocomplete="off" placeholder="'+esc(DEFAULT_PURPOSE025)+'">'+safePurpose+'</textarea>'+
+           '<p class="muted" style="font-size:12px;margin:9px 0 0">비워 두면 기본 목적 ‘'+esc(DEFAULT_PURPOSE025)+'’가 적용됩니다.</p>'+
+          '</div>'+
           '<div class="inset landing-hint025">'+
            '<b>항해 전 유의사항</b><p style="margin:7px 0 0">호수의 법은 구전으로 전해집니다. 사망하면 항해 진행은 초기화되지만, 달성한 업적은 유지됩니다.</p>'+
           '</div>'+
@@ -50,14 +66,30 @@
   '</section>';
  }
  document.addEventListener('input',e=>{
-  if(state.scene==='start'&&e.target?.id==='captainNameInput')nameDraft025=e.target.value;
+  if(state.scene!=='start')return;
+  if(e.target?.id==='captainNameInput')nameDraft025=e.target.value;
+  if(e.target?.id==='captainPurposeInput025')purposeDraft025=e.target.value;
  });
+ // 기존 enterPort 클릭 처리보다 먼저 목적을 기록합니다. 직후 기존 sync()가 그대로 자동 저장합니다.
+ document.addEventListener('click',e=>{
+  const b=e.target?.closest?.('button[data-act="enterPort"]');
+  if(!b||state.scene!=='start')return;
+  const field=document.getElementById('captainPurposeInput025');
+  const raw=field?field.value:(purposeDraft025===null?state.captainPurpose:purposeDraft025);
+  state.captainPurpose=purpose025(raw);
+ },true);
+ // 선장이 사망해 새 생애를 시작할 때 이전 생애의 입력 초안은 되살리지 않습니다.
+ document.addEventListener('click',e=>{
+  if(state.scene==='dead'&&e.target?.closest?.('button[data-act="restart"]'))purposeDraft025=null;
+ },true);
  // 시작 화면에서 이미 입력한 이름과 게임 소개를 항구 진입 화면에 중복 표시하지 않습니다.
  renderPlay=function(){
   if(state.scene==='start')return landing025();
   const page=oldPlay();
   if(state.scene==='port'){
-   return page.replace(/<div class="inset"><h3>선장 이름<\/h3>[\s\S]*?<\/div>/,'');
+   const text=esc(String(state.captainPurpose||DEFAULT_PURPOSE025));
+   return '<div class="inset captain-purpose-record025"><div class="small">선장의 목적</div><p>'+text+'</p></div>'+
+    page.replace(/<div class="inset"><h3>선장 이름<\/h3>[\s\S]*?<\/div>/,'');
   }
   return page;
  };
