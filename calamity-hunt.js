@@ -24,7 +24,6 @@ const MIN_RINGS=3,MAX_RINGS=5;
 const MERMAID_HIT={normal:5,special:10,blueMermaid:10,pallidMermaid161:10};
 const MERMAID_BONUS=[0,.03,.06,.09,.12,.15];
 const CREW_MERMAID_HIT=10;
-const REST={gain:15,max:5,cost:15,name:'M사 특제 월광석'};
 const BLOOM_P=.5,HOLD_P=.75,AFTER_MIND=30;
 const EGO_DEFAULT='개화 E.G.O';
 const ringCost=n=>RING_COST[Math.max(0,Math.min(5,n|0))];
@@ -61,7 +60,10 @@ function hurt(n,why){
  if(!(n>0)||state.scene==='dead')return;
  migrate();
  const before=cm();if(before<=0&&judging())return;
- state.captainMind=Math.max(0,before-n);
+ const defense=typeof window.GREAT_LAKE_MIND_DEFENSE_033==='function'?window.GREAT_LAKE_MIND_DEFENSE_033():0;
+ const actual=Math.max(0,Math.ceil(n)-defense);
+ if(!actual)return;
+ state.captainMind=Math.max(0,before-actual);
  log((why?why+' ':'')+'선장의 정신력 -'+(before-state.captainMind)+' ('+state.captainMind+' / '+cmax()+')');
  if(state.captainMind<=0&&!judging()){
   state.mindJudge={stage:'pending',draft:''};
@@ -69,7 +71,6 @@ function hurt(n,why){
   if(!inCalamity())tab='play';
  }
 }
-function heal(n){state.captainMind=Math.min(cmax(),cm()+n);}
 
 /* 인어 조우 */
 const prevBegin=beginBattle;
@@ -323,7 +324,6 @@ renderSide=function(){
 };
 
 /* ---------- 항구: M사 특제 월광석 · 특수 작살 · 신과 망 수련 ---------- */
-function rests(){const r=state.captainRest;return r&&r.v===state.voyage?r.n|0:0;}
 function nextStep(){
  if(!state.shinOpen)return null;
  const lv=shin();if(lv>=MAX_RINGS)return null;
@@ -332,14 +332,8 @@ function nextStep(){
 const prevShop=renderShop132;
 renderShop132=function(){
  migrate();
- const out=prevShop(),avail=inShop132()&&!judging(),h=harp(),v=cm(),rn=rests();
- let s='<div class="inset"><h3>'+REST.name+'</h3>'+
-  '<p>13구의 날개 <b>M사</b>가 파는 특이점 제품. 매끈하게 빛나는 이 돌을 몸에 지니면 정신이 한 가지에 모여 잡생각이 걷히고, 바깥에서 파고드는 정신 공격을 버텨 낼 수 있다. 공격을 받아 낼수록 빛이 탁해지다가 끝내 아무 힘도 없는 돌이 된다.</p>'+
-  '<p class="muted">항구에 들어오는 것은 집중을 돕는 정도의 하급품이라, 한 개로는 정신력 +'+REST.gain+'만큼만 버팁니다. 들어오는 물량이 적어 정박할 때마다 '+REST.max+'개까지만 팝니다. 포장은 반드시 귀마개를 쓰고 열 것. 맨 귀로 열면 물속으로 돌아가고 싶다는 충동에 사로잡힌다는 소문이 있습니다.</p>'+
-  '<p class="small muted">인어를 마주치거나 선원이 인어가 되는 것을 보면 선장의 정신력이 깎입니다. 0이 되면 자신의 마음과 마주합니다.</p>'+
-  tag('선장 정신력 '+v+' / '+cmax())+' '+tag('이번 정박 구매 '+rn+' / '+REST.max)+'<div class="stack" style="margin-top:8px">'+
-  button(REST.name+' 구매 · 선장 정신력 +'+REST.gain+' · '+unitMoney(REST.cost)+(rn>=REST.max?' (이번 정박에서는 더 살 수 없음)':v>=cmax()?' (정신력 가득)':''),'capRest','','',!avail||rn>=REST.max||v>=cmax()||state.gold<REST.cost)+
-  '</div></div>';
+ const out=prevShop(),avail=inShop132()&&!judging(),h=harp(),v=cm();
+ let s='';
  s+='<div class="inset"><h3>재앙 사냥 준비 · 특수 작살</h3>'+
   '<p>고래잡이들 사이에서 먼 옛날 전설로 불리는 \'쪽빛 노인\'이라 불리는 특색 해결사이자 고래잡이의 무기를 본떠 항구 대장간이 어떻게든 따라해 만든 전용 발사대. 리벳으로 박은 금속판 수십 장을 겹쳐 만든 석궁 모양의 틀에, 사람 키보다 긴 미늘 작살을 걸어 쏜다. 노인은 홀로 쪽배를 몰며 모든 것을 꿰뚫는 청새치를 잡았고, 던질 때마다 작살에 망이라 불리우는 고리 세 개를 감았다고 한다.</p>'+
   '<p class="muted">그래서 이 작살도 망을 '+MIN_RINGS+'개 이상 두른 손에서만 재앙의 고래(창백한 · 푸른 · 붉은 · 검은)에게 박힙니다. 한 번 고래의 살을 물고 나면 미늘이 휘고 리벳이 헐거워져, 다음 사냥 전에 판을 다시 박아야 합니다(정비).</p>'+
@@ -369,10 +363,6 @@ document.addEventListener('click',function(e){
   state.gold-=HARPOON.cost;state.calamityHarpoon={damaged:false};log(HARPOON.name+'를 샀습니다. 겹겹이 박힌 리벳 판이 무겁게 손에 걸립니다. '+unitMoney(HARPOON.cost)+' 사용.');
  }else if(act==='calHarpoonFix'&&harp()&&harp().damaged&&state.gold>=HARPOON.cost/2){
   state.gold-=HARPOON.cost/2;state.calamityHarpoon.damaged=false;log('휘어진 미늘을 펴고 헐거워진 리벳 판을 다시 박아 특수 작살을 정비했습니다. '+unitMoney(HARPOON.cost/2)+' 사용.');
- }else if(act==='capRest'){
-  if(rests()>=REST.max||cm()>=cmax()||state.gold<REST.cost)return;
-  state.gold-=REST.cost;state.captainRest={v:state.voyage,n:rests()+1};heal(REST.gain);
-  log(REST.name+'을 샀습니다. 푸르스름한 빛을 들여다보는 동안 머릿속이 가라앉습니다. 선장 정신력 +'+REST.gain+' ('+cm()+' / '+cmax()+'). '+unitMoney(REST.cost)+' 사용.');
  }else if(act==='shinTry'){
   const st=nextStep();
   if(!state.shinOpen||!st||cm()<st.cost)return;
