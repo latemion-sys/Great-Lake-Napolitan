@@ -68,8 +68,9 @@
   '<path class="lfx-rope" fill="none" stroke="#8a9697" stroke-opacity=".8" stroke-width=".9" opacity="0"/>';
 
  // 너울: 큰 물결 위에 작은 물결 두 겹을 얹는다. 배는 이 곡선을 그대로 탄다.
+ let SURF_MOD=null;
  function surf(x,t,a){
-  return SEA
+  return SEA+(SURF_MOD?SURF_MOD(x,t,a):0)   // 호수별로 수면 전체가 부풀었다 가라앉는 등(층의 surfMod)
    +Math.sin(x*0.0062+0.8)*5            // 화면을 가로지르는 느린 언덕
    +Math.sin(x*0.0115-t*0.85)*3.4*a     // 밀려오는 너울
    +Math.sin(x*0.029+t*1.35+1.3)*1.3*a; // 잔물결
@@ -162,6 +163,7 @@
   const calm=reduceMotion?0.6:1;
   if(entryAt==null){if(!el.getClientRects().length)return;entryAt=now;}
   const t=(now-entryAt)/1000,a=(+el.dataset.bob||1)*calm,drift=(+el.dataset.drift||1)*calm;
+  {const L=FX.layers&&FX.layers[+el.dataset.lake];SURF_MOD=(L&&typeof L.surfMod==='function')?L.surfMod:null;}
   // 진입: 이미 노 저어 오던 배가 화면 왼쪽 밖에서 들어와 점점 느려지며 중앙에 멈춘다
   // 처음 60%는 일정한 빠르기로 나아가고(거리의 70%), 나머지는 천천히 느려지며 중앙에 멈춘다
   const ek=Math.min(1,Math.max(0,t/ENTER_SECONDS));
