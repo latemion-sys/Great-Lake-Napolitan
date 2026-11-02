@@ -304,7 +304,7 @@
   lamp:'#ffc055',lampCore:'#ffeab0',bob:.9,drift:.6
  };
  // 구멍: [x, 수면 아래 깊이(앞쪽일수록 큼), 반지름, 열리는 시각] — 배에 가까워질수록 가장자리 간격이 좁아짐(40 → 22 → 8)
- const HOLES=[[600,8,20,1.2],[518,15,22,3.0],[450,22,24,4.6],[392,29,26,6.0]];
+ const HOLES=[[600,8,20,.8],[518,15,22,2.6],[450,22,24,4.2],[392,29,26,5.6]];   // 열리는 시각은 배가 중앙에 도착한 뒤부터 센다
  LAYERS[10]={
   under(th){
    let rings='';for(let i=0;i<9;i++)rings+='<ellipse/>';
@@ -333,7 +333,7 @@
    });
    // 구멍: 차례로 열림. 안은 물빛이 없는 텅 빈 회흑색, 가장자리에 물이 말려 내려감
    el.querySelectorAll('.hl').forEach(g=>{
-    const i=+g.dataset.i,[x,dep,w,at]=HOLES[i],o=sm((t-at)/1.1);
+    const i=+g.dataset.i,[x,dep,w,at]=HOLES[i],ta=t-(FX.ENTER_SECONDS||8),o=sm((ta-at)/1.1);
     if(o<=0){g.style.opacity='0';return;}g.style.opacity='1';
     const cy=surf(x,t,a)+dep,rx=w*o*(1+.03*Math.sin(t*2+i)),ry=rx*(.22+dep*.004);
     const lip=g.querySelector('.hl-lip');lip.setAttribute('cx',f1(x));lip.setAttribute('cy',f1(cy));lip.setAttribute('rx',f1(rx*1.25));lip.setAttribute('ry',f1(ry*1.35));
