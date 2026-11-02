@@ -40,7 +40,6 @@ function migrate(){
  if(typeof state!=='object'||!state)return;
  if(state.captainMind==null)state.captainMind=100;
  if(!state.shinOpen)state.shinLevel=0;          // 예전 방식(돈 · 통과 횟수) 수련 기록은 E.G.O 없이 인정하지 않음
- if(state.shinOpen&&!state.egoBloomed){state.shinOpen=false;state.shinLevel=0;}
 }
 migrate();
 
@@ -123,7 +122,7 @@ function judgePanel(){
   '<p>피어난 E.G.O에 이름을 새기십시오. 비워 두면 \''+EGO_DEFAULT+'\'로 남습니다.</p>'+
   '<p><input id="egoNameInput" maxlength="24" placeholder="'+EGO_DEFAULT+'" value="'+esc(j.draft||'')+'" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;border:1px solid #4f6378;background:#0f161e;color:#e8edf3;font:inherit"></p>'+
   '<div class="stack">'+button('이 이름을 새긴다','egoNameSet','','primary')+'</div>'+
-  '<p class="small muted">이제부터 항구 상점에서 신과 망 수련을 시도할 수 있습니다.</p></div>';
+  '<p class="small muted">자아의 힘이 피어났습니다.</p></div>';
  if(j.stage==='hold')return head+'<h2>'+esc(state.egoName||EGO_DEFAULT)+'</h2><p>무너지기 직전, 한 번 피어났던 E.G.O가 다시 선장을 붙잡았습니다. 숨이 돌아옵니다. 선장의 정신력이 '+AFTER_MIND+'까지 돌아옵니다.</p>'+
   '<div class="stack">'+button('다시 일어선다','mindHoldGo','','primary')+'</div></div>';
  const p=bloomed?HOLD_P:BLOOM_P;
@@ -161,7 +160,7 @@ document.addEventListener('click',function(e){
   const inp=document.getElementById('egoNameInput');
   const name=String((inp?inp.value:j.draft)||'').replace(/\s+/g,' ').trim().slice(0,24)||EGO_DEFAULT;
   state.egoBloomed=true;state.egoName=name;state.captainMind=AFTER_MIND;state.mindJudge=null;
-  log('E.G.O \''+name+'\'. 선장의 정신력이 '+AFTER_MIND+'까지 돌아왔습니다. 이제 신과 망을 수련할 수 있습니다.');
+  log('E.G.O \''+name+'\'. 선장의 정신력이 '+AFTER_MIND+'까지 돌아왔습니다.');
   sync();
  }else if(act==='mindHoldGo'&&j.stage==='hold'){
   state.captainMind=AFTER_MIND;state.mindJudge=null;
@@ -194,8 +193,7 @@ function missing(){
  if(state.grade<HARPOON.grade)m.push('선장 '+HARPOON.grade+'등급');
  const h=harp();
  if(!h)m.push(HARPOON.name);else if(h.damaged)m.push('특수 작살 정비');
- if(!state.egoBloomed)m.push('E.G.O 개화(선장 정신력 0 판정)');
- else if(!state.shinOpen)m.push('신 개방');
+ if(!state.shinOpen)m.push('신 발현');
  else if(shin()<MIN_RINGS)m.push('망 '+MIN_RINGS+'개 개방(현재 '+shin()+'개)');
  else if(cm()<=ringCost(MIN_RINGS))m.push('망 '+MIN_RINGS+'개를 두를 선장 정신력('+(ringCost(MIN_RINGS)+1)+' 이상)');
  return m;
@@ -213,7 +211,7 @@ function huntBlock(){
  let h='<div class="inset" style="margin-top:12px"><div class="small">재앙 사냥 조건 · 특수 작살과 신과 망</div>';
  if(m.length){
   h+='<p style="color:#ffb3a8">사냥할 수 없습니다. 부족한 것: '+m.map(esc).join(' · ')+'</p>'+
-   '<p class="muted">재앙의 고래는 특수 작살에 신을 실어, 망을 '+MIN_RINGS+'개 이상 두른 손으로만 꿰뚫을 수 있습니다. 신과 망은 E.G.O를 개화한 선장만이 수련할 수 있습니다.</p>'+
+   '<p class="muted">재앙의 고래는 특수 작살에 신을 실어, 망을 '+MIN_RINGS+'개 이상 두른 손으로만 꿰뚫을 수 있습니다. 신을 발현한 선장만이 망을 익힐 수 있습니다.</p>'+
    button('재앙의 고래를 사냥한다 (조건 부족)','mangHunt','0','danger',true);
  }else{
   h+='<p>신을 끌어올려 특수 작살에 망을 몇 개 두를지 고르십시오. 고리가 하나 늘 때마다 정신적 부담이 거의 두 배가 됩니다. 4개부터는 받는 피해가 줄어듭니다.</p><p>'+
@@ -226,7 +224,7 @@ function mermaidBlock(){
  const b=state.battle;
  if(b.mang)return '<p>'+tag('망 '+b.mang+'개를 두름 · 앞면 확률 +'+Math.round(MERMAID_BONUS[b.mang]*100)+'%p'+(b.mang>=4?' · 받는 피해 -'+(b.mang>=5?30:15)+'%':''))+'</p>';
  if(!shin()||b.history.length)return '';
- return '<div class="inset" style="margin:10px 0"><div class="small">신과 망 · '+esc(state.egoName||EGO_DEFAULT)+'</div>'+
+ return '<div class="inset" style="margin:10px 0"><div class="small">신과 망 · '+esc(state.shinName030||'이름 없는 망(望)')+'</div>'+
   '<p class="small muted">동전을 던지기 전에 망을 두를 수 있습니다. 두르지 않으려면 그대로 동전을 던지십시오. (선장 정신력 '+cm()+' / 100)</p><div class="stack">'+
   ringButtons('mangMermaid',1,n=>' · 앞면 +'+Math.round(MERMAID_BONUS[n]*100)+'%p'+(n>=4?' · 피해 -'+(n>=5?30:15)+'%':''))+'</div></div>';
 }
@@ -327,7 +325,7 @@ renderSide=function(){
 /* ---------- 항구: M사 특제 월광석 · 특수 작살 · 신과 망 수련 ---------- */
 function rests(){const r=state.captainRest;return r&&r.v===state.voyage?r.n|0:0;}
 function nextStep(){
- if(!state.shinOpen)return {label:'신 개방',cost:SHIN_TRY.cost,p:SHIN_TRY.p};
+ if(!state.shinOpen)return null;
  const lv=shin();if(lv>=MAX_RINGS)return null;
  return {label:'망 '+(lv+1)+'개 개방',cost:MANG_TRY[lv].cost,p:MANG_TRY[lv].p};
 }
@@ -349,14 +347,14 @@ renderShop132=function(){
  if(!h)s+=button(HARPOON.name+' 구매 · '+unitMoney(HARPOON.cost)+' · 선장 '+HARPOON.grade+'등급 이상','calHarpoonBuy','','primary',!avail||state.grade<HARPOON.grade||state.gold<HARPOON.cost);
  else s+=button('특수 작살 정비 · '+unitMoney(HARPOON.cost/2)+(h.damaged?'':' (정비 완료)'),'calHarpoonFix','','',!avail||!h.damaged||state.gold<HARPOON.cost/2);
  s+='</div></div><div class="inset"><h3>신과 망 수련</h3>';
- if(!state.egoBloomed){
-  s+='<p>신과 망은 아무나 얻을 수 있는 힘이 아닙니다. 정신력이 바닥난 순간 뒤틀리지 않고 <b>E.G.O를 개화한 선장</b>만이 그 감정을 다시 끌어올려 신으로 삼을 수 있습니다.</p>'+
-   '<p class="small muted">아직 E.G.O가 개화하지 않았습니다. 수련을 시도할 수 없습니다.</p>';
+ if(!state.shinOpen){
+  s+='<p>신은 감정과 기억에서 싹트는 힘입니다. 선장 4등급 이상의 마음에 나타나는 징조를 따라야만 발현을 시도할 수 있습니다.</p>'+
+   '<p class="small muted">신이 발현하기 전에는 망을 수련할 수 없습니다.</p>';
  }else{
   const st=nextStep();
-  s+='<p class="muted">스스로의 정신력을 깎아 가며 감정을 끌어올리는 수련입니다. 실패해도 정신력은 돌아오지 않고, 0이 되면 다시 판정합니다. 신을 먼저 연 뒤 망을 하나씩 엽니다.</p>'+
-   tag('E.G.O · '+(state.egoName||EGO_DEFAULT))+' '+tag(state.shinOpen?'신 개방':'신 미개방')+' '+tag('망 '+shin()+' / '+MAX_RINGS)+
-   '<p class="small">신 5 · 60% → 망1 10 · 50% → 망2 20 · 40% → 망3 40 · 30% → 망4 60 · 30% → 망5 80 · 30% (선장 정신력 · 성공 확률)</p>';
+  s+='<p class="muted">스스로의 정신력을 깎아 가며 망을 확장하는 수련입니다. 실패해도 정신력은 돌아오지 않고, 0이 되면 다시 판정합니다. 발현과 동시에 열린 1망 이후의 망을 하나씩 익힙니다.</p>'+
+   tag('신(心) · '+(state.shinName030||'이름 없는 망(望)'))+' '+tag(state.shinOpen?'신 발현':'신 미발현')+' '+tag('망 '+shin()+' / '+MAX_RINGS)+
+   '<p class="small">망2 20 · 40% → 망3 40 · 30% → 망4 60 · 30% → 망5 80 · 30% (선장 정신력 · 성공 확률)</p>';
   if(st)s+='<div class="stack">'+button(st.label+' 시도 · 선장 정신력 -'+st.cost+' · 성공 '+Math.round(st.p*100)+'%'+(v<st.cost?' (정신력 부족)':''),'shinTry','','primary',!avail||v<st.cost)+'</div>';
   else s+='<p class="small">망을 다섯 개까지 두를 수 있습니다.</p>';
   if(state.shinLastTry)s+='<p class="small">'+esc(state.shinLastTry)+'</p>';
@@ -377,12 +375,12 @@ document.addEventListener('click',function(e){
   log(REST.name+'을 샀습니다. 푸르스름한 빛을 들여다보는 동안 머릿속이 가라앉습니다. 선장 정신력 +'+REST.gain+' ('+cm()+' / 100). '+unitMoney(REST.cost)+' 사용.');
  }else if(act==='shinTry'){
   const st=nextStep();
-  if(!state.egoBloomed||!st||cm()<st.cost)return;
+  if(!state.shinOpen||!st||cm()<st.cost)return;
   const ok=Math.random()<st.p;
   state.captainMind=cm()-st.cost;
-  if(ok){if(!state.shinOpen){state.shinOpen=true;state.shinLevel=0;}else state.shinLevel=shin()+1;}
+  if(ok)state.shinLevel=shin()+1;
   state.shinLastTry=(ok?'성공: ':'실패: ')+st.label+' (선장 정신력 -'+st.cost+', 남은 '+state.captainMind+')';
-  log(ok?(st.label==='신 개방'?'기억 속 감정을 끌어올려 머리를 채웠습니다. 신이 열렸습니다.':'신의 끝에 빛의 고리가 하나 더 맺혔습니다. '+st.label+'.')
+  log(ok?('신의 끝에 빛의 고리가 하나 더 맺혔습니다. '+st.label+'.')
    :'감정을 끌어올리다 놓쳤습니다. '+st.label+' 실패.');
   if(state.captainMind<=0){state.captainMind=1;hurt(1,'');}   // 0이 되는 순간 판정
  }else return;
