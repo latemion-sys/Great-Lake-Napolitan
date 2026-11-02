@@ -69,7 +69,8 @@ function memoryRating(m){
  for(const line of lines){
   const pieces=line.split(/\s*[|/／]\s*/);
   const name=tidy(pieces[0]),detail=pieces.slice(1).join(' ');
-  const ix=unused.findIndex(c=>!c.custom||tidy(c.name)===name);
+  let ix=unused.findIndex(c=>c.custom&&tidy(c.name)===name);
+  if(ix<0)ix=unused.findIndex(c=>!c.custom);
   if(ix<0)return '보통';
   const c=unused.splice(ix,1)[0];
   const end=/(인어|변이|변했|변화|희생|죽)/.test(detail);
@@ -140,6 +141,9 @@ renderPlay=function(){
  }
  if(state.scene==='dead')return page;
  if(m.stage)return heartPanel(m);
+ if(state.grade>=4&&state.shinOpen&&!state.shinName030&&state.scene==='port'){
+  return page+'<div class="inset heart-invitation-030"><p>이미 깨어난 마음에도 아직 이름이 없습니다.</p>'+button('신(心)의 이름을 정한다','heartNameLegacy030','','primary')+'</div>';
+ }
  if(state.grade>=4&&!state.shinOpen&&!m.attempted&&(state.scene==='port'||state.scene==='event'&&!state.sea)){
   return page+'<div class="inset heart-invitation-030"><p>감정과 마음을 통해 무언가 다른 힘이 마음속에서 움직입니다…</p>'+
    button('그 감정에 귀를 기울인다','heartListen030','','primary')+'</div>';
@@ -157,7 +161,9 @@ document.addEventListener('click',e=>{
  const b=e.target?.closest?.('button[data-act]');if(!b||b.disabled||busy)return;
  const act=b.dataset.act,m=memory();
  if(act.startsWith('heart')){
-  if(state.scene==='dead'||state.grade<4||state.shinOpen)return;
+  if(state.scene==='dead'||state.grade<4)return;
+  if(act==='heartNameLegacy030'&&state.shinOpen&&!state.shinName030){m.stage='naming';m.attempted=true;sync();return;}
+  if(state.shinOpen&&act!=='heartNameSave030')return;
   if(act==='heartListen030'&&!m.stage&&!m.attempted){m.stage='intro';tab='play';sync();return;}
   if(act==='heartRemember030'&&m.stage==='intro'){m.attention='remember';m.stage='recall';sync();return;}
   if(act==='heartIgnore030'&&m.stage==='intro'){m.attention='ignore';m.stage='recall';sync();return;}
