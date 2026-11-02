@@ -87,7 +87,7 @@ function buyMarket(kind){
  const lakeList=window.GREAT_LAKE_SCRIPT_DATA_024||window.GREAT_LAKE_SCRIPT_DATA_023;
  if(!speeches||!Array.isArray(lakeList)||!lakeList.length)return;
  // 참과 거짓은 같은 말투의 기존 전언 자료에서 무작위로 뽑아 판매합니다.
- const candidates=lakeList.filter(d=>speeches[d.id]&&speeches[d.id][kind+'True']&&speeches[d.id][kind+'False']);
+ const candidates=lakeList.filter(d=>d.id!==8&&speeches[d.id]&&speeches[d.id][kind+'True']&&speeches[d.id][kind+'False']);
  if(!candidates.length)return;
  const d=candidates[Math.floor(Math.random()*candidates.length)];
  const text=speeches[d.id][kind+(Math.random()<.5?'True':'False')];
