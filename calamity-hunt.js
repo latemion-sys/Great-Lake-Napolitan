@@ -30,14 +30,16 @@ const EGO_DEFAULT='개화 E.G.O';
 const ringCost=n=>RING_COST[Math.max(0,Math.min(5,n|0))];
 
 /* ---------- 상태 ---------- */
-function cm(){const v=state.captainMind;return v==null||isNaN(v)?100:Math.max(0,Math.min(100,Math.round(v)));}
+function cmax(){const m=state.captainMindMax030==null?NaN:Number(state.captainMindMax030);return Number.isFinite(m)?Math.max(10,Math.min(100,Math.round(m))):100;}   // '인정한다'에서 물러날 때마다 줄어드는 최대치
+function cm(){const v=state.captainMind;return v==null||isNaN(v)?cmax():Math.max(0,Math.min(cmax(),Math.round(v)));}
 function shin(){return state.shinOpen?Math.max(0,Math.min(MAX_RINGS,state.shinLevel|0)):0;}
 function harp(){return state.calamityHarpoon||null;}
 function rings(){return Math.max(0,state.mangActive|0);}
 function judging(){return !!state.mindJudge;}
 function migrate(){
  if(typeof state!=='object'||!state)return;
- if(state.captainMind==null)state.captainMind=100;
+ if(state.captainMind==null)state.captainMind=cmax();
+ else if(state.captainMind>cmax())state.captainMind=cmax();
  if(!state.shinOpen)state.shinLevel=0;          // 신을 발현하기 전에는 망이 개방되지 않음
 }
 migrate();
@@ -60,14 +62,14 @@ function hurt(n,why){
  migrate();
  const before=cm();if(before<=0&&judging())return;
  state.captainMind=Math.max(0,before-n);
- log((why?why+' ':'')+'선장의 정신력 -'+(before-state.captainMind)+' ('+state.captainMind+' / 100)');
+ log((why?why+' ':'')+'선장의 정신력 -'+(before-state.captainMind)+' ('+state.captainMind+' / '+cmax()+')');
  if(state.captainMind<=0&&!judging()){
   state.mindJudge={stage:'pending',draft:''};
   log('선장의 정신력이 바닥났습니다. 마음속에서 무언가가 형체를 얻으려 합니다.');
   if(!inCalamity())tab='play';
  }
 }
-function heal(n){state.captainMind=Math.min(100,cm()+n);}
+function heal(n){state.captainMind=Math.min(cmax(),cm()+n);}
 
 /* 인어 조우 */
 const prevBegin=beginBattle;
@@ -108,7 +110,7 @@ const API=window.CalamityMang={
  ease(){return TOUCH();},  // 미니게임 판정은 망과 무관 · 터치 화면(휴대폰)은 판정 시간 · 범위를 넓힘
  extraLife(){return 0;},
  guard(){const r=rings();return r>=5?.3:r>=4?.15:0;},
- captainMind:cm,hurt,ringCost,MAX_RINGS,MIN_RINGS
+ captainMind:cm,captainMindMax:cmax,hurt,ringCost,MAX_RINGS,MIN_RINGS
 };
 
 /* ---------- 정신력 0 판정 ---------- */
@@ -214,7 +216,7 @@ function huntBlock(){
    button('재앙의 고래를 사냥한다 (조건 부족)','mangHunt','0','danger',true);
  }else{
   h+='<p>신을 끌어올려 특수 작살에 망을 몇 개 두를지 고르십시오. 고리가 하나 늘 때마다 정신적 부담이 거의 두 배가 됩니다. 4개부터는 받는 피해가 줄어듭니다.</p><p>'+
-   tag('선장 정신력 '+cm()+' / 100')+' '+tag('개방한 망 '+shin()+' / '+MAX_RINGS)+'</p><div class="stack">'+
+   tag('선장 정신력 '+cm()+' / '+cmax())+' '+tag('개방한 망 '+shin()+' / '+MAX_RINGS)+'</p><div class="stack">'+
    ringButtons('mangHunt',MIN_RINGS,n=>' · 동전 +'+Math.round(MERMAID_BONUS[n]*100)+'%p'+(n===4?' · 피해 -15%':n===5?' · 피해 -30%':''))+'</div>';
  }
  return h+'</div>';
@@ -224,7 +226,7 @@ function mermaidBlock(){
  if(b.mang)return '<p>'+tag('망 '+b.mang+'개를 두름 · 앞면 확률 +'+Math.round(MERMAID_BONUS[b.mang]*100)+'%p'+(b.mang>=4?' · 받는 피해 -'+(b.mang>=5?30:15)+'%':''))+'</p>';
  if(!shin()||b.history.length)return '';
  return '<div class="inset" style="margin:10px 0"><div class="small">신과 망 · '+esc(state.shinName030||'이름 없는 망(望)')+'</div>'+
-  '<p class="small muted">동전을 던지기 전에 망을 두를 수 있습니다. 두르지 않으려면 그대로 동전을 던지십시오. (선장 정신력 '+cm()+' / 100)</p><div class="stack">'+
+  '<p class="small muted">동전을 던지기 전에 망을 두를 수 있습니다. 두르지 않으려면 그대로 동전을 던지십시오. (선장 정신력 '+cm()+' / '+cmax()+')</p><div class="stack">'+
   ringButtons('mangMermaid',1,n=>' · 앞면 +'+Math.round(MERMAID_BONUS[n]*100)+'%p'+(n>=4?' · 피해 -'+(n>=5?30:15)+'%':''))+'</div></div>';
 }
 
@@ -269,14 +271,14 @@ document.addEventListener('click',function(e){
   state.captainMind=cm()-c;
   state.mangActive=n;
   state.calamityHarpoon.damaged=true;
-  log('신을 끌어올립니다. 특수 작살에 망 '+n+'개가 감깁니다. 선장 정신력 -'+c+' ('+state.captainMind+' / 100).'+(n>=4?' 고리가 겹칠수록 작살 끝이 고래의 살을 먼저 알아봅니다.':''));
+  log('신을 끌어올립니다. 특수 작살에 망 '+n+'개가 감깁니다. 선장 정신력 -'+c+' ('+state.captainMind+' / '+cmax()+').'+(n>=4?' 고리가 겹칠수록 작살 끝이 고래의 살을 먼저 알아봅니다.':''));
   go=true;try{huntWhale();}finally{go=false;}
   if(state.scene==='encounter'&&state.encounter===k)sync();
  }else{
   const bt=state.battle;
   if(!plainMermaid()||inCalamity()||bt.mang||bt.history.length||n<1||n>shin()||cm()<=c)return;
   state.captainMind=cm()-c;bt.mang=n;state.mangActive=n;
-  log('신을 끌어올려 공격에 망 '+n+'개를 두릅니다. 선장 정신력 -'+c+' ('+state.captainMind+' / 100).');
+  log('신을 끌어올려 공격에 망 '+n+'개를 두릅니다. 선장 정신력 -'+c+' ('+state.captainMind+' / '+cmax()+').');
   sync();
  }
 },true);
@@ -312,13 +314,12 @@ const prevSide=renderSide;
 renderSide=function(){
  prevSide.apply(this,arguments);
  const el=document.getElementById('meters');if(!el)return;
- const v=cm(),bits=[];
- bits.push(state.egoBloomed?'E.G.O · '+(state.egoName||EGO_DEFAULT):'E.G.O 미개화');
- bits.push(state.shinOpen?'신(心) · '+(state.shinName030||'이름 없는 망(望)')+' · 망 '+shin()+' / '+MAX_RINGS:'신(心) 미발현');
- if(rings())bits.push('지금 두른 망 '+rings()+'개');
- if(judging())bits.push('판정 대기');
- el.insertAdjacentHTML('beforeend','<div class="barline"><span>선장 정신력</span><span>'+v+' / 100</span></div><div class="meter '+(v<=30?'alert':'')+'"><span style="width:'+v+'%"></span></div>'+
-  '<div class="small muted" style="margin:2px 0 8px">'+bits.map(esc).join(' · ')+'</div>');
+ const v=cm(),mx=cmax(),row=(k,val)=>'<div class="barline small" style="margin:2px 0"><span>'+esc(k)+'</span><span>'+esc(val)+'</span></div>';
+ const ego=state.egoBloomed?(state.egoName||EGO_DEFAULT):(judging()?'판정 대기':'미개화');
+ const sh=state.shinOpen?(state.shinName030||'이름 없는 망(望)')+' · 망 '+shin()+' / '+MAX_RINGS:'미발현';
+ el.insertAdjacentHTML('beforeend','<div class="barline"><span>선장 정신력</span><span>'+v+' / '+mx+'</span></div><div class="meter '+(v<=30?'alert':'')+'" style="position:relative"><span style="width:'+v+'%"></span>'+
+  (mx<100?'<i aria-hidden="true" style="position:absolute;top:0;bottom:0;right:0;width:'+(100-mx)+'%;background:repeating-linear-gradient(135deg,rgba(0,0,0,.55) 0 4px,rgba(0,0,0,.25) 4px 8px)"></i>':'')+'</div>'+
+  '<div style="margin:4px 0 8px">'+row('E.G.O',ego)+row('신(心)',sh)+(rings()?row('지금 두른 망',rings()+'개'):'')+'</div>');
 };
 
 /* ---------- 항구: M사 특제 월광석 · 특수 작살 · 신과 망 수련 ---------- */
@@ -336,8 +337,8 @@ renderShop132=function(){
   '<p>13구의 날개 <b>M사</b>가 파는 특이점 제품. 매끈하게 빛나는 이 돌을 몸에 지니면 정신이 한 가지에 모여 잡생각이 걷히고, 바깥에서 파고드는 정신 공격을 버텨 낼 수 있다. 공격을 받아 낼수록 빛이 탁해지다가 끝내 아무 힘도 없는 돌이 된다.</p>'+
   '<p class="muted">항구에 들어오는 것은 집중을 돕는 정도의 하급품이라, 한 개로는 정신력 +'+REST.gain+'만큼만 버팁니다. 들어오는 물량이 적어 정박할 때마다 '+REST.max+'개까지만 팝니다. 포장은 반드시 귀마개를 쓰고 열 것. 맨 귀로 열면 물속으로 돌아가고 싶다는 충동에 사로잡힌다는 소문이 있습니다.</p>'+
   '<p class="small muted">인어를 마주치거나 선원이 인어가 되는 것을 보면 선장의 정신력이 깎입니다. 0이 되면 자신의 마음과 마주합니다.</p>'+
-  tag('선장 정신력 '+v+' / 100')+' '+tag('이번 정박 구매 '+rn+' / '+REST.max)+'<div class="stack" style="margin-top:8px">'+
-  button(REST.name+' 구매 · 선장 정신력 +'+REST.gain+' · '+unitMoney(REST.cost)+(rn>=REST.max?' (이번 정박에서는 더 살 수 없음)':v>=100?' (정신력 가득)':''),'capRest','','',!avail||rn>=REST.max||v>=100||state.gold<REST.cost)+
+  tag('선장 정신력 '+v+' / '+cmax())+' '+tag('이번 정박 구매 '+rn+' / '+REST.max)+'<div class="stack" style="margin-top:8px">'+
+  button(REST.name+' 구매 · 선장 정신력 +'+REST.gain+' · '+unitMoney(REST.cost)+(rn>=REST.max?' (이번 정박에서는 더 살 수 없음)':v>=cmax()?' (정신력 가득)':''),'capRest','','',!avail||rn>=REST.max||v>=cmax()||state.gold<REST.cost)+
   '</div></div>';
  s+='<div class="inset"><h3>재앙 사냥 준비 · 특수 작살</h3>'+
   '<p>고래잡이들 사이에서 먼 옛날 전설로 불리는 \'쪽빛 노인\'이라 불리는 특색 해결사이자 고래잡이의 무기를 본떠 항구 대장간이 어떻게든 따라해 만든 전용 발사대. 리벳으로 박은 금속판 수십 장을 겹쳐 만든 석궁 모양의 틀에, 사람 키보다 긴 미늘 작살을 걸어 쏜다. 노인은 홀로 쪽배를 몰며 모든 것을 꿰뚫는 청새치를 잡았고, 던질 때마다 작살에 망이라 불리우는 고리 세 개를 감았다고 한다.</p>'+
@@ -369,9 +370,9 @@ document.addEventListener('click',function(e){
  }else if(act==='calHarpoonFix'&&harp()&&harp().damaged&&state.gold>=HARPOON.cost/2){
   state.gold-=HARPOON.cost/2;state.calamityHarpoon.damaged=false;log('휘어진 미늘을 펴고 헐거워진 리벳 판을 다시 박아 특수 작살을 정비했습니다. '+unitMoney(HARPOON.cost/2)+' 사용.');
  }else if(act==='capRest'){
-  if(rests()>=REST.max||cm()>=100||state.gold<REST.cost)return;
+  if(rests()>=REST.max||cm()>=cmax()||state.gold<REST.cost)return;
   state.gold-=REST.cost;state.captainRest={v:state.voyage,n:rests()+1};heal(REST.gain);
-  log(REST.name+'을 샀습니다. 푸르스름한 빛을 들여다보는 동안 머릿속이 가라앉습니다. 선장 정신력 +'+REST.gain+' ('+cm()+' / 100). '+unitMoney(REST.cost)+' 사용.');
+  log(REST.name+'을 샀습니다. 푸르스름한 빛을 들여다보는 동안 머릿속이 가라앉습니다. 선장 정신력 +'+REST.gain+' ('+cm()+' / '+cmax()+'). '+unitMoney(REST.cost)+' 사용.');
  }else if(act==='shinTry'){
   const st=nextStep();
   if(!state.shinOpen||!st||cm()<st.cost)return;

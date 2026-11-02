@@ -14,6 +14,7 @@
 .heart-voice-words-030 p{margin:14px 0;color:#ffdfaa;animation:heart-voice-appear-030 1.6s ease-out both}
 .heart-voice-words-030 p:nth-child(2){animation-delay:.35s}
 .heart-voice-words-030 p:nth-child(3){animation-delay:.7s}
+.heart-voice-note-030{margin:-18px 0 0;color:#b99f78;font-size:13px;line-height:1.7;letter-spacing:.02em;opacity:.85}
 .heart-voice-actions-030{display:grid;width:min(100%,580px);gap:12px}
 .heart-voice-actions-030 button{border:1px solid #655740;border-radius:12px;padding:14px 18px;background:#14120f!important;color:#ffe4ba!important;min-height:48px;white-space:normal;line-height:1.45;font:inherit;cursor:pointer}
 .heart-voice-actions-030 button:hover,.heart-voice-actions-030 button:focus-visible{border-color:#e9bd7e;background:#272018!important;outline-color:#d2ad7b}
