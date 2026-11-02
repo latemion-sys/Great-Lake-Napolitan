@@ -120,8 +120,9 @@ function syncOverlay(){
  let w=null;try{w=want();}catch(e){w=null;}
  if(!w){if(ov)clearOv();return;}
  if(w.key===ovKey&&ov&&ov.isConnected)return;
+ const chained=!!(ov&&ov.isConnected&&!ov.classList.contains('out'));   // 목소리 화면끼리 이어질 때는 게임 화면이 비치지 않게 바로 바꿈
  clearOv();
- ov=document.createElement('div');ov.className='hv-ov hv-'+w.kind;ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
+ ov=document.createElement('div');ov.className='hv-ov hv-'+w.kind+(chained?' hv-chain':'');ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
  document.body.appendChild(ov);ovKey=w.key;
  try{MOUNT[w.kind](ov,state.mindJudge);}catch(e){console.warn(e);}
 }
