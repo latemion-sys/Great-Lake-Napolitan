@@ -279,18 +279,33 @@ function syncOverlay(){
 }
 
 /* ---------- 목소리: 메아리 → 이제야 → 생애에 맞춘 말 → 선택 ---------- */
-function voiceShell(o){
+// 목소리 화면: 햇살 셰이더(되면) 위에 메아리 · 문장 · 선택지
+function voiceShell(o,glopt){
  o.innerHTML='<div class="hv-glow" aria-hidden="true"></div><div class="hv-echoes" aria-hidden="true"></div><div class="hv-center"><div class="hv-lines"></div><div class="hv-note"></div><div class="hv-actions"></div></div><div class="hv-skip">화면을 누르면 건너뜁니다</div>';
- return {echoes:o.querySelector('.hv-echoes'),lines:o.querySelector('.hv-lines'),note:o.querySelector('.hv-note'),acts:o.querySelector('.hv-actions'),skip:o.querySelector('.hv-skip')};
+ const fx=glLayer(o,'voice',Object.assign({c:.2},glopt||{}));
+ return {fx,echoes:o.querySelector('.hv-echoes'),lines:o.querySelector('.hv-lines'),note:o.querySelector('.hv-note'),acts:o.querySelector('.hv-actions'),skip:o.querySelector('.hv-skip')};
 }
-function showLines(el,arr,start,gap){arr.forEach((t,i)=>at(start+i*gap,()=>{const p=document.createElement('p');p.textContent='“'+t+'”';el.appendChild(p);}));return start+arr.length*gap;}
+const swell=(v,c,ring)=>{if(!v.fx)return;v.fx.set('c',c);if(ring&&v.fx.now)v.fx.set('d',v.fx.now());};
+// 강조할 말: 이 선장의 이름 · 지어 준 선원 이름 · 신의 이름 · 유혹의 핵심어
+const EM_WORDS=['괜찮아','마음','다시 태어날','다시 태어나','네 뜻','바라는','원래의','솔직해지면','진짜 목소리','너를 위해','도시','답해 주렴','기다리고 있었어','내려놓아도','내려놔'];
+function emph(text){
+ let h=esc(text);const m=H.memory(),names=[];
+ (m.lost||[]).forEach(c=>{if(c.custom&&c.name)names.push(c.name);});
+ const cap=String(state.captainName||'').trim();if(cap)names.push(cap);
+ if(state.shinName030)names.push(state.shinName030.replace(/\(望\)$/,''));
+ const words=[...new Set(names.map(esc).concat(EM_WORDS))].filter(w=>w&&w.length>0).sort((a,b)=>b.length-a.length);
+ if(!words.length)return h;
+ const re=new RegExp(words.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
+ return h.replace(re,w=>'<em class="hv-em">'+w+'</em>');
+}
+function showLines(el,arr,start,gap){arr.forEach((t,i)=>at(start+i*gap,()=>{const p=document.createElement('p');p.className='sweep';p.innerHTML='“'+emph(t)+'”';el.appendChild(p);}));return start+arr.length*gap;}
 function mountIntro(o,j){
  const v=voiceShell(o);
  if(!Array.isArray(j.lines031)){j.lines031=composeVoice(j);persist();}
  const seq=j.lines031;
  const actHTML=btn(SAY.force,'egoForce030','primary')+btn(SAY.accept,'egoAccept030')+btn(SAY.yield,'egoYield030','yield');
  let done=false;
- const finish=()=>{if(done)return;done=true;timers.forEach(clearTimeout);timers=[];v.echoes.innerHTML='';v.lines.innerHTML=seq.map(t=>'<p class="now">“'+esc(t)+'”</p>').join('');v.acts.innerHTML=actHTML;v.acts.classList.add('on');v.skip.remove();j.echoDone031=true;persist();};
+ const finish=()=>{if(done)return;done=true;timers.forEach(clearTimeout);timers=[];v.echoes.innerHTML='';v.lines.innerHTML=seq.map(t=>'<p class="now">“'+emph(t)+'”</p>').join('');swell(v,.72,false);v.acts.innerHTML=actHTML;v.acts.classList.add('on');v.skip.remove();j.echoDone031=true;persist();};
  o.addEventListener('click',e=>{if(e.target.closest('button'))return;finish();});
  if(j.echoDone031){finish();return;}
  // 메아리: 1 → 2 → 4 → 8 → 16 → 32 → 64 → 128
@@ -305,19 +320,21 @@ function mountIntro(o,j){
  v.echoes.innerHTML=html;v.echoes.querySelectorAll('.hv-echo').forEach(s=>spans.push(s));
  const counts=[1,2,4,8,16,32,64,128],times=[300,1300,2200,3000,3700,4300,4800,5250];
  let shown=0;
- counts.forEach((n,si)=>at(times[si],()=>{for(let i=shown;i<n;i++)spans[i].classList.add('on');shown=n;if(n>=16)v.echoes.classList.add('echoing');o.style.setProperty('--swell',(si/7).toFixed(2));}));
- at(6900,()=>v.echoes.classList.add('gone'));
+ counts.forEach((n,si)=>at(times[si],()=>{for(let i=shown;i<n;i++)spans[i].classList.add('on');shown=n;if(n>=16)v.echoes.classList.add('echoing');o.style.setProperty('--swell',(si/7).toFixed(2));swell(v,.18+.6*si/7,si>0);}));
+ at(6900,()=>{v.echoes.classList.add('gone');swell(v,.3,false);});
+ at(7900,()=>swell(v,.7,true));   // "이제야…"에서 다시 부드럽게 밝아짐
  const end=showLines(v.lines,seq,7900,1500);
  at(end+500,()=>{finish();});
 }
 function mountAccept2(o,j){
- const v=voiceShell(o);v.skip.remove();
+ const v=voiceShell(o,{b:1,c:.62});v.skip.remove();
  if(!Array.isArray(j.accept031)){j.accept031=composeAccept(j);persist();}
  const end=showLines(v.lines,j.accept031,300,1400);
  at(end+300,()=>{v.acts.innerHTML=btn(SAY.duty,'egoAcceptDuty030','primary')+btn(SAY.yield2,'egoYield030','yield');v.acts.classList.add('on');});
 }
 function mountWithdraw(o,j){
- const v=voiceShell(o);v.skip.remove();const w=j.withdraw||{};
+ const v=voiceShell(o,{c:.55});v.skip.remove();const w=j.withdraw||{};
+ for(let i=1;i<=20;i++)at(i*130,()=>{if(v.fx)v.fx.set('a',i/20);});   // 햇살이 멀어지며 어두워짐
  const w2=WITHDRAW_TALK.slice(),a1=w2.splice(Math.floor(R((j.seed031||3)+5)*w2.length),1)[0],a2=w2[Math.floor(R((j.seed031||3)+9)*w2.length)];
  const end=showLines(v.lines,[a1,a2],300,1400);
  at(end+200,()=>{v.note.innerHTML='목소리가 멀어지고, 선장은 벼랑 끝에서 한 걸음 물러났습니다.<br>선장 정신력 최대치 -'+(w.max|0)+' ('+(w.cap|0)+')'+(w.mind?' · 돌아오는 정신력 -'+w.mind:'');v.note.classList.add('on');
@@ -439,6 +456,7 @@ function glLayer(o,kind,opt){
  let fx=null;try{fx=HeartGL.create(c,kind,opt);}catch(e){fx=null;}
  if(!fx){c.remove();return null;}
  glfx=fx;o.classList.add('hv-gl-on');
+ const tz=performance.now();fx.now=()=>(performance.now()-tz)/1000;
  // 느린 기기에서는 해상도를 스스로 낮춤(프레임이 45ms보다 오래 걸리면 80%씩, 최저 35%)
  const t0=performance.now();let last=t0,acc=0,n=0;
  const f=()=>{if(!o.isConnected)return;const now=performance.now();acc+=now-last;last=now;n++;

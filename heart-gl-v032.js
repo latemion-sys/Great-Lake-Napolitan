@@ -7,7 +7,7 @@
 'use strict';
 const COMMON=`#version 300 es
 precision highp float;
-uniform vec2 uRes;uniform float uT;uniform float uA;uniform float uB;uniform float uC;uniform sampler2D uTex;
+uniform vec2 uRes;uniform float uT;uniform float uA;uniform float uB;uniform float uC;uniform float uD;uniform sampler2D uTex;
 out vec4 o;
 float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
 vec2 hash2(vec2 p){float n=hash(p);return vec2(n,hash(p+n*17.13+3.1));}
@@ -280,10 +280,45 @@ void main(){
  o=vec4(finish(col,p,.03),1.);
 }`;
 
+
+/* ───────── 목소리(정신력 0): 감은 눈꺼풀 너머로 스며드는 아침 햇살 ─────────
+   위쪽 한편 화면 밖에서 비스듬히 내려오는 햇살 줄기(노이즈 결 · 천천히 흔들림) · 숨 쉬듯 밝아졌다 어두워지는 바탕 ·
+   빛 근원의 부드러운 번짐과 렌즈에 맺힌 빛망울 · 메아리가 늘 때마다 차오르는 햇살(uC)과 가운데서 번지는 빛 물결(uD=물결 시작 시각) ·
+   반박 화면에서는 햇살이 기울며 식고(uB), 물러남에서는 멀어지며 어두워짐(uA) */
+const VOICE=COMMON+`
+vec2 SRC_(){float asp=uRes.x/uRes.y;return vec2(-.5*asp-.12,.66)+vec2(-.35,.22)*uA+vec2(.08,.05)*uB;}
+void main(){
+ vec2 p=P();float t=uT,asp=uRes.x/uRes.y;
+ vec2 L=SRC_();
+ float sw=.5+.8*uC,br=.88+.12*sin(t*.55)+.04*sin(t*1.7);
+ vec3 warm=mix(vec3(1.,.72,.36),vec3(.95,.84,.66),uB);
+ vec3 c=vec3(.034,.02,.009)+vec3(.04,.024,.009)*fbm(p*1.3+vec2(t*.02,0.));
+ // 햇살 줄기
+ vec2 d=p-L;float dist=length(d),ang=atan(d.y,d.x);
+ float a0=-.62-.1*uB+.04*sin(t*.12);
+ float cone=smoothstep(.62,.0,abs(ang-a0));
+ float streak=.35+.65*pow(fbm(vec2(ang*16.+t*.03,t*.05)),2.2);
+ streak*=.75+.25*fbm(vec2(ang*40.,dist*2.-t*.12));
+ float fall=exp(-dist*.62);
+ float rays=cone*streak*fall;
+ c+=warm*rays*.55*sw*br*(1.-.65*uA);
+ // 빛 근원의 번짐 · 빛망울
+ c+=warm*exp(-dist*2.4)*.55*sw*(1.-.6*uA);
+ vec2 C=vec2(0.,.0);
+ for(int i=0;i<3;i++){float k=.55+float(i)*.42;vec2 g=L+(C-L)*k*1.25;float r=.035+.03*float(i);
+  float disc=smoothstep(r,r*.6,length(p-g));c+=warm*disc*.035*sw*(1.-uA);}
+ // 빛 물결(메아리가 늘 때)
+ float rt=t-uD;
+ if(uD>0.&&rt>0.&&rt<1.6){float rr=rt*.7,band=exp(-pow((length(p-vec2(0.,.05))-rr)*14.,2.))*(1.-rt/1.6);c+=warm*band*.18;}
+ // 따뜻한 공기(아주 옅은 안개)
+ c+=warm*.05*smoothstep(.45,.85,fbm(p*2.+vec2(t*.03,-t*.02)))*cone*sw;
+ c=1.-exp(-c*1.6);
+ o=vec4(finish(c,p,.025),1.);
+}`;
 /* ───────── 입자(GPU 점 메시): 위치 = f(씨앗, 시간) ───────── */
 const PV=`#version 300 es
 precision highp float;precision highp int;
-in vec4 aS;uniform vec2 uRes;uniform float uT;uniform float uA;uniform float uB;uniform int uKind;
+in vec4 aS;uniform vec2 uRes;uniform float uT;uniform float uA;uniform float uB;uniform float uC;uniform int uKind;
 out float vA;out vec3 vC;out float vR;
 float h(float n){return fract(sin(n*91.345)*47453.5453);}
 void main(){
@@ -299,6 +334,12 @@ void main(){
   float k=smoothstep(uA,uA+2.6,uT);float ph=fract(uT*.12*(.5+aS.y)+aS.x);
   p=vec2((aS.z*2.-1.)*uRes.x/uRes.y*.5+sin(ph*7.+aS.x*9.)*.02,-.55+ph*1.15);
   a=sin(3.1416*ph)*.75*k;sz=1.5+3.*aS.y;c=vec3(.55,.08,.08);
+ }else if(uKind==3){ // 목소리: 햇살 줄기 안에서만 반짝이는 먼지
+  float asp=uRes.x/uRes.y;vec2 L=vec2(-.5*asp-.12,.66)+vec2(-.35,.22)*uA+vec2(.08,.05)*uB;
+  vec2 q=vec2(fract(aS.x+uT*.006*(aS.z-.5)+sin(uT*.07+aS.y*9.)*.01)*asp-asp*.5,fract(aS.y-uT*.004*(.3+aS.z))*1.1-.55);
+  q+=vec2(sin(uT*.3+aS.z*20.),cos(uT*.25+aS.x*20.))*.012;
+  vec2 d=q-L;float ang=atan(d.y,d.x),a0=-.62-.1*uB;float cone=smoothstep(.5,.0,abs(ang-a0))*exp(-length(d)*.5);
+  p=q;a=cone*(.35+.65*pow(.5+.5*sin(uT*(1.2+2.*aS.w)+aS.x*30.),3.))*(.45+.7*uC)*(1.-.7*uA);sz=1.4+2.6*aS.z*aS.z;c=vec3(1.,.9,.7);
  }else{ // 신: 기억 알갱이가 가슴으로 · 불붙는 순간 파편 · 위로 날리는 불티
   if(id<.3){float st=.9+aS.x*1.5,du=1.1+aS.y*.7,ph=(uT-st)/du;if(ph>0.&&ph<1.){float an=aS.z*6.2832+ph*2.4*(aS.w>.15?1.:-1.),r=(.25+.25*aS.y)*pow(1.-ph,1.5);
     p=vec2(cos(an),sin(an)*.85)*r+vec2(0.,.17);a=sin(3.1416*min(1.,ph*1.2))*.95;sz=2.+2.*aS.y;c=vec3(1.,.95,.8);}}
@@ -344,7 +385,7 @@ function glyphTexture(g,ch){
  g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MIN_FILTER,g.LINEAR);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MAG_FILTER,g.LINEAR);
  g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_S,g.CLAMP_TO_EDGE);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_T,g.CLAMP_TO_EDGE);return t;}
 
-const SRC={bloom:BLOOM,twist:TWIST,shin:SHIN},KIND={bloom:0,twist:1,shin:2},COUNT={bloom:520,twist:220,shin:640};
+const SRC={bloom:BLOOM,twist:TWIST,shin:SHIN,voice:VOICE},KIND={bloom:0,twist:1,shin:2,voice:3},COUNT={bloom:520,twist:220,shin:640,voice:300};
 function create(canvas,kind,opt){
  opt=opt||{};
  let g=null;try{g=canvas.getContext('webgl2',{antialias:false,alpha:false,premultipliedAlpha:false,preserveDrawingBuffer:false,powerPreference:'high-performance'});}catch(e){}
@@ -358,7 +399,7 @@ function create(canvas,kind,opt){
  const vp=g.createVertexArray();g.bindVertexArray(vp);const ls=g.getAttribLocation(pp,'aS');g.enableVertexAttribArray(ls);g.vertexAttribPointer(ls,4,g.FLOAT,false,0,0);
  g.bindVertexArray(null);
  const U=(p,n)=>g.getUniformLocation(p,n);
- const fu={res:U(fp,'uRes'),t:U(fp,'uT'),a:U(fp,'uA'),b:U(fp,'uB'),c:U(fp,'uC'),tex:U(fp,'uTex')},pu={res:U(pp,'uRes'),t:U(pp,'uT'),a:U(pp,'uA'),b:U(pp,'uB'),kind:U(pp,'uKind')};
+ const fu={res:U(fp,'uRes'),t:U(fp,'uT'),a:U(fp,'uA'),b:U(fp,'uB'),c:U(fp,'uC'),d:U(fp,'uD'),tex:U(fp,'uTex')},pu={res:U(pp,'uRes'),t:U(pp,'uT'),a:U(pp,'uA'),b:U(pp,'uB'),c:U(pp,'uC'),kind:U(pp,'uKind')};
  const tex=kind==='shin'?glyphTexture(g,'心'):kind==='bloom'?textTexture(g,opt.title||'E.G.O',opt.sub||''):null;
  if(!opt.scale)opt.scale=.7;
  function resize(){const dpr=Math.min(2,window.devicePixelRatio||1),w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||innerHeight,scale=opt.scale;
@@ -368,13 +409,13 @@ function create(canvas,kind,opt){
  function render(t){
   resize();g.viewport(0,0,canvas.width,canvas.height);
   g.disable(g.BLEND);g.useProgram(fp);g.bindVertexArray(vq);
-  g.uniform2f(fu.res,canvas.width,canvas.height);g.uniform1f(fu.t,t);g.uniform1f(fu.a,opt.a||0);g.uniform1f(fu.b,opt.b||0);g.uniform1f(fu.c,opt.c||0);
+  g.uniform2f(fu.res,canvas.width,canvas.height);g.uniform1f(fu.t,t);g.uniform1f(fu.a,opt.a||0);g.uniform1f(fu.b,opt.b||0);g.uniform1f(fu.c,opt.c||0);g.uniform1f(fu.d,opt.d||0);
   if(tex){g.activeTexture(g.TEXTURE0);g.bindTexture(g.TEXTURE_2D,tex);g.uniform1i(fu.tex,0);}
   g.drawArrays(g.TRIANGLE_STRIP,0,4);
   g.enable(g.BLEND);
   if(kind==='twist')g.blendFunc(g.SRC_ALPHA,g.ONE_MINUS_SRC_ALPHA);else g.blendFunc(g.ONE,g.ONE);
   g.useProgram(pp);g.bindVertexArray(vp);
-  g.uniform2f(pu.res,canvas.width,canvas.height);g.uniform1f(pu.t,t);g.uniform1f(pu.a,opt.a||0);g.uniform1f(pu.b,opt.b||0);g.uniform1i(pu.kind,KIND[kind]);
+  g.uniform2f(pu.res,canvas.width,canvas.height);g.uniform1f(pu.t,t);g.uniform1f(pu.a,opt.a||0);g.uniform1f(pu.b,opt.b||0);g.uniform1f(pu.c,opt.c||0);g.uniform1i(pu.kind,KIND[kind]);
   g.drawArrays(g.POINTS,0,N);
   g.bindVertexArray(null);
  }

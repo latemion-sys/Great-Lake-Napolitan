@@ -175,3 +175,16 @@
 .hv-gl-on .hv-big{text-shadow:0 0 14px rgba(255,214,140,.7),0 0 4px rgba(0,0,0,.8),0 0 30px rgba(0,0,0,.6)}
 .hv-gl-on .hv-title.shin{bottom:4%}
 .hv-gltitle .hv-title{opacity:0!important;animation:none!important}
+/* v1102r 정신력 0 목소리: 햇살 셰이더 위 문장 — 빛 띠가 지나가며 드러나고, 핵심어는 따스한 금빛으로 은은히 일렁임 */
+.hv-gl-on .hv-glow{opacity:.25}
+.hv-gl-on .hv-echo{text-shadow:0 0 8px rgba(40,20,0,.8),0 0 2px rgba(0,0,0,.7)}
+.hv-lines p.sweep{-webkit-mask-image:linear-gradient(100deg,#000 0 38%,rgba(0,0,0,.25) 50%,transparent 62%);mask-image:linear-gradient(100deg,#000 0 38%,rgba(0,0,0,.25) 50%,transparent 62%);
+ -webkit-mask-size:300% 100%;mask-size:300% 100%;-webkit-mask-position:100% 0;mask-position:100% 0;animation:hv-line 1.4s ease-out both,hv-sweep 1.9s cubic-bezier(.3,.6,.3,1) both}
+@keyframes hv-sweep{from{-webkit-mask-position:100% 0;mask-position:100% 0}to{-webkit-mask-position:0 0;mask-position:0 0}}
+.hv-em{font-style:normal;font-weight:600;color:#ffeab8;animation:hv-shim 4.8s ease-in-out infinite}
+.hv-gl-on .hv-lines p .hv-em{text-shadow:0 0 10px rgba(255,186,84,.55),0 0 22px rgba(255,170,70,.28),0 0 3px rgba(0,0,0,.9)}
+@keyframes hv-shim{0%,100%{color:#ffcf78}50%{color:#fff3d2}}
+.hv-twist .hv-lines p.warm .hv-em{animation:none}
+.hv-twist.turning .hv-lines p.warm .hv-em{color:inherit;text-shadow:inherit}
+@media(prefers-reduced-motion:reduce){.hv-lines p.sweep{animation:hv-line 1.4s ease-out both;-webkit-mask-image:none;mask-image:none}.hv-em{animation:none}}
+.hv-lines p{word-break:keep-all;overflow-wrap:break-word}
