@@ -12,7 +12,7 @@
     '<header class="landing-top025">'+
       '<div class="landing-kicker025">대호수 항해 시뮬레이션 · v0.1.9.0</div>'+
       '<h1>대호수: The Great Lake</h1>'+
-      '<p class="landing-subtitle025">규칙을 듣고, 선원을 지키며, 50개의 서로 다른 호수 사이로 배를 모십시오. 모든 전언이 참인 것은 아닙니다.</p>'+
+      '<p class="landing-subtitle025">도시 남부에 펼쳐진 거대한 호수. 그곳에는 \'고래잡이\'라 불리는, 고래 사냥을 전문적으로 도맡는 해결사들이 존재하며, 이들은 이름처럼 고래와 인어를 사냥하고 고래 기름 등의 부산물을 채취해 판매하고 있습니다. 그곳에 오늘 선장으로 이름을 올린 자가 또 하나 늘어났습니다.</p>'+
     '</header>'+
     '<div class="landing-grid025">'+
       '<article class="landing-prologue025" aria-labelledby="landing-prologue-heading025">'+
@@ -24,23 +24,27 @@
         '<p>그저 어떠한 혼돈과 떨림에도 제 정신을 유지할 수 있는 너의 의지를 믿어야 한다.</p>'+
         '<p class="landing-last025"><strong>고작 호수가 너 따위에 잠잠해질지는 모르겠지만.</strong></p>'+
       '</article>'+
-      '<aside class="landing-action025" aria-label="항해 시작">'+
-        '<div class="landing-sectionlabel025">항해 준비</div>'+
-        '<h2>당신의 첫 항해</h2>'+
-        '<div class="inset">'+
-          '<label for="captainNameInput">선장 이름 · 최대 16글자</label>'+
-          '<input id="captainNameInput" maxlength="16" autocomplete="off" placeholder="이름을 입력하십시오" value="'+safeName+'">'+
-          '<p class="muted" style="font-size:12px;margin:9px 0 0">이름을 비워 두면 ‘선장’으로 표시됩니다.</p>'+
-        '</div>'+
-        '<div class="stack">'+
+      '<section class="landing-action025" aria-label="항해 시작">'+
+        '<div class="landing-action-head025"><div class="landing-sectionlabel025">항해 준비</div><h2>당신의 첫 항해</h2></div>'+
+        '<div class="landing-action-body025">'+
+         '<div class="landing-action-left025">'+
+          '<div class="inset">'+
+           '<label for="captainNameInput">선장 이름 · 최대 16글자</label>'+
+           '<input id="captainNameInput" maxlength="16" autocomplete="off" placeholder="이름을 입력하십시오" value="'+safeName+'">'+
+           '<p class="muted" style="font-size:12px;margin:9px 0 0">이름을 비워 두면 ‘선장’으로 표시됩니다.</p>'+
+          '</div>'+
+          '<div class="inset landing-hint025">'+
+           '<b>항해 전 유의사항</b><p style="margin:7px 0 0">호수의 법은 구전으로 전해집니다. 사망하면 항해 진행은 초기화되지만, 달성한 업적은 유지됩니다.</p>'+
+          '</div>'+
+         '</div>'+
+         '<div class="stack landing-action-buttons025">'+
           button('항구에서 준비 시작','enterPort','','primary')+
           button('항해 안내','tab','help')+
           button('업적 보기','achievementOpen161')+
+         '</div>'+
         '</div>'+
-        '<div class="inset landing-hint025">'+
-         '<b>항해 전 유의사항</b><p style="margin:7px 0 0">호수의 법은 구전으로 전해집니다. 사망하면 항해 진행은 초기화되지만, 달성한 업적은 유지됩니다.</p>'+
-        '</div>'+
-      '</aside>'+
+      '</section>'+
+      (window.Chronicle027?window.Chronicle027.panel():'')+
     '</div>'+
     '<p class="landing-legal025">이 게임은 Project Moon 세계관을 바탕으로 비영리적인 목적으로 만들어진 팬게임입니다. 단순한 플레이를 제외한 일체의 수익성을 내는 행위를 금지합니다.</p>'+
   '</section>';
