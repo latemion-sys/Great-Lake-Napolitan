@@ -3,7 +3,7 @@
      "이제야 내 말을 귀담아 들어주는구나"로 이어지고, 이 선장의 생애(잃은 선원 · 지나온 호수 · 등급 · 결의 · 신)에 맞춰 목소리가 말을 고른다.
    · E.G.O 개화: 마음을 감싼 껍질이 안쪽의 빛에 금 가고 깨져 흩어진 자리에서 빛의 꽃잎이 피어난다.
    · 뒤틀림: 따스한 목소리가 식어 붉게 번지고, 선장의 형체가 일그러져 다른 것이 된다.
-   · 신(心) 발현: 떠올린 기억이 가슴으로 모여 금빛 불꽃 같은 기운이 몸을 감싸고, 빛의 고리(망) 하나가 손목에 맺힌다.
+   · 신(心) 발현: 떠올린 기억이 가슴으로 모여, 금빛 불꽃 같은 기운이 몸을 감싼다.
    화면은 게임 화면 바깥(body)에 따로 띄워, 게임이 다시 그려져도 연출이 끊기거나 처음부터 다시 재생되지 않는다. */
 (function(){
 'use strict';
@@ -145,9 +145,8 @@ function mountWithdraw(o,j){
   v.acts.innerHTML=btn('숨을 고르고 물러난다','egoWithdrawGo030','primary');v.acts.classList.add('on');});
 }
 
-/* ---------- 사람 형체(선장): 정면, 외투, 오른손에 작살 ---------- */
+/* ---------- 사람 형체(선장): 정면, 외투 ---------- */
 const FIGURE='<g class="hv-fig"><circle cx="0" cy="-86" r="13"/><path d="M-9,-73 Q0,-70 9,-73 L26,-64 Q31,-61 32,-54 L36,-12 Q36,-8 33,-8 L30,-10 L26,-50 L24,-26 L28,36 Q29,44 20,46 L6,46 L3,8 L-3,8 L-6,46 L-20,46 Q-29,44 -28,36 L-24,-26 L-26,-50 L-30,-10 L-33,-8 Q-36,-8 -36,-12 L-32,-54 Q-31,-61 -26,-64 Z"/></g>';
-const HARPOON='<g class="hv-harp"><path d="M34,-10 L78,-96" stroke-width="2.6"/><path d="M78,-96 L74,-82 L83,-88 Z"/></g>';
 
 /* ---------- E.G.O 개화 ---------- */
 function mountBloom(o,j){
@@ -214,8 +213,8 @@ function mountTwist(o,j){
    ② 기억: 떠올린 이름과 바람이 흐릿하게 떠올랐다가 또렷해지고, 빛 알갱이로 부서져 소용돌이치며 가슴으로 빨려 든다.
    ③ 고동: 가슴의 불씨가 두 번 크게 뛰며 빛의 물결이 퍼진다.
    ④ 기운: 금빛 불꽃 같은 기운이 몸을 따라 피어올라 감싸고, 불티가 위로 날리며 발밑 물에 빛이 고인다(아지랑이처럼 일렁임).
-   ⑤ 망: 가슴의 빛이 어깨와 팔을 타고 손끝까지 흘러, 손목에 빛의 고리 하나가 그려지듯 맺히고 불꽃이 튄다. 고리는 천천히 기울며 돈다.
-   ⑥ 이름: 신의 이름이 한 글자씩 새겨진다. */
+   ⑤ 이름: 신의 이름이 한 글자씩 새겨진다.
+   (망은 이 연출에 넣지 않는다 — 신이 발현하는 순간까지만) */
 function mountShin(o){
  const fx=state.shinFx031||{},words=(fx.words||[]).slice(0,7),name=String(fx.name||'');
  const CY=-52;   // 가슴(형체 기준)
@@ -223,8 +222,6 @@ function mountShin(o){
   frag+='<text class="hv-frag" x="'+x.toFixed(0)+'" y="'+y.toFixed(0)+'" style="--tx:'+(-x).toFixed(0)+'px;--ty:'+(-(y)+CY+30).toFixed(0)+'px;--d:'+(.35+i*.22).toFixed(2)+'s">'+esc(w)+'</text>';});
  let motes='';for(let i=0;i<46;i++)motes+='<circle r="1"/>';
  let sparks='';for(let i=0;i<44;i++)sparks+='<circle r="1"/>';
- let orbit='';for(let i=0;i<6;i++)orbit+='<circle r="1.1"/>';
- let burst='';for(let i=0;i<14;i++){const a=i/14*Math.PI*2;burst+='<path d="M'+(Math.cos(a)*9).toFixed(1)+','+(Math.sin(a)*4).toFixed(1)+' L'+(Math.cos(a)*(26+R(i)*14)).toFixed(1)+','+(Math.sin(a)*(12+R(i)*6)).toFixed(1)+'"/>';}
  let flames='';for(let i=0;i<4;i++)flames+='<path class="hv-flame f'+i+'"/>';
  o.innerHTML='<svg class="hv-svg" viewBox="-200 -200 400 400" aria-hidden="true"><defs>'+
   '<radialGradient id="hvAura" cx=".5" cy=".62" r=".6"><stop stop-color="#fff2c0" stop-opacity=".95"/><stop offset=".35" stop-color="#ffc84a" stop-opacity=".75"/><stop offset=".75" stop-color="#ff8a1e" stop-opacity=".35"/><stop offset="1" stop-color="#ff6a00" stop-opacity="0"/></radialGradient>'+
@@ -242,20 +239,17 @@ function mountShin(o){
    '<g class="hv-aura" filter="url(#hvHeat)">'+flames+'</g>'+
    '<g class="hv-figglow" filter="url(#hvFigGlow)">'+FIGURE+'</g>'+
    FIGURE+
-   '<path class="hv-harplit" d="M2,-52 Q22,-60 29,-54 L34,-12" pathLength="100"/>'+
-   '<circle class="hv-tipglow" cx="34" cy="-10" r="8" fill="url(#hvEmber)"/>'+
    '<circle class="hv-ember" cx="0" cy="'+CY+'" r="16" fill="url(#hvEmber)"/>'+
    '<g class="hv-beats"><circle class="hv-beat" cx="0" cy="'+CY+'" r="6"/><circle class="hv-beat" cx="0" cy="'+CY+'" r="6"/></g>'+
    '<g class="hv-motes" filter="url(#hvSoftDot)">'+motes+'</g>'+
    '<g class="hv-sparks">'+sparks+'</g>'+
-   '<g class="hv-mangpos" transform="translate(33.6 -16) rotate(5)"><g class="hv-mang"><ellipse class="hv-ringecho" rx="11" ry="3.8"/><ellipse class="hv-ring" rx="11" ry="3.8" pathLength="100"/></g><g class="hv-burst">'+burst+'</g><g class="hv-orbit">'+orbit+'</g></g>'+
   '</g><g class="hv-frags">'+frag+'</g></svg>'+
-  '<div class="hv-title shin"><div class="hv-big">'+[...name].map((ch,i)=>'<span style="--i:'+i+'">'+esc(ch)+'</span>').join('')+'</div><div class="hv-rule"></div><div class="hv-sub">신(心) 발현 · 첫 번째 망(望)</div></div>';
+  '<div class="hv-title shin"><div class="hv-big">'+[...name].map((ch,i)=>'<span style="--i:'+i+'">'+esc(ch)+'</span>').join('')+'</div><div class="hv-rule"></div><div class="hv-sub">신(心) 발현</div></div>';
  const q=s=>o.querySelector(s),qa=s=>[...o.querySelectorAll(s)];
- const fl=qa('.hv-flame'),motesE=qa('.hv-motes circle'),sparkE=qa('.hv-sparks circle'),orbE=qa('.hv-orbit circle'),beats=qa('.hv-beat');
- const figGlow=q('.hv-figglow'),pool=q('.hv-pool'),heat=q('.hv-heatn'),ember=q('.hv-ember'),ring=q('.hv-ring'),echo=q('.hv-ringecho'),mang=q('.hv-mang'),burstG=q('.hv-burst'),lit=q('.hv-harplit'),tip=q('.hv-tipglow');
+ const fl=qa('.hv-flame'),motesE=qa('.hv-motes circle'),sparkE=qa('.hv-sparks circle'),beats=qa('.hv-beat');
+ const figGlow=q('.hv-figglow'),pool=q('.hv-pool'),heat=q('.hv-heatn'),ember=q('.hv-ember');
  const t0=performance.now(),sp=reduce?1.6:1;
- const T={mem:.3,beat:2.6,aura:3.0,lit:4.5,ring:5.1,ringDone:6.1,name:6.0};
+ const T={mem:.3,beat:2.6,aura:3.0};
  const tick=now=>{const t=(now-t0)/1000*sp,k=Math.max(0,Math.min(1,(t-T.aura)/1.5));
   // ① 가슴의 희미한 불씨(느린 박동) → ③ 두 번 크게 뜀 → 이후 고르게 타오름
   let ek=.18+.1*Math.max(0,Math.sin(t*3.2));
@@ -280,20 +274,11 @@ function mountShin(o){
   sparkE.forEach((c,i)=>{if(k<=0){c.style.opacity='0';return;}const per=1.2+R(i)*1.1,ph=((t+R(i*3)*per)/per)%1,cyc=Math.floor((t+R(i*3)*per)/per);
    const sx=(R(i*5+cyc)-.5)*90,sy=10-R(i*7+cyc)*70,x=sx+Math.sin(ph*6+i)*4*ph,y=sy-ph*(70+R(i*9)*60);
    c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));c.setAttribute('r',(.5+R(i*13)*1.1*(1-ph)).toFixed(2));c.style.opacity=(k*Math.sin(Math.PI*ph)*.95).toFixed(3);});
-  // ⑤ 가슴에서 팔을 타고 손끝으로 흐르는 빛 → 손목에 망이 그려지듯 맺힘
-  const lk=Math.max(0,Math.min(1,(t-T.lit)/.7));lit.style.strokeDashoffset=(100-lk*100).toFixed(1);lit.style.opacity=lk>0?'1':'0';
-  tip.style.opacity=(lk>=1?(.7+.3*Math.sin(t*6)):0).toFixed(3);
-  const rk=Math.max(0,Math.min(1,(t-T.ring)/1));ring.style.strokeDashoffset=(100-rk*100).toFixed(1);ring.style.opacity=rk>0?'1':'0';
-  if(t>T.ringDone){const s2=t-T.ringDone;mang.setAttribute('transform','rotate('+(Math.sin(s2*.9)*7).toFixed(2)+') scale(1 '+(1+Math.sin(s2*1.4)*.22).toFixed(3)+')');
-   echo.style.opacity=((1-(s2%1.6)/1.6)*.5).toFixed(3);echo.setAttribute('rx',(11+(s2%1.6)*8).toFixed(1));echo.setAttribute('ry',(3.8+(s2%1.6)*2.6).toFixed(1));
-   orbE.forEach((c,i)=>{const a=s2*2.2+i/orbE.length*Math.PI*2;c.setAttribute('cx',(Math.cos(a)*11).toFixed(1));c.setAttribute('cy',(Math.sin(a)*3.8).toFixed(1));c.style.opacity=(.55+.45*Math.sin(a*2)).toFixed(2);});
-  }else{echo.style.opacity='0';orbE.forEach(c=>c.style.opacity='0');}
-  const bk=(t-T.ringDone)/.7;burstG.style.opacity=bk>0&&bk<1?((1-bk)).toFixed(3):'0';if(bk>0&&bk<1)burstG.setAttribute('transform','scale('+(.6+bk*.8).toFixed(3)+')');
   raf=requestAnimationFrame(tick);};
  raf=requestAnimationFrame(tick);
  let done=false;const finish=()=>{if(done)return;done=true;o.classList.add('out');at(700,()=>{delete state.shinFx031;persist();clearOv();});};
  o.addEventListener('click',finish);
- at(9200,finish);
+ at(8600,finish);
 }
 const MOUNT={intro:mountIntro,accept2:mountAccept2,withdraw:mountWithdraw,bloom:mountBloom,twist:mountTwist,shin:mountShin};
 
