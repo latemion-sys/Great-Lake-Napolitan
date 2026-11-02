@@ -164,8 +164,9 @@
   // 진입: 이미 노 저어 오던 배가 화면 왼쪽 밖에서 들어와 점점 느려지며 중앙에 멈춘다
   // 처음 60%는 일정한 빠르기로 나아가고(거리의 70%), 나머지는 천천히 느려지며 중앙에 멈춘다
   const ek=Math.min(1,Math.max(0,t/ENTER_SECONDS));
-  const enter=reduceMotion?1:ek<.6?ek/.6*.7:.7+.3*(1-Math.pow(1-(ek-.6)/.4,2));
-  const speed=reduceMotion?0:ek<.6?1:Math.max(0,1-(ek-.6)/.4);   // 0~1: 물살 가르는 세기
+  // 진입 연출은 컴퓨터의 '애니메이션 줄이기(애니메이션 효과 끔)' 설정과 상관없이 항상 보여 준다
+  const enter=ek<.6?ek/.6*.7:.7+.3*(1-Math.pow(1-(ek-.6)/.4,2));
+  const speed=ek<.6?1:Math.max(0,1-(ek-.6)/.4);   // 0~1: 물살 가르는 세기
 
   // 수면
   const line=surfPath(t,a,0);
