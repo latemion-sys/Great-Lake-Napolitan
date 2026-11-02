@@ -1,4 +1,4 @@
-/* Great Lake v0.2.5 · 호수별 진입 장면 테마 (21-05 ~ 21-10)
+/* Great Lake v0.2.5 · 호수별 진입 장면 테마 (21-05, 21-06, 21-08 ~ 21-10 · 21-07은 lake-themes-v025c.js)
    lake-themes-v025.js 와 같은 방식: GREAT_LAKE_FX.themes[id] / layers[id] = {sky, under, surface, paint}
    진입 묘사에서 구체적인 것만 그린다. 추상적인 느낌(냄새, 기분 등)은 따로 만들지 않는다. */
 (function(){
@@ -175,92 +175,6 @@
     const per=2+(i%4)*.6,ph=((t+i*.7)/per)%1,cyc=Math.floor((t+i*.7)/per),x=130+((cyc*173+i*211)%560);
     e.setAttribute('cx',f1(x));e.setAttribute('cy',f1(surf(x,t,a)+.6));e.setAttribute('rx',f1(3+Math.sin(Math.PI*ph)*8));e.setAttribute('ry','.9');
     e.style.opacity=(Math.sin(Math.PI*ph)*.9).toFixed(3);
-   });
-  }
- };
-
- /* ───────── 21-07 · 핏빛 호수 ─────────
-    「물이 핏빛으로 끈적이고 비릿한 냄새가 난다. 물속에 붉은 나무들이 서 있다. 가지에는 열매가 꼬리를 위로 한 채 매달려 있다.」
-    (냄새는 그리지 않는다)
-    · 물: 끈적한 핏빛. 너울이 무겁고 느리며, 표면에 두꺼운 광택이 번들거린다. 나무 밑동마다 아주 느린 고리가 번진다.
-    · 붉은 나무: 물속에서 솟은 붉은 나무 여러 그루(먼 것·가까운 것). 비틀린 줄기, 갈라진 가지, 껍질 결.
-    · 열매: 꼬리를 위로 한 채 가지에 매달린 물고기 모양 열매. 바람 없이 천천히 흔들리고, 아가미가 벌름거린다. */
- THEMES[7]={
-  skyTop:'#090205',skyMid:'#22060c',skyHorizon:'#4c0f1a',moon:'#e08a8a',
-  seaTop:'#8a1828',seaMid:'#4c0814',seaBottom:'#1c0206',
-  crest:'#ff9a9a',swell:'#a02a3a',hatch:'#ffb0b0',boat:'#080203',rim:'#c88088',
-  lamp:'#ffb050',lampCore:'#ffe2a8',bob:.62,drift:.7
- };
- function tree(seed,H){
-  let segs='',hang=[];let n=0;const rr=()=>R(seed*31+(n++)*7.13);
-  function br(x,y,ang,len,w,d){
-   const x2=x+Math.cos(ang)*len,y2=y+Math.sin(ang)*len,bend=(rr()-.5)*len*.35,mx=(x+x2)/2+Math.cos(ang+Math.PI/2)*bend,my=(y+y2)/2+Math.sin(ang+Math.PI/2)*bend;
-   const w2=w*.62,px=Math.cos(ang+Math.PI/2),py=Math.sin(ang+Math.PI/2);
-   segs+='M'+f1(x+px*w)+','+f1(y+py*w)+' Q'+f1(mx+px*(w+w2)/2)+','+f1(my+py*(w+w2)/2)+' '+f1(x2+px*w2)+','+f1(y2+py*w2)+' L'+f1(x2-px*w2)+','+f1(y2-py*w2)+' Q'+f1(mx-px*(w+w2)/2)+','+f1(my-py*(w+w2)/2)+' '+f1(x-px*w)+','+f1(y-py*w)+' Z ';
-   if(d>=4||len<6){hang.push([x2,y2]);return;}
-   const k=d===0?3:2+(rr()<.4?1:0);
-   for(let j=0;j<k;j++){const spread=(d===0?.9:.75),na=ang+(j-(k-1)/2)*spread+(rr()-.5)*.35;br(x2,y2,na,len*(.62+rr()*.18),w2,d+1);}
-   if(d>=2&&rr()<.6)hang.push([(x+x2)/2,(y+y2)/2]);
-  }
-  br(0,0,-Math.PI/2+(R(seed)-.5)*.2,H*.42,H*.045,0);
-  return {d:segs,hang};
- }
- const FISH=
-  '<path class="fr-stem" d="M0,0 L0,5" stroke="#5a0a14" stroke-width=".9"/>'+
-  '<g class="fr-body"><path d="M0,5 L-4.2,1.4 L-3,6.6 Z M0,5 L4.2,1.4 L3,6.6 Z" fill="#b8323e"/>'+                    // 위로 향한 꼬리지느러미
-  '<path d="M0,5.6 C-3.6,8 -5.2,13.4 -4.4,18.6 C-3.8,22.4 -2,25.4 0,26.2 C2,25.4 3.8,22.4 4.4,18.6 C5.2,13.4 3.6,8 0,5.6 Z" fill="url(#frBody)"/>'+
-  '<path d="M-1.6,10 Q0,9 1.6,10 M-2.4,13 Q0,11.8 2.4,13 M-2.8,16 Q0,14.8 2.8,16 M-2.8,19 Q0,17.8 2.8,19" stroke="#7a1420" stroke-width=".35" fill="none" opacity=".7"/>'+
-  '<path d="M4.2,14 L7.4,12 L6.4,17 Z" fill="#a82836" opacity=".9"/>'+
-  '<path class="fr-gill" d="M-3.2,21.4 Q0,19.6 3.2,21.4" stroke="#4a0610" stroke-width=".8" fill="none"/>'+
-  '<circle cx="-1.7" cy="23.4" r=".9" fill="#ffe8d8"/><circle cx="-1.6" cy="23.5" r=".45" fill="#1a0206"/>'+
-  '<circle cx="1.7" cy="23.4" r=".9" fill="#ffe8d8"/><circle cx="1.6" cy="23.5" r=".45" fill="#1a0206"/>'+
-  '<path d="M-1,26 Q0,26.8 1,26" stroke="#4a0610" stroke-width=".5" fill="none"/></g>';
- // [x, 밑동y, 키, 씨앗, 짙기(먼 것은 흐리게), 층(0 뒤 · 1 앞)]
- const TREES=[[468,121,58,3,.5,0],[300,119,46,7,.42,0],[640,122,64,11,.5,0],[228,138,128,5,1,0],[560,136,112,9,1,0],[690,178,170,13,1,1]];
- const TG=TREES.map(T=>tree(T[3],T[2]));
- function treeMarkup(i){
-  const T=TREES[i],G=TG[i],sc=T[2]/100;
-  let fr='';G.hang.slice(0,T[4]<1?4:9).forEach((h,j)=>{fr+='<g class="fr" data-j="'+j+'" data-x="'+f1(h[0])+'" data-y="'+f1(h[1])+'" transform="translate('+f1(h[0])+' '+f1(h[1])+')"><g class="fr-sw" transform="scale('+f2(Math.max(.55,1.25-sc*.4))+')">'+FISH+'</g></g>';});
-  return '<g class="bt" data-i="'+i+'" transform="translate('+T[0]+' '+T[1]+')" opacity="'+T[4]+'">'+
-   '<path d="'+G.d+'" fill="url(#btBark)"/><path d="'+G.d+'" fill="url(#btGrain)" opacity=".5"/>'+fr+'</g>';
- }
- LAYERS[7]={
-  sky(th){
-   const n=N();
-   return '<defs>'+
-     '<linearGradient id="btBark" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#5a0a16"/><stop offset=".35" stop-color="#b42434"/><stop offset=".6" stop-color="#8a1424"/><stop offset="1" stop-color="#3e040c"/></linearGradient>'+
-     '<linearGradient id="frBody" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#7a1020"/><stop offset=".35" stop-color="#e05664"/><stop offset=".55" stop-color="#f08a8e"/><stop offset="1" stop-color="#8a1626"/></linearGradient>'+
-     (n?n.pattern('btGrain','bt-grain',{size:128,cell:10,oct:3,rgb:[30,0,6],lo:.5,hi:.9,stretch:[.25,1.6],seed:17},40,60):'')+
-     '<radialGradient id="btHaze" cx=".5" cy="1" r=".7"><stop stop-color="#8a1a28" stop-opacity=".45"/><stop offset="1" stop-color="#3a0610" stop-opacity="0"/></radialGradient>'+
-    '</defs>'+
-    '<ellipse cx="420" cy="134" rx="460" ry="60" fill="url(#btHaze)"/>'+
-    '<g class="bt-back">'+treeMarkup(0)+treeMarkup(1)+treeMarkup(2)+'</g>';
-  },
-  under(th){
-   let rings='';for(let i=0;i<6;i++)rings+='<ellipse/>';
-   return '<g class="bt-rings">'+rings+'</g><g class="bt-mid">'+treeMarkup(3)+treeMarkup(4)+'</g>'+
-    '<g class="bt-gloss"><path/><path/><path/></g>';
-  },
-  surface(th){return '<g class="bt-front">'+treeMarkup(5)+'</g>';},
-  paint(el,c){
-   const {t,a,surf}=c;
-   // 열매(물고기): 꼬리를 위로 한 채 천천히 흔들리고 아가미가 벌름거림
-   el.querySelectorAll('.fr').forEach((g,k)=>{
-    const sw=g.firstChild,j=+g.dataset.j;
-    const ang=Math.sin(t*(.9+(k%5)*.13)+k*1.7)*7;
-    sw.setAttribute('transform',sw.getAttribute('transform').replace(/ rotate\([^)]*\)/,'')+' rotate('+f1(ang)+')');
-    const gill=sw.querySelector('.fr-gill'),open=Math.max(0,Math.sin(t*3.2+k*2.1));
-    gill.setAttribute('d','M-3.2,21.4 Q0,'+f1(19.6-open*1.6)+' 3.2,21.4');gill.setAttribute('stroke-width',f2(.8+open*.6));
-   });
-   // 나무 밑동마다 아주 느리게 번지는 끈적한 고리
-   el.querySelectorAll('.bt-rings ellipse').forEach((e,i)=>{
-    const T=TREES[[3,4,5,0,2,3][i]],ph=((t*.07+i*.37)%1),x=T[0],y=Math.max(surf(x,t,a)+2,T[1]+1);
-    e.setAttribute('cx',f1(x));e.setAttribute('cy',f1(y));e.setAttribute('rx',f1(8+ph*60));e.setAttribute('ry',f1(1.6+ph*7));e.style.opacity=((1-ph)*.45).toFixed(3);
-   });
-   // 두꺼운 광택: 무거운 물 위에 번들거리는 넓은 반사
-   el.querySelectorAll('.bt-gloss path').forEach((p,i)=>{
-    let d='',e='';for(let x=-20;x<=820;x+=20){const y=surf(x,t,a)+3+i*9+Math.sin(x*.01+t*.2+i*2)*2;d+=(d?' L':'M')+x+','+f1(y);e=' L'+x+','+f1(y+1.4+i*.6)+e;}
-    p.setAttribute('d',d+e+'Z');p.style.opacity=((.22-i*.06)*(.7+.3*Math.sin(t*.5+i))).toFixed(3);
    });
   }
  };
@@ -452,13 +366,6 @@
   '.lakefx .ov-caus path{fill:none;stroke:#ffffff;stroke-width:1.4;stroke-linecap:round}'+
   '.lakefx .ov-bub circle{fill:#ffffff;fill-opacity:.35;stroke:#ffffff;stroke-width:.35}'+
   '.lakefx .ov-glint ellipse{fill:#ffffff}'+
-  // 21-07 핏빛
-  '.lakefx[data-lake="7"]{background:#0e0306;border-color:#6a2a34}'+
-  '.lakefx[data-lake="7"] .lfx-corner{background:linear-gradient(90deg,#120306c0,transparent 22%,transparent 78%,#120306c0),linear-gradient(0deg,#0c0204e0,transparent 26%,transparent 76%,#10030799)}'+
-  '.lakefx[data-lake="7"] .lfx-top{color:#f0c4c8}'+
-  '.lakefx[data-lake="7"] .lfx-horizon{stroke:#c06070;stroke-opacity:.18}'+
-  '.lakefx .bt-rings ellipse{fill:none;stroke:#e06878;stroke-width:1.1}'+
-  '.lakefx .bt-gloss path{fill:#ffc0c4}'+
   // 21-08 없음
   '.lakefx[data-lake="8"]{background:#000;border-color:#141414;box-shadow:none}'+
   '.lakefx[data-lake="8"] .lfx-top,.lakefx[data-lake="8"] .lfx-crest,.lakefx[data-lake="8"] .lfx-fars,.lakefx[data-lake="8"] .lfx-horizon,.lakefx[data-lake="8"] .lfx-mist,'+
