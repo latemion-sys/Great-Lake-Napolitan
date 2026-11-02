@@ -182,6 +182,137 @@
   }
  };
 
+ /* ───────── 21-02 · 불꽃 호수 ─────────
+    「물이 다홍빛으로 일렁인다. 물 위로 불꽃이 솟는다. 불꽃이 가까운데 뜨겁지 않게 느껴진다.」
+    · 물: 다홍빛 바다. 물마루를 따라 주황 빛이 번지고, 불꽃마다 물에 길게 비친다.
+    · 불꽃: 수면에서 곧장 솟는 혀 모양 불길이 먼 곳·배 곁·앞쪽 세 겹으로 늘어서 있고, 사이사이 배가 지나갈 틈이 있다.
+      가끔 불꽃들이 한꺼번에 수면 위로 낮게 눕혔다가 다시 일어선다.
+    · 뜨겁지 않음: 연기·아지랑이·솟구치는 불티가 없다. 속은 희고 투명하며, 불티는 꽃잎처럼 천천히 내려앉는다. */
+ THEMES[2]={
+  skyTop:'#0a0507',skyMid:'#24110c',skyHorizon:'#6a2c15',
+  moon:'#f2b48e',
+  seaTop:'#b0401f',seaMid:'#621a0c',seaBottom:'#220704',
+  crest:'#ffd8b0',swell:'#f38a52',hatch:'#ffe2c4',
+  boat:'#080404',rim:'#f0b48c',
+  lamp:'#ffc45a',lampCore:'#fff0c0',
+  bob:1.05,drift:.85
+ };
+ // 불꽃 자리: [x, 수면에서의 깊이(앞쪽일수록 큼), 키, 너비, 혀 수]
+ const FL={
+  far:[[120,0,16,5,2],[175,0,22,6,3],[262,0,14,4,2],[318,0,19,5,2],[486,0,24,6,3],[545,0,15,4,2],[612,0,21,6,3],[688,0,17,5,2]],
+  mid:[[205,3,48,11,3],[262,5,36,9,2],[478,4,54,12,3],[548,6,40,10,3],[628,3,46,11,3],[150,4,40,10,2],[700,5,44,11,3]],
+  near:[[176,48,40,13,3],[318,56,30,11,2],[452,52,36,12,3],[600,46,42,13,3]]
+ };
+ // 잠깐씩 다 함께 낮게 눕는 주기(약 12초): 높이 1 → 0.22, 너비 1 → 1.5
+ function lie(t){
+  const c=((t+4)%12)/12;
+  const k=c<.62?0:c<.72?(c-.62)/.1:c<.88?1:1-(c-.88)/.12;
+  return k*k*(3-2*k);
+ }
+ function tongue(x,y,h,w,sway){
+  const tx=x+sway,ty=y-h;
+  return 'M'+f1(x-w)+','+f1(y)+
+   ' C'+f1(x-w*1.15)+','+f1(y-h*.32)+' '+f1(x-w*.35+sway*.45)+','+f1(y-h*.62)+' '+f1(tx)+','+f1(ty)+
+   ' C'+f1(x+w*.4+sway*.5)+','+f1(y-h*.58)+' '+f1(x+w*1.1)+','+f1(y-h*.3)+' '+f1(x+w)+','+f1(y)+
+   ' Q'+f1(x)+','+f1(y+w*.3)+' '+f1(x-w)+','+f1(y)+'Z';
+ }
+ function flameGroup(cls,n){let s='';for(let i=0;i<n;i++)s+='<g class="fl-one '+cls+'" data-i="'+i+'"><path class="fl-o"/><path class="fl-m"/><path class="fl-c"/><path class="fl-w"/><ellipse class="fl-base"/></g>';return s;}
+ const FDEFS=
+  '<linearGradient id="flO" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#ff5a24" stop-opacity=".95"/><stop offset=".55" stop-color="#ff3c1e" stop-opacity=".55"/><stop offset="1" stop-color="#e02814" stop-opacity="0"/></linearGradient>'+
+  '<linearGradient id="flM" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#ffb860"/><stop offset=".6" stop-color="#ff8a3a" stop-opacity=".7"/><stop offset="1" stop-color="#ff6a2a" stop-opacity="0"/></linearGradient>'+
+  '<linearGradient id="flC" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#e8f6ff"/><stop offset=".18" stop-color="#fffaf0"/><stop offset=".55" stop-color="#ffe8c8" stop-opacity=".75"/><stop offset="1" stop-color="#ffd0a0" stop-opacity="0"/></linearGradient>'+
+  '<radialGradient id="flGlow"><stop stop-color="#ff9a50" stop-opacity=".55"/><stop offset=".45" stop-color="#ff6a2a" stop-opacity=".18"/><stop offset="1" stop-color="#ff4a1a" stop-opacity="0"/></radialGradient>'+
+  '<linearGradient id="flRef" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffc888" stop-opacity=".75"/><stop offset=".5" stop-color="#ff7a3a" stop-opacity=".3"/><stop offset="1" stop-color="#ff5a24" stop-opacity="0"/></linearGradient>';
+ LAYERS[2]={
+  sky(th){
+   return '<defs>'+FDEFS+
+     '<linearGradient id="fbHaze" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a0401c" stop-opacity="0"/><stop offset=".65" stop-color="#d0602a" stop-opacity=".2"/><stop offset="1" stop-color="#ff8a40" stop-opacity=".38"/></linearGradient>'+
+    '</defs>'+
+    '<rect x="0" y="70" width="800" height="66" fill="url(#fbHaze)"/>'+
+    '<g class="fl-far">'+flameGroup('far',FL.far.length)+'</g>';
+  },
+  under(th){
+   let refl='',glow='';
+   for(let i=0;i<FL.mid.length+FL.far.length;i++)refl+='<path class="fl-refl"/>';
+   for(let i=0;i<FL.mid.length;i++)glow+='<ellipse class="fl-glow" fill="url(#flGlow)"/>';
+   return '<g class="fl-refls" fill="url(#flRef)">'+refl+'</g><g class="fl-glows">'+glow+'</g>'+
+    '<g class="fl-mid">'+flameGroup('mid',FL.mid.length)+'</g>';
+  },
+  surface(th){
+   let refl='',glow='',pet='';
+   for(let i=0;i<FL.near.length;i++){refl+='<path class="fl-refl n"/>';glow+='<ellipse class="fl-glow n" fill="url(#flGlow)"/>';}
+   for(let i=0;i<14;i++)pet+='<ellipse/>';
+   return '<g class="fl-refls n" fill="url(#flRef)">'+refl+'</g><g class="fl-glows n">'+glow+'</g>'+
+    '<g class="fl-near">'+flameGroup('near',FL.near.length)+'</g>'+
+    '<g class="fl-petals">'+pet+'</g>'+
+    '<path class="fl-crest"/>';
+  },
+  paint(el,c){
+   const {t,a,surf,SEA}=c;
+   const L=lie(t),appear=Math.min(1,Math.max(0,(t-.3)/2.4));
+   const draw=(sel,list,tier)=>{
+    el.querySelectorAll(sel).forEach(g=>{
+     const i=+g.dataset.i,F=list[i];if(!F)return;
+     const [x,dep,H,Wd,n]=F,seed=i*1.73+tier*5.1;
+     const by=tier===0?SEA-15.5+Math.sin(x*.0062+.8)*2:surf(x,t,a)+dep+(tier===2?Math.sin(t*.9+i)*1.2:0);
+     const rise=appear*(1-.78*L),wide=1+.5*L;
+     const ps=g.children;let o='',m='',cc='';
+     for(let k=0;k<n;k++){
+      const off=(k-(n-1)/2)*Wd*.9,sd=seed+k*2.37;
+      const fl=.82+.1*Math.sin(t*8.3+sd)+.07*Math.sin(t*13.1+sd*1.7)+.05*Math.sin(t*21+sd*.6);
+      const h=H*(k===Math.floor(n/2)?1:.68+.12*Math.sin(sd))*fl*rise,w=Wd*(k===Math.floor(n/2)?1:.72)*wide;
+      const sw=(Math.sin(t*2.1+sd)*.55+Math.sin(t*5.3+sd*1.3)*.2)*w+L*w*1.8;   // 누울 때는 한쪽으로 기울어 늘어짐
+      const bx=x+off*wide;
+      o+=tongue(bx,by,h,w,sw);m+=tongue(bx,by,h*.72,w*.68,sw*.8);cc+=tongue(bx,by+.5,h*.42,w*.36,sw*.55);
+     }
+     // 떨어져 나간 불꽃 조각: 가운데 혀 끝에서 떨어져 위로 조금 떠오르다 사라짐
+     let wd='';const hm=H*rise;
+     for(let k=0;k<2;k++){const per=.9+k*.37,ph=((t+seed*.31+k*.45)/per)%1,wx=x+Math.sin(t*2.1+seed)*Wd*.5+L*Wd*1.6+(k?Wd*.4:-Wd*.3),wy=by-hm*(1.02+ph*.35),ws=Wd*.28*(1-ph)*(1-.7*L);
+      if(ws>.2)wd+='M'+f1(wx)+','+f1(wy-ws*2.6)+' Q'+f1(wx+ws)+','+f1(wy)+' '+f1(wx)+','+f1(wy+ws*.8)+' Q'+f1(wx-ws)+','+f1(wy)+' '+f1(wx)+','+f1(wy-ws*2.6)+'Z';}
+     ps[0].setAttribute('d',o);ps[1].setAttribute('d',m);ps[2].setAttribute('d',cc);ps[3].setAttribute('d',wd);
+     ps[4].setAttribute('cx',f1(x));ps[4].setAttribute('cy',f1(by+.5));ps[4].setAttribute('rx',f1(Wd*(n*.4+.3)*wide));ps[4].setAttribute('ry',f1(Wd*.22+.4));
+     g.style.opacity=(appear*(tier===0?.8:1)).toFixed(3);
+    });
+   };
+   draw('.fl-one.far',FL.far,0);draw('.fl-one.mid',FL.mid,1);draw('.fl-one.near',FL.near,2);
+   // 물에 비친 불꽃: 끊어졌다 이어지는 세로 띠
+   const refl=(nodes,list,tier,startIdx)=>{
+    list.forEach((F,j)=>{
+     const p=nodes[startIdx+j];if(!p)return;
+     const [x,dep,H,Wd]=F,by=tier===0?SEA-15.5+Math.sin(x*.0062+.8)*2:surf(x,t,a)+dep;
+     const len=Math.min(tier===0?10:tier===1?36:26,H*.9)*(1-.6*L)*appear,w=Wd*(tier===0?.7:1)*(1+.4*L);
+     // 물결에 끊긴 비침: 위는 넓고 밝게, 아래로 갈수록 가늘게 흩어짐. 조각마다 길이·폭·흔들림이 다르다.
+     let d='';const seg=8;let y=by+1.5;
+     for(let s=0;s<seg;s++){
+      const u=s/seg,hh=len/seg*(.45+.35*Math.sin(t*2.7+s*2.1+j*1.3)+.2),ww=w*(1.05-u*.75)*(.75+.25*Math.sin(t*3.9+s*1.37+j)),sx=Math.sin(t*2.2+s*1.1+j)*w*.4*(.3+u);
+      d+='M'+f1(x-ww+sx)+','+f1(y)+' Q'+f1(x+sx)+','+f1(y-hh*.25)+' '+f1(x+ww+sx)+','+f1(y)+' Q'+f1(x+sx+ww*.2)+','+f1(y+hh*.9)+' '+f1(x-ww+sx)+','+f1(y)+'Z';
+      y+=len/seg*(.9+.25*Math.sin(s*1.9+t));
+     }
+     p.setAttribute('d',d);p.style.opacity=((.6+.25*Math.sin(t*4+j*2))*(tier===0?.5:1)).toFixed(3);
+    });
+   };
+   const R1=el.querySelectorAll('.fl-refls:not(.n) .fl-refl');refl(R1,FL.mid,1,0);refl(R1,FL.far,0,FL.mid.length);
+   refl(el.querySelectorAll('.fl-refls.n .fl-refl'),FL.near,2,0);
+   // 불꽃 밑동 둘레 빛무리(뜨겁지 않은, 고요한 빛)
+   const glow=(nodes,list,tier)=>nodes.forEach((e,j)=>{const F=list[j];if(!F)return;const [x,dep,H,Wd]=F,by=surf(x,t,a)+dep;
+    e.setAttribute('cx',f1(x));e.setAttribute('cy',f1(by));e.setAttribute('rx',f1(Wd*4.2*(1+.3*L)));e.setAttribute('ry',f1(Wd*1.1));
+    e.style.opacity=(appear*(.7+.15*Math.sin(t*6+j))*(1-.35*L)).toFixed(3);});
+   glow(el.querySelectorAll('.fl-glows:not(.n) .fl-glow'),FL.mid,1);glow(el.querySelectorAll('.fl-glows.n .fl-glow'),FL.near,2);
+   // 불티: 위로 솟지 않고, 꽃잎처럼 흔들리며 천천히 내려앉는다
+   el.querySelectorAll('.fl-petals ellipse').forEach((e,i)=>{
+    const per=7+(i%5)*1.3,ph=((t+i*1.9)/per)%1,cyc=Math.floor((t+i*1.9)/per);
+    const x0=150+((cyc*157+i*263)%500),x=x0+Math.sin(ph*7+i)*12+ph*18,y=40+ph*(SEA-30)+Math.sin(ph*11+i)*3;
+    const tw=.5+.5*Math.sin(t*5+i*2.3);
+    e.setAttribute('cx',f1(x));e.setAttribute('cy',f1(y));e.setAttribute('rx',f1(1.1+tw*.6));e.setAttribute('ry',f1(.55));
+    e.setAttribute('transform','rotate('+f1(Math.sin(t*2+i)*50)+' '+f1(x)+' '+f1(y)+')');
+    e.style.opacity=(appear*(ph<.1?ph/.1:ph>.85?(1-ph)/.15:1)*(.35+.5*tw)).toFixed(3);
+   });
+   // 물마루를 따라 번지는 주황 빛
+   let cr='';for(let x=-20;x<=820;x+=10)cr+=(cr?' L':'M')+x+','+f1(surf(x,t,a));
+   const crest=el.querySelector('.fl-crest');crest.setAttribute('d',cr);crest.style.strokeDashoffset=f1(-t*18);
+  }
+ };
+
  // 붉은 호수 전용 색(위 공통 CSS가 푸른 톤으로 고정한 부분만 덮는다)
  const css=
   '.lakefx[data-lake="1"]{background:#0c0407;border-color:#6b3a40;box-shadow:inset 0 0 65px #0a0204,0 8px 30px #0008}'+
@@ -203,7 +334,19 @@
   '.lakefx .rl-glim ellipse{mix-blend-mode:screen}'+
   '.lakefx .rl-swell{fill:none;stroke:#f1a39c;stroke-width:1.1;stroke-linecap:round}'+
   '.lakefx .rl-bubbles circle{fill:#ffd8cc;fill-opacity:.25;stroke:#ffd0c4;stroke-width:.4}'+
-  '.lakefx .rl-pops ellipse{fill:none;stroke:#ffc4b8;stroke-width:.7}';
+  '.lakefx .rl-pops ellipse{fill:none;stroke:#ffc4b8;stroke-width:.7}'+
+  '.lakefx[data-lake="2"]{background:#0e0605;border-color:#7a4a34;box-shadow:inset 0 0 65px #0c0402,0 8px 30px #0008}'+
+  '.lakefx[data-lake="2"] .lfx-horizon{stroke:#ffb080;stroke-opacity:.24}'+
+  '.lakefx[data-lake="2"] .lfx-mist rect{fill:#ffc8a0;opacity:.05}'+
+  '.lakefx[data-lake="2"] .lfx-corner{background:linear-gradient(90deg,#140806b8,transparent 22%,transparent 78%,#140806b8),linear-gradient(0deg,#100503dd,transparent 26%,transparent 76%,#120806aa)}'+
+  '.lakefx[data-lake="2"] .lfx-vignette{box-shadow:inset 0 0 70px 16px #100503}'+
+  '.lakefx[data-lake="2"] .lfx-grain{background:repeating-linear-gradient(0deg,transparent 0 2px,#ffe0c80b 3px 4px)}'+
+  '.lakefx[data-lake="2"] .lfx-top{color:#ffd8bc}'+
+  '.lakefx .fl-o{fill:url(#flO)}.lakefx .fl-m{fill:url(#flM)}.lakefx .fl-c{fill:url(#flC)}.lakefx .fl-w{fill:#ffa860;opacity:.7}.lakefx .fl-base{fill:none;stroke:#dff2ff;stroke-width:.6;stroke-opacity:.22}'+
+  
+  
+  '.lakefx .fl-petals ellipse{fill:#ffe6c8}'+
+  '.lakefx .fl-crest{fill:none;stroke:#ffb070;stroke-width:1.6;stroke-opacity:.45;stroke-dasharray:3 26 9 44;stroke-linecap:round;mix-blend-mode:screen}';
  const st=document.createElement('style');st.id='lake-themes-v025';st.textContent=css;document.head.appendChild(st);
 
  if(typeof state!=='undefined'&&state.scene==='event'&&typeof render==='function')render();
