@@ -14,54 +14,107 @@
  /* ───────── 21-41 · 비추는 호수 ─────────
     「물이 거울처럼 배와 선원의 얼굴을 비춘다. 끝이 깨지고 손잡이에 흰 천이 감긴 노가 손에서 미끄러진다.
       노는 물속으로 사라졌는데, 수면에 비친 손은 여전히 노를 쥐고 있다. 이내 물 밑에서 다른 노들이 밀려 올라온다.」
-    · 물: 거울처럼 또렷하게 배와 선원을 거꾸로 비춤.
-    · 노: 배가 도착한 뒤 선원이 쥔 노(끝이 갈라짐 · 손잡이에 흰 천)가 손에서 미끄러져 물속으로 사라진다.
-      물에 비친 모습에서는 노가 여전히 손에 쥐어져 있다.
-    · 다른 노들: 그 뒤 배 둘레 물 밑에서 노들이 하나씩 밀려 올라와 비스듬히 떠오른다. */
+    21-06(빛나는 호수)과 짝을 이루되 모든 것이 뒤집힌 장면:
+    · 21-06은 물이 바닥에서부터 빛나 속이 훤히 보인다 → 여기는 빛이 수면에만 맺히고 아래로 갈수록 캄캄하다.
+      물은 하늘을 그대로 되비추는 거울(수평선을 사이에 두고 하늘빛과 물빛이 위아래로 대칭, 달무리도 물에 거꾸로 맺힘).
+    · 21-06은 가라앉는 노가 끝까지 보인다 → 여기는 노가 수면에 닿는 자리에서 그대로 사라지고, 비친 손에만 노가 남는다.
+    · 21-06은 노들이 바닥에서 떠올라 수면에 눕는다(올라오는 내내 보이고 기포가 따름)
+      → 여기는 물 밑이 보이지 않다가 노들이 거울을 뚫고 곧추서서 밀려 올라오고, 거울 속에는 거꾸로 선 같은 노가 맺힌다.
+      기포 대신 거울 위로 둥근 물결이 번진다. 노마다 날 모양·끝 칠·손잡이 천이 다르다(21-06과 같은 짜임). */
  THEMES[41]={
-  skyTop:'#06080a',skyMid:'#151b20',skyHorizon:'#3a454e',moon:'#e8eef2',
-  seaTop:'#8e9aa2',seaMid:'#4a565e',seaBottom:'#121618',
-  crest:'#f0f6fa',swell:'#a8b4bc',hatch:'#ffffff',boat:'#050607',rim:'#c8d2d8',
-  lamp:'#ffc055',lampCore:'#fff0c0',bob:.35,drift:.3
+  skyTop:'#030a0c',skyMid:'#13383d',skyHorizon:'#7fb8c0',moon:'#d4f2f4',
+  seaTop:'#86c0c8',seaMid:'#235158',seaBottom:'#020809',
+  crest:'#eafcfd',swell:'#9ccdd3',hatch:'#ffffff',boat:'#030a0b',rim:'#c4e8ec',
+  lamp:'#ffc055',lampCore:'#fff0c0',bob:.3,drift:.3
  };
- // 노(배 기준 좌표에서 손잡이가 원점, +x 방향으로 뻗음): 흰 천 감긴 손잡이 · 자루 · 끝이 갈라진 노깃
+ // 빠뜨린 노(배 기준 좌표에서 손잡이가 원점, +x 방향): 흰 천 감긴 손잡이 · 자루 · 끝이 갈라진 노깃
  const OAR=(cloth,split,dark)=>'<rect x="-1" y="-1.15" width="44" height="2.3" rx="1" fill="'+(dark?'#3e2c1a':'#8a6440')+'"/><rect x="-1" y="-1.15" width="44" height=".7" fill="#9a7448" opacity=".7"/>'+
   (cloth?'<rect x="0" y="-1.7" width="8" height="3.4" rx="1.2" fill="#e8e4da"/><path d="M1.5,-1.7 L3,1.7 M4,-1.7 L5.5,1.7 M6.5,-1.7 L7.8,1.7" stroke="#b8b2a4" stroke-width=".35"/>':'<rect x="0" y="-1.4" width="6" height="2.8" rx="1.1" fill="#3a2614"/>')+
   '<path d="M42,-1.2 L48,-3.6 L60,-3.6 Q63,-2 63,0 Q63,2 60,3.6 L48,3.6 L42,1.2 Z" fill="'+(dark?'#4a3420':'#9a7044')+'"/>'+
   (split?'<path d="M63,0 L55,-.4 L52.5,0 L55,.4 Z" fill="#141414"/><path d="M48,-3.6 L60,-3.6" stroke="#b08860" stroke-width=".4"/>':'<path d="M48,-3.6 L60,-3.6" stroke="#b08860" stroke-width=".4"/>');
  const HAND=[31,-22],HOLD=58;   // 쥔 손 · 노 기울기(도)
- const RISE=[[262,30,-64,1.2],[318,46,-72,1.5],[452,38,-58,1.3],[500,22,-70,1.05],[548,50,-62,1.45],[402,58,-76,1.6]];   // [x, 수면 아래 깊이, 각도, 크기]
+ // 밀려 올라오는 노: 21-06과 같은 짜임(노깃 모양 4종 · 끝 칠 · 손잡이 천). 손잡이가 -x, 노깃이 +x.
+ const RB={
+  round:'M19,-1.6 C26,-6.4 40,-6.6 46,-1.4 Q47.4,0 46,1.4 C40,6.6 26,6.4 19,1.6 Z',
+  square:'M19,-1.6 L24,-5.8 L46,-5.8 Q47,-5.8 47,-4.8 L47,4.8 Q47,5.8 46,5.8 L24,5.8 L19,1.6 Z',
+  leaf:'M19,-1.6 C25,-6.6 36,-6.2 49,0 C36,6.2 25,6.6 19,1.6 Z',
+  notch:'M19,-1.6 L25,-6 L47,-6 L42,0 L47,6 L25,6 L19,1.6 Z'
+ };
+ const RTIP=[null,'#c8323a','#1c1c1c','#f4f4ee','#e0a428'],RCLOTH=['#c8323a','#2d5fc0','#e8c040','#f4f4ee','#3a8a4a','#8a3ac0'];
+ // [x, 배보다 앞(+)/뒤(-) 깊이, 기울기(도), 크기, 노깃, 끝 칠, 천]  — 흰 천이나 갈라진 끝처럼 한 군데만 닮은 노도 섞여 있다
+ const RISE=[[446,26,9,.78,3,2,0],[284,-3,11,.5,2,0,1],[508,12,-8,.66,1,3,3],[472,-4,-12,.48,0,2,5],[238,18,-14,.7,0,1,3],[544,32,15,.82,2,4,4],[590,14,-6,.62,3,0,2]];
+ function rOar(i){
+  const r=RISE[i],kind=Object.keys(RB)[r[4]],b=RB[kind],tip=RTIP[r[5]],cloth=RCLOTH[r[6]];
+  let wrap='';for(let k=0;k<5;k++){const x=-41+k*2.4;wrap+='<path d="M'+f1(x)+',-1.9 L'+f1(x+1.6)+',-1.9 L'+f1(x+.6)+',1.9 L'+f1(x-1)+',1.9 Z" fill="'+cloth+'"/>';}
+  return '<rect x="-46" y="-1.5" width="68" height="3" rx="1.5" fill="url(#rfWood)"/>'+
+   '<path d="M-44,-.4 L18,-.6 M-30,.7 L10,.6" stroke="#5a3c1e" stroke-width=".3" opacity=".6"/>'+
+   '<path d="'+b+'" fill="url(#rfWood)" stroke="#4a2e14" stroke-width=".4"/>'+
+   '<path d="M23,-2.6 C30,-3.2 38,-3 44,-1" stroke="#f0dcb0" stroke-width=".5" fill="none" opacity=".55"/>'+
+   (tip?'<g clip-path="url(#rfClip'+r[4]+')"><rect x="40" y="-8" width="12" height="16" fill="'+tip+'"/></g>':'')+
+   '<rect x="-43.2" y="-2" width="12.6" height="4" rx="1" fill="'+cloth+'" opacity=".55"/>'+wrap+
+   '<rect x="-48.4" y="-2.6" width="3.4" height="5.2" rx="1.4" fill="#6a4826"/>'+
+   '<path d="M-46,-1.5 L46,-1.5" stroke="#eafcfd" stroke-width=".35" opacity=".35"/>';   // 하늘빛이 자루 한쪽에 맺힘
+ }
+ const riseG=front=>{let g='';RISE.forEach((r,i)=>{if((r[1]>8)!==front)return;
+  g+='<g class="rf-rise" data-i="'+i+'"><g class="rf-mir"><g clip-path="url(#rfUp)"><g class="rf-o">'+rOar(i)+'</g></g></g>'+
+   '<g class="rf-up"><g clip-path="url(#rfUp)"><g class="rf-o">'+rOar(i)+'</g></g></g>'+
+   '<ellipse class="rf-ring a"/><ellipse class="rf-ring b"/><ellipse class="rf-collar"/></g>';});return g;};
  LAYERS[41]={
   under(th){
-   let rs='';RISE.forEach((r,i)=>rs+='<g class="rf-rise" data-i="'+i+'"><g class="rf-pos"><g clip-path="url(#rfAbove)"><g class="rf-oar">'+OAR(false,R(i)<.4,true)+'</g></g></g><ellipse class="rf-ring"/></g>');
-   return '<defs><clipPath id="rfAbove"><rect x="-120" y="-120" width="240" height="120.5"/></clipPath></defs><g class="rf-rises">'+rs+'</g>';
+   let clips='';Object.keys(RB).forEach((k,j)=>clips+='<clipPath id="rfClip'+j+'"><path d="'+RB[k]+'"/></clipPath>');
+   let sh='';for(let i=0;i<7;i++)sh+='<path/>';
+   return '<defs>'+clips+'<clipPath id="rfUp"><rect x="-150" y="-150" width="300" height="150.3"/></clipPath>'+
+     '<linearGradient id="rfWood" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c49a64"/><stop offset=".5" stop-color="#9a6c3a"/><stop offset="1" stop-color="#5e3e1c"/></linearGradient>'+
+     '<radialGradient id="rfMoon"><stop stop-color="#d4f2f4" stop-opacity=".3"/><stop offset=".25" stop-color="#d4f2f4" stop-opacity=".12"/><stop offset=".6" stop-color="#d4f2f4" stop-opacity=".03"/><stop offset="1" stop-color="#d4f2f4" stop-opacity="0"/></radialGradient>'+
+     '<linearGradient id="rfDeep" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#020809" stop-opacity="0"/><stop offset=".35" stop-color="#020809" stop-opacity=".25"/><stop offset="1" stop-color="#010405" stop-opacity=".9"/></linearGradient>'+
+    '</defs>'+
+    // 거울에 거꾸로 맺힌 달무리 · 수평선 쪽 하늘빛 띠 · 아래로 갈수록 캄캄해지는 물
+    '<g clip-path="url(#lfxBelow)"><ellipse cx="640" cy="236" rx="200" ry="150" fill="url(#rfMoon)"/>'+
+    '<rect class="rf-sheen" x="-20" y="124" width="840" height="10" fill="#d8f4f6" opacity=".12"/>'+
+    '<g class="rf-streak" fill="none" stroke="#e6fbfc" stroke-linecap="round">'+sh+'</g>'+
+    '<rect x="-20" y="126" width="840" height="80" fill="url(#rfDeep)"/></g>'+
+    '<g class="rf-rises">'+riseG(false)+'</g>';
   },
   surface(th){
-   // 물에 비친 노는 배의 비친 모습보다 위에 그려야 보임(물 아래만)
-   return '<g clip-path="url(#lfxBelow)"><g class="rf-ref" opacity=".85"><g class="rf-ref-oar">'+OAR(true,true)+'</g></g></g><g clip-path="url(#lfxAbove)"><g class="rf-held">'+OAR(true,true)+'</g></g>'+
-    '<g clip-path="url(#lfxBelow)"><g class="rf-sink" opacity=".35">'+OAR(true,true)+'</g></g><ellipse class="rf-slipring"/>';
+   // 물에 비친 노는 배의 비친 모습보다 위에 그려야 보임(물 아래만). 실제 노는 수면 위에서만 보이고, 물에 닿은 부분은 곧장 사라진다.
+   return '<g clip-path="url(#lfxBelow)"><g class="rf-ref"><g class="rf-ref-oar">'+OAR(true,true)+'</g></g></g><g clip-path="url(#lfxAbove)"><g class="rf-held">'+OAR(true,true)+'</g></g>'+
+    '<ellipse class="rf-slipring"/><ellipse class="rf-slipring s2"/><g class="rf-rises">'+riseG(true)+'</g>';
   },
   paint(el,c){
    const {t,a,surf}=c,ta=arrived(c);
-   const held=el.querySelector('.rf-held'),sink=el.querySelector('.rf-sink'),ref=el.querySelector('.rf-ref'),refOar=el.querySelector('.rf-ref-oar');
+   const held=el.querySelector('.rf-held'),ref=el.querySelector('.rf-ref'),refOar=el.querySelector('.rf-ref-oar');
+   // 거울 위로 느리게 미끄러지는 하늘빛 결(21-06의 빛 그물 대신, 물속이 아니라 수면에만 맺힘)
+   el.querySelectorAll('.rf-streak path').forEach((p,i)=>{
+    const y=surf(400,t,a)+3+i*3.2+i*i*.5,x0=((i*137+t*(2+i*.4))%900)-150,w=60+(i%3)*50;
+    let d='';for(let x=x0;x<=x0+w;x+=10)d+=(d?' L':'M')+f1(x)+','+f1(y+Math.sin(x*.03+t*.4+i)*.5);
+    p.setAttribute('d',d);p.setAttribute('stroke-width',f2(.5+.15*(6-i)));p.style.opacity=((.22-.025*i)*(.6+.4*Math.sin(t*.5+i*1.7))).toFixed(3);
+   });
    // 물에 비친 노: 비친 손에 늘 쥐어져 있음(도착 뒤 나타나 그대로 남음)
    const show=ta<0?0:sm(ta/.5);
    ref.setAttribute('transform','translate('+f2(c.x)+' '+f2(c.y+1.5)+') rotate('+f2(-c.roll)+') scale('+c.s+' '+f2(-c.s*.8)+')');
-   refOar.setAttribute('transform','translate('+HAND[0]+' '+HAND[1]+') rotate('+(180-HOLD)+')');refOar.style.opacity=show.toFixed(2);
-   // 실제 노: 쥐고 있다가 미끄러져 물속으로
-   const slip=ta<0?0:sm((ta-2.6)/1.7);   // 한동안 쥐고 있다가 미끄러짐
-   const tf='translate('+f2(c.x)+' '+f2(c.y)+') rotate('+f2(c.roll)+') scale('+c.s+') translate('+HAND[0]+' '+HAND[1]+') rotate('+f1(180-HOLD-slip*10)+') translate('+f1(slip*58)+' 0)';
-   held.setAttribute('transform',tf);sink.setAttribute('transform',tf);
-   held.style.opacity=(show*(1-sm((ta-3.9)/.4))).toFixed(2);sink.style.opacity=(show*.35*(1-sm((ta-4.1)/.8))).toFixed(2);
-   const sr=el.querySelector('.rf-slipring'),hp=toWorld(c,[HAND[0]-22,8]);const rk=(ta-3.3)/1.6;
-   if(rk>0&&rk<1){sr.setAttribute('cx',f1(hp[0]));sr.setAttribute('cy',f1(surf(hp[0],t,a)+1));sr.setAttribute('rx',f1(4+rk*20));sr.setAttribute('ry',f1(1+rk*3));sr.style.opacity=((1-rk)*.6).toFixed(2);}else sr.style.opacity='0';
-   // 다른 노들이 물 밑에서 밀려 올라옴
-   el.querySelectorAll('.rf-rise').forEach(g=>{const i=+g.dataset.i,[x0,dep,ang,sc]=RISE[i],st=5.6+i*.9,k=ta<0?0:sm((ta-st)/2.2);
-    if(k<=0){g.style.opacity='0';return;}g.style.opacity='1';
-    const x=x0+Math.sin(t*.4+i)*2,y=surf(x,t,a)+dep*.5+Math.sin(t*1.3+i)*.6,len=(1-k)*60;
-    g.querySelector('.rf-pos').setAttribute('transform','translate('+f1(x)+' '+f1(y)+')');
-    g.querySelector('.rf-oar').setAttribute('transform','rotate('+f1(ang+Math.sin(t*.9+i)*2)+') scale('+f2(sc)+') translate('+f1(-30-len)+' 0)');
-    const rg=g.querySelector('.rf-ring');rg.setAttribute('cx',f1(x));rg.setAttribute('cy',f1(y+.5));rg.setAttribute('rx',f1((5+k*6+Math.sin(t*2+i))*sc));rg.setAttribute('ry',f1(1.3*sc));rg.style.opacity=(.5*k).toFixed(2);
+   refOar.setAttribute('transform','translate('+HAND[0]+' '+HAND[1]+') rotate('+(180-HOLD)+')');refOar.style.opacity=(show*.9).toFixed(2);
+   // 실제 노: 쥐고 있다가 미끄러져, 수면에 닿는 자리에서 그대로 사라짐(물속은 보이지 않음)
+   const slip=ta<0?0:sm((ta-2.6)/1.7);
+   held.setAttribute('transform','translate('+f2(c.x)+' '+f2(c.y)+') rotate('+f2(c.roll)+') scale('+c.s+') translate('+HAND[0]+' '+HAND[1]+') rotate('+f1(180-HOLD-slip*10)+') translate('+f1(slip*66)+' 0)');
+   held.style.opacity=(show*(1-sm((ta-4.2)/.2))).toFixed(2);
+   const hp=toWorld(c,[HAND[0]-26,8]);
+   el.querySelectorAll('.rf-slipring').forEach((sr,k)=>{const rk=(ta-3.2-k*.45)/1.8;
+    if(rk>0&&rk<1){sr.setAttribute('cx',f1(hp[0]));sr.setAttribute('cy',f1(surf(hp[0],t,a)+1));sr.setAttribute('rx',f1(3+rk*24));sr.setAttribute('ry',f1(.8+rk*3.2));sr.style.opacity=((1-rk)*.7).toFixed(2);}else sr.style.opacity='0';});
+   // 다른 노들: 거울을 뚫고 곧추서서 밀려 올라옴(거울 속엔 거꾸로 선 같은 노)
+   el.querySelectorAll('.rf-rise').forEach(g=>{const i=+g.dataset.i,[x0,dep,ang,sc]=RISE[i],st=4.9+i*.6,u=ta<0?-1:(ta-st)/1.6;
+    if(u<=0){g.style.opacity='0';return;}g.style.opacity='1';
+    const x=x0+Math.sin(t*.35+i)*1.5,ys=surf(x,t,a)+Math.max(dep,0)*.55+Math.min(dep,0)*.4+Math.sin(t*1.1+i)*.4;
+    // 밀려 올라옴: 살짝 넘쳐 솟았다가 가라앉아 자리 잡고, 그 뒤엔 물결 따라 천천히 오르내림
+    const e=u>=1?1:1-Math.pow(1-u,3),over=u<1?0:Math.exp(-(u-1)*2.4)*Math.sin((u-1)*5)*.18;
+    const out=(e+over)*58+(u>=1?Math.sin(t*1.3+i*2)*1.6:0);   // 수면 위로 나온 길이(노 좌표)
+    const tilt=ang*(.4+.6*e)+Math.sin(t*.8+i)*1.8;
+    const ot='rotate('+f2(-90+tilt)+') scale('+sc+') translate('+f1(49-out)+' 0)';
+    g.querySelectorAll('.rf-o').forEach(o=>o.setAttribute('transform',ot));
+    g.querySelector('.rf-up').setAttribute('transform','translate('+f1(x)+' '+f1(ys)+')');
+    g.querySelector('.rf-mir').setAttribute('transform','translate('+f1(x)+' '+f1(ys+.6)+') scale(1 -.92)');
+    const rs=g.querySelectorAll('.rf-ring');rs.forEach((rg,k)=>{const rk=(ta-st-k*.5)/2.2;
+     if(rk>0&&rk<1){rg.setAttribute('cx',f1(x));rg.setAttribute('cy',f1(ys+.4));rg.setAttribute('rx',f1((4+rk*26)*sc*1.4));rg.setAttribute('ry',f1((1+rk*3.4)*sc*1.4));rg.style.opacity=((1-rk)*.65).toFixed(2);}else rg.style.opacity='0';});
+    const col=g.querySelector('.rf-collar');col.setAttribute('cx',f1(x));col.setAttribute('cy',f1(ys+.3));col.setAttribute('rx',f1((3.4+Math.sin(t*2+i))*sc*1.3));col.setAttribute('ry',f1(.9*sc*1.3));col.style.opacity=(.45*Math.min(1,u)).toFixed(2);
    });
   }
  };
@@ -218,8 +271,11 @@
  };
 
  const css=
-  '.lakefx[data-lake="41"]{background:#06080a;border-color:#6a767e}.lakefx[data-lake="41"] .lfx-top{color:#eef4f8}'+
-  '.lakefx[data-lake="41"] .lfx-reflection{opacity:.85!important;filter:none}.lakefx .rf-ring,.lakefx .rf-slipring{fill:none;stroke:#f0f6fa;stroke-width:.6}'+
+  '.lakefx[data-lake="41"]{background:#030a0c;border-color:#4a8a92}.lakefx[data-lake="41"] .lfx-top{color:#eafcfd}'+
+  '.lakefx[data-lake="41"] .lfx-corner{background:linear-gradient(90deg,#030a0cb0,transparent 22%,transparent 78%,#030a0cb0),linear-gradient(180deg,#030a0caa,transparent 26%,transparent 76%,#010405cc)}'+
+  '.lakefx[data-lake="41"] .lfx-reflection{opacity:.92!important;filter:none}.lakefx[data-lake="41"] .lfx-hatch-off{display:none}'+
+  '.lakefx .rf-ring,.lakefx .rf-slipring{fill:none;stroke:#eafcfd;stroke-width:.6}.lakefx .rf-collar{fill:none;stroke:#eafcfd;stroke-width:.45}'+
+  '.lakefx .rf-mir{opacity:.8}.lakefx .rf-ref{opacity:.92}'+
   '.lakefx[data-lake="42"]{background:#0a0408;border-color:#8a2a44}.lakefx[data-lake="42"] .lfx-top{color:#ffe0e8}'+
   '.lakefx .bu-gl path{fill:none;stroke:#f8d0dc;stroke-width:.9;stroke-linecap:round}.lakefx .by-wl{fill:none;stroke:#f8d0dc;stroke-width:.5;stroke-opacity:.5}'+
   '.lakefx[data-lake="43"]{background:#0c0906;border-color:#8a6a3a}.lakefx[data-lake="43"] .lfx-top{color:#f8e8cc}'+
