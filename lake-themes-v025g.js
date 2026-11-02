@@ -192,9 +192,9 @@
    // 신발: 배가 멈춘 뒤 한 짝씩 앞(오른쪽)에서 떠 와 배 곁을 지나 뒤로 흘러감
    const ta=arrived(c);
    el.querySelectorAll('.sh').forEach(g=>{const i=+g.dataset.i,[kind,s,dir]=SHOES[i];
-    const start=.6+i*2.1,dur=15,k=ta<0?-1:(ta-start)/dur;
+    const start=.4+i*1.5,dur=10,k=ta<0?-1:(ta-start)/dur;
     if(k<0||k>1){g.style.opacity='0';return;}
-    const lane=i%3,depth=[8,18,30][lane],x=820-k*900,y=surf(x,t,a)+depth,sc=s*(.75+lane*.22),bob=Math.sin(t*1.7+i)*.6,rk=Math.sin(t*1.2+i)*5;
+    const lane=i%3,depth=[8,18,30][lane],x=650-k*640,y=surf(x,t,a)+depth,sc=s*(.75+lane*.22),bob=Math.sin(t*1.7+i)*.6,rk=Math.sin(t*1.2+i)*5;
     g.style.opacity=Math.min(1,k*10,(1-k)*10).toFixed(2);
     const flip=dir?1:-1;
     g.querySelector('.sh-up').setAttribute('transform','translate('+f1(x)+' '+f1(y+1.4*sc+bob)+') rotate('+f1(rk)+') scale('+f2(sc*flip)+' '+f2(sc)+')');
