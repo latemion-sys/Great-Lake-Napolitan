@@ -58,8 +58,8 @@ die=function(){checkRoster();return oldDie030.apply(this,arguments);};
 memory();checkRoster();
 
 function memoryRating(m){
+ if(!m.lost.length)return '보통'; // 선원을 잃은 일이 없으면 무조건 보통 보정
  if(m.attention!=='remember')return '불리';
- if(!m.lost.length)return '보통';
  const count=Number(m.count),countCorrect=String(m.count).trim()!==''&&Number.isInteger(count)&&count===m.lost.length;
  const lines=String(m.lines||'').split(/\n/).map(x=>x.trim()).filter(Boolean);
  const remembered=countCorrect||lines.some(line=>/인어|죽|사라|희생|잃|고래|법|상태|악화|선원/.test(line)||m.lost.some(c=>c.custom&&tidy(line).includes(tidy(c.name))));
