@@ -20,7 +20,7 @@ iframe{border:1px solid #2a3038;border-radius:10px;background:#000;display:block
 <header>
 <h1>호수 진입 이펙트 미리보기</h1>
 <p>실제 게임 화면을 해당 호수의 사건 장면으로 바로 엽니다. 이 페이지는 확인용이며 본 사이트에는 아직 적용되지 않았습니다.</p>
-<div class="bar" id="lakes"><button data-id="1">21-01 · 붉은 호수</button><button data-id="2">21-02 · 불꽃 호수</button><button data-id="3">21-03 · 묵빛 호수</button><button data-id="4" class="on">21-04 · 우윳빛 호수</button></div>
+<div class="bar" id="lakes"><button data-id="1">21-01 · 붉은 호수</button><button data-id="2">21-02 · 불꽃 호수</button><button data-id="3">21-03 · 묵빛 호수</button><button data-id="4">21-04 · 우윳빛 호수</button><button data-id="5" class="on">21-05 · 안개 호수</button><button data-id="6">21-06 · 빛나는 호수</button><button data-id="7">21-07 · 핏빛 호수</button><button data-id="8">21-08</button><button data-id="9">21-09 · 풀빛 호수</button><button data-id="10">21-10 · 둥근 호수</button></div>
 <div class="bar"><button id="replay">진입 장면 다시 보기</button></div>
 </header>
 <div class="wrap">
@@ -28,7 +28,7 @@ iframe{border:1px solid #2a3038;border-radius:10px;background:#000;display:block
  <figure><figcaption>모바일 (390px)</figcaption><iframe id="mob" src="index.html"></iframe></figure>
 </div>
 <script>
-let lakeId=4;
+let lakeId=5;
 function enter(f){
  try{
   const w=f.contentWindow;
