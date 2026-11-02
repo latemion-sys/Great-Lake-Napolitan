@@ -88,6 +88,7 @@
   const th=Object.assign({},DEFAULT_THEME,FX.theme(lake,def)||{});
   entryFor(lake);
   const v='--lfx-boat:'+th.boat+';--lfx-rim:'+th.rim+';--lfx-crest:'+th.crest+';--lfx-swell:'+th.swell+';--lfx-lamp:'+th.lamp+';--lfx-lamp-core:'+th.lampCore;
+  const LY=(FX.layers&&FX.layers[lake.id])||null,ly=k=>{try{return LY&&LY[k]?LY[k](th):'';}catch(e){return '';}};
   const title='21-'+String(lake.id).padStart(2,'0')+(def&&def.name?' · '+def.name:'');
   let far='';for(let i=0;i<3;i++)far+='<path class="lfx-far" data-i="'+i+'" style="stroke-opacity:'+(0.3-i*0.06).toFixed(2)+';stroke-width:'+(1.4+i*0.5).toFixed(1)+'"/>';
   return '<div class="lakefx" aria-hidden="true"'+(crew?' data-battle="1"':'')+' data-lake="'+lake.id+'" data-bob="'+th.bob+'" data-drift="'+th.drift+'" style="'+v+'">'+
@@ -105,16 +106,18 @@
    '</defs>'+
    '<rect width="'+W+'" height="'+H+'" fill="url(#lfxSky)"/>'+
    '<circle cx="640" cy="30" r="190" fill="url(#lfxMoon)"/>'+
+   ly('sky')+
    '<path d="M0 '+(SEA-14)+' Q150 '+(SEA-24)+' 300 '+(SEA-15)+' T800 '+(SEA-18)+'" class="lfx-horizon"/>'+
    '<g class="lfx-mist"><rect x="-200" y="'+(SEA-34)+'" width="'+(W+400)+'" height="26" rx="13"/></g>'+
    '<path class="lfx-water" fill="url(#lfxSea)"/>'+
    '<rect y="'+(SEA-10)+'" width="'+W+'" height="'+(H-SEA+10)+'" fill="url(#lfxHatch)" opacity=".4" clip-path="url(#lfxBelow)"/>'+
+   ly('under')+
    '<g class="lfx-fars">'+far+'</g>'+
    '<g clip-path="url(#lfxBelow)"><g class="lfx-reflection" filter="url(#lfxSoft)">'+B+'</g></g>'+
    '<ellipse class="lfx-glint" rx="18" ry="2.8" fill="'+th.lamp+'" filter="url(#lfxGlint)"/>'+
    '<g class="lfx-ripples"><path class="lfx-ripple"/><path class="lfx-ripple"/></g>'+
    '<g clip-path="url(#lfxAbove)"><g class="lfx-boat">'+B+'</g></g>'+
-   '<path class="lfx-crest"/>'+SHOT+
+   '<path class="lfx-crest"/>'+ly('surface')+SHOT+
    '</svg>'+
    '<span class="lfx-corner"></span><span class="lfx-grain"></span><span class="lfx-vignette"></span>'+
    '<span class="lfx-top">'+esc(title)+'</span>'+
@@ -187,6 +190,8 @@
   glint.setAttribute('cx',lx.toFixed(1));glint.setAttribute('cy',(surf(lx,t,a)+6).toFixed(1));
   glint.style.opacity=(0.42*flick*enter).toFixed(3);
 
+  const LY=FX.layers&&FX.layers[+el.dataset.lake];
+  if(LY&&LY.paint){try{LY.paint(el,{t,a,enter,x,y,roll,s,surf,W,H,SEA,calm});}catch(e){}}
   if(el.dataset.battle)paintShot(el,now,x,y,roll,s,t,a);
   const mist=el.querySelector('.lfx-mist');
   mist.setAttribute('transform','translate('+(Math.sin(t*0.07)*60).toFixed(1)+' 0)');
