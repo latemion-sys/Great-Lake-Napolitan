@@ -279,7 +279,7 @@ document.addEventListener('click',e=>{
 },true);
 const oldSync030b=sync;
 sync=function(){trackVoyage();return oldSync030b.apply(this,arguments);};
-window.GREAT_LAKE_HEART_030={memory:()=>memory(),rating:()=>memoryRating(memory()),check:checkRoster,strength:()=>egoStrength(),record:()=>rec()};
+window.GREAT_LAKE_HEART_030={memory:()=>memory(),rating:()=>memoryRating(memory()),check:checkRoster,strength:()=>egoStrength(),record:()=>rec(),isCalamity:()=>isCalamity(),acceptTries:()=>acceptTries()};
 // 이 파일은 첫 화면이 그려진 뒤에 불러와지므로, 저장된 판정·발현 단계가 바로 보이도록 한 번 더 그립니다.
 try{if(typeof render==='function')render();}catch(err){console.warn(err);}
 })();

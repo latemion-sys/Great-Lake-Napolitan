@@ -1,0 +1,99 @@
+/* 신(心) · E.G.O 연출 (v0.3.1) — 게임 화면 위에 따로 뜨는 검은 화면 */
+.hv-ov{position:fixed;inset:0;z-index:2147483100;background:#020202;color:#ffdfaa;overflow:hidden;display:flex;align-items:center;justify-content:center;
+ font-family:inherit;animation:hv-in .6s ease-out both;-webkit-tap-highlight-color:transparent;cursor:default}
+.hv-ov.out{animation:hv-out .7s ease-in both}
+.inset.hv-hold{min-height:60vh;background:#000;border-color:#000}
+@keyframes hv-in{from{opacity:0}to{opacity:1}}
+@keyframes hv-out{to{opacity:0}}
+.hv-glow{position:absolute;left:50%;top:44%;width:min(90vw,640px);height:260px;transform:translate(-50%,-50%);border-radius:50%;
+ background:radial-gradient(ellipse,rgba(255,208,116,calc(.06 + var(--swell,0)*.08)) 0%,rgba(255,202,117,.03) 40%,transparent 72%);filter:blur(18px);pointer-events:none}
+
+/* 메아리 */
+.hv-echoes{position:absolute;inset:0;pointer-events:none}
+.hv-echo{position:absolute;white-space:nowrap;transform:translate(-50%,-50%) rotate(var(--r,0deg)) scale(var(--s,1));font-size:clamp(13px,2.1vw,19px);letter-spacing:.03em;
+ color:#ffdfaa;opacity:0;transition:opacity .45s ease-out;text-shadow:0 0 8px rgba(255,199,107,.3)}
+.hv-echo.on{opacity:1}
+.hv-main{left:50%;top:46%;transform:translate(-50%,-50%);font-size:clamp(17px,3vw,25px);z-index:2;text-shadow:0 0 10px rgba(255,199,107,.45),0 0 28px rgba(255,197,117,.18)}
+.hv-echoes.echoing .hv-echo:not(.hv-main).on{opacity:var(--o,.2);text-shadow:none;animation:hv-echo 2.6s ease-in-out var(--d,0s) infinite}
+@keyframes hv-echo{0%,100%{transform:translate(-50%,-50%) rotate(var(--r,0deg)) scale(var(--s,1));opacity:var(--o,.2)}50%{transform:translate(-50%,-50%) rotate(var(--r,0deg)) scale(calc(var(--s,1)*1.06));opacity:calc(var(--o,.2)*.45)}}
+.hv-echoes.gone .hv-echo{opacity:0!important;transition:opacity .9s ease-in;animation:none}
+
+/* 목소리 문장 · 선택 */
+.hv-center{position:relative;z-index:3;width:min(92vw,720px);max-height:100%;overflow-y:auto;padding:24px 18px;box-sizing:border-box;text-align:center;display:flex;flex-direction:column;align-items:center;gap:26px}
+.hv-lines p{margin:12px 0;font-size:clamp(16px,2.6vw,21px);line-height:1.9;letter-spacing:.03em;color:#ffdfaa;text-shadow:0 0 9px rgba(255,199,107,.32),0 0 28px rgba(255,197,117,.13);animation:hv-line 1.4s ease-out both}
+.hv-lines p.now{animation:none}
+@keyframes hv-line{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hv-note{color:#b99f78;font-size:13px;line-height:1.7;opacity:0;transition:opacity .8s}.hv-note.on{opacity:.85}
+.hv-actions{display:grid;width:min(100%,580px);gap:12px;opacity:0;pointer-events:none;transition:opacity .9s}
+.hv-actions.on{opacity:1;pointer-events:auto}
+.hv-actions button{border:1px solid #655740;border-radius:12px;padding:14px 18px;background:#14120f;color:#ffe4ba;min-height:48px;white-space:normal;line-height:1.45;font:inherit;cursor:pointer}
+.hv-actions button:hover,.hv-actions button:focus-visible{border-color:#e9bd7e;background:#272018;outline-color:#d2ad7b}
+.hv-actions button.danger{border-color:#7a2a2a;color:#ffc8c0;background:#1a0b0b}
+.hv-skip{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;color:#7a6a52;opacity:.7;pointer-events:none}
+
+/* 공통 그림판 */
+.hv-svg{position:absolute;left:50%;top:50%;width:min(96vw,96vh,760px);height:min(96vw,96vh,760px);transform:translate(-50%,-50%);overflow:visible;pointer-events:none}
+.hv-core,.hv-flash,.hv-shard,.hv-petal,.hv-frag,.hv-ember,.hv-spike{transform-box:fill-box}
+.hv-title{position:absolute;left:0;right:0;bottom:12%;text-align:center;opacity:0;animation:hv-line 1.2s ease-out 3.7s both;pointer-events:none}
+.hv-big{font-size:clamp(30px,6vw,52px);letter-spacing:.32em;color:#fff4d6;text-shadow:0 0 14px rgba(255,214,140,.7),0 0 40px rgba(255,170,70,.35);padding-left:.32em}
+.hv-sub{margin-top:8px;font-size:clamp(13px,2vw,16px);color:#e8c890;letter-spacing:.08em}
+
+/* E.G.O 개화: 껍질 · 금 · 깨짐 · 빛의 꽃잎 */
+.hv-core{transform-origin:center;animation:hv-core 2.3s ease-in both}
+@keyframes hv-core{0%{transform:scale(.2);opacity:0}25%{opacity:1}55%{transform:scale(.6)}80%{transform:scale(.9)}100%{transform:scale(1.8);opacity:1}}
+.hv-shell>circle{animation:hv-shell 2.3s ease-out both}
+@keyframes hv-shell{0%{opacity:0}20%{opacity:1}95%{opacity:1}100%{opacity:0}}
+.hv-crack{fill:none;stroke:#ffd98e;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:240;stroke-dashoffset:240;animation:hv-crack .9s ease-out var(--d) forwards,hv-fade .3s ease-in 2.25s forwards}
+.hv-crack.thin{stroke-width:1.2}
+.hv-cracks:not(.sharp) .hv-crack{stroke-width:7;stroke:#ffb050;opacity:.7}
+@keyframes hv-crack{to{stroke-dashoffset:0}}
+@keyframes hv-fade{to{opacity:0}}
+.hv-shard{fill:#16110b;stroke:#16110b;stroke-width:.6;opacity:0;transform-origin:center;animation:hv-shard 1.3s cubic-bezier(.2,.7,.4,1) var(--d) both}
+@keyframes hv-shard{0%{opacity:1;transform:none}100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(.7)}}
+.hv-flash{opacity:0;transform-origin:center;animation:hv-flash 1.5s ease-out 2.15s both}
+@keyframes hv-flash{0%{opacity:0;transform:scale(.3)}15%{opacity:1}100%{opacity:.18;transform:scale(1.25)}}
+.hv-petal{fill:url(#hvPetal);stroke:#fff6dc;stroke-width:.8;stroke-opacity:.8;transform-origin:50% 100%;transform:scale(0);opacity:0;animation:hv-petal 1.3s cubic-bezier(.2,.8,.3,1.15) var(--d) forwards}
+.hv-petal.inner{fill:#fff7e0;opacity:0}
+@keyframes hv-petal{0%{transform:scale(.05,.2);opacity:0}40%{opacity:1}100%{transform:scale(1);opacity:.92}}
+
+@keyframes hv-spin{to{transform:rotate(360deg)}}
+.hv-ray{stroke:#ffd890;stroke-width:1;stroke-linecap:round;opacity:0;animation:hv-ray 2.2s ease-out var(--d) both}
+@keyframes hv-ray{0%{opacity:0}20%{opacity:.75}100%{opacity:.08}}
+
+/* 뒤틀림 */
+.hv-red{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,rgba(60,0,8,0) 0%,rgba(70,0,10,.55) 55%,rgba(30,0,4,.95) 100%);opacity:0;transition:opacity 2.4s ease-in}
+.hv-twist.turning .hv-red{opacity:1}
+.hv-twist .hv-lines p.warm{transition:color 2.2s ease-in,text-shadow 2.2s,letter-spacing 2.2s,filter 2.2s}
+.hv-twist.turning .hv-lines p.warm{color:#c8323a;text-shadow:2px 0 0 rgba(255,40,60,.5),-2px 0 0 rgba(60,200,220,.25);letter-spacing:.12em;filter:blur(.4px);animation:hv-jit .12s steps(2) infinite}
+@keyframes hv-jit{0%{transform:translate(0,0)}50%{transform:translate(-1.5px,1px)}100%{transform:translate(1px,-1px)}}
+.hv-fig{fill:#0a0606;stroke:#ffdfaa;stroke-width:.8;stroke-opacity:.5}
+.hv-twist.turning .hv-fig{fill:#120204;stroke:#c8323a;stroke-opacity:.9;transition:stroke 1.6s,fill 1.6s}
+.hv-vein{fill:none;stroke:#5a0610;stroke-width:3;stroke-linecap:round;stroke-dasharray:420;stroke-dashoffset:420;opacity:0}
+.hv-twist.turning .hv-vein{opacity:.9;animation:hv-crack 2.6s ease-in var(--d) forwards}
+.hv-spike{fill:#2a0306;stroke:#c8323a;stroke-width:.6;transform-origin:0% 50%;transform:scale(0);opacity:0}
+.hv-twist.turning .hv-spike{animation:hv-spike 1.4s cubic-bezier(.3,1.4,.5,1) var(--d) forwards}
+@keyframes hv-spike{to{transform:scale(1);opacity:1}}
+.hv-dtitle{opacity:0;transition:opacity 1s}
+.hv-twist.named .hv-dtitle{opacity:1}
+.hv-dbig{position:relative;font-size:clamp(34px,7vw,60px);letter-spacing:.4em;padding-left:.4em;color:#e8343e;text-shadow:3px 0 0 rgba(255,0,40,.55),-3px 0 0 rgba(0,220,255,.3),0 0 30px rgba(200,20,30,.6);animation:hv-jit .16s steps(2) infinite}
+.hv-dsub{margin-top:10px;color:#d89a9a;letter-spacing:.1em;font-size:clamp(13px,2vw,16px)}
+.hv-twist .hv-center{margin-top:28vh}
+
+/* 신(心) 발현: 기억 → 금빛 불꽃 같은 기운 → 빛의 고리(망) */
+.hv-shin{background:rgba(3,2,1,.94)}
+.hv-frag{fill:#f4e8d0;font-size:13px;text-anchor:middle;opacity:0;transform-origin:center;animation:hv-frag 2.2s ease-in var(--d) forwards}
+@keyframes hv-frag{0%{opacity:0;transform:none}30%{opacity:.85}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.3)}}
+.hv-shin .hv-fig{fill:#0c0906;stroke:#ffd27a;stroke-opacity:.0;animation:hv-rim 1.8s ease-out 1.5s forwards}
+@keyframes hv-rim{to{stroke-opacity:.95;stroke-width:1.4}}
+.hv-harp path{stroke:#2a2018;fill:#2a2018}
+.hv-shin .hv-harp path{animation:hv-harp 1.5s ease-out 2.6s forwards}
+@keyframes hv-harp{to{stroke:#f4c870;fill:#f4c870}}
+.hv-ember{opacity:0;transform-origin:center;animation:hv-ember 1.6s ease-out 1.1s forwards}
+@keyframes hv-ember{0%{opacity:0;transform:scale(.2)}50%{opacity:1;transform:scale(1.3)}100%{opacity:.85;transform:scale(1)}}
+.hv-flame{fill:url(#hvAura);filter:url(#hvFlameBlur);mix-blend-mode:screen}
+.hv-mang ellipse{fill:none;stroke:#ffe6a0;stroke-width:3;stroke-dasharray:100;stroke-dashoffset:100;filter:url(#hvRingGlow);animation:hv-mang 1.1s ease-out 3.1s forwards}
+@keyframes hv-mang{to{stroke-dashoffset:0}}
+.hv-title.shin{animation-delay:3.6s}
+.hv-title.shin .hv-big{letter-spacing:.12em;padding-left:.12em}
+@media(max-width:600px){.hv-actions{gap:9px}.hv-actions button{font-size:14px}.hv-twist .hv-center{margin-top:30vh}}
+@media(prefers-reduced-motion:reduce){.hv-echoes.echoing .hv-echo:not(.hv-main).on{animation:none}.hv-dbig,.hv-twist.turning .hv-lines p.warm{animation:none}}
