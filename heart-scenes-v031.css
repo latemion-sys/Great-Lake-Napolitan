@@ -102,3 +102,5 @@
 .hv-title.shin .hv-sub{opacity:0;animation:hv-line 1s ease-out 6.1s forwards}
 @media(max-width:600px){.hv-actions{gap:9px}.hv-actions button{font-size:14px}.hv-twist .hv-center{margin-top:30vh}}
 @media(prefers-reduced-motion:reduce){.hv-echoes.echoing .hv-echo:not(.hv-main).on{animation:none}.hv-dbig,.hv-twist.turning .hv-lines p.warm{animation:none}}
+.hv-actions button.yield{border-color:#3e3530;color:#d8c4b0;background:#110f0d}
+.hv-lines p.now{font-size:clamp(14px,2.1vw,17px);margin:5px 0;line-height:1.7}

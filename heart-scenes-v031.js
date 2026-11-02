@@ -36,42 +36,67 @@ log=function(message){
  return out;
 };
 
-/* ---------- 목소리가 고르는 말: 이 선장의 생애에서만 ---------- */
+/* ---------- 목소리가 고르는 말: 이 선장의 생애에서만 ----------
+   목소리의 결: 다정하고 매혹적이며, 듣는 사람 하나만을 위해 말을 고른다. 약한 데를 정확히 짚고,
+   참아 온 갈망을 '병이 아니라 진짜 너'라고 부르며, 도시의 눈과 잣대(등급 · 장부 · 손실)에서 벗어나 다시 태어나라고 권한다.
+   거절하려는 마음은 체념이나 고집이라고 부드럽게 꾸짖는다. 판정마다 한 번 골라 저장하므로 다시 그려져도 같은 말이 이어진다. */
+const ul=s=>s+(batchim(s)?'을':'를');
 function composeVoice(j){
- const lines=[],k=Math.min(2,H.acceptTries()),m=H.memory(),r=H.record(),seed=(state.voyage||0)*7+(state.count?.lake||0)+k;
- const pick=arr=>arr[Math.floor(R(seed+arr.length*13)*arr.length)%arr.length];
- const cap=String(state.captainName||'').trim();
- lines.push('이제야 내 말을 귀담아 들어주는구나.');
- if(k===1)lines.push('또 왔구나. 지난번엔 돌아섰지만, 괜찮아. 기다리고 있었어.');
- if(k===2)lines.push('이번이 마지막이야. 이제 더는 물러설 곳이 없어.');
- // 무엇이 마음을 무너뜨렸는지
+ if(j.seed031==null)j.seed031=Math.floor(Math.random()*1e6);
+ let n=0;const rnd=()=>R(j.seed031*.0173+(n++)*3.71+.5);
+ const pick=arr=>arr[Math.floor(rnd()*arr.length)];
+ const k=Math.min(2,H.acceptTries()),m=H.memory(),r=H.record();
+ const cap=String(state.captainName||'').trim(),call=cap?ah(cap)+', ':'';
  const why=String(j.why031||''),lost=Array.isArray(m.lost)?m.lost:[],named=lost.filter(c=>c.custom&&c.name),lastLost=lost[lost.length-1];
- if(/인어가 되는 것/.test(why)){
-  if(lastLost&&lastLost.custom)lines.push(iga(lastLost.name)+' 물속 것이 되어 가는 걸, 너는 그저 보고만 있었지.');
-  else lines.push(pick(['또 한 사람이 물속으로 가 버렸어. 너는 그저 보고만 있었지.','방금도 봤잖아. 네 사람이 물속 것이 되어 가는 걸.']));
- }else if(/인어와 마주/.test(why))lines.push(pick(['방금 그 노래, 너도 끝까지 듣고 싶었지?','물속에서 너를 부르던 얼굴들, 하나같이 다정했잖아.']));
- else if(why==='')lines.push(state.shinOpen?'그 빛의 고리를 하나 더 얻으려고, 스스로를 이렇게까지 깎아 냈구나.':'여기까지 오는 동안, 한 번도 제대로 쉬어 본 적 없잖아.');
- else lines.push('여기까지 오는 동안, 한 번도 제대로 쉬어 본 적 없잖아.');
- // 잃은 사람들
- if(!lost.length)lines.push('아직 아무도 잃지 않았지. 그걸 지키느라 얼마나 애썼니.');
- else if(named.length>=2)lines.push(named.slice(-2).map(c=>c.name).join(', ')+'… 네가 이름을 지어 준 사람들이었지.');
- else if(named.length===1&&!(lastLost===named[0]&&/인어가 되는 것/.test(why)))lines.push(named[0].name+'… 네가 이름을 지어 준 사람이었지.');
- else if(lost.length>1)lines.push('떠나보낸 사람이 '+lost.length+'명이야. 넌 한 명도 잊지 않았잖아. 그래서 더 무거운 거야.');
- // 지나온 행적
  const kills=(state.whaleKilled||[]).length,lakes=state.count?.lake||0,rets=state.count?.return||0,g=state.grade|0;
- if(kills)lines.push('재앙을 꿰뚫은 손이야. 그 손으로 못 할 게 뭐가 있겠니?');
- else if(g>=4)lines.push(g+'등급 선장. 다들 네게 기대기만 하고, 너는 누구에게도 기대지 못했지.');
- else if(lakes>=10)lines.push('호수를 '+lakes+'개나 건넜어. 그걸 알아준 사람이 하나라도 있었니?');
- else if(rets>=1)lines.push('몇 번이고 배를 끌고 항구로 돌아왔지. 그저 다음 항해를 위해서.');
- else lines.push('이제 막 키를 잡았을 뿐인데, 벌써 이렇게 지쳐 버렸구나.');
- // 버텨 온 결의 · 품은 바람
- if(state.shinName030)lines.push(state.shinName030.replace(/\(望\)$/,'')+'… 그 바람, 내가 대신 이뤄 줄게.');
- else if(m.purpose)lines.push('‘'+String(m.purpose).slice(0,34)+(String(m.purpose).length>34?'…':'')+'’ 그렇게 말했었지. 혼자서는 안 된다는 거, 너도 알잖아.');
- else if(r.resolve>=1)lines.push('무너지기 직전까지 몰리고도 끝까지 버텼잖아. 이제 그만 내려놓아도 돼.');
- lines.push((cap?ah(cap)+', ':'')+'이제는 네 마음 가는 대로 해도 괜찮아.');
- lines.push('아무것도 네 뜻을 막을 수 없게 해 줄게.');
- return lines;
+ const L=['이제야 내 말을 귀담아 들어주는구나.'];
+ // 다시 만났을 때 / 처음일 때
+ if(k===1)L.push(pick(['또 왔구나. 지난번엔 돌아섰지? 괜찮아, 화나지 않았어.','다시 만났네. 그날 물러서던 네 뒷모습, 아직 기억하고 있어.']));
+ else if(k===2)L.push(pick(['이번엔 돌아갈 데가 없다는 거, 너도 알지?','세 번째야. 여기서 더 버티는 건 용기가 아니라 고집이야.']));
+ else L.push(pick(['계속 부르고 있었어. 네가 너무 바빠서 못 들었을 뿐이지.','무서워할 것 없어. 나는 처음부터 네 쪽에 서 있었으니까.','다들 네 등급이랑 장부만 봤지. 나는 줄곧 네 마음을 보고 있었어.','숨 좀 돌려. 여기선 아무도 너한테 값을 매기지 않아.','드디어 조용해졌네. 이제야 네 진짜 목소리가 들려.']));
+ // 무엇이 마음을 무너뜨렸는지
+ let usedNamed=null;
+ if(/인어가 되는 것/.test(why)){
+  if(lastLost&&lastLost.custom){usedNamed=lastLost;L.push(pick([ul(lastLost.name)+' 마지막으로 본 게 너였지. 손을 뻗었는데, 닿지 않았잖아.',lastLost.name+'… 물속으로 가라앉으면서도 너를 보고 있었어. 원망하는 얼굴이 아니었는데.']));}
+  else L.push(pick(['또 한 사람이 물속으로 가 버렸어. 너는 그저 보고만 있었고.','방금 그 사람, 이름 한 번 제대로 불러 주지 못했지. 그게 제일 아프지?']));
+ }else if(/인어와 마주/.test(why))L.push(pick(['방금 그 노래, 끝까지 듣고 싶었지? 부끄러워할 것 없어.','물속에서 부르던 얼굴들, 하나같이 다정했잖아. 도시의 누구보다도.','그것들이 무서웠던 게 아니야. 따라가고 싶어지는 네 마음이 무서웠던 거지.']));
+ else if(why===''&&state.shinOpen)L.push('빛의 고리 하나를 더 얻겠다고 스스로를 깎아 내다니. 누가 시킨 것도 아닌데.');
+ else L.push(pick(['여기까지 오는 동안 한 번도 제대로 쉬어 본 적 없잖아.','끝까지 버티다가 끊어진 거야. 그건 약해서가 아니야.']));
+ // 잃은 사람들
+ const rest=named.filter(c=>c!==usedNamed);
+ if(!lost.length&&/인어가 되는 것/.test(why)){}
+ else if(!lost.length)L.push(pick(['아직 아무도 잃지 않았지. 그걸 지키느라 네가 얼마나 닳았는지, 아무도 몰라.','모두를 지켰어. 그런데 너를 지켜 준 사람은 있었니?']));
+ else if(rest.length>=2)L.push(rest.slice(-2).map(c=>c.name).join(', ')+'… 네가 직접 이름을 붙여 준 사람들이었잖아.');
+ else if(rest.length===1)L.push(rest[0].name+'. 이름을 지어 준 그 순간부터, 너는 그 사람을 잃을 준비를 하고 있었어.');
+ else if(lost.length>1)L.push(pick(['떠나보낸 사람이 '+lost.length+'명. 숫자로 세기 시작한 건 언제부터였을까.',lost.length+'명이야. 도시는 그걸 \'손실\'이라고 적겠지. 너는 아니잖아.']));
+ // 도시의 눈으로 매겨진 행적
+ if(kills)L.push(pick(['재앙을 꿰뚫은 손이야. 도시는 그 손에 상금 몇 푼 쥐여 주고 끝냈지.','고래를 쓰러뜨린 사람한테 도시가 해 준 건 다음 의뢰서뿐이었잖아.']));
+ else if(g>=4)L.push(pick([g+'등급. 도시는 너를 그 숫자로만 기억할 거야. 네가 어떤 밤을 보냈는지는 빼고.','선장 '+g+'등급. 다들 네게 기대기만 했고, 너는 누구에게도 기대지 못했지.']));
+ else if(lakes>=10)L.push(pick(['호수를 '+lakes+'개나 건넜어. 그런데 항구에선 아무도 묻지 않았지. 괜찮았냐고.','호수 '+lakes+'개. 도시에선 그게 경력 한 줄이야. 네 마음에 남은 건 한 줄로 안 끝나는데.']));
+ else if(rets>=1)L.push(pick(['몇 번이고 배를 끌고 돌아왔지. 다음 출항 경비를 벌려고. 그게 사는 거라고 배웠으니까.','항구에 닿을 때마다 장부부터 펼쳤지. 네 마음은 펼쳐 볼 틈도 없이.']));
+ else L.push(pick(['이제 막 키를 잡았을 뿐인데, 도시는 벌써 너한테 값을 매기기 시작했어.','첫 항해부터 이렇게 무너졌다고 부끄러워하지 마. 네 탓이 아니야. 이 호수가, 이 도시가 그렇게 만든 거야.']));
+ // 품은 바람
+ if(state.shinName030){const sn=state.shinName030.replace(/\(望\)$/,'');L.push(pick([sn+'. 그 바람, 혼자 빛내기엔 너무 무겁지 않아?',sn+'… 거짓 없는 바람이란 거 알아. 그러니까 끝까지 가게 해 줄게.']));}
+ else if(m.purpose){const p=String(m.purpose).slice(0,30)+(String(m.purpose).length>30?'…':'');L.push('‘'+p+'’. 네가 그렇게 말했지. 그걸 도시의 방식으로 이룰 수 있을 것 같아?');}
+ else if(r.resolve>=1)L.push('무너지기 직전까지 몰리고도 끝까지 버텼잖아. 이제 그만 내려놓아도 돼.');
+ else L.push(pick(['네가 정말 바라는 게 뭔지, 한 번이라도 소리 내서 말해 본 적 있어?','갖고 싶었던 것, 되고 싶었던 것. 도시가 \'분수\'라며 접게 한 것들 말이야.','언제부터 네 바람보다 남의 계산을 먼저 하게 됐니?']));
+ // 권유 → 답을 청함
+ L.push(pick(['그건 병이 아니야. 너무 오래 참아 온 마음일 뿐이야.','도시가 붙여 준 이름표는 이제 떼어 버려도 돼.','남의 눈에 맞춰 깎아 낸 모양 말고, 원래의 네 모양으로 돌아가자.',call+'조금만 솔직해지면 돼. 그러면 다시 태어날 수 있어.',call+'네가 바라는 너로 살아도, 아무도 너를 탓하지 못해.']));
+ L.push('그러니까, 답해 주렴.');
+ return L;
 }
+const ACCEPT_TALK=[['인정한다고? 그건 도시가 너한테 가르쳐 준 체념이야.','뜻대로 되지 않는 세상이라면, 뜻대로 되는 네가 되면 되잖아.'],['다른 누군가의 탓으로 돌려도 괜찮아. 네가 짊어진 몫은 이미 넘쳤어.','네가 지키려던 것들, 어떻게든 되찾으면 되잖아. 내가 도와줄게.']];
+const WITHDRAW_TALK=['그래, 아직은 괜찮아. 오늘은 여기까지만 하자.','도망치는 거 아니야. 잠깐 숨을 고르는 거지. 나는 기다릴 수 있어.','다시 무너지는 날, 내가 제일 먼저 네 이름을 불러 줄게.'];
+const TWIST_TALK=['그래, 그거면 돼. 이제 아무것도 참지 않아도 돼.','봐, 하나도 아프지 않지? 이게 원래의 너야.','애썼어. 이제 그만 내려놔. 나머지는 네 마음이 알아서 할 거야.'];
+const seedPick=(j,arr,salt)=>{const v=((j&&j.seed031)||7)+salt*131;return arr[Math.floor(R(v)*arr.length)%arr.length];};
+// 선택지: 도시에서 살아온 선장이 직접 하는 말
+const SAY={
+ force:'듣기 좋은 소리 집어치워. 이 도시에서 여기까지 버텨 온 건 나야. 내 머릿속에서 꺼져.',
+ accept:'알아. 이 도시에서 뭐 하나 내 뜻대로 된 적 없었지. 그래도 그게 네 말을 들을 이유는 안 돼.',
+ yield:'…그래. 이 도시는 날 한 번도 봐주지 않았어. 네 말대로 할게.',
+ duty:'되돌릴 수 없는 건 못 되돌려. 그래도 남은 놈들 데리고 항구까지 가는 건 내 몫이야.',
+ yield2:'…됐어. 어차피 이 도시에서 내 짐을 대신 들어 준 놈은 없었어.'
+};
 
 /* ---------- 덧씌우는 화면 ---------- */
 let ov=null,ovKey='',timers=[],raf=0;
@@ -111,7 +136,7 @@ function mountIntro(o,j){
  const v=voiceShell(o);
  if(!Array.isArray(j.lines031)){j.lines031=composeVoice(j);persist();}
  const seq=j.lines031;
- const actHTML=btn('압도적인 자아로 이 목소리를 깨부순다','egoForce030','primary')+btn('세상이 모두 내 뜻대로 되지 않는다는 것을 인정한다','egoAccept030')+btn('목소리의 제안을 받아들인다','egoYield030');
+ const actHTML=btn(SAY.force,'egoForce030','primary')+btn(SAY.accept,'egoAccept030')+btn(SAY.yield,'egoYield030','yield');
  let done=false;
  const finish=()=>{if(done)return;done=true;timers.forEach(clearTimeout);timers=[];v.echoes.innerHTML='';v.lines.innerHTML=seq.map(t=>'<p class="now">“'+esc(t)+'”</p>').join('');v.acts.innerHTML=actHTML;v.acts.classList.add('on');v.skip.remove();j.echoDone031=true;persist();};
  o.addEventListener('click',e=>{if(e.target.closest('button'))return;finish();});
@@ -130,17 +155,18 @@ function mountIntro(o,j){
  let shown=0;
  counts.forEach((n,si)=>at(times[si],()=>{for(let i=shown;i<n;i++)spans[i].classList.add('on');shown=n;if(n>=16)v.echoes.classList.add('echoing');o.style.setProperty('--swell',(si/7).toFixed(2));}));
  at(6900,()=>v.echoes.classList.add('gone'));
- const end=showLines(v.lines,seq,7900,1650);
+ const end=showLines(v.lines,seq,7900,1500);
  at(end+500,()=>{finish();});
 }
 function mountAccept2(o,j){
  const v=voiceShell(o);v.skip.remove();
- const end=showLines(v.lines,['다른 누군가의 탓으로 돌려도 괜찮잖아.','네가 지키려던 모든 것을, 어떻게든 되찾으면 되잖아.'],300,1300);
- at(end+300,()=>{v.acts.innerHTML=btn('바꿀 수 없는 것은 인정한다. 그래도 내가 할 일을 선택한다','egoAcceptDuty030','primary')+btn('더는 책임질 것이 없다','egoYield030');v.acts.classList.add('on');});
+ const end=showLines(v.lines,[seedPick(j,ACCEPT_TALK[0],1),seedPick(j,ACCEPT_TALK[1],2)],300,1400);
+ at(end+300,()=>{v.acts.innerHTML=btn(SAY.duty,'egoAcceptDuty030','primary')+btn(SAY.yield2,'egoYield030','yield');v.acts.classList.add('on');});
 }
 function mountWithdraw(o,j){
  const v=voiceShell(o);v.skip.remove();const w=j.withdraw||{};
- const end=showLines(v.lines,['그래. 아직은 괜찮아.','조금만 더 버텨 봐. 다시 부르면, 언제든 올게.'],300,1300);
+ const w2=WITHDRAW_TALK.slice(),a1=w2.splice(Math.floor(R((j.seed031||3)+5)*w2.length),1)[0],a2=w2[Math.floor(R((j.seed031||3)+9)*w2.length)];
+ const end=showLines(v.lines,[a1,a2],300,1400);
  at(end+200,()=>{v.note.innerHTML='목소리가 멀어지고, 선장은 벼랑 끝에서 한 걸음 물러났습니다.<br>선장 정신력 최대치 -'+(w.max|0)+' ('+(w.cap|0)+')'+(w.mind?' · 돌아오는 정신력 -'+w.mind:'');v.note.classList.add('on');
   v.acts.innerHTML=btn('숨을 고르고 물러난다','egoWithdrawGo030','primary');v.acts.classList.add('on');});
 }
@@ -183,7 +209,8 @@ function mountBloom(o,j){
 
 /* ---------- 뒤틀림 ---------- */
 function mountTwist(o,j){
- const voiced=!!(j&&j.voice030),cap=String(state.captainName||'').trim();
+ const voiced=!!(j&&j.voice030),direct=!!(j&&j.direct031),cap=String(state.captainName||'').trim();
+ if(voiced&&j&&!j.twistLine031){j.twistLine031=direct?TWIST_TALK[Math.floor(R((j.seed031||1)+3)*2)]:TWIST_TALK[2];persist();}
  let veins='';for(let i=0;i<16;i++){const a=i/16*Math.PI*2+R(i)*.3,r0=290;let x=Math.cos(a)*r0,y=Math.sin(a)*r0,d='M'+x.toFixed(0)+','+y.toFixed(0);
   for(let s=0;s<7;s++){const rr=r0-(s+1)*30,aa=a+(R(i*7+s)-.5)*.5;x=Math.cos(aa)*rr;y=Math.sin(aa)*rr;d+=' L'+x.toFixed(0)+','+y.toFixed(0);}veins+='<path class="hv-vein" d="'+d+'" style="--d:'+(2.3+R(i*3)*.8).toFixed(2)+'s"/>';}
  let spikes='';for(let i=0;i<11;i++){const sx=(R(i*5)-.5)*60,sy=-90+R(i*7)*130,a=Math.atan2(sy+20,sx)+(R(i*9)-.5)*.6,len=26+R(i*11)*46;
@@ -192,10 +219,10 @@ function mountTwist(o,j){
   '<svg class="hv-svg" viewBox="-200 -200 400 400" aria-hidden="true"><defs><filter id="hvTwist" x="-60%" y="-60%" width="220%" height="220%"><feTurbulence type="fractalNoise" baseFrequency=".022 .06" numOctaves="2" seed="7" result="n"><animate attributeName="baseFrequency" dur="3s" values=".022 .06;.03 .05;.022 .06" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G" class="hv-disp"/></filter></defs>'+
   '<g class="hv-veins">'+veins+'</g>'+
   '<g class="hv-body" filter="url(#hvTwist)" transform="translate(0 30)"><g class="hv-stretch">'+FIGURE+'<g class="hv-spikes">'+spikes+'</g></g></g></svg>'+
-  '<div class="hv-center"><div class="hv-lines">'+(voiced?'<p class="warm">“그러면, 이제 아무것도 참지 않아도 되겠네.”</p>':'')+'</div>'+
+  '<div class="hv-center"><div class="hv-lines">'+(voiced?'<p class="warm">“'+esc(j.twistLine031)+'”</p>':'')+'</div>'+
   '<div class="hv-dtitle"><div class="hv-dbig" data-t="뒤틀림">뒤틀림</div><div class="hv-dsub">'+esc((cap?'선장 '+cap:'선장'))+'이었던 것</div></div>'+
   '<div class="hv-actions">'+btn(voiced?'목소리를 따라간다':'뒤틀림을 받아들인다','mindTwistEnd','danger')+'</div></div>';
- const disp=o.querySelector('.hv-disp'),stretch=o.querySelector('.hv-stretch'),stage=o.querySelector('.hv-svg'),t0=performance.now(),B=voiced?2200:600;
+ const disp=o.querySelector('.hv-disp'),stretch=o.querySelector('.hv-stretch'),stage=o.querySelector('.hv-svg'),t0=performance.now(),B=direct?250:voiced?2200:600;
  const tick=now=>{const t=(now-t0)/1000*1000;const k=Math.max(0,Math.min(1,(t-B)/2600));
   if(disp)disp.setAttribute('scale',(k*k*46).toFixed(1));
   if(stretch)stretch.setAttribute('transform','scale('+(1-k*.12).toFixed(3)+' '+(1+k*.42).toFixed(3)+') skewX('+(Math.sin(t/180)*k*9).toFixed(1)+')');
@@ -294,6 +321,7 @@ renderPlay=function(){
 };
 const oldRender=render;
 render=function(){const out=oldRender.apply(this,arguments);try{syncOverlay();}catch(e){}return out;};
+document.addEventListener('click',e=>{const b=e.target?.closest?.('button[data-act="egoYield030"]');if(b&&state.mindJudge)state.mindJudge.direct031=true;},true);
 // 신 이름을 새긴 순간에만 발현 연출(이미 이름이 있던 저장에서는 재생하지 않음)
 let prevShin=null;
 document.addEventListener('click',e=>{const b=e.target?.closest?.('button[data-act="heartNameSave030"]');if(b)prevShin=state.shinName030||'';},true);
