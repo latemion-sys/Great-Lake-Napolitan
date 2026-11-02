@@ -28,10 +28,12 @@
  FX.theme=FX.theme||function(lake,def){return {};};
 
  // 진입 연출은 같은 호수 안에서 장면이 바뀌어도 다시 재생하지 않는다.
- let entryKey=null,entryAt=performance.now();
+ let entryKey=null,entryAt=null;
+ // 진입 시각은 화면 문자열을 만들 때가 아니라, 그 호수 그림이 실제로 화면에 처음 보이는 순간에 잡는다.
+ // (희귀 고래 조우처럼 호수 사건 화면보다 먼저 다른 화면이 뜨는 경우에도 배가 이미 도착해 있지 않도록)
  function entryFor(lake){
   const key=(state.voyage||0)+':'+lake.id+':'+(state.visited||[]).length;
-  if(key!==entryKey){entryKey=key;entryAt=performance.now();}
+  if(key!==entryKey){entryKey=key;entryAt=null;}
  }
 
  // 강철 쪽배: 오른쪽이 뱃머리. 원점은 수면에 닿는 선체 중앙.
@@ -140,9 +142,15 @@
  };
 
  // 매 프레임 현재 화면의 .lakefx 하나를 시간 기준으로 갱신한다.
+ // 호수 그림이 없는 다른 화면(희귀 고래 조우 등)을 거쳐 다시 호수 사건 화면으로 오면, 배가 왼쪽에서 다시 들어온다.
+ // (탭 전환·선택지·인어 전투처럼 호수 화면이 이어지는 동안에는 다시 들어오지 않음)
+ let awayScene=false;
  function frame(now){
   const el=document.querySelector('.lakefx');
-  if(el&&el.isConnected)paint(el,now);
+  if(el&&el.isConnected){
+   if(awayScene&&!el.dataset.battle){awayScene=false;entryAt=null;}
+   paint(el,now);
+  }else if(typeof state!=='undefined'&&state.scene!=='event'&&state.scene!=='battle'&&entryKey!=null&&String(entryKey).split(':')[1]==String(state.current))awayScene=true;
   requestAnimationFrame(frame);
  }
  function ease(x){x=Math.min(1,Math.max(0,x));return 1-Math.pow(1-x,2);}
@@ -151,6 +159,7 @@
   // '애니메이션 줄이기'(Windows 애니메이션 효과 끔 등)에서도 멈추지 않고,
   // 진입 미끄러짐만 생략한 채 조금 더 잔잔하게 떠 있는다.
   const calm=reduceMotion?0.6:1;
+  if(entryAt==null){if(!el.getClientRects().length)return;entryAt=now;}
   const t=(now-entryAt)/1000,a=(+el.dataset.bob||1)*calm,drift=(+el.dataset.drift||1)*calm;
   // 진입: 이미 노 저어 오던 배가 화면 왼쪽 밖에서 들어와 점점 느려지며 중앙에 멈춘다
   // 처음 60%는 일정한 빠르기로 나아가고(거리의 70%), 나머지는 천천히 느려지며 중앙에 멈춘다
@@ -262,7 +271,7 @@
  // 화면이 다시 그려진 직후(브라우저가 그리기 전)에 바로 한 번 칠해, 빈 수면이 한 프레임 비치지 않게 한다.
  new MutationObserver(()=>{
   const el=document.querySelector('.lakefx');
-  if(el&&!el.dataset.painted){el.dataset.painted='1';paint(el,performance.now());}
+  if(el&&!el.dataset.painted){el.dataset.painted='1';if(awayScene&&!el.dataset.battle){awayScene=false;entryAt=null;}paint(el,performance.now());}
  }).observe(document.body,{childList:true,subtree:true});
 
  if(state.scene==='event')render();
