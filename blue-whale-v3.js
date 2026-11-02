@@ -618,6 +618,7 @@ function lamp(el,t,toWorld,boost){
  const k=0.86+Math.sin(t*7.3)*.05+Math.sin(t*12.9+1.7)*.04+(boost||0);
  q('.bw-lampglow').style.opacity=n3(k);
  const lw=toWorld([51,-18.5]),lg=q('.bw-lampglint');
+ el.__lamp=[lw[0],lw[1],k];   // 셰이더(날개 등)가 등불 자리를 알 수 있게
  lg.setAttribute('cx',n1(lw[0]));lg.style.opacity=n3(0.25*k);
  const lr=q('.bw-lampref');if(lr){lr.setAttribute('transform','translate('+n1(lw[0])+' 0)');lr.setAttribute('opacity',n3(Math.max(0,Math.min(1,(SEA+14-lw[1])/30))*k));}
 }

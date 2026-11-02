@@ -96,7 +96,9 @@ function arm(o){
   return t;});
  for(let q=0;q<3;q++){const c=pol(pol(wr,ha,pl*(.35+q*.22)),ha+90,(q-1)*hw*.35);suckers.push([c[0],c[1],w*.1]);}
  const knuck=fingers.slice(0,4).map(f=>f.spine[3]).concat();
- return {arm:T,fingers:fingerT,palm:catmull(palm,true),suckers,elbow:el,wrist:wr,hand:palmC,spine,widths,knuck,fspines:fingers.map(f=>f.spine)};
+ // 셰이더용: 손바닥을 손목에서 손끝 쪽으로 뻗은 넓적한 관으로
+ const palmSpine=[pol(wr,ha,-w*.06),pol(wr,ha,pl*.3),pol(wr,ha,pl*.66),pol(wr,ha,pl*.96)],palmW=[hw*1.2,hw*1.9,hw*1.86,hw*1.66];
+ return {arm:T,fingers:fingerT,palm:catmull(palm,true),suckers,elbow:el,wrist:wr,hand:palmC,spine,widths,knuck,fspines:fingers.map(f=>f.spine),fws:fingers.map(f=>f.ws),palmSpine,palmW};
 }
 function armMarkup(cls){
  // 피부·빨판 노드(빨판 수는 넉넉히 만들어 두고 남는 것은 숨김)
@@ -115,6 +117,7 @@ function armMarkup(cls){
 }
 function paintArm(g,o){
  const A=arm(o);
+ if(window.LimbGL&&window.LimbGL.arm(g,A,o))return A;   // 셰이더로 칠함(실패하면 아래 SVG 그대로)
  const c=g._ra||(g._ra={body:g.querySelector('.ra-body'),palm:g.querySelector('.ra-palm'),f:Array.from(g.querySelectorAll('.ra-f')),tex:g.querySelector('.ra-tex'),rim:g.querySelector('.ra-rim'),shade:g.querySelector('.ra-shade'),kn:g.querySelector('.ra-knuck'),eb:g.querySelector('.ra-elbow'),s:Array.from(g.querySelectorAll('.ra-suck g'))});
  c.body.setAttribute('d',A.arm.d);c.palm.setAttribute('d',A.palm);
  c.f.forEach((f,i)=>f.setAttribute('d',A.fingers[i]?A.fingers[i].d:'M0,0'));

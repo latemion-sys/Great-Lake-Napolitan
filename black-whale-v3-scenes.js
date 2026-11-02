@@ -172,6 +172,11 @@ function placeWing(el,cls,x,y,rot,s,flip,o){
  w.setAttribute('transform','translate('+n1(x)+' '+n1(y)+') rotate('+n1(rot)+') scale('+n3(sx)+' '+n3(s)+')');
  const r=q('.'+cls+'R');if(r)r.setAttribute('transform','translate('+n1(x)+' '+n1(2*SEA-y+8)+') rotate('+n1(-rot)+') scale('+n3(sx)+' '+n3(-s*.62)+')');
  const fog=w.querySelector('.bk-fog');if(fog)fog.setAttribute('opacity',n3(opt.fog||0));
+ // 셰이더 날개: 등불(배 등불의 세계 좌표 → 날개 좌표)
+ if(window.LimbGL){const cg=w.firstElementChild;let lampL=null;const lw=el.__lamp;
+  if(lw){const c=Math.cos(-rot*RAD),sn=Math.sin(-rot*RAD),dx=lw[0]-x,dy=lw[1]-y;lampL=[(dx*c-dy*sn)/sx,(dx*sn+dy*c)/s,lw[2]];}
+  if(opt.lit&&opt.lit.k>0){const c=Math.cos(-rot*RAD),sn=Math.sin(-rot*RAD),dx=opt.lit.at[0]-x,dy=opt.lit.at[1]-y;lampL=[(dx*c-dy*sn)/sx,(dx*sn+dy*c)/s,Math.max(lampL?lampL[2]:0,opt.lit.k)];}
+  window.LimbGL.wing(w,cg,{t:opt.t||0,fog:opt.fog||0,wet:opt.wet,lamp:lampL,lampR:320/s,lit:w.__lit});}
  // 흘러내리는 물: 앞전 아래로 미끄러지는 젖은 막
  const t=opt.t||0;
  w.querySelectorAll('.bk-sh').forEach(e=>{const i=+e.dataset.i,k=((t*.42+i*.27)%1);
@@ -579,6 +584,9 @@ function wing2(cls,lit){
 function litWing(el,cls,gid,B,at,k){
  const w=cacheQ(el).q('.'+cls);if(!w)return;
  const a=w.querySelector('.bk-rl'),b=w.querySelector('.bk-rl2');if(!a)return;
+ w.__lit=null;
+ if(at&&k>0){const sx0=(B.flip?-1:1)*B.ws,c0=Math.cos(-B.rot*RAD),s0=Math.sin(-B.rot*RAD),dx0=at[0]-B.x,dy0=at[1]-B.y,cold=/c$/.test(gid);   // 셰이더 날개용 빛(날개 좌표)
+  w.__lit={at:[(dx0*c0-dy0*s0)/sx0,(dx0*s0+dy0*c0)/B.ws],k:clamp(k),r:240/B.ws,c:cold?[.85,.93,1]:[1,.84,.58]};}
  if(!at||k<=0){a.setAttribute('opacity','0');b.setAttribute('opacity','0');const c3=w.querySelector('.bk-rl3');if(c3)c3.setAttribute('opacity','0');return;}
  const sx=(B.flip?-1:1)*B.ws,c=Math.cos(-B.rot*RAD),sn=Math.sin(-B.rot*RAD),dx=at[0]-B.x,dy=at[1]-B.y;
  const g=el.querySelector('#'+gid);g.setAttribute('cx',n1((dx*c-dy*sn)/sx));g.setAttribute('cy',n1((dx*sn+dy*c)/B.ws));g.setAttribute('r',n1(240/B.ws));
