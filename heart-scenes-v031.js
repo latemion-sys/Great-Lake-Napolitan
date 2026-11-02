@@ -250,8 +250,8 @@ const SAY={
 };
 
 /* ---------- 덧씌우는 화면 ---------- */
-let ov=null,ovKey='',timers=[],raf=0,raf2=0;
-function clearOv(){timers.forEach(clearTimeout);timers=[];if(raf)cancelAnimationFrame(raf);raf=0;if(raf2){cancelAnimationFrame(raf2);raf2=0;}if(ov){ov.remove();ov=null;}ovKey='';}
+let ov=null,ovKey='',timers=[],raf=0,raf2=0,glfx=null;
+function clearOv(){timers.forEach(clearTimeout);timers=[];if(raf)cancelAnimationFrame(raf);raf=0;if(raf2){cancelAnimationFrame(raf2);raf2=0;}if(glfx){try{glfx.destroy();}catch(e){}glfx=null;}if(ov){ov.remove();ov=null;}ovKey='';}
 const at=(ms,fn)=>{timers.push(setTimeout(fn,reduce?Math.min(ms,ms*.6):ms));};
 function want(){
  if(state.scene==='dead')return null;
@@ -431,8 +431,56 @@ function fxShin(o){
  });
 }
 
+/* ---------- 셰이더 연출(WebGL2): 되면 이것으로, 안 되면 아래의 선 · 도형 연출로 ---------- */
+function glLayer(o,kind,opt){
+ opt=opt||{};opt.scale=opt.scale||.7;
+ if(!window.HeartGL||!HeartGL.supported())return null;
+ const c=document.createElement('canvas');c.className='hv-gl';c.setAttribute('aria-hidden','true');o.insertBefore(c,o.firstChild);
+ let fx=null;try{fx=HeartGL.create(c,kind,opt);}catch(e){fx=null;}
+ if(!fx){c.remove();return null;}
+ glfx=fx;o.classList.add('hv-gl-on');
+ // 느린 기기에서는 해상도를 스스로 낮춤(프레임이 45ms보다 오래 걸리면 80%씩, 최저 35%)
+ const t0=performance.now();let last=t0,acc=0,n=0;
+ const f=()=>{if(!o.isConnected)return;const now=performance.now();acc+=now-last;last=now;n++;
+  if(n>=20){if(acc/n>45&&opt.scale>.36){opt.scale*=.8;fx.set('scale',opt.scale);}acc=0;n=0;}
+  fx.render((now-t0)/1000);raf2=requestAnimationFrame(f);};raf2=requestAnimationFrame(f);
+ return fx;
+}
+function bloomGL(o,j){
+ const host=document.createElement('div');host.innerHTML='<div class="hv-title"><div class="hv-big">E.G.O</div><div class="hv-sub">마음이 껍질을 깨고 피어납니다</div></div>';
+ o.innerHTML='';o.appendChild(host.firstChild);
+ if(!glLayer(o,'bloom',{seed:(j&&j.seed031)||7}))return false;
+ at(2150,()=>shake(o,'hv-shake',600));
+ let done=false;const finish=()=>{if(done)return;done=true;o.classList.add('out');at(700,()=>{const jj=state.mindJudge;if(jj&&jj.stage==='bloom'){jj.bloomFx031=true;persist();}clearOv();render();});};
+ o.addEventListener('click',finish);at(6400,finish);return true;
+}
+function twistGL(o,j,voiced,direct,cap){
+ const B=direct?250:voiced?2200:600;
+ o.innerHTML='<div class="hv-center"><div class="hv-lines">'+(voiced?'<p class="warm">“'+esc(j.twistLine031)+'”</p>':'')+'</div>'+
+  '<div class="hv-dtitle"><div class="hv-dbig" data-t="뒤틀림">뒤틀림</div><div class="hv-dsub">'+esc((cap?'선장 '+cap:'선장'))+'이었던 것</div></div>'+
+  '<div class="hv-actions">'+btn(voiced?'목소리를 따라간다':'뒤틀림을 받아들인다','mindTwistEnd','danger')+'</div></div>';
+ if(!glLayer(o,'twist',{a:B/1000,b:(B+2700)/1000,seed:(j&&j.seed031)||5}))return false;
+ at(B,()=>o.classList.add('turning'));
+ at(B+2700,()=>{o.classList.add('named');shake(o,'hv-shake-hard',700);});
+ at(B+3600,()=>o.querySelector('.hv-actions').classList.add('on'));
+ o.addEventListener('click',e=>{if(e.target.closest('button'))return;timers.forEach(clearTimeout);timers=[];o.classList.add('turning','named');o.querySelector('.hv-actions').classList.add('on');});
+ return true;
+}
+function shinGL(o){
+ const fx=state.shinFx031||{},words=(fx.words||[]).slice(0,7),name=String(fx.name||'');
+ const R0=Math.min(innerWidth,innerHeight)*.34;
+ let ws='';words.forEach((w,i)=>{const a=-Math.PI/2+(i-(words.length-1)/2)*.62+(R(i)-.5)*.2,x=Math.cos(a)*R0*1.25,y=Math.sin(a)*R0*.85;
+  ws+='<span class="hv-word" style="left:calc(50% + '+x.toFixed(0)+'px);top:calc(40% + '+y.toFixed(0)+'px);--tx:'+(-x).toFixed(0)+'px;--ty:'+(-y).toFixed(0)+'px;--d:'+(.35+i*.22).toFixed(2)+'s">'+esc(w)+'</span>';});
+ o.innerHTML='<div class="hv-words" aria-hidden="true">'+ws+'</div><div class="hv-title shin"><div class="hv-big">'+[...name].map((ch,i)=>'<span style="--i:'+i+'">'+esc(ch)+'</span>').join('')+'</div><div class="hv-rule"></div><div class="hv-sub">신(心) 발현</div></div>';
+ if(!glLayer(o,'shin',{a:2.6,b:3.0,seed:7}))return false;
+ at(2600,()=>shake(o,'hv-thump',380));at(3020,()=>shake(o,'hv-thump',380));at(3000,()=>shake(o,'hv-shake',420));
+ let done=false;const finish=()=>{if(done)return;done=true;o.classList.add('out');at(700,()=>{delete state.shinFx031;persist();clearOv();});};
+ o.addEventListener('click',finish);at(8600,finish);return true;
+}
+
 /* ---------- E.G.O 개화 ---------- */
 function mountBloom(o,j){
+ if(bloomGL(o,j))return;
  const A=[-.2,.5,1.15,1.9,2.55,3.2,3.95,4.6,5.4],RS=96;
  let cracks='',shards='',petals='',rays='';
  A.forEach((a,i)=>{let d='M0,0',r=0,ang=a;while(r<RS){r=Math.min(RS,r+12+R(i*11+r)*14);ang=a+(R(i*13+r)-.5)*.32;d+=' L'+(Math.cos(ang)*r).toFixed(1)+','+(Math.sin(ang)*r).toFixed(1);}
@@ -469,6 +517,7 @@ function mountBloom(o,j){
 function mountTwist(o,j){
  const voiced=!!(j&&j.voice030),direct=!!(j&&j.direct031),cap=String(state.captainName||'').trim();
  if(voiced&&j&&!j.twistLine031){j.twistLine031=direct?TWIST_TALK[Math.floor(R((j.seed031||1)+3)*2)]:TWIST_TALK[2];persist();}
+ if(twistGL(o,j,voiced,direct,cap))return;
  let veins='';for(let i=0;i<16;i++){const a=i/16*Math.PI*2+R(i)*.3,r0=290;let x=Math.cos(a)*r0,y=Math.sin(a)*r0,d='M'+x.toFixed(0)+','+y.toFixed(0);
   for(let s=0;s<7;s++){const rr=r0-(s+1)*30,aa=a+(R(i*7+s)-.5)*.5;x=Math.cos(aa)*rr;y=Math.sin(aa)*rr;d+=' L'+x.toFixed(0)+','+y.toFixed(0);}veins+='<path class="hv-vein" d="'+d+'" style="--d:'+(2.3+R(i*3)*.8).toFixed(2)+'s"/>';}
  let spikes='';for(let i=0;i<11;i++){const sx=(R(i*5)-.5)*60,sy=-90+R(i*7)*130,a=Math.atan2(sy+20,sx)+(R(i*9)-.5)*.6,len=26+R(i*11)*46;
@@ -502,6 +551,7 @@ function mountTwist(o,j){
    ⑤ 이름: 신의 이름이 한 글자씩 새겨진다.
    (망은 이 연출에 넣지 않는다 — 신이 발현하는 순간까지만) */
 function mountShin(o){
+ if(shinGL(o))return;
  const fx=state.shinFx031||{},words=(fx.words||[]).slice(0,7),name=String(fx.name||'');
  const CY=-52;   // 가슴(형체 기준)
  let frag='';words.forEach((w,i)=>{const a=-Math.PI/2+(i-(words.length-1)/2)*.62+(R(i)-.5)*.2,r=140+R(i*3)*36,x=Math.cos(a)*r,y=Math.sin(a)*r*.78+6;
