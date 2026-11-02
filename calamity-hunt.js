@@ -315,7 +315,7 @@ renderSide=function(){
  const el=document.getElementById('meters');if(!el)return;
  const v=cm(),bits=[];
  bits.push(state.egoBloomed?'E.G.O · '+(state.egoName||EGO_DEFAULT):'E.G.O 미개화');
- if(state.egoBloomed)bits.push(state.shinOpen?'신 개방 · 망 '+shin()+' / '+MAX_RINGS:'신 미개방');
+ bits.push(state.shinOpen?'신(心) · '+(state.shinName030||'이름 없는 망(望)')+' · 망 '+shin()+' / '+MAX_RINGS:'신(心) 미발현');
  if(rings())bits.push('지금 두른 망 '+rings()+'개');
  if(judging())bits.push('판정 대기');
  el.insertAdjacentHTML('beforeend','<div class="barline"><span>선장 정신력</span><span>'+v+' / 100</span></div><div class="meter '+(v<=30?'alert':'')+'"><span style="width:'+v+'%"></span></div>'+
@@ -336,7 +336,7 @@ renderShop132=function(){
  let s='<div class="inset"><h3>'+REST.name+'</h3>'+
   '<p>13구의 날개 <b>M사</b>가 파는 특이점 제품. 매끈하게 빛나는 이 돌을 몸에 지니면 정신이 한 가지에 모여 잡생각이 걷히고, 바깥에서 파고드는 정신 공격을 버텨 낼 수 있다. 공격을 받아 낼수록 빛이 탁해지다가 끝내 아무 힘도 없는 돌이 된다.</p>'+
   '<p class="muted">항구에 들어오는 것은 집중을 돕는 정도의 하급품이라, 한 개로는 정신력 +'+REST.gain+'만큼만 버팁니다. 들어오는 물량이 적어 정박할 때마다 '+REST.max+'개까지만 팝니다. 포장은 반드시 귀마개를 쓰고 열 것. 맨 귀로 열면 물속으로 돌아가고 싶다는 충동에 사로잡힌다는 소문이 있습니다.</p>'+
-  '<p class="small muted">인어를 마주치거나 선원이 인어가 되는 것을 보면 선장의 정신력이 깎입니다. 0이 되면 뒤틀릴지, E.G.O가 피어날지 판정합니다.</p>'+
+  '<p class="small muted">인어를 마주치거나 선원이 인어가 되는 것을 보면 선장의 정신력이 깎입니다. 0이 되면 자신의 마음과 마주합니다.</p>'+
   tag('선장 정신력 '+v+' / 100')+' '+tag('이번 정박 구매 '+rn+' / '+REST.max)+'<div class="stack" style="margin-top:8px">'+
   button(REST.name+' 구매 · 선장 정신력 +'+REST.gain+' · '+unitMoney(REST.cost)+(rn>=REST.max?' (이번 정박에서는 더 살 수 없음)':v>=100?' (정신력 가득)':''),'capRest','','',!avail||rn>=REST.max||v>=100||state.gold<REST.cost)+
   '</div></div>';
@@ -348,8 +348,8 @@ renderShop132=function(){
  else s+=button('특수 작살 정비 · '+unitMoney(HARPOON.cost/2)+(h.damaged?'':' (정비 완료)'),'calHarpoonFix','','',!avail||!h.damaged||state.gold<HARPOON.cost/2);
  s+='</div></div><div class="inset"><h3>신과 망 수련</h3>';
  if(!state.shinOpen){
-  s+='<p>신은 감정과 기억에서 싹트는 힘입니다. 선장 4등급 이상의 마음에 나타나는 징조를 따라야만 발현을 시도할 수 있습니다.</p>'+
-   '<p class="small muted">신이 발현하기 전에는 망을 수련할 수 없습니다.</p>';
+  s+='<p>신은 감정과 기억에서 싹트는 힘입니다.</p>'+
+   '<p class="small muted">아직 신이 발현하지 않았습니다. 지금은 망을 수련할 수 없습니다.</p>';
  }else{
   const st=nextStep();
   s+='<p class="muted">스스로의 정신력을 깎아 가며 망을 확장하는 수련입니다. 실패해도 정신력은 돌아오지 않고, 0이 되면 다시 판정합니다. 발현과 동시에 열린 1망 이후의 망을 하나씩 익힙니다.</p>'+
