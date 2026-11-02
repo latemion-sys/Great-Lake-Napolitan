@@ -1,12 +1,12 @@
 /* 대호수 v0.2.4 · 항해 규칙 조정
-   - 평시 인어 조우 10%·고래 조우 5% 유지. 파도성 재해는 위험도별 6/12/20/30%이며, 발생 시 대개 고래나 인어가 동반됨.
+   - 평시 인어 조우 10%. 재앙의 고래는 출항마다 50개 호수 중 한 곳만 정해 그 호수에서 1% 확률로 등장(희귀 고래는 기존 조우 기회의 일부로 등장). 파도성 재해는 위험도별 6/12/20/30%이며, 발생 시 대개 고래나 인어가 동반됨.
    - 출항 전 이야기: 뱃노래 노랫말(싸고 애매함) / 구전으로 전해지는 법(비싸지만 자세함)
    - [대호수 주파]: 3등급 이상 선장이 항구에 돌아올 때 15% 확률로 제안. 랜덤 호수 15개, 장면마다 30초 안에 고르지 못하면 사망.
      끝까지 건너면 자금 + 선체 보강(최대 내구도 +10, 영구) + 기적 업적 [대호수를 주파한 선장]
    - 업적 달성 횟수: 같은 생애에서는 한 번, 사망 후 다시 달성하면 +1 (대호수 주파는 건널 때마다 +1) */
 (function(){
 'use strict';
-const MERMAID_P=.10,WHALE_P=.05,RARE_SHARE=.3,CROSS_P=.15,CROSS_LAKES=15,CROSS_SEC=30,HULL_STEP=10,HULL_CAP=50;
+const MERMAID_P=.10,WHALE_P=.05,RARE_SHARE=.3,CALAMITY_P=.01,CROSS_P=.15,CROSS_LAKES=15,CROSS_SEC=30,HULL_STEP=10,HULL_CAP=50;
 // 위험도는 호수 입장 시 단 한 번 파도성 재해가 발생하는 확률을 뜻합니다.
 const WAVE_RISK_028=[0,.06,.12,.20,.30],WAVE_WHALE_SHARE_028=.30,WAVE_MERMAID_SHARE_028=.50;
 const waveProbability028=risk=>WAVE_RISK_028[Math.max(1,Math.min(4,Math.round(Number(risk)||1)))];
@@ -54,6 +54,22 @@ function pickWhale(){
  if(!pool.length||Math.random()<RARE_SHARE){const keys=Object.keys(RARE);return {rare:keys[rng(keys.length)]};}
  return {k:pool[rng(pool.length)]};
 }
+function pickCalamity025(){
+ const pool=WHALES.map((_,i)=>i).filter(i=>!huntedWhaleIndices143().includes(i));if(!pool.length)return null;
+ const hint=state.whaleHint024;
+ const k=hint!=null&&pool.includes(hint)&&Math.random()<.5?hint:pool[rng(pool.length)];
+ return {lake:LAKES[rng(LAKES.length)].id,k};
+}
+const basePrepare025=prepareVoyage;
+prepareVoyage=function(){
+ const r=basePrepare025.apply(this,arguments);
+ if(state.scene==='prep'&&!state.sea){
+  state.calamityLake025=pickCalamity025();
+  state.whalePlaces={};if(state.calamityLake025)state.whalePlaces[state.calamityLake025.lake]=state.calamityLake025.k;   // 술집 목격담이 가리키는 호수와 같게
+  save();
+ }
+ return r;
+};
 const baseEnter=enterNextLake0131;
 enterNextLake0131=function(id){
  if(state.scene!=='route'||!state.offered.includes(id)||state.visited.includes(id))return baseEnter.apply(this,arguments);
@@ -63,17 +79,18 @@ enterNextLake0131=function(id){
  const waveTypeRoll=wave?Math.random():1;
  const waveKind=wave?(waveTypeRoll<WAVE_WHALE_SHARE_028?'whale':
    waveTypeRoll<WAVE_WHALE_SHARE_028+WAVE_MERMAID_SHARE_028?'mermaid':'wave'):null;
- // 기존의 평시 고래 5%, 인어 10% 기회를 남기고 파도 발생 시 별도로 동반 조우를 추가합니다.
+ // 평시 조우 5%·파도 동반 조우는 이제 희귀 고래에만 쓰인다(재앙의 고래는 아래 1곳·1% 규칙). 인어 10%는 그대로.
  const whaleEncounter=waveKind==='whale'||Math.random()<WHALE_P;
  const mermaidEncounter=waveKind==='mermaid'||Math.random()<MERMAID_P;
  state.whalePlaces={};
  state.waveHazard028=null;
  let rare=null;
- if(whaleEncounter){
-  const w=pickWhale();
-  if(w.rare)rare=w.rare;
-  else state.whalePlaces[id]=w.k;
- }
+ // 재앙의 고래(창백한·푸른·붉은·까만·노란): 출항 준비 때 50개 호수 중 한 곳만 정해 두고,
+ // 그 호수에 들어갔을 때에만 1% 확률로 나타난다(정해진 호수가 이번 항로에 없으면 이번 출항엔 나타나지 않음).
+ const C=state.calamityLake025;
+ if(C&&C.lake===id&&Math.random()<CALAMITY_P&&!huntedWhaleIndices143().includes(C.k))state.whalePlaces[id]=C.k;
+ // 희귀 고래는 기존 조우 기회 그대로(평시 조우·파도 동반 조우 중 일부)
+ if(whaleEncounter&&Math.random()<RARE_SHARE){const keys=Object.keys(RARE);rare=keys[rng(keys.length)];}
  const result=baseEnter.apply(this,arguments);
  if(state.scene==='dead'||state.current!==id)return result;
  state.normalMermaidDraw=mermaidEncounter;
@@ -340,7 +357,7 @@ document.addEventListener('click',function(e){
 // 재시작 · 저장 복구 정리
 if(state.scene==='rareWhale'&&!state.rareWhale024){state.scene='event';}
 if(state.crossing024&&!state.sea)state.crossing024=null;
-window.Voyage024={hullBonus,crossing,startCrossing,pickWhale,RARE,MERMAID_P,WHALE_P,CROSS_P,
+window.Voyage024={hullBonus,crossing,startCrossing,pickWhale,pickCalamity025,CALAMITY_P,RARE,MERMAID_P,WHALE_P,CROSS_P,
  waveProbability:waveProbability028,waveRiskRates:WAVE_RISK_028.slice(1),
  waveCompanions:{whale:WAVE_WHALE_SHARE_028,mermaid:WAVE_MERMAID_SHARE_028,waveOnly:1-WAVE_WHALE_SHARE_028-WAVE_MERMAID_SHARE_028},
  timer:()=>({...timer})};
