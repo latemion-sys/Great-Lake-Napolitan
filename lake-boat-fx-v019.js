@@ -9,8 +9,8 @@
  if(typeof renderScriptedLake015!=='function')return;
 
  const W=800,H=200,SEA=132;          // viewBox 크기와 기준 수면 높이
- const ENTER_SECONDS=5.6;            // 화면 왼쪽 밖에서 미끄러져 들어와 중앙에 닿기까지(모든 호수 공통)
- const ENTER_FROM=250;               // 중앙에서 왼쪽으로 떨어진 출발 거리
+ const ENTER_SECONDS=8;              // 화면 왼쪽 밖에서 노 저어 들어와 중앙에 닿기까지(모든 호수 공통)
+ const ENTER_FROM=300;               // 중앙에서 왼쪽으로 떨어진 출발 거리(화면 밖)
  const STEP=20;                      // 수면 곡선 표본 간격
  const reduceMotion=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -153,8 +153,10 @@
   const calm=reduceMotion?0.6:1;
   const t=(now-entryAt)/1000,a=(+el.dataset.bob||1)*calm,drift=(+el.dataset.drift||1)*calm;
   // 진입: 이미 노 저어 오던 배가 화면 왼쪽 밖에서 들어와 점점 느려지며 중앙에 멈춘다
-  const ek=Math.min(1,Math.max(0,t/ENTER_SECONDS)),enter=reduceMotion?1:1-Math.pow(1-ek,3);
-  const speed=reduceMotion?0:Math.pow(1-ek,2);   // 0~1: 물살 가르는 세기
+  // 처음 60%는 일정한 빠르기로 나아가고(거리의 70%), 나머지는 천천히 느려지며 중앙에 멈춘다
+  const ek=Math.min(1,Math.max(0,t/ENTER_SECONDS));
+  const enter=reduceMotion?1:ek<.6?ek/.6*.7:.7+.3*(1-Math.pow(1-(ek-.6)/.4,2));
+  const speed=reduceMotion?0:ek<.6?1:Math.max(0,1-(ek-.6)/.4);   // 0~1: 물살 가르는 세기
 
   // 수면
   const line=surfPath(t,a,0);
