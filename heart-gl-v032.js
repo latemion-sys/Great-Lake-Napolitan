@@ -129,6 +129,31 @@ void main(){
   col=vec3(scene(p-d*1.3,t).r,scene(p-d,t).g,scene(p-d*.7,t).b);
   col+=vec3(1.,.85,.6)*band*.25;
  }else col=scene(p,t);
+ // E.G.O 글자: 금 간 틈으로 빛이 새듯 노이즈 경계를 따라 타오르며 드러나고, 처음엔 색이 갈라졌다 맞춰지며, 빛이 한 번 훑고 지나감
+ float ta=3.55;
+ if(t>ta-.1){
+  float aw=min(.8,uRes.x/uRes.y*.94),ah=aw*.25;vec2 tc=vec2(0.,-.39);
+  vec2 tu=(p-tc)/vec2(aw,ah)+.5;
+  if(tu.x>0.&&tu.x<1.&&tu.y>0.&&tu.y<1.){
+   vec2 uvT=vec2(tu.x,1.-tu.y);
+   float g=t-ta,split=.012*exp(-g*3.)*(1.+.6*sin(g*40.));
+   float jit=step(.86,hash(vec2(floor(uvT.y*18.),floor(t*16.))))*exp(-g*2.5)*.02;
+   float aR=texture(uTex,uvT+vec2(split+jit,0.)).r,aG=texture(uTex,uvT+vec2(jit*.5,0.)).r,aB=texture(uTex,uvT-vec2(split-jit,0.)).r;
+   float n=fbm(uvT*vec2(14.,4.)+3.1)*.75+fbm(uvT*vec2(40.,12.))*.25;
+   float th=smoothstep(.05,1.9,g)*1.18;
+   float shown=smoothstep(n-.04,n+.04,th),burn=smoothstep(n-.12,n,th)*(1.-smoothstep(n,n+.06,th));
+   float sh=0.;for(int i=0;i<6;i++){float an=float(i)*1.047;sh+=texture(uTex,uvT+vec2(cos(an),sin(an)*4.)*.012).r;}sh/=6.;
+   col*=1.-.7*sh*smoothstep(0.,.8,g);   // 글자 뒤를 어둡게 눌러 읽히게
+   vec3 txt=vec3(aR,aG,aB)*shown;
+   vec3 base=mix(vec3(1.,.86,.55),vec3(1.,.97,.9),txt.g);
+   float sweep=exp(-pow((uvT.x-(g-1.)*.8)*6.,2.))*smoothstep(.9,1.4,g)*(1.-smoothstep(2.6,3.,g));
+   col+=txt*base*(1.+sweep*1.6);
+   float aW=texture(uTex,uvT+vec2(0.,.0)).r+texture(uTex,uvT+vec2(.006,0.)).r+texture(uTex,uvT-vec2(.006,0.)).r;
+   col+=vec3(1.,.5,.15)*burn*min(1.,aW)*3.;
+   col+=vec3(1.,.62,.25)*burn*sh*1.2;
+   col+=vec3(1.,.8,.45)*aG*shown*.25*exp(-g*.6);
+  }
+ }
  col=1.-exp(-col*1.25);
  o=vec4(finish(col,p,.035),1.);
 }`;
@@ -301,6 +326,16 @@ function program(g,vs,fs){const v=compile(g,g.VERTEX_SHADER,vs),f=compile(g,g.FR
  if(!g.getProgramParameter(p,g.LINK_STATUS)){console.warn(g.getProgramInfoLog(p));return null;}return p;}
 const QV=`#version 300 es
 in vec2 aP;void main(){gl_Position=vec4(aP,0.,1.);}`;
+function textTexture(g,title,sub){
+ const c=document.createElement('canvas');c.width=1024;c.height=256;const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,1024,256);
+ x.fillStyle='#fff';x.textBaseline='middle';
+ const big='140px "Noto Serif KR","Nanum Myeongjo","Batang",serif',sp=34;x.font=big;
+ const chars=[...title],ws=chars.map(ch=>x.measureText(ch).width),tw=ws.reduce((a,b)=>a+b,0)+sp*(chars.length-1);let cx=512-tw/2;
+ chars.forEach((ch,i)=>{x.fillText(ch,cx,92);cx+=ws[i]+sp;});
+ x.font='34px "Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif';x.textAlign='center';x.globalAlpha=.85;x.fillText(sub,512,206);x.globalAlpha=1;
+ const t=g.createTexture();g.bindTexture(g.TEXTURE_2D,t);g.texImage2D(g.TEXTURE_2D,0,g.RGBA,g.RGBA,g.UNSIGNED_BYTE,c);
+ g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MIN_FILTER,g.LINEAR);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MAG_FILTER,g.LINEAR);
+ g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_S,g.CLAMP_TO_EDGE);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_T,g.CLAMP_TO_EDGE);return t;}
 function glyphTexture(g,ch){
  const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,256,256);
  x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';x.font='200px "Noto Serif KR","Nanum Myeongjo","Batang","AppleMyungjo",serif';x.fillText(ch,128,136);
@@ -324,7 +359,7 @@ function create(canvas,kind,opt){
  g.bindVertexArray(null);
  const U=(p,n)=>g.getUniformLocation(p,n);
  const fu={res:U(fp,'uRes'),t:U(fp,'uT'),a:U(fp,'uA'),b:U(fp,'uB'),c:U(fp,'uC'),tex:U(fp,'uTex')},pu={res:U(pp,'uRes'),t:U(pp,'uT'),a:U(pp,'uA'),b:U(pp,'uB'),kind:U(pp,'uKind')};
- const tex=kind==='shin'?glyphTexture(g,'心'):null;
+ const tex=kind==='shin'?glyphTexture(g,'心'):kind==='bloom'?textTexture(g,opt.title||'E.G.O',opt.sub||''):null;
  if(!opt.scale)opt.scale=.7;
  function resize(){const dpr=Math.min(2,window.devicePixelRatio||1),w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||innerHeight,scale=opt.scale;
   let W=Math.round(w*dpr*scale),Hh=Math.round(h*dpr*scale);const cap=1280/Math.max(W,Hh);if(cap<1){W=Math.round(W*cap);Hh=Math.round(Hh*cap);}

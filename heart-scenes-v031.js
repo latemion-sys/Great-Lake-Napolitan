@@ -449,7 +449,8 @@ function glLayer(o,kind,opt){
 function bloomGL(o,j){
  const host=document.createElement('div');host.innerHTML='<div class="hv-title"><div class="hv-big">E.G.O</div><div class="hv-sub">마음이 껍질을 깨고 피어납니다</div></div>';
  o.innerHTML='';o.appendChild(host.firstChild);
- if(!glLayer(o,'bloom',{seed:(j&&j.seed031)||7}))return false;
+ if(!glLayer(o,'bloom',{seed:(j&&j.seed031)||7,title:'E.G.O',sub:'마음이 껍질을 깨고 피어납니다'}))return false;
+ o.classList.add('hv-gltitle');   // 글자는 셰이더 안에서 그림(화면 읽기용 글자는 남겨 둠)
  at(2150,()=>shake(o,'hv-shake',600));
  let done=false;const finish=()=>{if(done)return;done=true;o.classList.add('out');at(700,()=>{const jj=state.mindJudge;if(jj&&jj.stage==='bloom'){jj.bloomFx031=true;persist();}clearOv();render();});};
  o.addEventListener('click',finish);at(6400,finish);return true;

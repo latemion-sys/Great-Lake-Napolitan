@@ -174,3 +174,4 @@
 .hv-gl-on .hv-dsub,.hv-gl-on .hv-lines p{text-shadow:0 0 10px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.9)}
 .hv-gl-on .hv-big{text-shadow:0 0 14px rgba(255,214,140,.7),0 0 4px rgba(0,0,0,.8),0 0 30px rgba(0,0,0,.6)}
 .hv-gl-on .hv-title.shin{bottom:4%}
+.hv-gltitle .hv-title{opacity:0!important;animation:none!important}
