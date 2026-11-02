@@ -9,7 +9,8 @@
  if(typeof renderScriptedLake015!=='function')return;
 
  const W=800,H=200,SEA=132;          // viewBox 크기와 기준 수면 높이
- const ENTER_SECONDS=7;              // 안개에서 나와 중앙에 닿기까지
+ const ENTER_SECONDS=5.6;            // 화면 왼쪽 밖에서 미끄러져 들어와 중앙에 닿기까지(모든 호수 공통)
+ const ENTER_FROM=250;               // 중앙에서 왼쪽으로 떨어진 출발 거리
  const STEP=20;                      // 수면 곡선 표본 간격
  const reduceMotion=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -116,6 +117,7 @@
    '<g clip-path="url(#lfxBelow)"><g class="lfx-reflection" filter="url(#lfxSoft)">'+B+'</g></g>'+
    '<ellipse class="lfx-glint" rx="18" ry="2.8" fill="'+th.lamp+'" filter="url(#lfxGlint)"/>'+
    '<g class="lfx-ripples"><path class="lfx-ripple"/><path class="lfx-ripple"/></g>'+
+   '<g class="lfx-wake"><path/><path/><path/><path class="lfx-bow"/></g>'+
    '<g clip-path="url(#lfxAbove)"><g class="lfx-boat">'+B+'</g></g>'+
    '<path class="lfx-crest"/>'+ly('surface')+SHOT+
    '</svg>'+
@@ -150,7 +152,9 @@
   // 진입 미끄러짐만 생략한 채 조금 더 잔잔하게 떠 있는다.
   const calm=reduceMotion?0.6:1;
   const t=(now-entryAt)/1000,a=(+el.dataset.bob||1)*calm,drift=(+el.dataset.drift||1)*calm;
-  const enter=reduceMotion?1:ease(t/ENTER_SECONDS);
+  // 진입: 이미 노 저어 오던 배가 화면 왼쪽 밖에서 들어와 점점 느려지며 중앙에 멈춘다
+  const ek=Math.min(1,Math.max(0,t/ENTER_SECONDS)),enter=reduceMotion?1:1-Math.pow(1-ek,3);
+  const speed=reduceMotion?0:Math.pow(1-ek,2);   // 0~1: 물살 가르는 세기
 
   // 수면
   const line=surfPath(t,a,0);
@@ -162,7 +166,7 @@
   $$(el,'.lfx-far').forEach(p=>p.setAttribute('d',farLine(+p.dataset.i,t,a)));
 
   // 배: 왼쪽 안개에서 천천히 나와 중앙 부근에서 너울을 탄다.
-  const x=W/2-40+(1-enter)*-320+Math.sin(t*0.21)*42*drift*enter;
+  const x=W/2-40-(1-enter)*ENTER_FROM+Math.sin(t*0.21)*42*drift*enter;
   const y=surf(x,t,a)+0.8+Math.sin(t*1.9)*0.7*a;
   const slope=(surf(x+18,t,a)-surf(x-18,t,a))/36;
   const roll=Math.atan(slope)*180/Math.PI*0.9+Math.sin(t*1.25+0.6)*1.6*a;
@@ -171,7 +175,18 @@
   boat.setAttribute('transform','translate('+x.toFixed(2)+' '+y.toFixed(2)+') rotate('+roll.toFixed(2)+') scale('+s+')');
   ref.setAttribute('transform','translate('+x.toFixed(2)+' '+(y+1.5).toFixed(2)+') rotate('+(-roll).toFixed(2)+') scale('+s+' '+(-s*0.8)+')');
   ref.style.opacity=(0.3*enter).toFixed(3);
-  boat.style.opacity=(0.25+0.75*Math.min(1,t/1.6)).toFixed(3); // 안개 속에서 서서히 드러남
+  boat.style.opacity='1';
+  // 뱃자국: 움직이는 동안 고물 뒤로 V자 물결이 벌어지며 남고, 뱃머리에 물이 갈라진다(멈추면 사라짐)
+  const wk=el.querySelectorAll('.lfx-wake path');
+  if(wk.length){
+   const sx=x-46*s,len=40+150*speed;
+   for(let k=0;k<3;k++){const p=wk[k],side=k===2?0:k?1:-1;let d='';
+    for(let j=0;j<=10;j++){const u=j/10,xx=sx-u*len,yy=surf(xx,t,a)+1.5+side*u*(6+4*speed)+(side?0:u*1.2)+Math.sin(u*9-t*6+k)*.5*u;d+=(j?' L':'M')+xx.toFixed(1)+','+yy.toFixed(1);}
+    p.setAttribute('d',d);p.style.strokeOpacity=((k===2?.35:.55)*speed).toFixed(3);p.style.strokeWidth=(k===2?2.4:1.2).toFixed(1);}
+   const bw=wk[3],bx=x+50*s,by=surf(bx,t,a);
+   bw.setAttribute('d','M'+(bx-6).toFixed(1)+','+(by+1).toFixed(1)+' Q'+(bx+2).toFixed(1)+','+(by-3*speed-1).toFixed(1)+' '+(bx+8+6*speed).toFixed(1)+','+(by+1.5).toFixed(1));
+   bw.style.strokeOpacity=(.7*speed).toFixed(3);
+  }
 
   // 배 주위로 퍼지는 물결: 수면 곡선을 따라 그린 짧은 호
   $$(el,'.lfx-ripple').forEach((r,i)=>{
