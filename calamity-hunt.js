@@ -1,8 +1,8 @@
 /* 대호수 · 선장의 정신력 · E.G.O · 신과 망 · 재앙의 고래 사냥 조건
-   [선장 정신력] 0~100. 선원의 '정신 상태'와는 따로 선장 한 사람의 정신.
+   [선장 정신력] 0~100. 기존 정신 상태를 대체하는 유일한 정신력 자원.
      - 인어를 조우하면 -5 (특이한 인어 · 고래 속 인어 -10), 선원이 인어가 되면 한 명당 -10.
      - 망을 두르거나 신과 망을 수련할 때도 선장 자신의 정신력을 쓴다.
-     - 항구 상점 'M사 특제 월광석': 한 개 15만 안, 정신력 +15, 항구에 들를 때마다 최대 5개(최대 75만 안).
+     - 월광석 판매와 회복 효과는 등급별 정비소로 통합합니다.
    [정신력 0 판정] 동전 판정. 뒤틀리면 그대로 엔딩, E.G.O를 개화하면 이름을 새긴다(비우면 '개화 E.G.O').
      - 이미 개화한 선장이 다시 0이 되면, E.G.O가 붙잡아 주면 버티고 아니면 뒤틀린다.
      - 재앙 사냥 도중에 0이 되면 사냥 단계가 끝난 뒤 판정한다.
@@ -356,7 +356,7 @@ renderShop132=function(){
  return out+s+'</div>';
 };
 document.addEventListener('click',function(e){
- const b=e.target&&e.target.closest&&e.target.closest('button[data-act="calHarpoonBuy"],button[data-act="calHarpoonFix"],button[data-act="shinTry"],button[data-act="capRest"]');
+ const b=e.target&&e.target.closest&&e.target.closest('button[data-act="calHarpoonBuy"],button[data-act="calHarpoonFix"],button[data-act="shinTry"]');
  if(!b||b.disabled||busy||!inShop132()||judging())return;
  const act=b.dataset.act;
  if(act==='calHarpoonBuy'&&!harp()&&state.grade>=HARPOON.grade&&state.gold>=HARPOON.cost){
