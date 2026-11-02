@@ -3,7 +3,7 @@
      "이제야 내 말을 귀담아 들어주는구나"로 이어지고, 이 선장의 생애(잃은 선원 · 지나온 호수 · 등급 · 결의 · 신)에 맞춰 목소리가 말을 고른다.
    · E.G.O 개화: 마음을 감싼 껍질이 안쪽의 빛에 금 가고 깨져 흩어진 자리에서 빛의 꽃잎이 피어난다.
    · 뒤틀림: 따스한 목소리가 식어 붉게 번지고, 선장의 형체가 일그러져 다른 것이 된다.
-   · 신(心) 발현: 떠올린 기억이 가슴으로 모여 금빛 불꽃 같은 기운이 몸을 감싸고, 빛의 고리(망) 하나가 작살에 맺힌다.
+   · 신(心) 발현: 떠올린 기억이 가슴으로 모여 금빛 불꽃 같은 기운이 몸을 감싸고, 빛의 고리(망) 하나가 손목에 맺힌다.
    화면은 게임 화면 바깥(body)에 따로 띄워, 게임이 다시 그려져도 연출이 끊기거나 처음부터 다시 재생되지 않는다. */
 (function(){
 'use strict';
@@ -209,35 +209,91 @@ function mountTwist(o,j){
  o.addEventListener('click',e=>{if(e.target.closest('button'))return;timers.forEach(clearTimeout);timers=[];o.classList.add('turning','named');o.querySelector('.hv-actions').classList.add('on');});
 }
 
-/* ---------- 신(心) 발현 ---------- */
+/* ---------- 신(心) 발현 ----------
+   ① 고요: 어둠 속 가슴에 희미한 불씨가 느리게 뛴다.
+   ② 기억: 떠올린 이름과 바람이 흐릿하게 떠올랐다가 또렷해지고, 빛 알갱이로 부서져 소용돌이치며 가슴으로 빨려 든다.
+   ③ 고동: 가슴의 불씨가 두 번 크게 뛰며 빛의 물결이 퍼진다.
+   ④ 기운: 금빛 불꽃 같은 기운이 몸을 따라 피어올라 감싸고, 불티가 위로 날리며 발밑 물에 빛이 고인다(아지랑이처럼 일렁임).
+   ⑤ 망: 가슴의 빛이 어깨와 팔을 타고 손끝까지 흘러, 손목에 빛의 고리 하나가 그려지듯 맺히고 불꽃이 튄다. 고리는 천천히 기울며 돈다.
+   ⑥ 이름: 신의 이름이 한 글자씩 새겨진다. */
 function mountShin(o){
- const fx=state.shinFx031||{},words=(fx.words||[]).slice(0,7);
- let frag='';words.forEach((w,i)=>{const a=-Math.PI/2+(i-(words.length-1)/2)*.55,r=150+R(i*3)*30;frag+='<text class="hv-frag" x="'+(Math.cos(a)*r).toFixed(0)+'" y="'+(Math.sin(a)*r*0.8+10).toFixed(0)+'" style="--tx:'+(-Math.cos(a)*r).toFixed(0)+'px;--ty:'+(-(Math.sin(a)*r*0.8+10)+(-40)).toFixed(0)+'px;--d:'+(.2+i*.18).toFixed(2)+'s">'+esc(w)+'</text>';});
- let flames='';for(let i=0;i<3;i++)flames+='<path class="hv-flame f'+i+'"/>';
+ const fx=state.shinFx031||{},words=(fx.words||[]).slice(0,7),name=String(fx.name||'');
+ const CY=-52;   // 가슴(형체 기준)
+ let frag='';words.forEach((w,i)=>{const a=-Math.PI/2+(i-(words.length-1)/2)*.62+(R(i)-.5)*.2,r=140+R(i*3)*36,x=Math.cos(a)*r,y=Math.sin(a)*r*.78+6;
+  frag+='<text class="hv-frag" x="'+x.toFixed(0)+'" y="'+y.toFixed(0)+'" style="--tx:'+(-x).toFixed(0)+'px;--ty:'+(-(y)+CY+30).toFixed(0)+'px;--d:'+(.35+i*.22).toFixed(2)+'s">'+esc(w)+'</text>';});
+ let motes='';for(let i=0;i<46;i++)motes+='<circle r="1"/>';
+ let sparks='';for(let i=0;i<44;i++)sparks+='<circle r="1"/>';
+ let orbit='';for(let i=0;i<6;i++)orbit+='<circle r="1.1"/>';
+ let burst='';for(let i=0;i<14;i++){const a=i/14*Math.PI*2;burst+='<path d="M'+(Math.cos(a)*9).toFixed(1)+','+(Math.sin(a)*4).toFixed(1)+' L'+(Math.cos(a)*(26+R(i)*14)).toFixed(1)+','+(Math.sin(a)*(12+R(i)*6)).toFixed(1)+'"/>';}
+ let flames='';for(let i=0;i<4;i++)flames+='<path class="hv-flame f'+i+'"/>';
  o.innerHTML='<svg class="hv-svg" viewBox="-200 -200 400 400" aria-hidden="true"><defs>'+
   '<radialGradient id="hvAura" cx=".5" cy=".62" r=".6"><stop stop-color="#fff2c0" stop-opacity=".95"/><stop offset=".35" stop-color="#ffc84a" stop-opacity=".75"/><stop offset=".75" stop-color="#ff8a1e" stop-opacity=".35"/><stop offset="1" stop-color="#ff6a00" stop-opacity="0"/></radialGradient>'+
+  '<radialGradient id="hvAuraCore" cx=".5" cy=".6" r=".55"><stop stop-color="#fffbe8" stop-opacity=".9"/><stop offset=".5" stop-color="#ffe08a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb040" stop-opacity="0"/></radialGradient>'+
   '<radialGradient id="hvEmber"><stop stop-color="#fffbe0"/><stop offset=".5" stop-color="#ffd060"/><stop offset="1" stop-color="#ff9a20" stop-opacity="0"/></radialGradient>'+
+  '<radialGradient id="hvPool"><stop stop-color="#ffd27a" stop-opacity=".6"/><stop offset=".5" stop-color="#ffb040" stop-opacity=".18"/><stop offset="1" stop-color="#ffb040" stop-opacity="0"/></radialGradient>'+
+  '<linearGradient id="hvHarpLit" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#ffcf6a"/><stop offset="1" stop-color="#fff6d8"/></linearGradient>'+
   '<filter id="hvFlameBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>'+
-  '<filter id="hvRingGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+
-  '<g class="hv-frags">'+frag+'</g>'+
-  '<g class="hv-aura" transform="translate(0 30)">'+flames+'</g>'+
-  '<g transform="translate(0 30)">'+FIGURE+HARPOON+'<circle class="hv-ember" cx="0" cy="-52" r="16" fill="url(#hvEmber)"/>'+
-   '<g class="hv-mang" transform="translate(64 -70) rotate(27)"><ellipse rx="15" ry="5.2" pathLength="100"/></g></g></svg>'+
-  '<div class="hv-title shin"><div class="hv-big">'+esc(fx.name||'')+'</div><div class="hv-sub">신(心) 발현 · 첫 번째 망(望)</div></div>';
- const fl=[...o.querySelectorAll('.hv-flame')],t0=performance.now();
- const tick=now=>{const t=(now-t0)/1000,k=Math.max(0,Math.min(1,(t-1.4)/1.4));
-  fl.forEach((p,li)=>{const sc=1+li*.16;let d='';const N=36;
-   for(let i=0;i<=N;i++){const u=i/N,a=Math.PI*2*u;let rx=46*sc,ry=82*sc;
-    // 위로 갈수록 혀처럼 솟는 불꽃 가장자리
-    const up=Math.max(0,-Math.sin(a)),flick=Math.sin(a*5+t*7+li)*.5+Math.sin(a*9-t*11+li*2)*.35+Math.sin(a*3+t*4.3)*.4;
-    const r=1+flick*.07*k+up*up*(.18+.22*k)*(.7+.3*Math.sin(t*6+u*20));
-    d+=(i?' L':'M')+(Math.cos(a)*rx*r).toFixed(1)+','+(-20+Math.sin(a)*ry*r-up*up*24*k).toFixed(1);}
-   p.setAttribute('d',d+' Z');p.style.opacity=(k*(.85-li*.22)).toFixed(3);});
+  '<filter id="hvHeat" x="-30%" y="-30%" width="160%" height="160%"><feTurbulence class="hv-heatn" type="fractalNoise" baseFrequency=".03 .09" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G"/></filter>'+
+  '<filter id="hvFigGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="6"/></filter>'+
+  '<filter id="hvRingGlow" x="-80%" y="-200%" width="260%" height="500%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+  '<filter id="hvSoftDot" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation=".8"/></filter></defs>'+
+  '<g transform="translate(0 30)">'+
+   '<ellipse class="hv-pool" cx="0" cy="47" rx="96" ry="13" fill="url(#hvPool)"/>'+
+   '<g class="hv-aura" filter="url(#hvHeat)">'+flames+'</g>'+
+   '<g class="hv-figglow" filter="url(#hvFigGlow)">'+FIGURE+'</g>'+
+   FIGURE+
+   '<path class="hv-harplit" d="M2,-52 Q22,-60 29,-54 L34,-12" pathLength="100"/>'+
+   '<circle class="hv-tipglow" cx="34" cy="-10" r="8" fill="url(#hvEmber)"/>'+
+   '<circle class="hv-ember" cx="0" cy="'+CY+'" r="16" fill="url(#hvEmber)"/>'+
+   '<g class="hv-beats"><circle class="hv-beat" cx="0" cy="'+CY+'" r="6"/><circle class="hv-beat" cx="0" cy="'+CY+'" r="6"/></g>'+
+   '<g class="hv-motes" filter="url(#hvSoftDot)">'+motes+'</g>'+
+   '<g class="hv-sparks">'+sparks+'</g>'+
+   '<g class="hv-mangpos" transform="translate(33.6 -16) rotate(5)"><g class="hv-mang"><ellipse class="hv-ringecho" rx="11" ry="3.8"/><ellipse class="hv-ring" rx="11" ry="3.8" pathLength="100"/></g><g class="hv-burst">'+burst+'</g><g class="hv-orbit">'+orbit+'</g></g>'+
+  '</g><g class="hv-frags">'+frag+'</g></svg>'+
+  '<div class="hv-title shin"><div class="hv-big">'+[...name].map((ch,i)=>'<span style="--i:'+i+'">'+esc(ch)+'</span>').join('')+'</div><div class="hv-rule"></div><div class="hv-sub">신(心) 발현 · 첫 번째 망(望)</div></div>';
+ const q=s=>o.querySelector(s),qa=s=>[...o.querySelectorAll(s)];
+ const fl=qa('.hv-flame'),motesE=qa('.hv-motes circle'),sparkE=qa('.hv-sparks circle'),orbE=qa('.hv-orbit circle'),beats=qa('.hv-beat');
+ const figGlow=q('.hv-figglow'),pool=q('.hv-pool'),heat=q('.hv-heatn'),ember=q('.hv-ember'),ring=q('.hv-ring'),echo=q('.hv-ringecho'),mang=q('.hv-mang'),burstG=q('.hv-burst'),lit=q('.hv-harplit'),tip=q('.hv-tipglow');
+ const t0=performance.now(),sp=reduce?1.6:1;
+ const T={mem:.3,beat:2.6,aura:3.0,lit:4.5,ring:5.1,ringDone:6.1,name:6.0};
+ const tick=now=>{const t=(now-t0)/1000*sp,k=Math.max(0,Math.min(1,(t-T.aura)/1.5));
+  // ① 가슴의 희미한 불씨(느린 박동) → ③ 두 번 크게 뜀 → 이후 고르게 타오름
+  let ek=.18+.1*Math.max(0,Math.sin(t*3.2));
+  [T.beat,T.beat+.42].forEach(b=>{const d=t-b;if(d>0&&d<.5)ek=Math.max(ek,1.25-d*.9);});
+  if(t>T.beat+.9)ek=Math.max(ek,.85+.08*Math.sin(t*5));
+  ember.setAttribute('transform','translate(0 '+CY+') scale('+ek.toFixed(3)+') translate(0 '+(-CY)+')');ember.style.opacity=Math.min(1,.25+ek*.75).toFixed(3);
+  beats.forEach((c,i)=>{const d=t-(T.beat+i*.42);if(d<0||d>1.6){c.style.opacity='0';return;}const u=d/1.6;c.setAttribute('r',(8+u*150).toFixed(1));c.style.opacity=((1-u)*(1-u)*.7).toFixed(3);c.style.strokeWidth=(2.4-u*2).toFixed(2);});
+  // ② 기억이 빛 알갱이가 되어 소용돌이치며 가슴으로
+  motesE.forEach((c,i)=>{const st=T.mem+.9+R(i*3)*1.5,du=1.1+R(i*5)*.7,p=(t-st)/du;if(p<0||p>1){c.style.opacity='0';return;}
+   const a0=R(i*7)*Math.PI*2,r0=110+R(i*11)*90,r=r0*Math.pow(1-p,1.5),a=a0+p*2.4*(i%2?1:-1);
+   c.setAttribute('cx',(Math.cos(a)*r).toFixed(1));c.setAttribute('cy',(CY+Math.sin(a)*r*.82).toFixed(1));c.setAttribute('r',(1.6-p*.9).toFixed(2));c.style.opacity=(Math.sin(Math.PI*Math.min(1,p*1.2))*.95).toFixed(3);});
+  // ④ 금빛 기운: 바깥 불꽃 3겹 + 몸에 붙은 안쪽 불꽃
+  fl.forEach((p,li)=>{const inner=li===3,sc=inner?.82:1+li*.16;let d='';const N=44;
+   for(let i=0;i<=N;i++){const u=i/N,a=Math.PI*2*u,rx=46*sc,ry=82*sc;
+    const up=Math.max(0,-Math.sin(a)),flick=Math.sin(a*5+t*7+li)*.5+Math.sin(a*9-t*11+li*2)*.35+Math.sin(a*3+t*4.3)*.4+Math.sin(a*14+t*15+li)*.18;
+    const r=1+flick*.07*k+up*up*(.18+.24*k)*(.7+.3*Math.sin(t*6+u*20));
+    d+=(i?' L':'M')+(Math.cos(a)*rx*r).toFixed(1)+','+(-20+Math.sin(a)*ry*r-up*up*(inner?14:26)*k).toFixed(1);}
+   p.setAttribute('d',d+' Z');p.setAttribute('fill',inner?'url(#hvAuraCore)':'url(#hvAura)');p.style.opacity=(k*(inner?.75:.85-li*.2)).toFixed(3);});
+  figGlow.style.opacity=(k*.9).toFixed(3);pool.style.opacity=(k*(.8+.15*Math.sin(t*3))).toFixed(3);
+  if(heat)heat.setAttribute('baseFrequency',(.03+Math.sin(t*1.7)*.004).toFixed(4)+' '+(.09+Math.sin(t*2.3)*.01).toFixed(4));
+  // 불티: 기운 가장자리에서 위로 날림
+  sparkE.forEach((c,i)=>{if(k<=0){c.style.opacity='0';return;}const per=1.2+R(i)*1.1,ph=((t+R(i*3)*per)/per)%1,cyc=Math.floor((t+R(i*3)*per)/per);
+   const sx=(R(i*5+cyc)-.5)*90,sy=10-R(i*7+cyc)*70,x=sx+Math.sin(ph*6+i)*4*ph,y=sy-ph*(70+R(i*9)*60);
+   c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));c.setAttribute('r',(.5+R(i*13)*1.1*(1-ph)).toFixed(2));c.style.opacity=(k*Math.sin(Math.PI*ph)*.95).toFixed(3);});
+  // ⑤ 가슴에서 팔을 타고 손끝으로 흐르는 빛 → 손목에 망이 그려지듯 맺힘
+  const lk=Math.max(0,Math.min(1,(t-T.lit)/.7));lit.style.strokeDashoffset=(100-lk*100).toFixed(1);lit.style.opacity=lk>0?'1':'0';
+  tip.style.opacity=(lk>=1?(.7+.3*Math.sin(t*6)):0).toFixed(3);
+  const rk=Math.max(0,Math.min(1,(t-T.ring)/1));ring.style.strokeDashoffset=(100-rk*100).toFixed(1);ring.style.opacity=rk>0?'1':'0';
+  if(t>T.ringDone){const s2=t-T.ringDone;mang.setAttribute('transform','rotate('+(Math.sin(s2*.9)*7).toFixed(2)+') scale(1 '+(1+Math.sin(s2*1.4)*.22).toFixed(3)+')');
+   echo.style.opacity=((1-(s2%1.6)/1.6)*.5).toFixed(3);echo.setAttribute('rx',(11+(s2%1.6)*8).toFixed(1));echo.setAttribute('ry',(3.8+(s2%1.6)*2.6).toFixed(1));
+   orbE.forEach((c,i)=>{const a=s2*2.2+i/orbE.length*Math.PI*2;c.setAttribute('cx',(Math.cos(a)*11).toFixed(1));c.setAttribute('cy',(Math.sin(a)*3.8).toFixed(1));c.style.opacity=(.55+.45*Math.sin(a*2)).toFixed(2);});
+  }else{echo.style.opacity='0';orbE.forEach(c=>c.style.opacity='0');}
+  const bk=(t-T.ringDone)/.7;burstG.style.opacity=bk>0&&bk<1?((1-bk)).toFixed(3):'0';if(bk>0&&bk<1)burstG.setAttribute('transform','scale('+(.6+bk*.8).toFixed(3)+')');
   raf=requestAnimationFrame(tick);};
  raf=requestAnimationFrame(tick);
  let done=false;const finish=()=>{if(done)return;done=true;o.classList.add('out');at(700,()=>{delete state.shinFx031;persist();clearOv();});};
  o.addEventListener('click',finish);
- at(6200,finish);
+ at(9200,finish);
 }
 const MOUNT={intro:mountIntro,accept2:mountAccept2,withdraw:mountWithdraw,bloom:mountBloom,twist:mountTwist,shin:mountShin};
 

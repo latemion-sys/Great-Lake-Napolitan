@@ -33,7 +33,7 @@
 
 /* 공통 그림판 */
 .hv-svg{position:absolute;left:50%;top:50%;width:min(96vw,96vh,760px);height:min(96vw,96vh,760px);transform:translate(-50%,-50%);overflow:visible;pointer-events:none}
-.hv-core,.hv-flash,.hv-shard,.hv-petal,.hv-frag,.hv-ember,.hv-spike{transform-box:fill-box}
+.hv-core,.hv-flash,.hv-shard,.hv-petal,.hv-frag,.hv-spike{transform-box:fill-box}
 .hv-title{position:absolute;left:0;right:0;bottom:12%;text-align:center;opacity:0;animation:hv-line 1.2s ease-out 3.7s both;pointer-events:none}
 .hv-big{font-size:clamp(30px,6vw,52px);letter-spacing:.32em;color:#fff4d6;text-shadow:0 0 14px rgba(255,214,140,.7),0 0 40px rgba(255,170,70,.35);padding-left:.32em}
 .hv-sub{margin-top:8px;font-size:clamp(13px,2vw,16px);color:#e8c890;letter-spacing:.08em}
@@ -79,21 +79,34 @@
 .hv-dsub{margin-top:10px;color:#d89a9a;letter-spacing:.1em;font-size:clamp(13px,2vw,16px)}
 .hv-twist .hv-center{margin-top:28vh}
 
-/* 신(心) 발현: 기억 → 금빛 불꽃 같은 기운 → 빛의 고리(망) */
-.hv-shin{background:rgba(3,2,1,.94)}
-.hv-frag{fill:#f4e8d0;font-size:13px;text-anchor:middle;opacity:0;transform-origin:center;animation:hv-frag 2.2s ease-in var(--d) forwards}
-@keyframes hv-frag{0%{opacity:0;transform:none}30%{opacity:.85}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.3)}}
-.hv-shin .hv-fig{fill:#0c0906;stroke:#ffd27a;stroke-opacity:.0;animation:hv-rim 1.8s ease-out 1.5s forwards}
+/* 신(心) 발현: 고요 → 기억 → 고동 → 금빛 기운 → 망 → 이름 */
+.hv-shin{background:radial-gradient(ellipse at 50% 55%,rgba(26,16,6,.96) 0%,rgba(3,2,1,.97) 60%)}
+.hv-frag{fill:#f4e8d0;font-size:13px;letter-spacing:.06em;text-anchor:middle;opacity:0;filter:blur(2px);transform-origin:center;animation:hv-frag 2.6s ease-in var(--d) forwards}
+@keyframes hv-frag{0%{opacity:0;filter:blur(3px);transform:none}25%{opacity:.9;filter:blur(0)}55%{opacity:.85;filter:blur(0);transform:translate(calc(var(--tx)*.15),calc(var(--ty)*.15))}100%{opacity:0;filter:blur(1.5px);transform:translate(var(--tx),var(--ty)) scale(.15)}}
+.hv-shin .hv-fig{fill:#0c0906;stroke:#ffd27a;stroke-opacity:0;animation:hv-rim 1.6s ease-out 3.1s forwards}
 @keyframes hv-rim{to{stroke-opacity:.95;stroke-width:1.4}}
+.hv-figglow .hv-fig{fill:#ffc860;stroke:none;animation:none}
+.hv-figglow{opacity:0;mix-blend-mode:screen}
 .hv-harp path{stroke:#2a2018;fill:#2a2018}
-.hv-shin .hv-harp path{animation:hv-harp 1.5s ease-out 2.6s forwards}
-@keyframes hv-harp{to{stroke:#f4c870;fill:#f4c870}}
-.hv-ember{opacity:0;transform-origin:center;animation:hv-ember 1.6s ease-out 1.1s forwards}
-@keyframes hv-ember{0%{opacity:0;transform:scale(.2)}50%{opacity:1;transform:scale(1.3)}100%{opacity:.85;transform:scale(1)}}
-.hv-flame{fill:url(#hvAura);filter:url(#hvFlameBlur);mix-blend-mode:screen}
-.hv-mang ellipse{fill:none;stroke:#ffe6a0;stroke-width:3;stroke-dasharray:100;stroke-dashoffset:100;filter:url(#hvRingGlow);animation:hv-mang 1.1s ease-out 3.1s forwards}
-@keyframes hv-mang{to{stroke-dashoffset:0}}
-.hv-title.shin{animation-delay:3.6s}
+.hv-harplit{fill:none;stroke:url(#hvHarpLit);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;opacity:0;filter:url(#hvRingGlow)}
+.hv-tipglow{opacity:0;mix-blend-mode:screen}
+.hv-ember{opacity:.3;mix-blend-mode:screen}
+.hv-beat{fill:none;stroke:#ffd27a;opacity:0}
+.hv-motes circle{fill:#fff0c4}
+.hv-sparks circle{fill:#ffe2a0;mix-blend-mode:screen}
+.hv-pool{opacity:0;mix-blend-mode:screen}
+.hv-flame{filter:url(#hvFlameBlur);mix-blend-mode:screen}
+.hv-ring{fill:none;stroke:#ffe6a0;stroke-width:3;stroke-dasharray:100;stroke-dashoffset:100;opacity:0;filter:url(#hvRingGlow)}
+.hv-ringecho{fill:none;stroke:#ffd27a;stroke-width:1.2;opacity:0}
+.hv-burst path{stroke:#fff2c8;stroke-width:1.1;stroke-linecap:round}
+.hv-burst{opacity:0}
+.hv-orbit circle{fill:#fff6dc}
+.hv-title.shin{animation:none;opacity:1;bottom:10%}
 .hv-title.shin .hv-big{letter-spacing:.12em;padding-left:.12em}
+.hv-title.shin .hv-big span{display:inline-block;opacity:0;transform:translateY(8px) scale(1.25);filter:blur(4px);animation:hv-glyph .9s cubic-bezier(.2,.8,.3,1) calc(6s + var(--i)*.14s) forwards}
+@keyframes hv-glyph{to{opacity:1;transform:none;filter:blur(0)}}
+.hv-rule{height:1px;width:0;margin:10px auto 0;background:linear-gradient(90deg,transparent,#ffd27a,transparent);animation:hv-rule 1.2s ease-out 6.6s forwards}
+@keyframes hv-rule{to{width:min(60vw,320px)}}
+.hv-title.shin .hv-sub{opacity:0;animation:hv-line 1s ease-out 7.1s forwards}
 @media(max-width:600px){.hv-actions{gap:9px}.hv-actions button{font-size:14px}.hv-twist .hv-center{margin-top:30vh}}
 @media(prefers-reduced-motion:reduce){.hv-echoes.echoing .hv-echo:not(.hv-main).on{animation:none}.hv-dbig,.hv-twist.turning .hv-lines p.warm{animation:none}}
