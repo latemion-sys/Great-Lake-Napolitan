@@ -315,43 +315,36 @@
 
  /* ───────── 21-03 · 묵빛 호수 ─────────
     「물이 검다. 물속에도 검은 것들이 떠 있다. 배가 들어서자 그것들이 배를 향해 쏠린다.」
-    · 물: 먹물처럼 검고 무거운 물. 너울이 낮고 느리며, 수면엔 먹이 번진 듯한 동심 물무늬(먹 흘림)가 떠돈다.
+    · 물 자체가 검은 것들이다. 먹처럼 검은 물이 살아 있는 것처럼 꿈틀거린다.
+      수면 곳곳이 혹처럼 부풀었다 가라앉으며 기어가고, 물속엔 근육결 같은 희미한 윤이 물결치며 꿈틀댄다.
     · 하늘: 먹을 엷게 푼 듯한 잿빛 밤. 수평선엔 먹으로 그은 듯한 먼 산 능선이 겹겹이 흐리다.
-    · 물속의 검은 것들: 물보다 더 검은 덩어리들이 여러 깊이에 떠 있다. 모양이 천천히 일그러지고, 테두리만 희미하게 비친다.
-    · 배가 들어서면: 흩어져 있던 덩어리들이 하나둘 배 쪽으로 쏠려 든다. 움직이는 동안 길게 늘어나고 먹 자국을 끌며,
-      배 밑에 모여서는 배를 따라 미세하게 일렁인다. 모여든 자리 위 수면에 먹 고리가 번진다. */
+    · 배가 들어서면: 꿈틀거림이 배 쪽으로 쏠린다. 부푼 혹들이 배를 향해 기어와 뱃전 둘레에 모여 솟고,
+      물속의 결도 배를 향해 흘러든다. 다 모인 뒤엔 배 밑에서 숨 쉬듯 부풀었다 가라앉는다. */
  THEMES[3]={
   skyTop:'#05070a',skyMid:'#0d1319',skyHorizon:'#252f39',
   moon:'#b9c5cd',
-  seaTop:'#2c3944',seaMid:'#161e26',seaBottom:'#06090c',
-  crest:'#9aa9b5',swell:'#4c5a68',hatch:'#c8d4dc',
+  seaTop:'#0b0f13',seaMid:'#05070a',seaBottom:'#010203',
+  crest:'#8e9cab',swell:'#3a4652',hatch:'#c8d4dc',
   boat:'#040506',rim:'#9fadb6',
   lamp:'#ffbf47',lampCore:'#ffe39a',
   bob:.72,drift:.7
  };
- // 검은 것들: [처음 x, 깊이(0 얕음~1 깊음), 크기, 배 기준 모일 자리 x, 쏠리기 시작하는 늦음(초)]
- const INK=[
-  [150,.15,13,-74,1.0],[232,.55,18,-40,1.6],[300,.3,11,-96,2.4],[118,.8,22,-20,2.9],
-  [520,.2,14,48,1.2],[590,.6,19,84,1.9],[660,.35,12,18,2.6],[700,.85,24,-58,3.3],
-  [420,.7,16,110,2.1],[360,.95,26,64,3.8],[470,.45,10,-8,1.5],[255,.9,20,30,4.2]
- ];
- function inkPos(i,t,bx,SEA,surf,a){
-  const [x0,dep,sz,ox,dl]=INK[i];
-  const k=Math.min(1,Math.max(0,(t-dl)/(3.2+dep*2.4))),e=k*k*(3-2*k);
-  const y0=SEA+16+dep*44+Math.sin(t*.4+i)*3,ty=SEA+12+dep*22;
-  const wob=Math.sin(t*.7+i*1.9)*(6+10*(1-e));
-  return [x0+(bx+ox-x0)*e+wob,y0+(ty-y0)*e+Math.cos(t*.5+i)*2,e,k];
- }
- function blob(cx,cy,r,t,seed,sx,sy,ang){
-  const N=9;let pts=[];
-  for(let j=0;j<N;j++){
-   const th=j/N*Math.PI*2,rr=r*(1+.18*Math.sin(t*.9+seed+j*1.7)+.1*Math.sin(t*1.7+seed*2+j*2.9));
-   let x=Math.cos(th)*rr*sx,y=Math.sin(th)*rr*sy;
-   const ca=Math.cos(ang),sa=Math.sin(ang);pts.push([cx+x*ca-y*sa,cy+x*sa+y*ca]);
-  }
-  let d='M'+f1((pts[0][0]+pts[N-1][0])/2)+','+f1((pts[0][1]+pts[N-1][1])/2);
-  for(let j=0;j<N;j++){const p=pts[j],q=pts[(j+1)%N];d+=' Q'+f1(p[0])+','+f1(p[1])+' '+f1((p[0]+q[0])/2)+','+f1((p[1]+q[1])/2);}
-  return d+'Z';
+ // 수면의 혹: [처음 x, 배 기준 모일 자리, 너비, 높이, 쏠리기 시작(초)]
+ const MK_BUMP=[[150,-96,30,5,1.0],[250,-58,22,4,1.8],[330,-128,26,3.5,2.6],[520,62,28,5,1.3],[610,104,24,4,2.1],[690,36,32,4.5,2.9],[430,-24,18,3,3.4],[90,138,26,3.5,3.8]];
+ // 물속 결: [처음 x, 깊이 0~1, 길이, 배 기준 모일 자리, 늦음]
+ const MK_FIB=[];
+ for(let i=0;i<26;i++){const r=(n)=>{const v=Math.sin(i*12.9898+n*78.233)*43758.5453;return v-Math.floor(v);};
+  MK_FIB.push([100+r(1)*600,r(2),26+r(3)*46,(r(4)-.5)*240,.8+r(5)*3.6]);}
+ const sm=k=>{k=Math.min(1,Math.max(0,k));return k*k*(3-2*k);};
+ function bumpAt(i,t,bx){const B=MK_BUMP[i],e=sm((t-B[4])/4.2);
+  const c=B[0]+(bx+B[1]-B[0])*e+Math.sin(t*.55+i*1.7)*(10+14*(1-e));    // 기어가듯 흔들리며 다가옴
+  const h=B[3]*(1+.6*e)*(.55+.45*Math.sin(t*(1.4+i*.13)+i*2.1));          // 숨 쉬듯 부풀었다 가라앉음
+  return [c,B[2]*(1+.25*Math.sin(t*.9+i)),h,e];}
+ function blackTop(x,t,a,surf,bx){
+  let y=surf(x,t,a)-.6;
+  for(let i=0;i<MK_BUMP.length;i++){const [c,w,h]=bumpAt(i,t,bx),u=(x-c)/w;y-=h*Math.exp(-u*u);}
+  // 표면 전체의 잔 꿈틀거림(서로 다른 방향으로 기어가는 두 물결)
+  return y+Math.sin(x*.07-t*1.6)*.7+Math.sin(x*.045+t*1.1+1.3)*.6;
  }
  LAYERS[3]={
   sky(th){
@@ -369,67 +362,59 @@
     '<path d="'+ridge(124,12,2.2,6)+'" fill="url(#mkR3)"/>';
   },
   under(th){
-   let b='',tr='';
-   for(let i=0;i<INK.length;i++){b+='<path class="mk-halo" data-i="'+i+'"/><path class="mk-ink" data-i="'+i+'"/>';tr+='<path class="mk-trail" data-i="'+i+'"/>';}
+   let f='';for(let i=0;i<MK_FIB.length;i++)f+='<path data-i="'+i+'"/>';
+   let hl='';for(let i=0;i<MK_BUMP.length;i++)hl+='<ellipse data-i="'+i+'"/>';
    return '<defs>'+
-     '<radialGradient id="mkInk"><stop stop-color="#000000" stop-opacity=".96"/><stop offset=".55" stop-color="#020305" stop-opacity=".82"/><stop offset="1" stop-color="#060a0e" stop-opacity="0"/></radialGradient>'+
-     '<radialGradient id="mkInkDeep"><stop stop-color="#020406" stop-opacity=".7"/><stop offset=".6" stop-color="#05080b" stop-opacity=".4"/><stop offset="1" stop-color="#0a0f14" stop-opacity="0"/></radialGradient>'+
-     '<radialGradient id="mkHalo"><stop offset=".55" stop-color="#8fa2b2" stop-opacity="0"/><stop offset=".8" stop-color="#9fb2c2" stop-opacity=".13"/><stop offset="1" stop-color="#8fa2b2" stop-opacity="0"/></radialGradient>'+
-     '<linearGradient id="mkSheen" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#c8d4dc" stop-opacity="0"/><stop offset=".5" stop-color="#d8e2e8" stop-opacity=".5"/><stop offset="1" stop-color="#c8d4dc" stop-opacity="0"/></linearGradient>'+
+     '<linearGradient id="mkWater" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#0d1217"/><stop offset=".25" stop-color="#06080b"/><stop offset="1" stop-color="#010203"/></linearGradient>'+
+     '<radialGradient id="mkBumpHi" cx=".5" cy=".35" r=".6"><stop stop-color="#9fb0c0" stop-opacity=".32"/><stop offset=".5" stop-color="#6a7a8a" stop-opacity=".1"/><stop offset="1" stop-color="#4a5866" stop-opacity="0"/></radialGradient>'+
+     '<radialGradient id="mkDeep"><stop stop-color="#000" stop-opacity=".8"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'+
     '</defs>'+
+    '<path class="mk-water" fill="url(#mkWater)"/>'+
     '<g class="mk-moonref"><path/><path/><path/><path/><path/><path/></g>'+
-    '<g class="mk-trails">'+tr+'</g><g class="mk-inks">'+b+'</g>';
-  },
-  surface(th){
-   let rings='';for(let i=0;i<3;i++)rings+='<g class="mk-ring" data-i="'+i+'"><path/><path/></g>';
-   let sh='';for(let i=0;i<10;i++)sh+='<path/>';
-   return '<g class="mk-rings">'+rings+'</g><g class="mk-sheen">'+sh+'</g>';
+    '<g class="mk-fibs">'+f+'</g>'+
+    '<g class="mk-hump">'+hl+'</g>'+
+    '<ellipse class="mk-pit" fill="url(#mkDeep)"/>'+
+    '<path class="mk-skin"/><path class="mk-skin b"/><g class="mk-sheen">'+'<path/>'.repeat(8)+'</g>';   // 수면 윤도 배 뒤에 그려 뱃전을 가로지르지 않게
   },
   paint(el,c){
    const {t,a,surf,SEA,x:bx}=c;
    const appear=Math.min(1,Math.max(0,(t-.2)/2));
-   // 검은 것들
-   el.querySelectorAll('.mk-ink').forEach(p=>{
-    const i=+p.dataset.i,[x0,dep,sz]=INK[i],P=inkPos(i,t,bx,SEA,surf,a),P2=inkPos(i,t-.18,bx,SEA,surf,a);
-    const vx=(P[0]-P2[0])/.18,vy=(P[1]-P2[1])/.18,sp=Math.min(1,Math.hypot(vx,vy)/40),ang=Math.atan2(vy,vx);
-    const r=sz*(1-.35*dep)*(1+.08*Math.sin(t*1.3+i));
-    p.setAttribute('d',blob(P[0],P[1],r,t,i*2.3,1+.9*sp,1-.3*sp,sp>.05?ang:Math.sin(t*.3+i)*.3));
-    p.setAttribute('fill',dep>.6?'url(#mkInkDeep)':'url(#mkInk)');
-    p.style.opacity=(appear*(1-.45*dep)*(.85+.15*Math.sin(t*.8+i))).toFixed(3);
-    p.style.stroke=dep<.5?'#8a9cac':'none';
-    const h=p.previousSibling;h.setAttribute('d',blob(P[0],P[1],r*1.45,t,i*2.3,1+.9*sp,1-.3*sp,sp>.05?ang:Math.sin(t*.3+i)*.3));h.setAttribute('fill','url(#mkHalo)');
-    h.style.opacity=(appear*(1-.6*dep)).toFixed(3);
-    // 먹 자국: 지나온 길을 따라 가늘어지며 옅어짐
-    const tr=el.querySelector('.mk-trail[data-i="'+i+'"]');
-    if(sp>.06){
-     let d='',L=[];for(let k=0;k<=6;k++)L.push(inkPos(i,t-k*.22,bx,SEA,surf,a));
-     const w0=r*.55*sp;let left='',right='';
-     for(let k=0;k<L.length;k++){const q=L[k],nq=L[Math.min(L.length-1,k+1)],dx=q[0]-nq[0],dy=q[1]-nq[1],dl=Math.hypot(dx,dy)||1,w=w0*(1-k/L.length);
-      left+=(k?' L':'M')+f1(q[0]-dy/dl*w)+','+f1(q[1]+dx/dl*w);right=' L'+f1(q[0]+dy/dl*w)+','+f1(q[1]-dx/dl*w)+right;}
-     tr.setAttribute('d',left+right+'Z');tr.style.opacity=(appear*sp*(1-.5*dep)*.55).toFixed(3);
-    }else tr.style.opacity='0';
+   // 검은 물 몸통: 혹이 솟고 기어가는 수면 + 그 아래 전부
+   let top='';const pts=[];
+   for(let x=-20;x<=820;x+=8){const y=blackTop(x,t,a,surf,bx);pts.push([x,y]);top+=(top?' L':'M')+x+','+f1(y);}
+   el.querySelector('.mk-water').setAttribute('d',top+' L820,200 L-20,200 Z');
+   // 수면 윤: 혹의 등을 따라 번들거리는 두 줄(물이 살아 있는 것처럼 빛이 미끄러짐)
+   el.querySelectorAll('.mk-skin').forEach((p,k)=>{p.setAttribute('d',k?pts.map((q,j)=>(j?'L':'M')+q[0]+','+f1(q[1]+3.5)).join(' '):top);p.style.strokeDashoffset=f1((k?1:-1)*t*(k?9:14));});
+   // 혹 위 반사광
+   el.querySelectorAll('.mk-hump ellipse').forEach(e=>{const i=+e.dataset.i,[cx,w,h,g]=bumpAt(i,t,bx),y=blackTop(cx,t,a,surf,bx);
+    e.setAttribute('cx',f1(cx));e.setAttribute('cy',f1(y+h*.6+1.5));e.setAttribute('rx',f1(w*.9));e.setAttribute('ry',f1(2+h*.9));e.setAttribute('fill','url(#mkBumpHi)');
+    e.style.opacity=(appear*Math.min(1,h/5)).toFixed(3);});
+   // 물속 결: 근육결처럼 물결치며 기어가는 희미한 윤. 배가 들어서면 배 쪽으로 쏠림
+   el.querySelectorAll('.mk-fibs path').forEach(p=>{
+    const i=+p.dataset.i,[x0,dep,len,ox,dl]=MK_FIB[i],e=sm((t-dl)/(3+dep*3));
+    const cx=x0+(bx+ox-x0)*e+Math.sin(t*.4+i)*8,cy=SEA+10+dep*52+Math.sin(t*.6+i*1.3)*2.5-(1-dep)*e*4;
+    const dir=e>.02&&e<.98?Math.sign(bx+ox-x0):Math.sin(i)>0?1:-1,sp=1.4+dep;
+    let d='';for(let s=0;s<=8;s++){const u=s/8,xx=cx+(u-.5)*len*(1-.25*Math.abs(Math.sin(t*.8+i))),amp=(1.6+2.4*(1-dep))*Math.sin(Math.PI*u);
+     const yy=cy+Math.sin(u*3.4-t*sp*dir*1.5+i)*amp*.8+Math.sin(u*1.7+t*.7+i)*amp*.4;d+=(s?' L':'M')+f1(xx)+','+f1(yy);}
+    p.setAttribute('d',d);
+    p.style.strokeWidth=(2.2+3.6*(1-dep)).toFixed(2);
+    p.style.opacity=(appear*(.035+.085*(1-dep))*(.55+.45*Math.sin(t*1.3+i*2.1))).toFixed(3);
    });
+   // 배 밑: 검은 것이 가장 짙게 모여 있는 자리(숨 쉬듯 넓어졌다 좁아짐)
+   const g=sm((t-1.5)/5),pit=el.querySelector('.mk-pit');
+   pit.setAttribute('cx',f1(bx+4));pit.setAttribute('cy',f1(SEA+22));pit.setAttribute('rx',f1(90*g*(1+.12*Math.sin(t*1.2))));pit.setAttribute('ry',f1(18*g*(1+.15*Math.sin(t*1.2+.5))));
+   pit.style.opacity=(appear*g*.9).toFixed(3);
    // 달빛이 검은 수면에 길게 비침(끊긴 은빛 조각)
    el.querySelectorAll('.mk-moonref path').forEach((p,i)=>{
-    const y=SEA+6+i*8+Math.sin(t*.6+i)*1.5,x=640+Math.sin(t*.35+i*1.3)*10-i*6,w=(46-i*5)*(.8+.2*Math.sin(t*1.1+i*2));
+    const x=640+Math.sin(t*.35+i*1.3)*10-i*6,y=blackTop(x,t,a,surf,bx)+5+i*8,w=(46-i*5)*(.8+.2*Math.sin(t*1.1+i*2));
     p.setAttribute('d','M'+f1(x-w)+','+f1(y)+' Q'+f1(x)+','+f1(y-1.6)+' '+f1(x+w)+','+f1(y)+' Q'+f1(x)+','+f1(y+1.4)+' '+f1(x-w)+','+f1(y)+'Z');
-    p.style.opacity=((.18-i*.022)*(.7+.3*Math.sin(t*1.7+i))).toFixed(3);
+    p.style.opacity=((.16-i*.02)*(.7+.3*Math.sin(t*1.7+i))).toFixed(3);
    });
-   // 먹 고리: 검은 것들이 모인 자리 위 수면에 번지는 일그러진 동심 고리
-   el.querySelectorAll('.mk-ring').forEach(g=>{
-    const i=+g.dataset.i,src=[4,1,10][i],P=inkPos(src,t,bx,SEA,surf,a),gath=P[2];
-    const cx=P[0],cy=surf(cx,t,a)+3+i*2.5;
-    g.querySelectorAll('path').forEach((p,k)=>{
-     const ph=((t*.1+k/2+i*.29)%1),rx=(10+ph*70)*(.6+.4*gath),ry=rx*.13;
-     let d='';for(let s=0;s<=24;s++){const th=s/24*Math.PI*2,w=1+.12*Math.sin(th*3+t*.6+k+i)+.06*Math.sin(th*5-t*.4);d+=(s?' L':'M')+f1(cx+Math.cos(th)*rx*w)+','+f1(cy+Math.sin(th)*ry*w);}
-     p.setAttribute('d',d+'Z');p.style.opacity=(appear*(.05+.2*gath)*Math.sin(Math.PI*ph)).toFixed(3);
-    });
-   });
-   // 기름처럼 무거운 수면 광택: 물마루를 따라 짧은 은빛 결이 천천히 미끄러짐
+   // 끈적한 광택: 짧은 은빛 결이 혹의 등을 타고 미끄러짐
    el.querySelectorAll('.mk-sheen path').forEach((p,i)=>{
-    const per=6+i%4,ph=((t+i*1.37)/per)%1,cyc=Math.floor((t+i*1.37)/per),x=110+((cyc*211+i*157)%580)+ph*30,w=8+(i%3)*6;
-    let d='';for(let s=0;s<=4;s++){const xx=x-w+s*w/2;d+=(s?' L':'M')+f1(xx)+','+f1(surf(xx,t,a)+1+(i%3)*5);}
-    p.setAttribute('d',d);p.style.opacity=(Math.sin(Math.PI*ph)*.22).toFixed(3);
+    const per=5+i%4,ph=((t+i*1.37)/per)%1,cyc=Math.floor((t+i*1.37)/per),x=120+((cyc*211+i*157)%560)+ph*26,w=7+(i%3)*5;
+    let d='';for(let s=0;s<=4;s++){const xx=x-w+s*w/2;d+=(s?' L':'M')+f1(xx)+','+f1(blackTop(xx,t,a,surf,bx)+.6);}
+    p.setAttribute('d',d);p.style.opacity=(Math.sin(Math.PI*ph)*.3).toFixed(3);
    });
   }
  };
@@ -473,10 +458,12 @@
   '.lakefx[data-lake="3"] .lfx-corner{background:linear-gradient(90deg,#05070ac0,transparent 22%,transparent 78%,#05070ac0),linear-gradient(0deg,#020304e0,transparent 26%,transparent 76%,#05070aaa)}'+
   '.lakefx[data-lake="3"] .lfx-vignette{box-shadow:inset 0 0 72px 18px #030406}'+
   '.lakefx[data-lake="3"] .lfx-top{color:#c4ced6}'+
-  '.lakefx .mk-ink{stroke-width:.6;stroke-opacity:.17}'+
-  '.lakefx .mk-trail{fill:#000}'+
   '.lakefx .mk-moonref path{fill:#d8e2e8}'+
-  '.lakefx .mk-ring path{fill:none;stroke:#a8b6c2;stroke-width:.55}'+
+  '.lakefx[data-lake="3"] .lfx-crest{opacity:0}'+
+  '.lakefx[data-lake="3"] .lfx-far{stroke-opacity:.06!important}'+
+  '.lakefx .mk-fibs path{fill:none;stroke:#8696a6;stroke-linecap:round;stroke-linejoin:round}'+
+  '.lakefx .mk-skin{fill:none;stroke:#a8b8c6;stroke-width:1.1;stroke-opacity:.26;stroke-linecap:round;stroke-linejoin:round}'+
+  '.lakefx .mk-skin.b{stroke-width:2.4;stroke-opacity:.05}'+
   '.lakefx .mk-sheen path{fill:none;stroke:#cfdae2;stroke-width:.8;stroke-linecap:round}'+
   '.lakefx .fl-crest{fill:none;stroke:#ffb070;stroke-width:1.6;stroke-opacity:.45;stroke-dasharray:3 26 9 44;stroke-linecap:round;mix-blend-mode:screen}';
  const st=document.createElement('style');st.id='lake-themes-v025';st.textContent=css;document.head.appendChild(st);
