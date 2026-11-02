@@ -93,4 +93,5 @@
   }
  });
  render();
+ document.documentElement.classList.remove('ss025-wait');   // 새 시작 화면 준비 완료 → 화면 표시
 })();
