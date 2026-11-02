@@ -88,3 +88,44 @@ body.landing025-active #mstat024{display:none!important}
  body.voyage025-active .shell>.layout>main.panel,
  body.voyage025-active .shell>.layout>.side{width:100%;max-width:100%;min-width:0}
 }
+
+/* v0.2.7 시작 화면: 메뉴 탭은 항구에 들어간 뒤에만 · 프롤로그 아래에 항해 준비 · 그 아래 일대기 */
+body.landing025-active .mobile-tab-fold-preview,
+body.landing025-active .shell>.layout>main .tabs{display:none!important}
+.landing025 .landing-subtitle025{max-width:760px;line-height:1.85;word-break:keep-all}
+.landing025 .landing-grid025{grid-template-columns:1fr!important}
+.landing025 .landing-action025{display:block;padding:24px 28px}
+.landing025 .landing-action-head025 h2{margin:5px 0 16px}
+.landing025 .landing-action-body025{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(240px,.75fr);gap:16px;align-items:stretch}
+.landing025 .landing-action-left025{display:flex;flex-direction:column;gap:12px}
+.landing025 .landing-action-buttons025{display:flex;flex-direction:column;gap:10px;margin:0!important}
+.landing025 .landing-action-buttons025 button{width:100%;min-height:48px}
+.landing025 .landing-action-buttons025 button.primary{flex:1 1 auto;min-height:64px;font-size:16px}
+.landing025 .landing-action025 .landing-hint025{margin-top:0}
+@media(max-width:800px){
+ .landing025 .landing-action025{padding:21px 20px}
+ .landing025 .landing-action-body025{grid-template-columns:1fr}
+ .landing025 .landing-action-buttons025 button.primary{min-height:52px}
+}
+/* 일대기 */
+.landing025 .landing-chron027{margin-top:16px;border:1px solid var(--line);border-radius:17px;padding:24px 28px;background:#161b22;box-shadow:0 7px 24px #0003}
+.landing025 .landing-chron027 h2{margin:5px 0 10px}
+.landing025 .chron-note027{color:var(--muted);font-size:13px;line-height:1.8;margin:0 0 14px;word-break:keep-all}
+.landing025 .chron-warn027{color:#ffcf8a;font-size:13px;margin:-6px 0 12px}
+.landing025 .chron-empty027{padding:16px;border:1px dashed #3a4654;border-radius:11px;color:var(--muted);font-size:13px;text-align:center}
+.landing025 .chron-list027{display:flex;flex-direction:column;gap:10px}
+.landing025 .chron-item027{background:#1d242e;border:1px solid #333e4a;border-radius:12px;padding:12px 14px}
+.landing025 .chron-item027.kept{border-color:#8a7448;box-shadow:inset 3px 0 0 #c8a372}
+.landing025 .chron-item027.live{border-color:#4a6a86;box-shadow:inset 3px 0 0 #79a8d4}
+.landing025 .chron-row027{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.landing025 .chron-meta027{display:flex;flex-direction:column;gap:3px;min-width:0}
+.landing025 .chron-meta027 b{font-size:15px;color:var(--text)}
+.landing025 .chron-meta027 span{font-size:12px;color:var(--muted)}
+.landing025 .chron-meta027 .chron-tag027{color:#d8c08a}
+.landing025 .chron-btns027{display:flex;gap:7px;flex-wrap:wrap}
+.landing025 .chron-btns027 button{padding:8px 12px;min-height:38px;font-size:13px}
+.landing025 .chron-btns027 .chron-del027{color:#d8a0a0}
+.landing025 .chron-view027{margin-top:9px}
+.landing025 .chron-view027 summary{cursor:pointer;font-size:13px;color:var(--blue)}
+.landing025 .chron-view027 pre{margin:8px 0 0;max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-all;background:#10151c;border:1px solid #2a333e;border-radius:9px;padding:10px 12px;font-size:12px;line-height:1.7;color:#cdd6de;font-family:inherit}
+@media(max-width:800px){.landing025 .landing-chron027{padding:21px 18px}.landing025 .chron-btns027{width:100%}.landing025 .chron-btns027 button{flex:1}}
