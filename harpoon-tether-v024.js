@@ -46,8 +46,6 @@ function paint(el,t,s,tw,anchor,opt){
    sh:[...g.querySelectorAll('.ht-sh')],pf:[...g.querySelectorAll('.ht-pf')],dr:[...g.querySelectorAll('.ht-dr')],hit:g.querySelector('.ht-hit'),last:null};})());
  if(!c||!tw)return null;
  const T=times(s),own=!!(L&&L.owned());
- if(window.CalSFX&&s){let m=0;try{m=+state.mangActive||0;}catch(e){}
-  window.CalSFX.evt(el,'ht',t,[[s.fireAt,'launch',{}],[s.fireAt+FLY,'mangHit',{m}],[s.endAt,s.free?'clank':'shatter',{k:.8}],[T&&T.reelAt!=null?T.reelAt:null,'reel',{dur:.9}]]);}
  const isLoaded=loaded(s,t);
  // 발사대 겨눔: 쏘기 직전에 박힐 자리 쪽으로 천천히 돌아가고, 쏜 뒤에는 그 방향을 유지(작살이 발사대 축을 따라 곧게 나감)
  const base=o.aim==null?(L?L.ANGLE:-16):o.aim;

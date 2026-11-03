@@ -363,7 +363,6 @@ function paint(el,t,hold){
  if(window.CalGL){window.CalGL.pallid(q('.w3-whale'),{run:ro/.42,lamp:[lampW[0],lampW[1],lampK],mat:M});   // 셰이더 살갗(안 되면 SVG 그대로)
   window.CalGL.membrane(q('.w3-mem'),MEM,performance.now()/1000);}
  fx2d(el,t,M,ro/.42,rise,hit,hold);
- if(window.CalSFX)window.CalSFX.tick(el,'pallid-harpoon',t,{hold,hit,isHit,throwAt:thrownAt,loop:LOOP,mang:(typeof state!=='undefined'&&state.mangActive)||0});
  const aimP=own?HL.smoothAim(el,'pl',HL.aimAt(toWorld,apply(M,targetLocal)),t):undefined;   // 상처 쪽으로 발사대를 돌려 겨눔
  const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:!thrown,aim:aimP}),30,-14):toWorld(armEnd);
  const PC=HL?HL.pierce():{deep:0,pass:false,n:0};let hitAng=null;

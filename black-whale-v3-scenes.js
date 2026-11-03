@@ -1054,7 +1054,6 @@ function frame(now){
   if(S&&(isLamp||isGame)){
    const t=(now-g.t0)/1000;lastSeen=now;seenGame=true;seenStage=st;
    try{(isLamp?lampGame:GAMEPAINT[st])(el,t,t,g);}catch(e){if(!el._bkErr){el._bkErr=1;console.warn('검은 고래 미니게임',e);}}
-   if(window.CalSFX){window.CalSFX.game(el,g,t);const ST=SCENES[st];if(ST&&ST.title)window.CalSFX.tick(el,'g:'+ST.title,t);}   // 미니게임 효과음
   }else if(S){
    if(now-lastSeen>900||API.replayToken!==seenTok||st!==seenStage||seenGame){start=now;seenTok=API.replayToken;seenStage=st;seenGame=false;}
    if(API.resume&&API.resume.stage===st&&!el.dataset.game){start=API.resume.start;API.resume=null;}
@@ -1064,7 +1063,6 @@ function frame(now){
    if(el.dataset.seek!=null)tr=+el.dataset.seek;
    const t=S.loop?tr%S.loop:Math.min(tr,S.dur||tr);
    try{S.paint(el,t,tr);}catch(e){if(!el._bkErr){el._bkErr=1;console.warn('검은 고래 이펙트',e);}}
-   if(window.CalSFX)window.CalSFX.tick(el,S.title,t);   // 효과음(켜 둔 경우만)
   }
  }
  requestAnimationFrame(frame);
