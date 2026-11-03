@@ -123,7 +123,6 @@ function catalogPanel(){
   '<p class="muted">모든 호수 통과 시 물고기 한 마리를 자동으로 낚습니다. 출현 희귀도는 실제 생태·보호 자료를 참고한 게임용 확률입니다. 처음 낚아 본 종은 사망해도 도감에 남습니다.</p>'+
   (recent?'<p class="small">최근 어획: '+recent+'</p>':'')+
   '<details><summary>확인한 물고기 '+names.length+'종 보기</summary><div style="margin-top:10px">'+(listing||'아직 발견한 어종이 없습니다.')+'</div></details>'+
-  '<p class="muted">전설 업적 「나는 100개의 물고기를 안다」 · 서로 다른 100종류 어획</p>'+
  '</div>';
 }
 const prevRenderPlay=renderPlay;
