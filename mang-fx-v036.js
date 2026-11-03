@@ -1,11 +1,14 @@
 /* Great Lake v0.3.6 · 망(望)을 감은 작살의 명중 연출 (3망 · 4망 · 5망)
    신(心)은 마음의 힘 — 쓰는 이를 불길 같은 금빛 기운으로 감싸고, 그 힘이 무기 둘레에 '따스한 빛의 고리'(망)로 맺힌다.
    고리가 늘수록 부담이 거의 두 배씩 커지며, 고리를 바깥으로 쏘아 상대의 몸을 날려 버리기도 한다. 望은 '보름달'이기도 하다.
-   - 3망: 고리 셋이 상처로 조여 들어가 한 번 터지고, 둘레에 작은 금빛 균열.
-   - 4망: 고리 넷이 작살을 밀어 넣은 뒤 하나씩 칼날처럼 바깥으로 쏘아지고, 균열이 가지를 치며 맥동. 짧은 흔들림.
-   - 5망: 보름달 원반이 피어난 뒤 고리 다섯이 몸을 꿰뚫고 지나가며 빛의 굴을 남기고, 반대편에 출구 섬광. 짧은 섬광 · 큰 흔들림.
-   기법: WebGL2 셰이더(불길 기운 · 보름달 · 충격파 · 빛의 굴 · 균열의 빛) + 절차적 메시(원근이 있는 고리 띠 · 가지 치는 균열)
-         + Canvas 2D(꼬리를 끄는 불티 · 떠오르는 빛 조각). 날아가는 동안에는 작살 둘레의 금빛 기운과 불꽃 꼬리.
+   원칙: 선을 긋거나 도형 테두리를 잇지 않는다. 모든 형태는 셰이더 속 잡음장(fbm · 도메인 워핑)과 부드러운 입자로만 만든다.
+   - 망의 고리: 두께 있는 불길 원환. 잡음으로 군데군데 타서 끊기고, 바깥으로 불의 혀가 일렁인다(앞쪽은 밝게, 뒤쪽은 흐리게).
+   - 3망: 고리 셋이 상처로 조여 들어가 한 번 터짐 → 상처 둘레 살갗이 금빛으로 녹아 번짐.
+   - 4망: 고리 넷이 작살을 밀어 넣은 뒤 하나씩 바깥으로 쏘아짐 → 녹아 번진 자리가 맥동하며 퍼짐 · 보름달 빛이 차올랐다 흩어짐 · 짧은 흔들림.
+   - 5망: 보름달 빛이 크게 차오른 뒤 고리 다섯이 몸을 꿰뚫고 지나감 → 지나간 자리 공기가 금빛으로 일그러진 통로가 되었다 흩어짐
+          · 녹아 벌어진 이음매 · 반대편 출구의 빛 · 큰 흔들림.
+   - 날아가는 동안 · 장전된 작살: SVG 고리 대신 같은 불길 원환 셰이더, 작살 뒤로 불꽃 꼬리(잡음장).
+   - 불티 · 빛 조각(Canvas 2D): 미리 그려 둔 부드러운 빛 입자를 크기 · 밝기를 바꿔 찍고, 움직임은 흐릿한 잔상으로.
    HarpoonLauncher.paintHit 를 감싸 3망 이상일 때만 새 연출로 그린다(1 · 2망과 WebGL2가 없을 때는 예전 그대로). */
 (function(){
 'use strict';
@@ -14,120 +17,99 @@ if(!HL||!CG||!HL.paintHit)return;
 const SVGNS='http://www.w3.org/2000/svg',XHTML='http://www.w3.org/1999/xhtml',W=960,H=540,RAD=Math.PI/180;
 const off=()=>{try{return /[?&]mangfx=0/.test(location.search);}catch(e){return false;}};
 const DUR=[1.7,2.7,3.3];
-function seeded(n){let x=n>>>0||1;return ()=>((x=(x*1664525+1013904223)>>>0)/4294967296);}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),outE=x=>1-Math.pow(1-clamp(x,0,1),3);
 
-/* ───────── 셰이더 ───────── */
+/* ───────── 공통: 빛의 고리(망) ─────────
+   q: 고리 좌표(px), R: 반지름(px), k: 납작함(작살 축으로 눌린 정도). 맑고 따스한 빛이 두껍게 맺힌 고리 + 은은한 빛무리.
+   불길이나 테두리 선이 아니라, 빛의 세기가 고리 단면을 따라 부드럽게 솟았다 가라앉는 면. 앞쪽(보는 쪽)이 더 밝다. */
+const RING=`
+float outE(float x){x=clamp(x,0.,1.);return 1.-pow(1.-x,3.);}
+vec3 lightRing(vec2 q,float R,float k,float life,float id,float t){
+ if(life<=0.||R<=.5)return vec3(0.);
+ vec2 e2=vec2(q.x/max(k,.06),q.y);float e=length(e2),th=atan(e2.y,e2.x);
+ float w=max(1.5,R*.075);
+ float d=e-R;
+ float core=exp(-d*d/(w*w));
+ float bloom=exp(-abs(d)/(w*3.2));
+ float inner=exp(-pow((d+w*2.6)/(w*.9),2.))*.18;                  // 안쪽에 비치는 옅은 둘째 빛
+ float shimmer=.86+.14*sin(th*3.+t*2.2+id*1.7)+.12*(fbm(vec2(th*1.5+id,t*.6))-.5);
+ float front=.42+.58*(.5+.5*cos(th-1.1));
+ vec3 c=vec3(1.,.97,.88)*core*1.05+vec3(1.,.8,.48)*bloom*.42+vec3(1.,.9,.7)*inner;
+ return c*shimmer*front*life;
+}`;
+/* ───────── 명중 장(場) ───────── */
 const F_FIELD=`#version 300 es
 precision highp float;
 in vec2 vP;out vec4 o;
-uniform float uS,uT,uK,uThrough,uSeed;uniform vec2 uP,uD;uniform vec4 uCr[32];uniform int uCn;
+uniform float uS,uT,uK,uSeed,uRk;uniform vec2 uP,uD,uMoon;uniform vec4 uRing[5];uniform int uRn;uniform vec4 uCut[5];uniform int uCn;uniform vec2 uMoonRA;
 ${CG.NOISE}
-float outE(float x){x=clamp(x,0.,1.);return 1.-pow(1.-x,3.);}
+${RING}
 void main(){
- vec2 p=vP-uP;float r=length(p),s=uS,K=uK;           // K: 0(3망) 1(4망) 2(5망)
- vec2 n=vec2(-uD.y,uD.x);float al=dot(p,uD),pe=dot(p,n);
+ vec2 p=vP-uP;float r=length(p),s=uS,K=uK;
+ vec2 n=vec2(-uD.y,uD.x);
  vec3 c=vec3(0.);
- // 희고 차가운 중심(두 번 고동)
- float beat=1.+.6*exp(-pow((s-.1)/.035,2.));
- float cr=mix(7.,14.,K*.5)*beat;c+=vec3(.95,.97,1.)*exp(-r*r/(cr*cr))*exp(-s*mix(6.,3.4,K*.5))*1.1;
- // 불길 같은 금빛 기운: 극좌표에서 바깥으로 일렁이며 타오름
- float ang=atan(p.y,p.x);
- vec2 q=vec2(ang*2.2+uSeed,r*.035-s*3.);q+=vec2(fbm(q*1.6+uT*.4),fbm(q*1.6+3.))*.9;
- float fl=fbm(q*1.7),R0=mix(34.,78.,K*.5)*(.35+.65*outE(s*4.));
- float aura=smoothstep(R0*1.2,R0*.15,r*(.75+.5*fl))*smoothstep(0.,.05,s)*exp(-s*mix(2.2,1.,K*.5));
- c+=mix(vec3(1.,.55,.16),vec3(1.,.86,.5),fl)*aura*(.3+.4*fl);
- // 보름달(望): 4망부터 · 5망은 크게. 테두리가 밝고 속은 은은한 무늬
- if(K>.5){float Rm=mix(30.,52.,K-1.)*outE(s*6.)*(1.+.06*sin(s*9.));
-  float md=r/max(Rm,1.),disc=smoothstep(1.02,.97,md);float limb=pow(clamp(md,0.,1.),7.);
-  float mo=.8+.2*fbm(p*.08+uSeed);float life=exp(-s*mix(2.6,1.8,K-1.));
-  c+=vec3(1.,.95,.84)*disc*(.08+.75*limb)*mo*life;                           // 보름달: 테두리가 또렷하고 속은 옅게
-  float halo=exp(-max(md-1.,0.)*5.)*(1.-disc);c+=vec3(1.,.82,.5)*halo*life*.35;
-  float rays=pow(fbm(vec2(ang*7.+uSeed,s*.6)),4.)*exp(-max(md-1.,0.)*2.)*(1.-disc);c+=vec3(1.,.86,.6)*rays*life*.6;}
- // 충격파: 빛의 띠(안쪽 따스함 · 바깥 옅음), 5망은 두 겹
- for(int i=0;i<2;i++){if(i==1&&K<1.5)break;float si=s-float(i)*.13;if(si<0.)continue;
-  float Rs=12.+mix(160.,560.,K*.5)*outE(si/.55)*(i==1?1.25:1.);float ex=r*(1.+.0*pe)-Rs;
-  float band=exp(-ex*ex/(mix(18.,60.,K*.5)))*(.6+.4*fbm(vec2(ang*5.,si*3.)));
-  float fo=clamp(1.-si/.6,0.,1.);c+=mix(vec3(1.,.8,.45),vec3(1.,.96,.85),smoothstep(-6.,6.,ex))*band*fo*.45;}
- // 균열: 상처에서 가지를 치며 번지는 금빛 틈
- float dm=1e9,gw=0.;
- for(int i=0;i<32;i++){if(i>=uCn)break;vec4 sg=uCr[i];vec2 a=sg.xy-uP,b=sg.zw-uP;vec2 pa=p-a,ba=b-a;float h=clamp(dot(pa,ba)/max(dot(ba,ba),1e-3),0.,1.);
-  float d=length(pa-ba*h);dm=min(dm,d);}
- if(uCn>0){float flick=.75+.25*sin(uT*14.+r*.2)*sin(uT*9.+ang*3.);
-  float life=K<.5?clamp(1.4-s,0.,1.):(K<1.5?(s<1.9?1.:clamp(1.-(s-1.9)/.8,0.,1.)):clamp(1.-(s-2.2)/1.,0.,1.));
-  float pulse=K>.5?.75+.25*sin(s*9.):1.;
-  c+=vec3(1.,.9,.62)*exp(-dm*dm/1.1)*life*flick*.95*pulse;c+=vec3(1.,.6,.2)*exp(-dm/5.)*.5*life*pulse;}
- // 5망: 꿰뚫고 지나간 빛의 굴 + 반대편 출구 섬광
- if(K>1.5){float len=1500.,w=mix(26.,6.,clamp(s/1.6,0.,1.))*(1.+.2*fbm(vec2(al*.02-s*8.,0.)));
-  float tun=exp(-pe*pe/(w*w))*smoothstep(-20.,10.,al)*smoothstep(len,0.,al)*clamp(1.-s/1.5,0.,1.);
-  float flow=.6+.4*fbm(vec2(al*.015-s*14.,pe*.1));c+=mix(vec3(1.,.8,.4),vec3(1.,.97,.9),exp(-pe*pe/(w*w*.15)))*tun*flow*1.1;
-  vec2 ep=p-uD*uThrough;float er=length(ep),se=s-.05;
-  if(se>0.){float Re=70.*(.3+.7*outE(se*5.));c+=vec3(1.,.88,.6)*exp(-er*er/(Re*Re))*exp(-se*2.8)*.8;}}
- // 화면을 덮는 짧은 섬광
- c+=vec3(1.,.95,.85)*mix(0.,mix(.06,.22,K-1.),step(.5,K))*exp(-s*mix(7.,5.,K*.5));
- float a=clamp(max(c.r,max(c.g,c.b)),0.,1.);
- o=vec4(min(c,vec3(1.5))*min(1.,a),a);
+ // 박히는 순간의 희고 맑은 빛(두 번 고동)
+ float beat=1.+.5*exp(-pow((s-.1)/.035,2.));
+ float cr=mix(6.,12.,K*.5)*beat;c+=vec3(.97,.98,1.)*exp(-r*r/(cr*cr))*exp(-s*mix(6.,3.6,K*.5));
+ // 신(心): 박힌 자리를 감싸는 고요한 금빛 기운(불길이 아닌 번지는 빛)
+ float R0=mix(30.,62.,K*.5)*(.5+.5*outE(s*3.));
+ c+=vec3(1.,.84,.52)*exp(-r*r/(R0*R0))*(.22+.06*sin(uT*3.))*smoothstep(0.,.05,s)*exp(-s*mix(1.6,.8,K*.5));
+ // 고리가 바깥으로 쏘아져 도려낸 자리: 살이 빛으로 둥글게 패여 비침 → 다 되면 빛 알갱이로 흩어지며 닫힘
+ for(int i=0;i<5;i++){if(i>=uCn)break;vec4 C=uCut[i];if(C.w<=0.||C.z<=.5)continue;
+  vec2 cq=vP-C.xy;vec2 cl=vec2(dot(cq,uD)/.62,dot(cq,n));float cr2=length(cl),ca=atan(cl.y,cl.x);
+  float m=cr2/C.z+(fbm(vec2(ca*2.+float(i)*3.+uSeed,uT*.2))-.5)*.1;
+  float disc=smoothstep(1.,.86,m);
+  float rim=exp(-pow((m-.93)*8.,2.));
+  float glow=exp(-max(m-1.,0.)*4.)*(1.-disc);
+  float dissolve=smoothstep(1.-C.w,1.-C.w+.3,fbm(cl*.09+float(i)*7.+uSeed));   // 닫힐 때 군데군데 흩어짐
+  vec3 inside=vec3(1.,.92,.74)*(.32+.25*(1.-m))+vec3(1.,.97,.9)*rim*.8;
+  c+=(inside*disc+vec3(1.,.82,.5)*glow*.35)*min(1.,C.w*1.6)*dissolve;}
+ // 망의 고리
+ for(int i=0;i<5;i++){if(i>=uRn)break;vec4 R=uRing[i];vec2 qq=vP-R.xy;
+  c+=lightRing(vec2(dot(qq,uD),dot(qq,n)),R.z,uRk,R.w,float(i),uT);}
+ // 望: 반대편에 피어나는 보름달 빛(테두리 없이 둥글게 차오름 · 표면에 옅은 무늬 · 흩어지며 사라짐)
+ if(uMoonRA.y>0.){vec2 mp=vP-uMoon;float md=length(mp)/max(uMoonRA.x,1.);
+  float plate=exp(-pow(md,3.)*1.4);float mott=.86+.14*fbm(mp*.06+uSeed);
+  float scat=smoothstep(1.-uMoonRA.y,1.-uMoonRA.y+.3,fbm(mp*.05+uSeed*2.));
+  c+=(vec3(1.,.95,.84)*plate*mott+vec3(1.,.82,.52)*exp(-max(md-1.,0.)*2.2)*.3)*uMoonRA.y*scat;}
+ // 4 · 5망: 아주 짧은 섬광
+ c+=vec3(1.,.96,.88)*mix(0.,mix(.05,.16,K-1.),step(.5,K))*exp(-s*mix(8.,6.,K*.5));
+ o=vec4(min(c,vec3(1.)),1.);   // 화면(스크린) 합성으로 빛만 더함
 }`;
-// 고리 띠 메시: 위치 · (θ, 두께 쪽 -1~1, 생명, 고리 번호)
-const V_RING=`#version 300 es
-in vec2 aP;in vec4 aA;uniform vec4 uBB;out vec4 vA;
-void main(){vA=aA;vec2 q=(aP-uBB.xy)/uBB.zw;gl_Position=vec4(q.x*2.-1.,1.-q.y*2.,0.,1.);}`;
-const F_RING=`#version 300 es
-precision highp float;
-in vec4 vA;out vec4 o;uniform float uT;
-${CG.NOISE}
-void main(){
- float th=vA.x,sd=vA.y,life=vA.z,id=vA.w;
- float front=.45+.55*(.5+.5*sin(th));                       // 앞쪽(보는 쪽)이 밝고 뒤쪽은 흐림
- float fire=fbm(vec2(th*3.+uT*5.+id*3.,sd*1.5+id));
- float core=exp(-sd*sd*5.),edge=exp(-sd*sd*1.2);
- vec3 c=vec3(1.,.97,.88)*core*1.2+mix(vec3(1.,.55,.15),vec3(1.,.84,.45),fire)*edge*(.5+.7*fire);
- float a=clamp(edge*(.55+.45*fire),0.,1.)*front*life;
- o=vec4(c*a,a);
-}`;
-// 날아가는 작살(작살 좌표: 날 끝이 x≈3, 뒤가 -x): 날 둘레의 금빛 기운 · 불꽃 꼬리 · (5망) 날 끝의 보름달
+// 날아가는 작살(작살 좌표: 날 끝 x≈3, 뒤가 -x): 고리가 지나간 자리에 남는 옅은 빛의 잔광 · 날 끝의 빛 · (5망) 보름달 빛
 const F_FLY=`#version 300 es
 precision highp float;
 in vec2 vP;out vec4 o;uniform float uT,uN;
 ${CG.NOISE}
 void main(){
  vec2 p=vP;float K=clamp(uN-3.,0.,2.);
- float back=max(-p.x,0.),w=mix(5.,9.,K*.5)+back*.035;
- vec2 q=vec2(p.x*.05+uT*9.,p.y*.18);float n=fbm(q+fbm(q*1.3)*.8);
- float tail=exp(-p.y*p.y/(w*w))*smoothstep(-mix(110.,230.,K*.5),0.,p.x)*smoothstep(14.,0.,p.x)*(.45+.75*n);
- vec3 c=mix(vec3(1.,.5,.12),vec3(1.,.88,.55),n)*tail*.9;
- float tip=exp(-dot(p-vec2(2.,0.),p-vec2(2.,0.))/mix(60.,180.,K*.5));c+=vec3(1.,.95,.85)*tip*(.6+.4*sin(uT*30.));
- if(K>1.5){vec2 m=p-vec2(6.,0.);float md=length(m)/13.,disc=smoothstep(1.02,.9,md);c+=vec3(1.,.95,.82)*disc*(.4+.5*pow(md,5.))+vec3(1.,.8,.5)*exp(-max(md-1.,0.)*2.)*(1.-disc)*.5;}
- float a=clamp(max(c.r,max(c.g,c.b)),0.,1.);
- o=vec4(c*min(1.,a),a);
+ float back=max(-p.x,0.),w=mix(3.5,6.,K*.5)+back*.02;
+ float trail=exp(-p.y*p.y/(w*w))*smoothstep(-mix(90.,180.,K*.5),0.,p.x)*smoothstep(10.,-2.,p.x);
+ float sh=.75+.25*fbm(vec2(p.x*.03+uT*2.,1.));
+ vec3 c=vec3(1.,.86,.6)*trail*sh*.42;
+ float tip=exp(-dot(p-vec2(2.,0.),p-vec2(2.,0.))/mix(40.,90.,K*.5));c+=vec3(1.,.97,.9)*tip*.85;
+ if(K>1.5){vec2 mp=p-vec2(7.,0.);float md=length(mp)/12.;c+=vec3(1.,.95,.84)*exp(-pow(md,3.)*1.4)*(.86+.14*fbm(mp*.2))*.75+vec3(1.,.82,.52)*exp(-max(md-1.,0.)*2.)*.2;}
+ o=vec4(min(c,vec3(1.)),1.);
+}`;
+// 작살에 감긴 고리 하나(고리 좌표: 타원 rx · ry, 빛남 uF)
+const F_WRAP=`#version 300 es
+precision highp float;
+in vec2 vP;out vec4 o;uniform float uT,uRx,uRy,uF,uId;
+${CG.NOISE}
+${RING}
+void main(){
+ vec2 q=vP;float k=uRx/max(uRy,.01);
+ vec3 c=lightRing(q,uRy,k,1.,uId,uT)*(1.+1.2*uF);
+ o=vec4(min(c,vec3(1.)),1.);
 }`;
 
-/* ───────── 메시 · 균열 ───────── */
-let ringData=new Float32Array(8192*6),rn=0;
-function rpush(x,y,th,sd,life,id){const o=rn*6;if(o+6>ringData.length){const b=new Float32Array(ringData.length*2);b.set(ringData);ringData=b;}
- ringData[o]=x;ringData[o+1]=y;ringData[o+2]=th;ringData[o+3]=sd;ringData[o+4]=life;ringData[o+5]=id;rn++;}
-// 고리 하나: 가운데 c, 작살 방향 d에 수직인 평면에 놓인 원(반지름 R) → 화면에선 기울어진 타원. 두께 w(px)
-function ringMesh(cx,cy,d,R,k,w,spin,life,id){
- const n=[-d[1],d[0]],N=56;
- for(let j=0;j<N;j++){
-  const t0=j/N*Math.PI*2+spin,t1=(j+1)/N*Math.PI*2+spin;
-  const P=(t,s)=>{const rr=R+s*w;return [cx+n[0]*rr*Math.cos(t)+d[0]*rr*k*Math.sin(t),cy+n[1]*rr*Math.cos(t)+d[1]*rr*k*Math.sin(t)];};
-  const V=(t,s)=>{const p=P(t,s);rpush(p[0],p[1],t-spin,s,life,id);};
-  V(t0,-1);V(t0,1);V(t1,-1);V(t1,-1);V(t0,1);V(t1,1);
- }
-}
-// 상처에서 가지를 치며 자라는 균열(고정 시드): 각 마디가 드러나는 시각 · 깊이
-function crackTree(seed,K,d){
- const r=seeded(seed),segs=[],L=[38,100,140][K],nMain=[4,6,7][K];
- const grow=(x,y,a,len,depth,t0)=>{if(segs.length>=32||len<5)return;
-  const l=Math.min(len,9+r()*10),na=a+(r()-.5)*.9,ex=x+Math.cos(na)*l,ey=y+Math.sin(na)*l;
-  segs.push({a:[x,y],b:[ex,ey],t:t0,depth});
-  grow(ex,ey,na,len-l,depth+1,t0+.04+r()*.03);
-  if(r()<.32&&depth<4)grow(ex,ey,na+(r()<.5?-1:1)*(.6+r()*.6),(len-l)*.55,depth+1,t0+.06);};
- const base=Math.atan2(d[1],d[0]);
- for(let i=0;i<nMain;i++)grow(0,0,base+Math.PI/2*(i%2?1:-1)+(r()-.5)*1.6+(i>3?Math.PI*.5:0),L*(.6+r()*.5),0,.02+i*.02);
- return segs;
-}
+/* ───────── 부드러운 빛 입자(미리 그린 그림) ───────── */
+function sprite(stops){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
+ stops.forEach(([o,col])=>g.addColorStop(o,col));x.fillStyle=g;x.fillRect(0,0,64,64);return c;}
+let SP=null;
+function sprites(){return SP||(SP={hot:sprite([[0,'rgba(255,252,240,1)'],[.25,'rgba(255,230,170,.8)'],[.6,'rgba(255,180,80,.25)'],[1,'rgba(255,150,60,0)']]),
+ ember:sprite([[0,'rgba(255,200,110,1)'],[.3,'rgba(255,140,50,.6)'],[1,'rgba(200,70,20,0)']]),
+ mist:sprite([[0,'rgba(255,236,200,.55)'],[.5,'rgba(255,210,140,.2)'],[1,'rgba(255,190,110,0)']])});}
 
 /* ───────── 장면마다의 층 ───────── */
 function layer(g){
@@ -137,7 +119,7 @@ function layer(g){
  const fo=document.createElementNS(SVGNS,'foreignObject');fo.setAttribute('x','0');fo.setAttribute('y','0');fo.setAttribute('width',W);fo.setAttribute('height',H);fo.setAttribute('class','mfx-2d');
  const c2=document.createElementNS(XHTML,'canvas');c2.setAttribute('style','display:block;width:100%;height:100%');fo.appendChild(c2);
  const gl=document.createElementNS(SVGNS,'g');gl.setAttribute('class','mfx-gl');host.appendChild(gl);host.appendChild(fo);
- L=g.__mfx={host,gl,fo,c2,ctx:c2.getContext('2d'),seed:0,lastS:9,sparks:[],flakes:[],cr:null,lt:0,px:1,pxAt:0};
+ L=g.__mfx={host,gl,fo,c2,ctx:c2.getContext('2d'),seed:0,lastS:9,sparks:[],flakes:[],px:1,pxAt:0};
  return L;
 }
 function hide(L){if(L&&L.host.style.display!=='none')L.host.style.display='none';}
@@ -148,66 +130,50 @@ function paint(el,o){
  if(s==null||s<0||s>DUR[K]){hide(L);L.lastS=9;if(svg&&svg.style.transform&&L.shook){svg.style.transform='';L.shook=false;}return true;}
  L.host.style.display='';
  const a=o.ang||0,d=[Math.cos(a*RAD),Math.sin(a*RAD)],P=o.p||[0,0];
- // 새 명중: 시드 · 균열 · 불티 새로
- if(s<L.lastS-.05||L.K!==K){L.seed=(L.seed*7+13+Math.floor(P[0]))%997+1;L.cr=crackTree(L.seed,K,d);L.sparks=[];L.flakes=[];L.K=K;L.burst=false;}
+ if(s<L.lastS-.05||L.K!==K){L.seed=(L.seed*7+13+Math.floor(P[0]))%997+1;L.sparks=[];L.flakes=[];L.K=K;L.burst=false;}
  L.lastS=s;
  const fo=o.fade!=null&&s>o.fade?Math.max(0,1-(s-o.fade)/.35):1;
  L.host.style.opacity=fo.toFixed(3);
  const now=performance.now()/1000;
- // ── 셰이더: 빛 덩어리 · 보름달 · 충격파 · 균열 · 빛의 굴 ──
- const glc=CG._gl();const PF=CG._prog('mfxField',CG.VQ,F_FIELD,[['aP',2]]),PR=CG._prog('mfxRing',V_RING,F_RING,[['aP',2],['aA',4]]);
- if(!glc||!PF||!PR)return false;
+ const glc=CG._gl(),PF=CG._prog('mfxField2',CG.VQ,F_FIELD,[['aP',2]]);
+ if(!glc||!PF)return false;
  const BB=[0,0,W,H],S=CG._surface(L.gl,BB,{res:.7});
  CG._quad(PF,BB);
  glc.uniform1f(PF.u.uS,s);glc.uniform1f(PF.u.uT,now);glc.uniform1f(PF.u.uK,K);glc.uniform1f(PF.u.uThrough,o.through||120);glc.uniform1f(PF.u.uSeed,L.seed*.37);
  glc.uniform2f(PF.u.uP,P[0],P[1]);glc.uniform2f(PF.u.uD,d[0],d[1]);
- const cr=new Float32Array(128);let cn=0;
- L.cr.forEach(sg=>{const k=clamp((s-sg.t)/.05,0,1);if(k<=0||cn>=32)return;const bx=sg.a[0]+(sg.b[0]-sg.a[0])*k,by=sg.a[1]+(sg.b[1]-sg.a[1])*k;
-  cr.set([P[0]+sg.a[0],P[1]+sg.a[1],P[0]+bx,P[1]+by],cn*4);cn++;});
- glc.uniform4fv(PF.u.uCr,cr);glc.uniform1i(PF.u.uCn,cn);
- glc.drawArrays(glc.TRIANGLES,0,6);
- // ── 고리 메시 ──
- rn=0;
- for(let i=0;i<tier;i++){
+ const rg=new Float32Array(20);let rn=0;
+ for(let i=0;i<tier&&i<5;i++){
   const si=s-i*(K===1?.08:.05);if(si<0)continue;
-  let R,fwd,life,w=[2.6,3.2,3.8][K],k=.34*(1+.28*Math.sin(si*22+i));
-  if(K===0){   // 3망: 날 둘레에서 상처로 조여 든 뒤 한 번 터져 번짐
-   R=si<.14?22-16*outE(si/.14):6+60*outE((si-.14)/.5);fwd=i*4;life=si<.14?1:Math.max(0,1-(si-.14)/.6);}
-  else if(K===1){   // 4망: 작살을 밀어 넣으며 파고든 뒤, 하나씩 칼날처럼 바깥으로
-   const push=outE(si/.12);R=si<.18?18-8*push:10+[150,130,170,120][i%4]*outE((si-.18)/.42);fwd=i*5+14*push;life=si<.18?1:Math.max(0,1-(si-.18)/.75);w=si<.18?w:w*(1-.5*outE((si-.18)/.4));k*=si<.18?1:.6;}
-  else{   // 5망: 몸을 꿰뚫고 앞으로 지나가며 커짐
-   R=14+60*outE(si/.4)*(1+i*.12);fwd=si*560+i*18;life=Math.max(0,1-si/1.15);}
+  let R,fwd,life;
+  if(K===0){R=si<.14?22-14*outE(si/.14):8+56*outE((si-.14)/.5);fwd=i*4;life=si<.14?1:Math.max(0,1-(si-.14)/.6);}
+  else if(K===1){const push=outE(si/.12);R=si<.18?18-7*push:11+[150,130,170,120][i%4]*outE((si-.18)/.42);fwd=i*5+14*push;life=si<.18?1:Math.max(0,1-(si-.18)/.75);}
+  else{R=14+60*outE(si/.4)*(1+i*.12);fwd=si*560+i*18;life=Math.max(0,1-si/1.15);}
   if(life<=0)continue;
-  ringMesh(P[0]+d[0]*fwd,P[1]+d[1]*fwd,d,R,k,w,now*3+i,life,i);
+  rg.set([P[0]+d[0]*fwd,P[1]+d[1]*fwd,R,life],rn*4);rn++;
  }
- if(rn){glc.useProgram(PR.p);glc.bindVertexArray(PR.vao);glc.bindBuffer(glc.ARRAY_BUFFER,PR.buf);glc.bufferData(glc.ARRAY_BUFFER,ringData.subarray(0,rn*6),glc.DYNAMIC_DRAW);
-  glc.uniform4f(PR.u.uBB,0,0,W,H);glc.uniform1f(PR.u.uT,now);glc.drawArrays(glc.TRIANGLES,0,rn);}
- glc.bindVertexArray(null);CG._blit(S);
- // ── Canvas 2D: 불티 · 빛 조각 ──
- const c2=L.c2,ctx=L.ctx,t=performance.now();
+ glc.uniform4fv(PF.u.uRing,rg);glc.uniform1i(PF.u.uRn,rn);glc.uniform1f(PF.u.uRk,.34*(1+.2*Math.sin(now*2.3)));
+ glc.drawArrays(glc.TRIANGLES,0,6);glc.bindVertexArray(null);CG._blit(S);
+ // Canvas 2D: 부드러운 빛 입자
+ const c2=L.c2,ctx=L.ctx,t=performance.now(),SPR=sprites();
  if(t-L.pxAt>500){const r2=c2.getBoundingClientRect();L.px=Math.min(1.6,Math.max(.5,(r2.width||W)/W*Math.min(2,window.devicePixelRatio||1)));L.pxAt=t;}
  const pw=Math.round(W*L.px),ph=Math.round(H*L.px);if(c2.width!==pw||c2.height!==ph){c2.width=pw;c2.height=ph;}
  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,pw,ph);ctx.setTransform(L.px,0,0,L.px,0,0);ctx.globalCompositeOperation='lighter';
  let dt=s-(L.ls==null?s:L.ls);L.ls=s;if(dt<0||dt>.3)dt=0;
  const rnd=Math.random;
- if(!L.burst){L.burst=true;const nS=[40,75,120][K],sp=[180,300,460][K],fw=[.2,.45,.9][K];
-  for(let i=0;i<nS;i++){let ang=rnd()*Math.PI*2;if(rnd()<fw)ang=Math.atan2(d[1],d[0])+(rnd()-.5)*1.2;const v=sp*(.25+rnd()*.75);
-   L.sparks.push({x:P[0],y:P[1],vx:Math.cos(ang)*v,vy:Math.sin(ang)*v-40*rnd(),life:0,max:.45+rnd()*[.6,.9,1.2][K],sz:.8+rnd()*[1.4,1.8,2.4][K]});}
-  for(let i=0;i<[6,10,14][K];i++){const ang=rnd()*Math.PI*2,v=30+rnd()*70;L.flakes.push({x:P[0],y:P[1],vx:Math.cos(ang)*v,vy:Math.sin(ang)*v*.6-20,life:0,max:1.4+rnd()*1.2,rot:rnd()*6,vr:(rnd()-.5)*5,sz:3+rnd()*4});}}
- // 균열에서 이따금 튀는 불티
- if(K>0&&dt>0&&s<DUR[K]-.8&&L.cr.length){const m=Math.round(dt*[0,30,50][K]+rnd()*.5);for(let i=0;i<m;i++){const sg=L.cr[Math.floor(rnd()*L.cr.length)];if(s<sg.t)continue;
-  L.sparks.push({x:P[0]+sg.b[0],y:P[1]+sg.b[1],vx:(rnd()-.5)*60,vy:-30-rnd()*80,life:0,max:.4+rnd()*.5,sz:.6+rnd()*1.1});}}
- ctx.lineCap='round';
- L.sparks=L.sparks.filter(p=>{p.life+=dt;if(p.life>p.max)return false;p.vx*=1-1.6*dt;p.vy=p.vy*(1-1.6*dt)+160*dt;const px=p.x,py=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;
-  const k=p.life/p.max,al=(1-k);const hot=k<.35;
-  ctx.strokeStyle=hot?'rgba(255,246,220,'+(al*.95).toFixed(3)+')':'rgba(255,'+Math.round(170-80*k)+','+Math.round(70-50*k)+','+(al*.85).toFixed(3)+')';
-  ctx.lineWidth=p.sz*(1-k*.6);ctx.beginPath();ctx.moveTo(px-p.vx*.03,py-p.vy*.03);ctx.lineTo(p.x,p.y);ctx.stroke();return true;});
- L.flakes=L.flakes.filter(f=>{f.life+=dt;if(f.life>f.max)return false;f.vx*=1-1.2*dt;f.vy=f.vy*(1-1.2*dt)-14*dt;f.x+=f.vx*dt+Math.sin(f.life*3+f.rot)*10*dt;f.y+=f.vy*dt;f.rot+=f.vr*dt;
-  const k=f.life/f.max,al=Math.min(1,f.life*6)*(1-k);ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);
-  const gr=ctx.createRadialGradient(0,0,0,0,0,f.sz);gr.addColorStop(0,'rgba(255,248,226,'+(al*.9).toFixed(3)+')');gr.addColorStop(1,'rgba(255,200,110,0)');ctx.fillStyle=gr;
-  ctx.beginPath();ctx.ellipse(0,0,f.sz,f.sz*.42,0,0,Math.PI*2);ctx.fill();ctx.restore();return true;});
- ctx.globalCompositeOperation='source-over';
- // 화면 흔들림(4망 · 5망)
+ if(!L.burst){L.burst=true;const nS=[34,60,96][K],spd=[170,280,430][K],fw=[.2,.45,.9][K];
+  for(let i=0;i<nS;i++){let an=rnd()*Math.PI*2;if(rnd()<fw)an=Math.atan2(d[1],d[0])+(rnd()-.5)*1.2;const v=spd*(.25+rnd()*.75);
+   L.sparks.push({x:P[0],y:P[1],vx:Math.cos(an)*v,vy:Math.sin(an)*v-40*rnd(),life:0,max:.45+rnd()*[.6,.9,1.2][K],sz:2+rnd()*[3,4,5][K],h:[]});}
+  for(let i=0;i<[6,10,14][K];i++){const an=rnd()*Math.PI*2,v=30+rnd()*70;L.flakes.push({x:P[0],y:P[1],vx:Math.cos(an)*v,vy:Math.sin(an)*v*.6-20,life:0,max:1.4+rnd()*1.2,ph:rnd()*6,sz:6+rnd()*8});}}
+ if(K>0&&dt>0&&s<DUR[K]-.8){const m=Math.round(dt*[0,22,36][K]+rnd()*.5),Rw=[16,28,40][K];
+  for(let i=0;i<m;i++){const an=rnd()*Math.PI*2,rr=Rw*(.4+rnd()*.7);L.sparks.push({x:P[0]+Math.cos(an)*rr,y:P[1]+Math.sin(an)*rr,vx:(rnd()-.5)*50,vy:-30-rnd()*70,life:0,max:.5+rnd()*.5,sz:1.6+rnd()*2.4,h:[]});}}
+ L.sparks=L.sparks.filter(p=>{p.life+=dt;if(p.life>p.max)return false;p.vx*=1-1.6*dt;p.vy=p.vy*(1-1.6*dt)+150*dt;
+  p.h.unshift([p.x,p.y]);if(p.h.length>4)p.h.pop();p.x+=p.vx*dt;p.y+=p.vy*dt;
+  const k=p.life/p.max,al=1-k,img=k<.35?SPR.hot:SPR.ember,sz=p.sz*(1-k*.5);
+  p.h.forEach((q,j)=>{const f=1-(j+1)/5;ctx.globalAlpha=al*.35*f;const z=sz*(.6+.4*f);ctx.drawImage(img,q[0]-z,q[1]-z,z*2,z*2);});
+  ctx.globalAlpha=al;ctx.drawImage(img,p.x-sz,p.y-sz,sz*2,sz*2);return true;});
+ L.flakes=L.flakes.filter(f=>{f.life+=dt;if(f.life>f.max)return false;f.vx*=1-1.2*dt;f.vy=f.vy*(1-1.2*dt)-14*dt;f.x+=f.vx*dt+Math.sin(f.life*3+f.ph)*10*dt;f.y+=f.vy*dt;
+  const k=f.life/f.max,al=Math.min(1,f.life*6)*(1-k),z=f.sz*(1+.15*Math.sin(f.life*5+f.ph));ctx.globalAlpha=al*.8;ctx.drawImage(SPR.mist,f.x-z,f.y-z*.6,z*2,z*1.2);return true;});
+ ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
  if(svg){const amp=[0,3.4,8.5][K]*Math.exp(-s*7);svg.style.transform=amp>.15?'translate('+(Math.sin(s*92)*amp).toFixed(2)+'px,'+(Math.cos(s*71)*amp*.7).toFixed(2)+'px)':'';L.shook=true;}
  return true;
 }
@@ -217,27 +183,41 @@ const orig=HL.paintHit;
 HL.paintHit=function(el,o){
  const tier=o&&o.tier|0;
  if(tier>=3&&supported()){
-  orig.call(this,el,Object.assign({},o,{s:-1}));   // 예전 그림은 숨김
+  orig.call(this,el,Object.assign({},o,{s:-1}));
   try{if(paint(el,o))return;}catch(e){console.warn('[mang-fx]',e);ok=false;}
  }
  const g=el&&el.querySelector&&el.querySelector('.hl-hit');if(g&&g.__mfx)hide(g.__mfx);
  return orig.call(this,el,o);
 };
 
-/* ───────── 날아가는 작살: 날 둘레의 금빛 기운 · 불꽃 꼬리 ───────── */
+/* ───────── 날아가는 작살 · 감긴 고리 ───────── */
 function visible(e){for(let n=e;n&&n.nodeType===1;n=n.parentNode){if(n.getAttribute&&(n.getAttribute('opacity')==='0'||n.style.opacity==='0'||n.style.display==='none'))return false;if(n.tagName==='svg')break;}return true;}
 const FB=[-240,-26,262,52];
+function wrapRing(g,i,glc,PW,now){
+ const co=g.children[1];if(!co)return;
+ const rx=+co.getAttribute('rx')||1,ry=+co.getAttribute('ry')||1,gl=g.children[0];
+ const so=gl?+gl.getAttribute('stroke-opacity')||.24:.24,fl=clamp((so-.24)/.45,0,1);
+ let host=g.__mfxw;if(!host||!host.isConnected){host=document.createElementNS(SVGNS,'g');host.setAttribute('class','mfx-wrap');g.appendChild(host);g.__mfxw=host;g.classList.add('mfxr');}
+ const e=ry*1.9,B=[-e,-e,e*2,e*2];
+ const S=CG._surface(host,B,{res:1.2});CG._quad(PW,B);
+ glc.uniform1f(PW.u.uT,now);glc.uniform1f(PW.u.uRx,rx);glc.uniform1f(PW.u.uRy,ry);glc.uniform1f(PW.u.uF,fl);glc.uniform1f(PW.u.uId,i);
+ glc.drawArrays(glc.TRIANGLES,0,6);glc.bindVertexArray(null);CG._blit(S);
+}
 function flyFrame(){
- try{const n=HL.tier?HL.tier():0;
-  if(n>=3&&supported()){const glc=CG._gl(),PQ=CG._prog('mfxFly',CG.VQ,F_FLY,[['aP',2]]);
+ try{const n=HL.tier?HL.tier():0,now=performance.now()/1000;
+  if(n>=3&&supported()){const glc=CG._gl(),PQ=CG._prog('mfxFly2',CG.VQ,F_FLY,[['aP',2]]),PW=CG._prog('mfxWrap',CG.VQ,F_WRAP,[['aP',2]]);
    document.querySelectorAll('.hl-fly').forEach(f=>{const host=f.__mfxh||(f.__mfxh=(()=>{const h=document.createElementNS(SVGNS,'g');h.setAttribute('class','mfx-fly');f.insertBefore(h,f.firstChild);return h;})());
     if(!visible(f)||!PQ||!glc){host.style.display='none';return;}host.style.display='';
-    const S=CG._surface(host,FB,{res:.8});CG._quad(PQ,FB);glc.uniform1f(PQ.u.uT,performance.now()/1000);glc.uniform1f(PQ.u.uN,n);
-    glc.drawArrays(glc.TRIANGLES,0,6);glc.bindVertexArray(null);CG._blit(S);});}
-  else document.querySelectorAll('.mfx-fly').forEach(h=>h.style.display='none');
+    const S=CG._surface(host,FB,{res:.8});CG._quad(PQ,FB);glc.uniform1f(PQ.u.uT,now);glc.uniform1f(PQ.u.uN,n);
+    glc.drawArrays(glc.TRIANGLES,0,6);glc.bindVertexArray(null);CG._blit(S);});
+   if(PW&&glc)document.querySelectorAll('.hl-ring').forEach(g=>{const i=+g.dataset.i||0;
+    if(i>=n||g.getAttribute('opacity')==='0'||!visible(g)){if(g.__mfxw)g.__mfxw.style.display='none';return;}
+    if(g.__mfxw)g.__mfxw.style.display='';wrapRing(g,i,glc,PW,now);});
+  }else{document.querySelectorAll('.mfx-fly,.mfx-wrap').forEach(h=>h.style.display='none');document.querySelectorAll('.hl-ring.mfxr').forEach(g=>g.classList.remove('mfxr'));}
  }catch(e){}
  requestAnimationFrame(flyFrame);
 }
 requestAnimationFrame(flyFrame);
+const st=document.createElement('style');st.textContent='.hl-ring.mfxr>ellipse{display:none}.mfx-gl .cgl-fo,.mfx-fly .cgl-fo,.mfx-wrap .cgl-fo,.mfx-2d{mix-blend-mode:screen}';(document.head||document.documentElement).appendChild(st);
 window.MangFX={paint,supported};
 })();

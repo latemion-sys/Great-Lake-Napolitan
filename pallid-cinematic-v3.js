@@ -44,6 +44,9 @@ const MEM=[{x:558,y:322,len:46,w:4.2,ph:.1,dx:-6},{x:600,y:334,len:28,w:2.6,ph:.
  {x:690,y:218,len:30,w:3,ph:.62},{x:606,y:276,len:22,w:2.4,ph:.9},{x:588,y:184,len:26,w:2.2,ph:.27},{x:684,y:158,len:18,w:1.8,ph:.71},{x:560,y:241,len:20,w:2,ph:.44}];
 /* ---------- Canvas 2D: 이마에서 떨어지는 물방울 · 수면 물보라 · 명중 순간의 물보라와 흰 조각 · 떠도는 창백한 부유물 ---------- */
 const SVGNS='http://www.w3.org/2000/svg',XHTML='http://www.w3.org/1999/xhtml';
+function dsprite(stops){const c=document.createElement('canvas');c.width=c.height=48;const x=c.getContext('2d'),g=x.createRadialGradient(24,24,0,24,24,24);stops.forEach(([o,col])=>g.addColorStop(o,col));x.fillStyle=g;x.fillRect(0,0,48,48);return c;}
+const DROP={water:dsprite([[0,'rgba(244,250,250,.95)'],[.35,'rgba(226,238,238,.55)'],[1,'rgba(210,226,226,0)']]),blood:dsprite([[0,'rgba(190,40,50,.9)'],[.4,'rgba(150,25,35,.5)'],[1,'rgba(120,20,30,0)']]),
+ ripple:dsprite([[0,'rgba(220,232,232,0)'],[.55,'rgba(220,232,232,.05)'],[.8,'rgba(226,238,238,.5)'],[1,'rgba(220,232,232,0)']])};
 function fx2d(el,t,M,run,rise,hit,hold){
  let s=el.__fx2;
  if(!s){const root=el.querySelector('.w3-root');if(!root)return;
@@ -74,15 +77,15 @@ function fx2d(el,t,M,run,rise,hit,hold){
  ctx.lineCap='round';
  s.drops=s.drops.filter(d=>{d.life+=dt;d.vy+=620*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;
   if(d.y>=SEA+2&&d.vy>0){if(R()<.35)s.rings.push({x:d.x,y:SEA+2+R()*4,a:0,s:.6+d.sz*.4});return false;}
-  const sp=Math.hypot(d.vx,d.vy)||1,l=Math.min(9,sp*.02+d.sz);
-  ctx.strokeStyle=d.c?'rgba(160,30,40,.75)':'rgba(232,242,242,'+(.75-Math.min(.5,d.life*.3)).toFixed(3)+')';ctx.lineWidth=d.sz;
-  ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-d.vx/sp*l,d.y-d.vy/sp*l);ctx.stroke();return d.life<3;});
- s.rings=s.rings.filter(g=>{g.a+=dt/1.1;if(g.a>=1)return false;ctx.strokeStyle='rgba(220,232,232,'+(.45*(1-g.a)).toFixed(3)+')';ctx.lineWidth=.8;
-  ctx.beginPath();ctx.ellipse(g.x,g.y,(2+g.a*16)*g.s,(.6+g.a*3)*g.s,0,0,Math.PI*2);ctx.stroke();return true;});
+  // 물방울: 부드러운 입자 + 흐릿한 잔상(선을 긋지 않음)
+  const img=d.c?DROP.blood:DROP.water,al=.8-Math.min(.5,d.life*.3),z=d.sz*1.6;
+  for(let j=2;j>=0;j--){const k=j*.012;ctx.globalAlpha=al*(j?.25/j:1);const zz=z*(1-j*.18);ctx.drawImage(img,d.x-d.vx*k-zz,d.y-d.vy*k-zz,zz*2,zz*2);}
+  ctx.globalAlpha=1;return d.life<3;});
+  s.rings=s.rings.filter(g=>{g.a+=dt/1.1;if(g.a>=1)return false;   // 물결: 테두리 없이 부드럽게 번지는 빛의 면
+  ctx.globalAlpha=.5*(1-g.a);const rx=(3+g.a*16)*g.s,ry=(1+g.a*3)*g.s;ctx.drawImage(DROP.ripple,g.x-rx,g.y-ry,rx*2,ry*2);ctx.globalAlpha=1;return true;});
  // 흰 막 조각: 천천히 팔랑이며 떨어짐
  s.flakes=s.flakes.filter(f=>{f.life+=dt;f.vy+=140*dt;f.vx*=1-1.5*dt;f.x+=f.vx*dt+Math.sin(f.life*5+f.rot)*12*dt;f.y+=f.vy*dt;f.rot+=f.vr*dt;
-  if(f.y>SEA+4||f.life>4)return false;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);ctx.fillStyle='rgba(236,240,236,'+(.85*(1-f.life/4)).toFixed(3)+')';
-  ctx.beginPath();ctx.moveTo(-f.sz,-f.sz*.3);ctx.quadraticCurveTo(0,-f.sz*.9,f.sz,-f.sz*.2);ctx.quadraticCurveTo(f.sz*.3,f.sz*.6,-f.sz*.8,f.sz*.4);ctx.closePath();ctx.fill();ctx.restore();return true;});
+  if(f.y>SEA+4||f.life>4)return false;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);ctx.globalAlpha=.85*(1-f.life/4);const z=f.sz*1.6;ctx.drawImage(DROP.water,-z,-z*.45,z*2,z*.9);ctx.globalAlpha=1;ctx.restore();return true;});
  // 떠도는 창백한 부유물(고래 둘레 공기 · 아주 옅게)
  const tt=performance.now()/1000;
  s.motes.forEach(m=>{const x=((m.x+m.vx*tt+Math.sin(tt*.4+m.ph)*14)%700+700)%700+300,y=((m.y+m.vy*tt)%300+300)%300+60;
