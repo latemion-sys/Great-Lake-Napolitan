@@ -480,7 +480,7 @@ const v2html=V2.html;
 function sceneHtml(name){return name==='harpoon'?harpoonHtml():v2html(name);}
 window.PallidCinematicV2=Object.assign({},V2,{html:sceneHtml});
 window.PallidCinematicV3={html:sceneHtml,harpoon:harpoonHtml,
- shared:{W,H,SEA,BOAT,seeded,wrinkles,scars,esc,clamp,outC,inOut,WHALE,WHALE_TOP,IMPACT}};
+ shared:{W,H,SEA,BOAT,seeded,wrinkles,scars,esc,clamp,outC,inOut,WHALE,WHALE_TOP,IMPACT,pallidJaw,MEM}};
 try{
  if(typeof pallidFxMarkup162==='function'){
   pallidFxMarkup162=sceneHtml;

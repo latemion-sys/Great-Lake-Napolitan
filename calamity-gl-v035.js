@@ -468,6 +468,7 @@ function vent(cone,plumeHost,o){
   // 김 기둥(열렸을 때) · 깨진 뒤의 연기
   const want=o.broken?1:(o.open||0);
   if(plumeHost){
+   plumeHost.classList.add('cglp');   // 셰이더가 되면 예전 SVG 김 · 빛 원은 늘 숨김
    if(want>.01&&(o.rise||0)>.85){
     const base=(1-(o.rise||0))*150-(o.broken?60:118),B=[-110,base-330,220,340];
     const S=surface(plumeHost,B,{before:plumeHost.querySelector('.yv-st'),res:.6});

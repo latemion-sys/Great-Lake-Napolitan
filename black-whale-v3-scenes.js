@@ -1063,6 +1063,7 @@ function frame(now){
    if(el.dataset.seek!=null)tr=+el.dataset.seek;
    const t=S.loop?tr%S.loop:Math.min(tr,S.dur||tr);
    try{S.paint(el,t,tr);}catch(e){if(!el._bkErr){el._bkErr=1;console.warn('검은 고래 이펙트',e);}}
+   if(window.EncFX)window.EncFX.tick(el,t);   // 조우 장면의 징조 · 드러남
   }
  }
  requestAnimationFrame(frame);
