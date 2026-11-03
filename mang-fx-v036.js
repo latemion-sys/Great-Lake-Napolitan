@@ -71,7 +71,7 @@ void main(){
   c+=(vec3(1.,.95,.84)*plate*mott+vec3(1.,.82,.52)*exp(-max(md-1.,0.)*2.2)*.3)*uMoonRA.y*scat;}
  // 4 · 5망: 아주 짧은 섬광
  c+=vec3(1.,.96,.88)*mix(0.,mix(.05,.16,K-1.),step(.5,K))*exp(-s*mix(8.,6.,K*.5));
- o=vec4(min(c,vec3(1.)),1.);   // 화면(스크린) 합성으로 빛만 더함
+ {vec3 cc=min(c,vec3(1.));o=vec4(cc,max(cc.r,max(cc.g,cc.b)));}   // 빛이 없는 곳은 투명(검은 판이 생기지 않음)   // 화면(스크린) 합성으로 빛만 더함
 }`;
 // 날아가는 작살(작살 좌표: 날 끝 x≈3, 뒤가 -x): 고리가 지나간 자리에 남는 옅은 빛의 잔광 · 날 끝의 빛 · (5망) 보름달 빛
 const F_FLY=`#version 300 es
@@ -86,7 +86,7 @@ void main(){
  vec3 c=vec3(1.,.86,.6)*trail*sh*.42;
  float tip=exp(-dot(p-vec2(2.,0.),p-vec2(2.,0.))/mix(40.,90.,K*.5));c+=vec3(1.,.97,.9)*tip*.85;
  if(K>1.5){vec2 mp=p-vec2(7.,0.);float md=length(mp)/12.;c+=vec3(1.,.95,.84)*exp(-pow(md,3.)*1.4)*(.86+.14*fbm(mp*.2))*.75+vec3(1.,.82,.52)*exp(-max(md-1.,0.)*2.)*.2;}
- o=vec4(min(c,vec3(1.)),1.);
+ {vec3 cc=min(c,vec3(1.));o=vec4(cc,max(cc.r,max(cc.g,cc.b)));}   // 빛이 없는 곳은 투명(검은 판이 생기지 않음)
 }`;
 // 작살에 감긴 고리 하나(고리 좌표: 타원 rx · ry, 빛남 uF)
 const F_WRAP=`#version 300 es
@@ -97,7 +97,7 @@ ${RING}
 void main(){
  vec2 q=vP;float k=uRx/max(uRy,.01);
  vec3 c=lightRing(q,uRy,k,1.,uId,uT)*(1.+1.2*uF);
- o=vec4(min(c,vec3(1.)),1.);
+ {vec3 cc=min(c,vec3(1.));o=vec4(cc,max(cc.r,max(cc.g,cc.b)));}   // 빛이 없는 곳은 투명(검은 판이 생기지 않음)
 }`;
 
 /* ───────── 부드러운 빛 입자(미리 그린 그림) ───────── */
