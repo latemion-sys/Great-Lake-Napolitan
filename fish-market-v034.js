@@ -12,6 +12,22 @@ let ownedNames=[];
 try{const data=JSON.parse(localStorage.getItem(FISH_SAVE_KEY)||'[]');if(Array.isArray(data))ownedNames=data.filter(x=>typeof x==='string'&&FISH_BY_NAME.has(x));}catch(e){}
 const discovered=new Set(ownedNames);
 const RARITIES=[['흔함',70],['드묾',25],['매우 희귀',5]];
+const FISH_PRICE_035={'흔함':1.5,'드묾':3,'매우 희귀':5};
+function stock035(){
+ const n=Math.max(0,Math.floor(Number(state.fish)||0));
+ if(!Array.isArray(state.fishStock035))state.fishStock035=Array(n).fill(null);
+ if(state.fishStock035.length>n)state.fishStock035.length=n;
+ while(state.fishStock035.length<n)state.fishStock035.push(null);
+ return state.fishStock035;
+}
+function saleTotal035(){
+ return stock035().reduce((sum,name)=>sum+(FISH_PRICE_035[FISH_BY_NAME.get(name)?.rarity]||1.5),0);
+}
+function stockSummary035(){
+ const r={'흔함':0,'드묾':0,'매우 희귀':0,미분류:0};
+ for(const name of stock035()){const rarity=FISH_BY_NAME.get(name)?.rarity;r[rarity||'미분류']++;}
+ return r;
+}
 function pickFish(){
  const habitat=Math.random()<.5?'민물':'바다';
  let roll=Math.random()*100,rarity='흔함';
@@ -21,7 +37,9 @@ function pickFish(){
 }
 function rememberFish(species,addStock,reason){
  if(!species)return;
- if(addStock)state.fish=Math.max(0,Number(state.fish)||0)+1;
+ if(addStock){
+  const inv=stock035();state.fish=Math.max(0,Number(state.fish)||0)+1;inv.push(species.name);
+ }
  if(!Array.isArray(state.fishCaught034))state.fishCaught034=[];
  state.fishCaught034.unshift(species.name);
  state.fishCaught034.length=Math.min(state.fishCaught034.length,12);
@@ -59,11 +77,11 @@ completeLake=function(success,msg){
 if(typeof sailAction0131==='function'){
  const prevSail=sailAction0131;
  sailAction0131=function(action){
-  const count=Number(state.fish)||0;
+  const inv=stock035(),count=Number(state.fish)||0;
   const result=prevSail.apply(this,arguments);
   if(action==='fish'&&state.fish>count){
    const gained=state.fish-count;
-   for(let i=0;i<gained;i++)rememberFish(pickFish(),false,'그물 어획');
+   for(let i=0;i<gained;i++){const species=pickFish();inv.push(species.name);rememberFish(species,false,'그물 어획');}
    sync();
   }
   return result;
@@ -73,7 +91,7 @@ const prevSale=sellFish0131;
 sellFish0131=function(){
  const before=state.fish;
  const result=prevSale.apply(this,arguments);
- if(before>0&&state.fish===0)state.fishCaught034=[];
+ if(before>0&&state.fish===0){state.fishStock035=[];state.fishCaught034=[];sync();}
  return result;
 };
 function marketPrice(){return Math.max(20,Math.ceil(Math.max(0,Number(state.gold)||0)*.2));}
@@ -118,8 +136,10 @@ function catalogPanel(){
   const f=FISH_BY_NAME.get(name);return '<span class="tag" style="display:inline-block;margin:3px">'+esc(f.name)+' · '+f.water+' · '+f.rarity+'</span>';
  }).join('');
  const recent=(state.fishCaught034||[]).map(name=>esc(name)).join(', ');
+ const q=stockSummary035();
  return '<div class="inset"><h3>어류 도감</h3>'+
   '<p>채집 확인 '+names.length+' / '+FISHES.length+'종 · 민물 '+fresh.length+'종 · 바다 '+sea.length+'종</p>'+
+  '<p class="muted">판매가: 흔함 '+unitMoney(1.5)+' · 드묾 '+unitMoney(3)+' · 매우 희귀 '+unitMoney(5)+' / 현재 재고: 흔함 '+q['흔함']+'마리 · 드묾 '+q['드묾']+'마리 · 매우 희귀 '+q['매우 희귀']+'마리'+(q.미분류?' · 종류 미확인 '+q.미분류+'마리(흔함 단가)':'')+'</p>'+
   '<p class="muted">모든 호수 통과 시 물고기 한 마리를 자동으로 낚습니다. 출현 희귀도는 실제 생태·보호 자료를 참고한 게임용 확률입니다. 처음 낚아 본 종은 사망해도 도감에 남습니다.</p>'+
   (recent?'<p class="small">최근 어획: '+recent+'</p>':'')+
   '<details><summary>확인한 물고기 '+names.length+'종 보기</summary><div style="margin-top:10px">'+(listing||'아직 발견한 어종이 없습니다.')+'</div></details>'+
@@ -137,5 +157,6 @@ document.addEventListener('click',e=>{
  buyMarket(b.dataset.value);
 });
 if(discovered.size>=100&&!state.achievements.includes('fish_100_unique_v034')){award('fish_100_unique_v034');save();}
-window.GREAT_LAKE_FISH_MARKET_034={FISHES,acquired,pickFish,marketPrice,marketReady,buyMarket,rememberFish,SALE_FACTOR};
+stock035();
+window.GREAT_LAKE_FISH_MARKET_034={FISHES,acquired,pickFish,marketPrice,marketReady,buyMarket,rememberFish,SALE_FACTOR,saleTotal:saleTotal035,stock:stock035,prices:FISH_PRICE_035};
 })();
