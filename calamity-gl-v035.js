@@ -40,7 +40,7 @@ void main(){vP=uBB.xy+aP*uBB.zw;gl_Position=vec4(aP.x*2.-1.,1.-aP.y*2.,0.,1.);}`
 const F_PALLID=`#version 300 es
 precision highp float;
 in vec2 vP;out vec4 o;
-uniform float uT,uRun,uPx;uniform float uTop[64];uniform vec3 uLamp;uniform vec4 uHp[8];
+uniform float uT,uRun,uPx,uEnc;uniform float uTop[64];uniform vec3 uLamp;uniform vec4 uHp[8];
 ${NOISE}
 float topY(float x){float f=clamp((x-520.)/8.,0.,62.99);int i=int(f);return mix(uTop[i],uTop[i+1],fract(f));}
 vec3 rakeSet(vec2 p,vec2 o0,float ang,float len,float base,inout float dark){
@@ -69,8 +69,8 @@ void main(){
  // 잔주름 그물(머리 전체) · 머리 뒤의 깊게 접힌 주름(뒤로 갈수록 깊어짐)
  float fw=ridge(p*.055+vec2(fbm(p*.02)*2.));col*=1.-.12*smoothstep(.82,.98,fw);
  float rear=smoothstep(740.,900.,p.x);
- float cr=sin(p.y*.38+fbm(p*vec2(.008,.02))*7.+p.x*.012);float crease=exp(-cr*cr/.03)*rear*smoothstep(.0,.15,v);
- col*=1.-.42*crease;col+=pl*.07*rear*smoothstep(.6,1.,cr)*dif;
+ float cr=sin(p.y*.38+fbm(p*vec2(.008,.02))*7.+p.x*.012);float crease=exp(-cr*cr/mix(.03,.12,uEnc))*rear*smoothstep(.0,.15,v);
+ col*=1.-mix(.42,.13,uEnc)*crease;col+=pl*.07*(1.-.6*uEnc)*rear*smoothstep(.6,1.,cr)*dif;
  // 비치는 혈관(창백해서 푸르게 비침)
  vec2 w=vec2(fbm(p*.012+vec2(1.,5.)),fbm(p*.012+vec2(8.,2.)))*30.;
  float vr=ridge((p+w)*.014),vein=smoothstep(.955,.995,vr)*(.4+.6*smoothstep(.1,.6,v))*(1.-rear*.5);
@@ -79,16 +79,16 @@ void main(){
  col=mix(col,min(col*1.22+.05,vec3(1.)),vein2*.5);                 // 하얀 핏줄(살 아래로 희게 비침)
  // 작살이 박힌 자리: 찢긴 테 · 아래로 흘러내린 녹물과 핏물 자국
  for(int i=0;i<8;i++){vec2 h=uHp[i].xy;float len=uHp[i].z;vec2 d=p-h;
-  float ring=exp(-pow(length(d*vec2(1.,1.4))-6.,2.)/5.);col=mix(col,vec3(.62,.42,.4),ring*.35);
-  float sx=d.x+sin(d.y*.15+float(i))*1.6;float run=exp(-sx*sx/(5.+d.y*.08))*smoothstep(2.,8.,d.y)*exp(-d.y/len);
+  float rl=length(d*vec2(1.,1.4))-6.,ring=exp(-rl*rl/5.);col=mix(col,vec3(.62,.42,.4),ring*mix(.35,.2,uEnc));
+  float sx=d.x+sin(d.y*.15+float(i))*1.6;float dy=max(d.y,0.);float run=exp(-sx*sx/(5.+dy*.08))*smoothstep(2.,8.,d.y)*exp(-dy/len);   // 작살 위쪽(d.y<0)에서 분모가 음수가 되어 무한대×0=NaN이 되던 것을 막음
   run*=.55+.45*vn(vec2(p.x*.3,p.y*.06+float(i)));
   col=mix(col,vec3(.36,.17,.1),run*.42);}
  // 텅 빈 새까만 눈: 둘레가 움푹 꺼지고 빛이 빨려 드는 듯 어둡게
  {vec2 e=(p-vec2(748.,298.))*vec2(1.,1.35);float r=length(e);col*=1.-.5*exp(-r*r/600.);col=mix(col,col*.6,smoothstep(26.,12.,r)*smoothstep(4.,12.,r)*.4);}
  // 오징어 빨판 흉터: 이마에 드문드문 둥근 테
  float zone=smoothstep(550.,600.,p.x)*(1.-smoothstep(760.,820.,p.x))*smoothstep(170.,190.,p.y)*(1.-smoothstep(290.,315.,p.y));
- vec4 vo=vor(p/24.);float rr=.12+.2*vo.z,ring=exp(-pow((vo.x-rr)/.035,2.))*step(vo.w,.3)*zone;
- col=mix(col,col*1.18+.03,ring*.6);col*=1.-.1*step(vo.x,rr*.8)*step(vo.w,.3)*zone;
+ vec4 vo=vor(p/24.);float rr=.12+.2*vo.z,ring=exp(-((vo.x-rr)/.035)*((vo.x-rr)/.035))*step(vo.w,.3)*zone;
+ col=mix(col,col*1.18+.03,ring*mix(.6,.22,uEnc));col*=1.-.1*step(vo.x,rr*.8)*step(vo.w,.3)*zone;
  // 긁힌 자국(세 줄씩)
  float dark=0.;vec3 rk=rakeSet(p,vec2(610.,232.),.14,120.,1.,dark)+rakeSet(p,vec2(800.,200.),.38,90.,1.,dark);
  col*=1.-.28*dark;col=mix(col,col*1.25+.06,clamp(rk.x,0.,1.)*.55);
@@ -97,10 +97,17 @@ void main(){
   vec4 W=i==0?vec4(690.,214.,.24,40.):(i==1?vec4(840.,296.,-.14,34.):vec4(606.,272.,-.42,26.));
   vec2 d=p-W.xy;float c=cos(W.z),s=sin(W.z);vec2 q=vec2(c*d.x+s*d.y,-s*d.x+c*d.y);
   float e=length(q/vec2(W.w*.5,W.w*.085)),e2=length(q/vec2(W.w*.62,W.w*.3));
-  col=mix(col,col*vec3(.92,.74,.76),smoothstep(1.,.2,e2)*.55);                    // 멍
-  col=mix(col,vec3(.84,.6,.58),smoothstep(1.55,1.05,e)*smoothstep(.75,1.05,e)*.85);   // 입술
+  if(uEnc>.5&&i>0){   // 조우 장면: 오래되어 아문 흉터(희게 부푼 솔기 · 가장자리의 옅은 주름 · 아주 옅은 분홍기)
+   float sc=smoothstep(1.25,.55,e)*(.75+.25*vn(vec2(q.x*.3,float(i))));
+   col=mix(col,min(col*1.1+vec3(.06,.055,.05),vec3(1.)),sc*.55);
+   col=mix(col,col*vec3(1.,.9,.9),smoothstep(1.,.3,e2)*.25);
+   col*=1.-.1*smoothstep(1.6,1.25,e)*smoothstep(.95,1.25,e);
+   continue;}
+  float fr=uEnc>.5?.7:1.;
+  col=mix(col,col*vec3(.92,.74,.76),smoothstep(1.,.2,e2)*.55*fr);                    // 멍
+  col=mix(col,mix(vec3(.84,.6,.58),vec3(.74,.62,.6),uEnc),smoothstep(1.55,1.05,e)*smoothstep(.75,1.05,e)*.85*fr);   // 입술
   col=mix(col,vec3(.16,.02,.04),smoothstep(1.05,.75,e));                             // 틈
-  float dr=smoothstep(1.,.0,abs(q.x)/(W.w*.3))*smoothstep(0.,4.,d.y)*exp(-d.y/26.)*step(abs(d.x),W.w*.4);
+  float dr=smoothstep(1.,.0,abs(q.x)/(W.w*.3))*smoothstep(0.,4.,d.y)*exp(-max(d.y,0.)/26.)*step(abs(d.x),W.w*.4);
   col=mix(col,vec3(.3,.05,.08),dr*.35*(.5+.5*vn(vec2(p.x*.4,0.))));
  }
  // 등불(배 쪽, 왼편)이 닿는 따뜻한 빛
@@ -202,7 +209,7 @@ function pallid(g,o){
  try{
   const S=surface(g,PB,{clip:'url(#w3WhaleClip)',before:g.querySelector('.w3-svgskin')});
   quad(P,PB);
-  gl.uniform1f(P.u.uT,o.t!=null?o.t:now());gl.uniform1f(P.u.uRun,o.run||0);gl.uniform1f(P.u.uPx,S.px);
+  gl.uniform1f(P.u.uT,o.t!=null?o.t:now());gl.uniform1f(P.u.uRun,o.run||0);gl.uniform1f(P.u.uEnc,o.enc?1:0);gl.uniform1f(P.u.uPx,S.px);
   gl.uniform1fv(P.u.uTop,pallidTop());gl.uniform4fv(P.u.uHp,HP);
   let lp=[0,0,0];if(o.lamp&&o.mat){const l=ap(inv(o.mat),o.lamp);lp=[l[0],l[1],o.lamp[2]||0];}
   gl.uniform3f(P.u.uLamp,lp[0],lp[1],lp[2]);
