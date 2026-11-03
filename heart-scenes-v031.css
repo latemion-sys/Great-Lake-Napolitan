@@ -188,3 +188,11 @@
 .hv-twist.turning .hv-lines p.warm .hv-em{color:inherit;text-shadow:inherit}
 @media(prefers-reduced-motion:reduce){.hv-lines p.sweep{animation:hv-line 1.4s ease-out both;-webkit-mask-image:none;mask-image:none}.hv-em{animation:none}}
 .hv-lines p{word-break:keep-all;overflow-wrap:break-word}
+/* v1103 망(望) 수련: 고리가 맺힌 뒤 글이 떠오름 */
+.hv-title.mang{animation:none;opacity:1;bottom:8%}
+.hv-title.mang .hv-big{letter-spacing:.12em;padding-left:.12em;color:#fff1d6;text-shadow:0 0 14px rgba(255,226,170,.55),0 0 4px rgba(0,0,0,.8)}
+.hv-title.mang .hv-big span{display:inline-block;opacity:0;transform:translateY(8px);filter:blur(5px);animation:hv-glyph 1.1s cubic-bezier(.2,.8,.3,1) calc(5.8s + var(--i)*.1s) forwards}
+.hv-title.mang .hv-rule{opacity:0;animation:hv-line 1s ease-out 6.3s forwards}
+.hv-title.mang .hv-sub{opacity:0;color:#e9dcc4;animation:hv-line 1.2s ease-out 6.6s forwards}
+.hv-mang-flat{background:radial-gradient(circle at 50% 45%,#2a2318,#050403 70%)}
+.hv-gl-on .hv-title.mang{z-index:3}

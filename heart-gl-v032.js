@@ -315,10 +315,142 @@ void main(){
  c=1.-exp(-c*1.6);
  o=vec4(finish(c,p,.025),1.);
 }`;
+/* ───────── 망(望) 수련 (사람 없이 망만) ─────────
+   어둠 한가운데 신의 기운이 일렁임(위로 혀를 날름거리는 금빛 기운 덩어리, 도메인 워핑 fbm) →
+   기운이 소용돌이치며 한 점으로 감겨 들고 금빛이 달빛 색으로 식음 → 작은 보름달이 맺힘 →
+   달의 가운데가 비워져 고리가 되고, 눕듯 기울며 먼저 익힌 고리들을 지나 제 궤도로.
+   고리 자체는 아래의 리본 메시가 그리고, 이 화면 셰이더는 기운 · 보름달 · 고리의 넓은 번짐만 그린다.
+   uA: 첫 고동 · uB: 기운이 타오르는 시각 · uC: 압축 시작 · uD: 이번에 맺힌 고리까지의 망 개수(1~5) */
+const RINGF=`
+float ease(float x){x=clamp(x,0.,1.);return x*x*(3.-2.*x);}
+float ringS(){float asp=uRes.x/uRes.y;return min(1.,(asp*.5-.03)/.4);}
+float ringNi(){return max(1.,uD)-1.;}
+vec2 ringC(){return vec2(0.,.06);}
+float ringE(float i,float t){return i<ringNi()-.5?1.:ease((t-uC-1.6)/.85);}
+float ringR(float i,float t){float b=(.15+i*.05)*ringS();return mix(.058*ringS(),b,ringE(i,t));}
+float ringTilt(float i,float t){return mix(1.,.33+.01*i,ringE(i,t));}
+float ringRoll(float i,float t){return .035+.014*sin(i*1.9)+.01*sin(t*.45+i*1.3);}
+vec2 ringCi(float i,float t){return mix(ringC(),ringC()-vec2(0.,i*.022*ringS()),ringE(i,t));}
+vec3 ringPt(float i,float a,float t){float R=ringR(i,t),ti=ringTilt(i,t),ro=ringRoll(i,t)*ringE(i,t);vec2 e=vec2(cos(a)*R,sin(a)*R*ti);
+ vec2 q=mat2(cos(ro),sin(ro),-sin(ro),cos(ro))*e;return vec3(ringCi(i,t)+q,-sin(a)*(1.-ti));}
+float ringLife(float i,float t){float ni=ringNi();
+ if(i<ni-.5)return smoothstep(0.,1.,t)*(.6+.2*smoothstep(uB,uB+1.5,t))*(1.+.7*exp(-pow((t-uC-1.95-i*.1)/.2,2.)));
+ return smoothstep(uC+1.38,uC+1.62,t)*(1.+.8*exp(-pow((t-uC-2.4)/.22,2.)));}
+`;
+const MANG=COMMON+RINGF+`
+// 신의 기운: 한가운데 떠서 위로 혀를 날름거리는 금빛 기운(도메인 워핑 fbm 불길 · 밑동은 둥글고 끝은 갈라져 흩어짐)
+vec3 energy(vec2 p,float t,float k){
+ vec2 c=p-ringC();
+ vec2 u=c/.19;u.y+=.25;
+ vec2 w=vec2(fbm(vec2(u.x*1.4,u.y*1.1-t*1.3)),fbm(vec2(u.x*1.4+5.2,u.y*1.1-t*1.6)));
+ float n=fbm(vec2(u.x*2.4,u.y*1.7-t*2.3)+w*1.6),n2=fbm3(vec2(u.x*5.,u.y*3.6-t*3.8)+w);
+ float up=clamp(u.y,0.,1.6);
+ float shape=1.-length(vec2(u.x*(1.5+up*.9),(u.y-.3)*(u.y<.3?1.5:.62)));
+ float f=(shape+(n-.5)*1.25*(.35+up*.8)+(n2-.5)*.35)*k;
+ float flame=smoothstep(.0,.42,f);
+ vec3 fc=mix(vec3(.82,.24,.04),vec3(1.,.68,.24),smoothstep(.15,.5,f));
+ fc=mix(fc,vec3(1.,.94,.78),smoothstep(.45,.85,f));
+ float halo=exp(-dot(c,c)/.035)*(.6+.4*n);
+ return fc*flame*1.15+vec3(1.,.55,.2)*halo*.1*k;
+}
+vec3 scene(vec2 p,float t){
+ float k=smoothstep(uB,uB+1.5,t),q=smoothstep(uC,uC+1.4,t),ni=ringNi();
+ vec3 c=vec3(.014,.012,.01)+vec3(.04,.03,.02)*fbm(p*1.6+t*.03)*(.3+.7*k);
+ vec2 cq=p-ringC();float r=length(cq);
+ // 압축: 기운의 장을 가운데로 감아 돌리며 줄여서 표본(안쪽일수록 더 빨리 돎)
+ float ang=q*q*(1.4+.2/(r+.05)),sc=1.+q*q*5.5;
+ vec2 wp=ringC()+mat2(cos(ang),sin(ang),-sin(ang),cos(ang))*cq*sc;
+ vec3 au=energy(wp,t,k*(1.-smoothstep(uC+1.,uC+1.45,t)))*(1.+q*1.4);
+ au=mix(au,vec3(dot(au,vec3(.4,.4,.2)))*vec3(1.,.93,.82),q*.8);
+ c+=au*1.2;
+ // 가운데 불씨(고동 · 압축될수록 모여 밝아짐)
+ float beat=0.;for(int i=0;i<2;i++){float bt=t-(uA+float(i)*.42);beat+=bt>0.?exp(-bt*5.)*1.2:0.;}
+ float ember=(.25+.15*sin(t*3.2))+beat+.6*k*(1.-.4*q)+.9*q*(1.-smoothstep(uC+1.,uC+1.4,t));
+ c+=mix(vec3(1.,.82,.5),vec3(1.,.93,.8),q)*exp(-r*r/(.0007+.0012*min(ember,2.)))*ember*1.3;
+ // 작은 보름달: 맺힌 뒤 가운데가 비워지며 고리가 된다
+ float DR=.058*ringS(),on=smoothstep(uC+.85,uC+1.35,t),hol=ease((t-uC-1.35)/.4);
+ if(on>0.&&hol<1.){
+  float ri=DR*hol;
+  float m=smoothstep(DR+.008,DR-.004,r)*smoothstep(ri-.004,ri+.01,r)*(1.-hol*.55);
+  float lm=.72+.28*fbm(cq*60.+7.)-.16*smoothstep(.42,.68,fbm(cq*26.+2.));
+  float limb=.85+.15*smoothstep(DR*.4,DR,r);
+  c+=vec3(1.,.95,.85)*m*lm*limb*.85*on;
+  c+=vec3(1.,.86,.62)*exp(-r*r/(DR*DR*5.))*.3*on*(1.-hol*.6);
+ }
+ // 고리의 넓은 번짐과 고리 안쪽의 옅은 빛(빛 띠 자체는 메시가 그림)
+ for(int i=0;i<5;i++){float fi=float(i);if(fi>ni+.5)break;
+  float L=ringLife(fi,t);if(L<=0.)continue;
+  float ro=ringRoll(fi,t)*ringE(fi,t),ti=ringTilt(fi,t),R=ringR(fi,t);
+  vec2 lq=mat2(cos(ro),-sin(ro),sin(ro),cos(ro))*(p-ringCi(fi,t));
+  float e=(length(vec2(lq.x,lq.y/ti))-R)*mix(ti,1.,.5);
+  float back=mix(1.,.7,smoothstep(0.,.015,lq.y)*smoothstep(1.,.8,ti));
+  c+=vec3(1.,.84,.62)*(exp(-abs(e)/.024)*.16+smoothstep(.0,-.03,e)*.03)*L*back;
+ }
+ return c;
+}
+void main(){
+ vec2 p=P();float t=uT,k=smoothstep(uB,uB+1.5,t),q=smoothstep(uC,uC+1.4,t);
+ vec2 uv=p;
+ for(int i=0;i<2;i++){float bt=t-(uA+float(i)*.42);if(bt>0.&&bt<1.4){vec2 cp=p-ringC();float rr=bt*.8,r=length(cp);
+  float band=exp(-pow((r-rr)*20.,2.))*(1.-bt/1.4);uv-=normalize(cp+1e-4)*band*.02;}}
+ // 고리가 맺히는 순간 가운데서 퍼지는 한 번의 굴절 물결
+ float lt=t-uC-1.4;if(lt>0.&&lt<1.2){vec2 cp=p-ringC();float rr=lt*.6,r=length(cp);uv-=normalize(cp+1e-4)*exp(-pow((r-rr)*18.,2.))*(1.-lt/1.2)*.012;}
+ uv+=(vec2(noise(p*14.+vec2(0.,-t*3.)),noise(p*14.+vec2(7.,-t*3.)))-.5)*.006*k*(1.-q)*smoothstep(.4,0.,length(p-ringC()));
+ vec3 col=scene(uv,t);
+ col=1.-exp(-col*1.3);
+ col=finish(col,p,.03);
+ // 망이 늘수록 맺히는 순간 화면 가장자리가 조금 더 조여듦(정신의 부담)
+ float st=(.05+.035*ringNi())*exp(-pow((t-uC-2.)/.7,2.));
+ col*=1.-st*smoothstep(.25,.95,length(p*vec2(.75,1.)));
+ o=vec4(col,1.);
+}`;
+/* 망 고리 리본 메시: 고리마다 둘레를 192칸으로 나눈 띠(삼각형 줄). 단면을 가로질러 빛의 세기가 부드럽게 솟고,
+   둘레를 따라 빛이 흘러가며, 뒤쪽 절반은 조금 어둡다. */
+const RSEG=192;
+const RV=`#version 300 es
+precision highp float;
+in vec3 aR;uniform vec2 uRes;uniform float uT;uniform float uA;uniform float uB;uniform float uC;uniform float uD;
+out float vS;out float vU;out float vZ;out float vL;out float vI;
+${RINGF}
+void main(){
+ float i=aR.x,u=aR.y,s=aR.z;
+ if(i>ringNi()+.5){gl_Position=vec4(3.,3.,0.,1.);return;}
+ float a=u*6.2831853;
+ const float dA=.01;
+ vec3 P0=ringPt(i,a,uT),Pm=ringPt(i,a-dA,uT),P1=ringPt(i,a+dA,uT);
+ vec2 d1=(P1.xy-Pm.xy)/(2.*dA),d2=(P1.xy-2.*P0.xy+Pm.xy)/(dA*dA);
+ vec2 tg=normalize(d1+1e-7),nm=vec2(-tg.y,tg.x);
+ float Rc=pow(length(d1),3.)/max(abs(d1.x*d2.y-d1.y*d2.x),1e-6);   // 굽은 반지름: 안쪽으로는 이보다 넓히지 않아 띠가 접히지 않게
+ float hw=(.0085+.0015*sin(a*3.+uT*.8+i*1.3))*mix(1.25,1.,ringE(i,uT));
+ float off=s>0.?min(hw*2.4,Rc*.92):hw*2.8;
+ vec2 pos=P0.xy+nm*sign(s)*off;
+ vS=sign(s)*off/hw;vU=u;vZ=P0.z;vL=ringLife(i,uT);vI=i;
+ gl_Position=vec4(pos.x*2.*uRes.y/uRes.x,pos.y*2.,0.,1.);
+}`;
+const RF=`#version 300 es
+precision highp float;
+uniform float uT;
+in float vS;in float vU;in float vZ;in float vL;in float vI;out vec4 o;
+float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
+ return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
+void main(){
+ float av=abs(vS),core=exp(-vS*vS*1.1),prof=exp(-vS*vS*.35)*(1.-smoothstep(1.9,2.8,av));
+ // 둘레를 따라 흐르는 빛(이음매 없도록 u를 원 위의 점으로 바꿔 표본)
+ float a=vU*6.2831853;vec2 cu=vec2(cos(a),sin(a));
+ float fl=noise(cu*7.+vec2(uT*.9+vI*3.,-uT*.6))*.6+noise(cu*2.6+vec2(-uT*.35,vI*5.))*.4;
+ float flow=.3+1.*pow(fl,1.4);
+ float fil=exp(-vS*vS*5.)*(.5+.5*noise(cu*15.+vec2(uT*1.7,vI)));
+ float front=.62+.38*smoothstep(-.6,.6,vZ);
+ vec3 col=(vec3(1.,.97,.9)*(core*.55+fil*.45)+vec3(1.,.8,.55)*prof*.28)*flow*front*vL;
+ o=vec4(col,1.);
+}`;
+
 /* ───────── 입자(GPU 점 메시): 위치 = f(씨앗, 시간) ───────── */
 const PV=`#version 300 es
 precision highp float;precision highp int;
-in vec4 aS;uniform vec2 uRes;uniform float uT;uniform float uA;uniform float uB;uniform float uC;uniform int uKind;
+in vec4 aS;uniform vec2 uRes;uniform float uT;uniform float uA;uniform float uB;uniform float uC;uniform float uD;uniform int uKind;
+${RINGF}
 out float vA;out vec3 vC;out float vR;
 float h(float n){return fract(sin(n*91.345)*47453.5453);}
 void main(){
@@ -340,6 +472,21 @@ void main(){
   q+=vec2(sin(uT*.3+aS.z*20.),cos(uT*.25+aS.x*20.))*.012;
   vec2 d=q-L;float ang=atan(d.y,d.x),a0=-.62-.1*uB;float cone=smoothstep(.5,.0,abs(ang-a0))*exp(-length(d)*.5);
   p=q;a=cone*(.35+.65*pow(.5+.5*sin(uT*(1.2+2.*aS.w)+aS.x*30.),3.))*(.45+.7*uC)*(1.-.7*uA);sz=1.4+2.6*aS.z*aS.z;c=vec3(1.,.9,.7);
+ }else if(uKind==4){ // 망: 오르던 불티가 소용돌이치며 가운데로 감겨 들어 보름달에 스며들고, 맺힌 뒤에는 일부가 새 고리를 따라 돈다
+  float k=smoothstep(uB,uB+1.5,uT),q=smoothstep(uC,uC+1.3,uT);float ph=fract(uT*.32*(.6+aS.y)+aS.x);
+  vec2 rise=ringC()+vec2((aS.z-.5)*.2+sin(ph*8.+aS.x*20.)*.02,-.1+aS.y*.08+ph*(.32+.2*aS.y));
+  float ni=ringNi();
+  if(uT<uC+1.45){
+   vec2 cc=ringC(),d0=rise-cc;float an=atan(d0.y,d0.x)+q*q*3.2*(aS.y>.5?1.:-1.),rr=mix(length(d0),.008+.03*aS.y,q*q);
+   p=mix(rise,cc+vec2(cos(an),sin(an))*rr,smoothstep(0.,.6,q));
+   a=(sin(3.1416*ph)*(1.-q)+q*1.1)*k*(.6+.4*sin(uT*14.+aS.x*30.))*(1.-smoothstep(uC+1.1,uC+1.45,uT));
+   sz=2.+3.*aS.y*aS.y;c=mix(mix(vec3(1.,.9,.6),vec3(1.,.55,.15),aS.x),vec3(1.,.93,.8),q);
+  }else if(aS.z<.4){
+   float an=aS.x*6.2832+uT*(.35+aS.y*.5);vec3 rp=ringPt(ni,an,uT);
+   p=rp.xy+vec2(sin(uT*3.+aS.y*20.),cos(uT*2.6+aS.x*20.))*.0035;
+   a=smoothstep(uC+1.6,uC+2.3,uT)*(.3+.55*pow(.5+.5*sin(uT*4.+aS.y*40.),3.))*(rp.z<-.03?.45:1.);
+   sz=1.4+1.8*aS.y;c=vec3(1.,.95,.84);
+  }
  }else{ // 신: 기억 알갱이가 가슴으로 · 불붙는 순간 파편 · 위로 날리는 불티
   if(id<.3){float st=.9+aS.x*1.5,du=1.1+aS.y*.7,ph=(uT-st)/du;if(ph>0.&&ph<1.){float an=aS.z*6.2832+ph*2.4*(aS.w>.15?1.:-1.),r=(.25+.25*aS.y)*pow(1.-ph,1.5);
     p=vec2(cos(an),sin(an)*.85)*r+vec2(0.,.17);a=sin(3.1416*min(1.,ph*1.2))*.95;sz=2.+2.*aS.y;c=vec3(1.,.95,.8);}}
@@ -385,7 +532,7 @@ function glyphTexture(g,ch){
  g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MIN_FILTER,g.LINEAR);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_MAG_FILTER,g.LINEAR);
  g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_S,g.CLAMP_TO_EDGE);g.texParameteri(g.TEXTURE_2D,g.TEXTURE_WRAP_T,g.CLAMP_TO_EDGE);return t;}
 
-const SRC={bloom:BLOOM,twist:TWIST,shin:SHIN,voice:VOICE},KIND={bloom:0,twist:1,shin:2,voice:3},COUNT={bloom:520,twist:220,shin:640,voice:300};
+const SRC={bloom:BLOOM,twist:TWIST,shin:SHIN,voice:VOICE,mang:MANG},KIND={bloom:0,twist:1,shin:2,voice:3,mang:4},COUNT={bloom:520,twist:220,shin:640,voice:300,mang:420};
 function create(canvas,kind,opt){
  opt=opt||{};
  let g=null;try{g=canvas.getContext('webgl2',{antialias:false,alpha:false,premultipliedAlpha:false,preserveDrawingBuffer:false,powerPreference:'high-performance'});}catch(e){}
@@ -399,8 +546,16 @@ function create(canvas,kind,opt){
  const vp=g.createVertexArray();g.bindVertexArray(vp);const ls=g.getAttribLocation(pp,'aS');g.enableVertexAttribArray(ls);g.vertexAttribPointer(ls,4,g.FLOAT,false,0,0);
  g.bindVertexArray(null);
  const U=(p,n)=>g.getUniformLocation(p,n);
- const fu={res:U(fp,'uRes'),t:U(fp,'uT'),a:U(fp,'uA'),b:U(fp,'uB'),c:U(fp,'uC'),d:U(fp,'uD'),tex:U(fp,'uTex')},pu={res:U(pp,'uRes'),t:U(pp,'uT'),a:U(pp,'uA'),b:U(pp,'uB'),c:U(pp,'uC'),kind:U(pp,'uKind')};
+ const fu={res:U(fp,'uRes'),t:U(fp,'uT'),a:U(fp,'uA'),b:U(fp,'uB'),c:U(fp,'uC'),d:U(fp,'uD'),tex:U(fp,'uTex')},pu={res:U(pp,'uRes'),t:U(pp,'uT'),a:U(pp,'uA'),b:U(pp,'uB'),c:U(pp,'uC'),d:U(pp,'uD'),kind:U(pp,'uKind')};
  const tex=kind==='shin'?glyphTexture(g,'心'):kind==='bloom'?textTexture(g,opt.title||'E.G.O',opt.sub||''):null;
+ // 망 고리 리본 메시
+ let rp=null,vr=null,ru=null;
+ if(kind==='mang'){rp=program(g,RV,RF);
+  if(rp){const S=RSEG,dat=new Float32Array(5*(S+1)*2*3);let k=0;
+   for(let i=0;i<5;i++)for(let j=0;j<=S;j++)for(const sd of[-1,1]){dat[k++]=i;dat[k++]=j/S;dat[k++]=sd;}
+   const rb=g.createBuffer();g.bindBuffer(g.ARRAY_BUFFER,rb);g.bufferData(g.ARRAY_BUFFER,dat,g.STATIC_DRAW);
+   vr=g.createVertexArray();g.bindVertexArray(vr);const lr=g.getAttribLocation(rp,'aR');g.enableVertexAttribArray(lr);g.vertexAttribPointer(lr,3,g.FLOAT,false,0,0);g.bindVertexArray(null);
+   ru={res:U(rp,'uRes'),t:U(rp,'uT'),a:U(rp,'uA'),b:U(rp,'uB'),c:U(rp,'uC'),d:U(rp,'uD')};}}
  if(!opt.scale)opt.scale=.7;
  function resize(){const dpr=Math.min(2,window.devicePixelRatio||1),w=canvas.clientWidth||innerWidth,h=canvas.clientHeight||innerHeight,scale=opt.scale;
   let W=Math.round(w*dpr*scale),Hh=Math.round(h*dpr*scale);const cap=1280/Math.max(W,Hh);if(cap<1){W=Math.round(W*cap);Hh=Math.round(Hh*cap);}
@@ -414,8 +569,11 @@ function create(canvas,kind,opt){
   g.drawArrays(g.TRIANGLE_STRIP,0,4);
   g.enable(g.BLEND);
   if(kind==='twist')g.blendFunc(g.SRC_ALPHA,g.ONE_MINUS_SRC_ALPHA);else g.blendFunc(g.ONE,g.ONE);
+  if(rp&&vr){g.useProgram(rp);g.bindVertexArray(vr);
+   g.uniform2f(ru.res,canvas.width,canvas.height);g.uniform1f(ru.t,t);g.uniform1f(ru.a,opt.a||0);g.uniform1f(ru.b,opt.b||0);g.uniform1f(ru.c,opt.c||0);g.uniform1f(ru.d,opt.d||0);
+   const n=Math.max(1,Math.min(5,opt.d|0||1)),S=(RSEG+1)*2;for(let i=0;i<n;i++)g.drawArrays(g.TRIANGLE_STRIP,i*S,S);}
   g.useProgram(pp);g.bindVertexArray(vp);
-  g.uniform2f(pu.res,canvas.width,canvas.height);g.uniform1f(pu.t,t);g.uniform1f(pu.a,opt.a||0);g.uniform1f(pu.b,opt.b||0);g.uniform1f(pu.c,opt.c||0);g.uniform1i(pu.kind,KIND[kind]);
+  g.uniform2f(pu.res,canvas.width,canvas.height);g.uniform1f(pu.t,t);g.uniform1f(pu.a,opt.a||0);g.uniform1f(pu.b,opt.b||0);g.uniform1f(pu.c,opt.c||0);g.uniform1f(pu.d,opt.d||0);g.uniform1i(pu.kind,KIND[kind]);
   g.drawArrays(g.POINTS,0,N);
   g.bindVertexArray(null);
  }

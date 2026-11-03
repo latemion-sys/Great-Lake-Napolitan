@@ -265,6 +265,7 @@ function want(){
   }
  }
  if(state.shinFx031&&!state.mindJudge)return {key:'shin:'+state.shinFx031.name,kind:'shin'};
+ if(state.mangFx038&&!state.mindJudge)return {key:'mang:'+state.mangFx038.n+':'+state.mangFx038.at,kind:'mang'};
  return null;
 }
 function syncOverlay(){
@@ -640,7 +641,17 @@ function mountShin(o){
  const sr=o.querySelector('.hv-srays');if(sr){const t2=performance.now();const spin=()=>{if(!o.isConnected)return;sr.setAttribute('transform','translate(0 -6) rotate('+(((performance.now()-t2)/1000)*6).toFixed(2)+')');requestAnimationFrame(spin);};requestAnimationFrame(spin);}
  at(8600,finish);
 }
-const MOUNT={intro:mountIntro,accept2:mountAccept2,withdraw:mountWithdraw,bloom:mountBloom,twist:mountTwist,shin:mountShin};
+/* ---------- 망(望) 수련: 신의 일렁이는 기운이 압축되어 달빛을 닮은 따스한 둥근 고리로 맺힘(사람 없이 망만) ----------
+   이번에 익힌 망까지의 고리 수만큼 둥근 고리가 겹겹이 떠 있다(먼저 익힌 고리는 처음부터 은은히, 이번 고리는 보름달에서 비워져 맺힘). */
+function mountMang(o){
+ const n=Math.max(1,Math.min(5,(state.mangFx038&&state.mangFx038.n)|0||1));
+ o.innerHTML='<div class="hv-title mang"><div class="hv-big">'+[...('망(望) '+n)].map((ch,i)=>'<span style="--i:'+i+'">'+esc(ch)+'</span>').join('')+'</div><div class="hv-rule"></div><div class="hv-sub">신이 둥근 빛의 고리로 맺혔습니다</div></div><div class="hv-skip">화면을 누르면 건너뜁니다</div>';
+ const ok=glLayer(o,'mang',{a:.8,b:1.4,c:3.3,d:n,seed:11});
+ if(!ok)o.classList.add('hv-mang-flat');
+ let done=false;const finish=()=>{if(done)return;done=true;o.classList.add('out');at(700,()=>{delete state.mangFx038;persist();clearOv();});};
+ o.addEventListener('click',finish);at(8600,finish);
+}
+const MOUNT={intro:mountIntro,accept2:mountAccept2,withdraw:mountWithdraw,bloom:mountBloom,twist:mountTwist,shin:mountShin,mang:mountMang};
 
 /* ---------- 게임 화면과 연결 ---------- */
 // 목소리 · 물러남 · 뒤틀림 동안 게임 화면에는 빈 자리만 둔다(연출은 위에 따로 뜸)
@@ -666,6 +677,12 @@ document.addEventListener('click',e=>{
   state.shinFx031={name:state.shinName030,words};persist();syncOverlay();
  }
 });
+// 망 수련에 성공한 순간에만 망 연출
+let prevMang=null;
+document.addEventListener('click',e=>{const b=e.target?.closest?.('button[data-act="shinTry"]');if(b)prevMang=state.shinLevel|0;},true);
+document.addEventListener('click',e=>{const b=e.target?.closest?.('button[data-act="shinTry"]');if(!b||prevMang===null)return;
+ const was=prevMang;prevMang=null;const now=state.shinLevel|0;
+ if(now>was){state.mangFx038={n:now,at:Date.now()};persist();syncOverlay();}});
 window.GREAT_LAKE_HEART_SCENES_031={sync:syncOverlay,compose:j=>composeVoice(j||state.mindJudge||{})};
 try{syncOverlay();render();}catch(e){}
 })();
