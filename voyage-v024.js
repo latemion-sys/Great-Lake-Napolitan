@@ -1,7 +1,7 @@
 /* 대호수 v0.2.4 · 항해 규칙 조정
    - 평시 인어 조우 10%. 재앙의 고래는 출항마다 50개 호수 중 한 곳만 정해 그 호수에서 1% 확률로 등장(희귀 고래는 기존 조우 기회의 일부로 등장). 파도성 재해는 위험도별 6/12/20/30%이며, 발생 시 대개 고래나 인어가 동반됨.
    - 출항 전 이야기: 뱃노래 노랫말(싸고 애매함) / 구전으로 전해지는 법(비싸지만 자세함)
-   - [대호수 주파]: 3등급 이상 선장이 항구에 돌아올 때 15% 확률로 제안. 랜덤 호수 15개, 장면마다 30초 안에 고르지 못하면 사망.
+   - [대호수 주파]: 3등급 이상에서 직접 도전. 등급별 16/20/24개 호수, 4개마다 항로 선택, 호수 선택지마다 30초 제한.
      끝까지 건너면 자금 + 선체 보강(최대 내구도 +10, 영구) + 기적 업적 [대호수를 주파한 선장]
    - 업적 달성 횟수: 같은 생애에서는 한 번, 사망 후 다시 달성하면 +1 (대호수 주파는 건널 때마다 +1) */
 (function(){
@@ -256,15 +256,16 @@ function sceneKey(){
  const st=state.lakeStory||{};
  return [state.scene,state.current,st.turns,st.step,st.sceneText||'',state.nav&&state.nav.stage,state.ruleResolved].join('|');
 }
-function timerOn(){return !!crossing()&&state.sea&&state.scene==='event'&&tab==='play';}
+function timedCrossing(){return state.crossing039?.version===1?state.crossing039:null;}
+function timerOn(){return !!timedCrossing()&&state.sea&&state.scene==='event'&&tab==='play';}
 function timerHtml(){
  const left=Math.max(0,timer.until-Date.now())/1000;
- return '<div class="cross-timer-024" aria-live="polite"><div class="between"><b>[대호수 주파] '+((state.visited||[]).length+1)+' / '+CROSS_LAKES+'</b><span class="cross-left-024">'+left.toFixed(0)+'초</span></div>'+
+ return '<div class="cross-timer-024" aria-live="polite"><div class="between"><b>[대호수 주파] '+((state.visited||[]).length+1)+' / '+(timedCrossing()?.total||CROSS_LAKES)+'</b><span class="cross-left-024">'+left.toFixed(0)+'초</span></div>'+
   '<div class="meter cross-meter-024"><span style="width:'+(100*left/CROSS_SEC).toFixed(1)+'%"></span></div></div>';
 }
 setInterval(function(){
- if(!crossing()||!state.sea){timer.key=null;return;}
- if(!(state.scene==='event'))return;              // 전투 · 고래 조우 중에는 멈춤
+ if(!timedCrossing()||!state.sea){timer.key=null;return;}
+ if(state.scene!=='event'){timer.key=null;return;} // 전투·고래 조우 이후 선택지에서 새 30초 시작
  const k=sceneKey();
  if(k!==timer.key){timer.key=k;timer.until=Date.now()+CROSS_SEC*1000;}
  const left=timer.until-Date.now();
@@ -315,6 +316,7 @@ renderPlay=function(){
    .replace('항구에서 뱃사람들의 전언을','<b>뱃노래 노랫말</b>은 값이 싸지만 은유뿐이라 애매하고, <b>구전으로 전해지는 법</b>은 비싸지만 호수의 규칙을 조금 더 자세하게 들려줍니다(호수 2곳). 항구에서 뱃사람들의 전언을');
  }
  if(crossing()&&state.scene==='prep')page='<div class="inset cross-offer-024"><b>[대호수 주파]</b> · 랜덤 호수 '+CROSS_LAKES+'개 · 장면마다 '+CROSS_SEC+'초</div>'+page;
+ if(state.scene!=='event')timer.key=null;
  if(timerOn()){
   const k=sceneKey();if(k!==timer.key){timer.key=k;timer.until=Date.now()+CROSS_SEC*1000;}
   page=timerHtml()+page;
