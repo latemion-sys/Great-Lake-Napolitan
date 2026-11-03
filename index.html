@@ -2917,5 +2917,139 @@ renderPlay=function(){
 <script src="./heart-scenes-v031.js?v=hs1103p"></script>
 <script src="./economy-workshops-v033.js?v=fishmarket1103a"></script>
 <script src="./fish-market-v034.js?v=fishmarket1103a"></script>
+
+<script>
+/* v0.1.9.0 · 선장 등급별 승급 실적. 호수/고래 판정 및 대호수 주파는 변경하지 않음. */
+(function(){
+ 'use strict';
+ const GOALS019={
+  1:{passes:10,finishes:3,lore:1,risk3:0,risk4:0},
+  2:{passes:20,finishes:5,lore:10,risk3:0,risk4:0},
+  3:{passes:40,finishes:10,lore:20,risk3:3,risk4:0},
+  4:{passes:100,finishes:20,lore:30,risk3:0,risk4:5}
+ };
+ function progress019(){
+  if(!state.captainRank019||state.captainRank019.version!==1){
+   state.captainRank019={
+    version:1,passes:{},finishes:{},risk3:{},risk4:{},lore:0,
+    activeVoyage:state.voyage||0,
+    failedVoyage:!!(state.sea&&(state.visited||[]).length)
+   };
+  }
+  return state.captainRank019;
+ }
+ function num019(n){return Math.max(0,Number(n)||0);}
+ function stats019(grade){
+  const p=progress019();
+  return {passes:num019(p.passes[grade]),finishes:num019(p.finishes[grade]),
+   risk3:num019(p.risk3[grade]),risk4:num019(p.risk4[grade]),lore:num019(p.lore)};
+ }
+ function ready019(grade){
+  const goal=GOALS019[grade],v=stats019(grade);
+  return !!goal&&Object.keys(goal).every(k=>v[k]>=goal[k]);
+ }
+ function line019(label,value,required){
+  return '<div class="between"><span>'+label+'</span><span style="font-weight:600">'+
+   Math.min(value,required)+' / '+required+(value>=required?' · 달성':'')+'</span></div>';
+ }
+ function lines019(grade){
+  const g=GOALS019[grade],s=stats019(grade);
+  if(!g)return '<p>최고 5등급에 도달했습니다.</p>';
+  let h='<p class="muted">'+grade+'등급에서 쌓은 항해 실적을 기준으로 평가합니다. 노랫말과 법은 현재 생애의 누적 청취 개수입니다. 승급 비용은 없습니다.</p>';
+  h+='<div class="inset">'+line019('호수 통과',s.passes,g.passes)+
+    line019('항해 완주',s.finishes,g.finishes);
+  if(g.risk3)h+=line019('위험도 3 이상 호수 통과',s.risk3,g.risk3);
+  if(g.risk4)h+=line019('위험도 4 호수 통과',s.risk4,g.risk4);
+  h+=line019('노랫말·법 청취',s.lore,g.lore)+'</div>';
+  return h;
+ }
+ const beforeComplete019=completeLake;
+ completeLake=function(success,msg){
+  const ref=state,p=progress019(),grade=ref.grade,id=ref.current;
+  const beforePass=num019(ref.count&&ref.count.lake),beforeReturn=num019(ref.count&&ref.count.return);
+  const beforeVisited=(ref.visited||[]).length,required=(ref.offered||[]).length;
+  const voyage=num019(ref.voyage);
+  if(p.activeVoyage!==voyage){
+   p.activeVoyage=voyage;
+   p.failedVoyage=beforeVisited>0;
+  }
+  const result=beforeComplete019.apply(this,arguments);
+  if(state!==ref)return result;
+  const gained=Math.max(0,num019(ref.count&&ref.count.lake)-beforePass);
+  if(gained){
+   p.passes[grade]=num019(p.passes[grade])+gained;
+   const lake=LAKE_BY_ID157.get(id),risk=lake&&Number(lake.risk)||0;
+   if(risk>=3)p.risk3[grade]=num019(p.risk3[grade])+gained;
+   if(risk===4)p.risk4[grade]=num019(p.risk4[grade])+gained;
+  }
+  if(id!==null&&(ref.visited||[]).length>beforeVisited&&!gained)p.failedVoyage=true;
+  if(num019(ref.count&&ref.count.return)>beforeReturn&&
+     !ref.sea&&ref.scene==='port'&&required>0&&
+     (ref.visited||[]).length===required&&!p.failedVoyage){
+   p.finishes[grade]=num019(p.finishes[grade])+1;
+  }
+  if(gained||num019(ref.count&&ref.count.return)>beforeReturn){
+   save();render();
+  }
+  return result;
+ };
+ const beforeRumor019=buyRumor;
+ buyRumor=function(cost){
+  const ref=state,prior=num019(ref.count&&ref.count.rumors);
+  const result=beforeRumor019.apply(this,arguments);
+  if(state!==ref||num019(ref.count&&ref.count.rumors)<=prior)return result;
+  const heard=(ref.rumors||[]).filter(x=>x.kind==='뱃노래 노랫말'||x.kind==='구전으로 전해지는 법').length;
+  if(heard){
+   progress019().lore+=heard;
+   save();render();
+  }
+  return result;
+ };
+ promote=function(){
+  if(state.sea||state.scene!=='port'||state.grade>=5||!ready019(state.grade))return;
+  const next=state.grade+1;
+  state.grade=next;
+  log('선장 '+next+'등급으로 승급했습니다. 해당 등급의 항해 실적은 새로 집계됩니다.');
+  dispatchAchievement142('promote',{grade:next});
+  sync();
+ };
+ const beforeCrew019=renderCrew;
+ renderCrew=function(){
+  const original=beforeCrew019(),start='<div class="inset"><h3>등급 상승</h3>';
+  const end='<div class="inset"><h3>선원 모집</h3>';
+  const i=original.indexOf(start),j=original.indexOf(end,i+start.length);
+  if(i<0||j<0)return original;
+  const g=state.grade;
+  let replacement='<div class="inset"><h3>등급 상승</h3>';
+  if(g<5){
+   replacement+='<h4>'+(g+1)+'등급 승급 조건</h4>'+lines019(g)+
+     button((g+1)+'등급 승급','promote','','primary',state.sea||state.scene!=='port'||!ready019(g));
+  }else replacement+='<p>최고 5등급에 도달했습니다.</p>';
+  return original.slice(0,i)+replacement+'</div>'+original.slice(j);
+ };
+ const beforePlay019=renderPlay;
+ renderPlay=function(){
+  const original=beforePlay019();
+  if(state.scene!=='port')return original;
+  const g=state.grade;
+  const replacement='<div class="inset"><h3>승급 현황</h3>'+
+   (g===5?'<p>최고 5등급에 도달했습니다.</p>':
+    '<p>다음 등급: '+(g+1)+'등급 · '+(ready019(g)?'승급 가능':'조건 확인 중')+'</p>'+lines019(g)+
+    '<p class="muted">자세한 조건과 승급 버튼은 선원·승급 탭에서 확인할 수 있습니다.</p>')+
+   '</div>';
+  return original.replace(/<div class="inset"><h3>승급 현황<\/h3>[\s\S]*?<\/div>/,replacement);
+ };
+ const beforeHelp019=renderHelp;
+ renderHelp=function(){
+  const original=beforeHelp019();
+  return original+'<div class="inset"><h3>선장 승급 조건</h3>'+
+   '<p>등급별 호수 통과 및 완주 횟수는 해당 등급에서 새로 계산합니다. 완주는 배정된 호수를 모두 성공적으로 통과한 경우만 인정하며, 중도 귀항은 인정하지 않습니다. 무료 소문은 청취 실적에서 제외합니다. 노랫말은 한 번에 2개, 법은 한 번에 1개씩 누적됩니다. 승급 비용은 없습니다.</p>'+
+   '<p class="muted">현재 조건의 달성도는 선원·승급 탭에서 확인할 수 있습니다.</p></div>';
+ };
+ progress019();
+ save();
+ render();
+})();
+</script>
 </body>
 </html>
