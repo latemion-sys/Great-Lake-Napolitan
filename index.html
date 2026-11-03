@@ -3051,5 +3051,189 @@ renderPlay=function(){
  render();
 })();
 </script>
+
+<script>
+/* v0.1.9.0 · 대호수 주파: 시간제한 없는 등급별 연속 횡단과 구간별 항로 선택 */
+(function(){
+ 'use strict';
+ const LENGTH={3:16,4:20,5:24},BONUS_KEY='daehosu_hull_bonus_v024',BONUS_MAX=50;
+ const current=()=>state.crossing039?.version===1?state.crossing039:null;
+ const total=()=>LENGTH[state.grade]||0;
+ const clamp039=(v,a,b)=>Math.max(a,Math.min(b,v));
+ function waveProbability(risk){
+  const base=window.Voyage024.waveProbability(risk),c=current();
+  if(!c||!state.sea||c.pending||c.failed||c.mode==='normal')return base;
+  const visited=(state.visited||[]).length;
+  if(visited>=c.until)return base;
+  const modifier=c.mode==='detour'?-0.05:c.mode==='direct'?0.05:0;
+  return clamp039(base+modifier,0,1);
+ }
+ const priorAuto=autoLake0131;
+ autoLake0131=function(){
+  const c=current(),passed=(state.visited||[]).length;
+  if(c&&state.sea&&state.scene==='route'&&!c.failed&&passed<c.total){
+   if(c.pending){sync();return;}
+   if(passed>0&&passed%4===0&&c.decidedAt!==passed){
+    c.pending=true;c.mode='normal';
+    log('[대호수 주파] '+passed+'개 호수를 건넜습니다. 다음 구간의 항해 방침을 결정하십시오.');
+    sync();return;
+   }
+  }
+  return priorAuto.apply(this,arguments);
+ };
+ const priorComplete=completeLake;
+ completeLake=function(success,msg){
+  const ref=state,c=current(),id=state.current,wasSea=state.sea;
+  const before=(Number(ref.count?.lake)||0),visited=(ref.visited||[]).length;
+  const result=priorComplete.apply(this,arguments);
+  if(!c||state!==ref||!wasSea||id==null)return result;
+  const moved=(ref.visited||[]).length>visited;
+  if(moved){
+   if((Number(ref.count?.lake)||0)>before)c.passes++;
+   else c.failed=true;
+  }
+  if(!ref.sea&&ref.scene==='port'){
+   const successAll=!c.failed&&c.passes===c.total&&(ref.visited||[]).length===c.total;
+   ref.crossing039=null;
+   if(successAll){
+    const reward=150+ref.grade*30;
+    gainMoney148(reward);
+    const now=window.Voyage024.hullBonus(),bonus=Math.min(BONUS_MAX,now+10);
+    try{localStorage.setItem(BONUS_KEY,JSON.stringify(bonus));}catch(e){console.warn('선체 보강 저장 실패',e);}
+    if(!ref.prog)ref.prog={};
+    ref.prog.crossings024=(ref.prog.crossings024||0)+1;
+    const achieved=Array.isArray(ref.achLife024)&&ref.achLife024.includes('great_crossing');
+    award('great_crossing');
+    if(achieved&&window.AchCount024?.bump)window.AchCount024.bump('great_crossing');
+    ref.crossResult039={reward,bonus,total:c.total};
+    log('[대호수 주파] '+c.total+'개 호수 전부 통과. 보상 '+reward+'만 안(眼), 영구 선체 보강 +10.');
+   }else{
+    ref.crossFailed039=true;
+    log('[대호수 주파] 모든 호수를 성공적으로 건너지 못해 도전 실패.');
+   }
+  }
+  if(moved||(!ref.sea&&ref.scene==='port')){save();render();}
+  return result;
+ };
+ const priorReturn=returnPort;
+ returnPort=function(){
+  const c=current(),ref=state;
+  const result=priorReturn.apply(this,arguments);
+  if(c&&state===ref&&!ref.sea&&ref.scene==='port'){
+   ref.crossing039=null;ref.crossFailed039=true;
+   log('[대호수 주파] 중도 귀항. 특별 보상 없이 항구로 돌아왔습니다.');
+   sync();
+  }
+  return result;
+ };
+ const priorDie=die;
+ die=function(){state.crossing039=null;return priorDie.apply(this,arguments);};
+ function start(){
+  const count=total();
+  if(!count||state.sea||state.scene!=='port'||busy)return;
+  state.crossResult039=null;state.crossFailed039=false;
+  prepareVoyage();
+  if(state.scene!=='prep')return;
+  state.offered=shuffle(LAKES.map(l=>l.id)).slice(0,count);
+  state.crossing039={
+   version:1,total:count,passes:0,failed:false,pending:false,
+   mode:'normal',until:4,decidedAt:0
+  };
+  log('[대호수 주파] '+count+'개 호수의 연속 항해를 시작합니다. 4개 호수마다 다음 항로를 선택합니다.');
+  sync();
+ }
+ function choose(mode){
+  const c=current(),passed=(state.visited||[]).length;
+  if(!c||!state.sea||state.scene!=='route'||!c.pending||busy||
+     passed<=0||passed%4!==0||passed>=c.total||!['detour','direct'].includes(mode))return;
+  c.pending=false;c.mode=mode;c.until=passed+4;c.decidedAt=passed;
+  if(mode==='detour'){
+   state.exposure=clamp039((Number(state.exposure)||0)+10,0,100);
+   log('[대호수 주파] 우회 선택. 침식도 +10, 다음 네 호수의 파도 확률 -5%포인트.');
+   if(!safeCheck())return;
+  }else{
+   log('[대호수 주파] 직행 선택. 다음 네 호수의 파도 확률 +5%포인트.');
+  }
+  save();
+  autoLake0131();
+  sync();
+ }
+ function offerHtml(){
+  return '<div class="inset cross-offer-024"><div class="small">3등급 이상 · 특별 항해</div>'+
+   '<h2>대호수 주파</h2>'+
+   '<p>배정된 호수의 사건과 법을 모두 통과하면서 장거리 횡단에 도전합니다. 호수는 자동으로 정해지며 실시간 제한은 없습니다.</p>'+
+   '<p class="muted">현재 '+state.grade+'등급 · 총 '+total()+
+   '개 호수 · 처음 4개 호수는 일반 항해 · 이후 4개마다 항해 방침 결정 · 중도 귀항 또는 호수 통과 실패 시 보상 없음</p>'+
+   '<p class="muted">우회: 다음 4개 호수 파도 발생 확률 -5%포인트 및 침식도 +10. 직행: 다음 4개 호수 파도 발생 확률 +5%포인트.</p>'+
+   '<p class="muted">성공 보상: 자금, 영구 선체 보강 +10(기존 상한 +50), 기적 업적.</p>'+
+   button('대호수 주파에 나선다','crossStart039','','danger')+'</div>';
+ }
+ function choiceHtml(c){
+  return '<div class="inset cross-offer-024"><div class="small">대호수 주파 · 구간 완료</div>'+
+   '<h2>'+c.passes+' / '+c.total+'개 통과</h2>'+
+   '<p>이어서 건널 4개 호수의 항해 방침을 결정하십시오. 호수 선택과 시간제한은 없습니다.</p>'+
+   '<div class="stack">'+
+   button('우회한다 · 파도 -5%포인트 / 침식도 +10','crossDetour039','','primary')+
+   button('정면으로 돌파한다 · 파도 +5%포인트','crossDirect039','','danger')+
+   button('도전을 포기하고 귀항한다','return')+'</div></div>';
+ }
+ const priorPlay=renderPlay;
+ renderPlay=function(){
+  state.crossOffer024=false;
+  let page=priorPlay.apply(this,arguments),c=current();
+  if(state.scene==='port'&&!state.sea){
+   if(state.crossResult039){
+    const r=state.crossResult039;state.crossResult039=null;
+    page='<div class="inset cross-offer-024"><h2>대호수 주파 성공</h2><p>'+r.total+
+     '개 호수를 전부 통과했습니다. '+r.reward+'만 안(眼)을 획득했고 최대 내구도가 '+
+     (100+r.bonus)+'이 되었습니다.</p></div>'+page;
+   }else if(state.crossFailed039){
+    state.crossFailed039=false;
+    page='<div class="inset warning"><h3>대호수 주파 실패</h3><p>중도 귀항했거나 모든 호수를 성공적으로 통과하지 못했습니다. 특별 보상은 없습니다.</p></div>'+page;
+   }
+   if(total())page=offerHtml()+page;
+  }else if(c&&state.scene==='prep'){
+   page='<div class="inset cross-offer-024"><b>대호수 주파</b> · '+c.total+
+     '개 호수 · 시간제한 없음 · 4개마다 항해 방침 선택</div>'+page;
+  }else if(c&&state.sea){
+   if(state.scene==='route'&&c.pending)page=choiceHtml(c);
+   const status=c.failed?'성공 조건 미충족':
+    '성공 통과 '+c.passes+' / '+c.total+' · '+(c.mode==='detour'?'우회':c.mode==='direct'?'직행':'일반 항로');
+   page='<div class="inset cross-offer-024"><b>대호수 주파</b> · '+status+'</div>'+page;
+  }
+  return page;
+ };
+ const priorSide=renderSide;
+ renderSide=function(){
+  const result=priorSide.apply(this,arguments),c=current();
+  if(c){
+   const el=document.getElementById('stats');
+   if(el&&!el.querySelector('.cross-stat-039'))
+    el.insertAdjacentHTML('beforeend','<div class="stat cross-stat-039"><small>대호수 주파</small><strong>'+
+     c.passes+' / '+c.total+'</strong></div>');
+  }
+  return result;
+ };
+ const priorHelp=renderHelp;
+ renderHelp=function(){
+  return priorHelp.apply(this,arguments)+
+   '<div class="inset"><h3>대호수 주파</h3>'+
+   '<p>선장 3등급부터 항구에서 직접 도전할 수 있습니다. 3등급 16개, 4등급 20개, 5등급 24개 호수를 자동으로 이어 건넙니다. 처음 4개 호수는 기존 파도 발생 확률을 따르며, 이후 4개 호수마다 다음 구간의 항해 방침을 고릅니다.</p>'+
+   '<p>우회하면 다음 4개 호수의 파도 발생 확률이 5%포인트 낮아지는 대신 침식도가 10 증가합니다. 직행하면 파도 발생 확률이 5%포인트 높아집니다. 실시간 제한은 없습니다. 모든 호수를 성공적으로 통과해야 보상을 받습니다.</p></div>';
+ };
+ document.addEventListener('click',function(e){
+  const b=e.target?.closest?.('button[data-act]');
+  if(!b||b.disabled||busy)return;
+  if(b.dataset.act==='crossStart039')start();
+  else if(b.dataset.act==='crossDetour039')choose('detour');
+  else if(b.dataset.act==='crossDirect039')choose('direct');
+ });
+ // 구형 타임어택 도전 상태는 최신 모드에 가져오지 않습니다.
+ if(state.crossing024)state.crossing024=null;
+ state.crossOffer024=false;
+ window.GREAT_LAKE_CROSSING_039={current,start,choose,waveProbability,total};
+ save();render();
+})();
+</script>
 </body>
 </html>
