@@ -414,6 +414,26 @@ const ACH=[
 ];
 const TIER={common:'일반',rare:'희귀',hero:'영웅',legend:'전설',myth:'신화',miracle:'기적',unique:'유일'};
 const SAVE_KEY='great-lake-napolitan-v011';
+
+/* v.1.0.0: 이전 가격 체계의 플레이 기록을 브라우저별로 한 번 초기화합니다.
+   이후 플레이/업적/도감 저장은 이 표식이 남아 있는 한 보존됩니다. */
+const OLD_PLAY_RESET_MARKER_100='great-lake-napolitan-save-reset-fish-rarity-100';
+(function resetPreviousGameSaves100(){
+ try{
+  if(localStorage.getItem(OLD_PLAY_RESET_MARKER_100)==='done')return;
+  const obsolete=[];
+  for(let i=0;i<localStorage.length;i++){
+   const key=localStorage.key(i);
+   if(key&&key!==OLD_PLAY_RESET_MARKER_100&&
+      (key.startsWith('great-lake-napolitan-')||
+       key.startsWith('great-lake-chronicle-')||
+       key.startsWith('daehosu_')))obsolete.push(key);
+  }
+  for(const key of obsolete)localStorage.removeItem(key);
+  localStorage.setItem(OLD_PLAY_RESET_MARKER_100,'done');
+ }catch(e){console.warn('이전 플레이 저장 데이터 초기화 실패:',e);}
+})();
+
 ACH.push({id:'fish_100_unique_v034',tier:'legend',name:'나는 100개의 물고기를 안다',desc:'서로 다른 물고기 100종류를 낚아 본다.'});
 const ACH_SAVE_KEY='great-lake-napolitan-permanent-achievements';
 const ACH_RESET_KEY_153='great-lake-napolitan-achievements-reset-revision';
