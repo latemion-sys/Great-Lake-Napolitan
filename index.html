@@ -3053,7 +3053,7 @@ renderPlay=function(){
 </script>
 
 <script>
-/* v0.1.9.0 · 대호수 주파: 시간제한 없는 등급별 연속 횡단과 구간별 항로 선택 */
+/* v0.1.9.0 · 대호수 주파: 등급별 연속 횡단, 구간별 항로 선택, 호수 선택지 30초 제한 */
 (function(){
  'use strict';
  const LENGTH={3:16,4:20,5:24},BONUS_KEY='daehosu_hull_bonus_v024',BONUS_MAX=50;
@@ -3161,7 +3161,7 @@ renderPlay=function(){
  function offerHtml(){
   return '<div class="inset cross-offer-024"><div class="small">3등급 이상 · 특별 항해</div>'+
    '<h2>대호수 주파</h2>'+
-   '<p>배정된 호수의 사건과 법을 모두 통과하면서 장거리 횡단에 도전합니다. 호수는 자동으로 정해지며 실시간 제한은 없습니다.</p>'+
+   '<p>배정된 호수의 사건과 법을 모두 통과하면서 장거리 횡단에 도전합니다. 호수는 자동으로 정해지며 각 호수의 선택지는 30초 안에 골라야 합니다.</p>'+
    '<p class="muted">현재 '+state.grade+'등급 · 총 '+total()+
    '개 호수 · 처음 4개 호수는 일반 항해 · 이후 4개마다 항해 방침 결정 · 중도 귀항 또는 호수 통과 실패 시 보상 없음</p>'+
    '<p class="muted">우회: 다음 4개 호수 파도 발생 확률 -5%포인트 및 침식도 +10. 직행: 다음 4개 호수 파도 발생 확률 +5%포인트.</p>'+
@@ -3171,7 +3171,7 @@ renderPlay=function(){
  function choiceHtml(c){
   return '<div class="inset cross-offer-024"><div class="small">대호수 주파 · 구간 완료</div>'+
    '<h2>'+c.passes+' / '+c.total+'개 통과</h2>'+
-   '<p>이어서 건널 4개 호수의 항해 방침을 결정하십시오. 호수 선택과 시간제한은 없습니다.</p>'+
+   '<p>이어서 건널 4개 호수의 항해 방침을 결정하십시오. 항로 선택에는 시간제한이 없으며, 호수의 각 선택지는 30초 안에 골라야 합니다.</p>'+
    '<div class="stack">'+
    button('우회한다 · 파도 -5%포인트 / 침식도 +10','crossDetour039','','primary')+
    button('정면으로 돌파한다 · 파도 +5%포인트','crossDirect039','','danger')+
@@ -3194,7 +3194,7 @@ renderPlay=function(){
    if(total())page=offerHtml()+page;
   }else if(c&&state.scene==='prep'){
    page='<div class="inset cross-offer-024"><b>대호수 주파</b> · '+c.total+
-     '개 호수 · 시간제한 없음 · 4개마다 항해 방침 선택</div>'+page;
+     '개 호수 · 호수 선택지마다 30초 · 4개마다 항해 방침 선택</div>'+page;
   }else if(c&&state.sea){
    if(state.scene==='route'&&c.pending)page=choiceHtml(c);
    const status=c.failed?'성공 조건 미충족':
@@ -3219,7 +3219,7 @@ renderPlay=function(){
   return priorHelp.apply(this,arguments)+
    '<div class="inset"><h3>대호수 주파</h3>'+
    '<p>선장 3등급부터 항구에서 직접 도전할 수 있습니다. 3등급 16개, 4등급 20개, 5등급 24개 호수를 자동으로 이어 건넙니다. 처음 4개 호수는 기존 파도 발생 확률을 따르며, 이후 4개 호수마다 다음 구간의 항해 방침을 고릅니다.</p>'+
-   '<p>우회하면 다음 4개 호수의 파도 발생 확률이 5%포인트 낮아지는 대신 침식도가 10 증가합니다. 직행하면 파도 발생 확률이 5%포인트 높아집니다. 실시간 제한은 없습니다. 모든 호수를 성공적으로 통과해야 보상을 받습니다.</p></div>';
+   '<p>우회하면 다음 4개 호수의 파도 발생 확률이 5%포인트 낮아지는 대신 침식도가 10 증가합니다. 직행하면 파도 발생 확률이 5%포인트 높아집니다. 호수 선택지에는 매번 30초 제한이 적용되며, 항로 선택에는 시간제한이 없습니다. 모든 호수를 성공적으로 통과해야 보상을 받습니다.</p></div>';
  };
  document.addEventListener('click',function(e){
   const b=e.target?.closest?.('button[data-act]');
