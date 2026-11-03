@@ -340,7 +340,7 @@ renderSide=function(){
  let ms=document.getElementById('mstat024');
  const main=document.querySelector('main.panel');
  if(!ms&&main){ms=document.createElement('div');ms.id='mstat024';ms.className='mstat-024';main.insertBefore(ms,main.firstChild);}
- if(ms)ms.innerHTML='<span>'+state.grade+'등급</span><span>자금 <b>'+state.gold+'</b></span><span class="'+(state.exposure>=70?'bad':'')+'">침식 <b>'+(state.exposure||0)+'</b></span><span class="'+(state.mind<=30?'bad':'')+'">정신 <b>'+state.mind+'</b></span>'+
+ if(ms)ms.innerHTML='<span>'+state.grade+'등급</span><span>자금 <b>'+state.gold+'</b></span><span class="'+(state.exposure>=70?'bad':'')+'">침식 <b>'+(state.exposure||0)+'</b></span><span class="'+(state.mind<=30?'bad':'')+'">선장 정신력 <b>'+state.captainMind+'</b></span>'+
   (state.sea?'<span>항해 <b>'+(state.visited||[]).length+'/'+(state.offered||[]).length+'</b></span>':'')+(crossing()?'<span class="cross">주파 중</span>':'');
  if(el&&crossing()&&!el.querySelector('.cross-stat-024'))el.insertAdjacentHTML('beforeend','<div class="stat cross-stat-024"><small>대호수 주파</small><strong>'+(state.visited||[]).length+' / '+CROSS_LAKES+'</strong></div>');
  return r;
