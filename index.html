@@ -874,9 +874,10 @@ function renameCrew0131(id){
 }
 function sellFish0131(){
  if(state.sea||state.scene!=='port'||state.fish<=0)return;
- const sold=state.fish,nominal=sold*5,earn=gainMoney148(nominal);state.fish=0;
+ const sold=state.fish,nominal=window.GREAT_LAKE_FISH_MARKET_034?.saleTotal?.()??sold*1.5;
+ const earn=Math.max(0,Math.round(nominal*2)/2);state.gold+=earn;state.lastIncome148=earn;state.fish=0;
  state.prog.fishSold+=sold;state.prog.goldPeak=Math.max(state.prog.goldPeak,state.gold);
- log('물고기 '+sold+'마리를 판매해 '+earn+' 만 안(眼)을 받았습니다.');sync();
+ log('물고기 '+sold+'마리를 판매해 '+unitMoney(earn)+'을 받았습니다.');sync();
 }
 const previousRenderPlay0131=renderPlay;
 renderPlay=function(){
@@ -884,7 +885,7 @@ renderPlay=function(){
   return previousRenderPlay0131()+'<div class="log-update"><h3>업데이트 내역 · V.0.1.3.1</h3><ul><li>출항 이후 자동 항해 방식과 호수별 인어 조우 확률 변경</li><li>선원·작살잡이·1등 항해사 이름 지정 기능</li><li>인어 사냥 보상으로 고래기름 추가 및 물고기 판매 기능</li><li>호수별 업적과 추가 업적, 등급별 업적 공개 방식 변경</li><li>사망 이후에도 업적 보관 유지</li></ul></div>';
  }
  if(state.scene==='port'){
-  return previousRenderPlay0131()+'<div class="inset"><h3>어획물 거래</h3><p>보유 물고기 '+state.fish+'마리 · 판매가 한 마리당 5 만 안(眼)</p>'+button('물고기 판매','sellFish','','primary',state.fish===0)+'</div>';
+  return previousRenderPlay0131()+'<div class="inset"><h3>어획물 거래</h3><p>보유 물고기 '+state.fish+'마리 · 흔함 '+unitMoney(1.5)+' · 드묾 '+unitMoney(3)+' · 매우 희귀 '+unitMoney(5)+'</p><p>예상 판매 수입: '+unitMoney(window.GREAT_LAKE_FISH_MARKET_034?.saleTotal?.()??state.fish*1.5)+'</p>'+button('물고기 판매','sellFish','','primary',state.fish===0)+'</div>';
  }
  if(state.scene==='route'&&state.routeChoiceCount>0){
   /* 저장 데이터나 예외 경로로 재진입해도 다시 호수를 고르게 하지 않습니다. */
@@ -940,7 +941,10 @@ const WHALE_LOOT=[
  ['붉은 고래의 마른 심장',130],['검은 고래의 감싸는 심장',140],['노란 고래의 침강막',150]
 ];
 const SPECIAL_LOOT=['창백한 기름','꿰뚫는 기름','말리는 기름','감싸는 기름','가라앉히는 기름'];
-const unitMoney=n=>Math.floor(n).toLocaleString('ko-KR')+'만 안(眼)';
+const unitMoney=n=>{
+ const x=Math.max(0,Math.round((Number(n)||0)*2)),whole=Math.floor(x/2);
+ return (whole||x%2===0?whole.toLocaleString('ko-KR')+'만 ':'')+(x%2?'5천 ':'')+'안(眼)';
+};
 function migrate132(){
  normalize0131();
  if(!state.relics||typeof state.relics!=='object')state.relics={};
@@ -2916,7 +2920,7 @@ renderPlay=function(){
 <script src="./whale-gl-v033.js?v=wgl1102"></script>
 <script src="./heart-scenes-v031.js?v=hs1103p"></script>
 <script src="./economy-workshops-v033.js?v=fishmarket1103a"></script>
-<script src="./fish-market-v034.js?v=fish-legend-hidden-1103b"></script>
+<script src="./fish-market-v034.js?v=fish-rarity-price-1103d"></script>
 
 <script>
 /* v0.1.9.0 · 선장 등급별 승급 실적. 호수/고래 판정 및 대호수 주파는 변경하지 않음. */
