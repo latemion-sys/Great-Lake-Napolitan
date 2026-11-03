@@ -833,6 +833,7 @@ function frame(now){
    const t=(now-g.t0)/1000;
    lastSeen=now;seenGame=true;seenStage=st;
    try{GAMEPAINT[st](el,t,t,g);}catch(e){if(!el._bwErr){el._bwErr=1;console.warn('푸른 고래 미니게임',e);}}
+   if(window.CalSFX){window.CalSFX.game(el,g,t);const ST=SCENES[st];if(ST&&ST.title)window.CalSFX.tick(el,'g:'+ST.title,t);}   // 미니게임 효과음
   }else if(S){
    if(now-lastSeen>900||API.replayToken!==seenTok||st!==seenStage||seenGame){start=now;seenTok=API.replayToken;seenStage=st;seenGame=false;}
    if(API.resume&&API.resume.stage===st&&!el.dataset.game){start=API.resume.start;API.resume=null;}

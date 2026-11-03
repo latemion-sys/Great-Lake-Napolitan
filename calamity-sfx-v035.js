@@ -98,13 +98,24 @@ const S={
   [[196,.08,4],[466,.035,2.6],[742,.02,1.8],[1046,.012,1.2]].forEach(([f,a,dd])=>{const o=osc(c,'sine',t,dd+.2);o.frequency.value=f;chain(o,env(c,t+.01,.004,.05,dd,a*k),d);});},
  breath(c,d,t,p){const dur=p.dur||1,k=p.k||1;const n=noise(c,t,dur),lp=filt(c,'lowpass',900);chain(n,lp,env(c,t,dur*.4,dur*.2,dur*.4,.12*k),d);},
  // 잔잔한 물결(배 둘레)
+ // 발사대: 걸쇠가 풀리는 쇳소리 + 공기를 가르는 소리
+ launch(c,d,t,p){const k=p.k||1;[620,1180,1740].forEach((f,i)=>{const m=osc(c,'square',t,.2);m.frequency.value=f;const bp=filt(c,'bandpass',f,6);chain(m,bp,env(c,t,.001,.01,.12-i*.02,.05*k),d);});
+  const th=osc(c,'sine',t,.3);ramp(th.frequency,t,[[0,160],[.2,60]]);chain(th,env(c,t,.002,.01,.2,.3*k),d);S.whoosh(c,d,t+.02,{dur:.45,k:.9*k});},
+ // 망을 감은 작살의 명중: 둔탁한 박힘 + 망이 터지는 맑은 울림(망 수가 많을수록 겹이 늘고 밝아짐)
+ mangHit(c,d,t,p){const k=p.k||1,n=Math.max(0,Math.min(5,p.m==null?3:p.m));S.thunk(c,d,t,{k});
+  if(n>0){const base=[523,659,784,988,1175,1319];for(let i=0;i<n+1;i++){const o=osc(c,'sine',t,2.2);o.frequency.value=base[i]*(1+(R()-.5)*.004);chain(o,env(c,t+.02+i*.035,.004,.04,1.6-i*.12,(.05+.01*n)*k),d);}
+   const n2=noise(c,t,.7),hp=filt(c,'highpass',5000);chain(n2,hp,env(c,t+.01,.01,.05,.5,.08*k*(.5+n*.12)),d);}},
+ // 박힌 자리가 부서져 흩어짐
+ shatter(c,d,t,p){const k=p.k||1;S.crack(c,d,t,{k:.6*k});for(let i=0;i<10;i++){const tt=t+.05+R()*.5,n=noise(c,tt,.06),bp=filt(c,'bandpass',1500+R()*3000,3);chain(n,bp,env(c,tt,.001,.01,.05,.12*k),d);}},
+ // 밧줄을 감아 들임(톱니 걸쇠 딸깍임)
+ reel(c,d,t,p){const dur=p.dur||1,k=p.k||1;for(let i=0;i<dur*16;i++){const tt=t+i/16,n=noise(c,tt,.02),bp=filt(c,'bandpass',2600,5);chain(n,bp,env(c,tt,.001,.003,.015,.09*k),d);}},
  lap(c,d,t,p){const dur=p.dur||7,k=p.k||1;for(let i=0;i<dur/1.3;i++){const tt=t+i*1.3+R()*.4,n=noise(c,tt,1.1,1),lp=filt(c,'lowpass',500+R()*300);chain(n,lp,env(c,tt,.35,.1,.6,.09*k),d);}}
 };
 
 /* ───────── 장면별 시간표 [시각, 소리, 설정] (장면 제목으로 찾음) ───────── */
 const CUES={
  // 창백한 고래
- 'pallid-harpoon':o=>o.hold?[]:[[0,'lap',{dur:7}],[.05,'groan',{dur:3.2,f:40,k:1}],[0,'rush',{dur:2.2,k:1.1}],[1.45,'splash',{big:1,k:.9}],[2.5,'whoosh',{dur:.5}],[3.05,'thunk',{k:1}],[3.2,'groan',{dur:2,f:56,k:.8}],[4.4,'rush',{dur:2.6,k:.8,f0:900,f1:600,f2:300}]],
+ 'pallid-harpoon':o=>o.hold?(o.throwAt!=null&&isFinite(o.throwAt)?[[o.throwAt,'launch',{}],[o.throwAt+.42,o.isHit?'mangHit':'clank',{m:o.mang}]]:[]):[[0,'lap',{dur:7}],[.05,'groan',{dur:3.2,f:40,k:1}],[0,'rush',{dur:2.2,k:1.1}],[1.45,'splash',{big:1,k:.9}],[2.5,'whoosh',{dur:.5}],[3.05,'thunk',{k:1}],[3.2,'groan',{dur:2,f:56,k:.8}],[4.4,'rush',{dur:2.6,k:.8,f0:900,f1:600,f2:300}]],
  'pallid-heart':()=>[[0,'heartbell',{}],[2.4,'heartbell',{k:.9}],[4.8,'heartbell',{k:.8}]],
  // 푸른 고래
  '수면의 절단':()=>[[0,'lap',{dur:7}],[1.2,'slice',{}],[2.7,'crash',{dur:2.2}],[4.4,'whoosh',{dur:.8,k:.4,f0:1200,f1:400}]],
@@ -141,14 +152,24 @@ function cuesFor(key,o){const f=CUES[key]||(/열수공/.test(key)?CUES.vent:null
 function ensure(){if(ctx)return ctx;if(!AC)return null;ctx=new AC();master=ctx.createDynamicsCompressor();master.threshold.value=-14;master.ratio.value=4;
  const g=ctx.createGain();g.gain.value=.8;master.connect(g);g.connect(ctx.destination);return ctx;}
 function play(name,p,at){const c=ensure();if(!c||!S[name])return;if(c.state==='suspended')c.resume();try{S[name](c,master,Math.max(c.currentTime,c.currentTime+(at||0)),p||{});}catch(e){}}
+let LOG=null;
+function emit(name,p){if(LOG)LOG.push([performance.now()/1000,name,p||{}]);if(on&&!document.hidden)play(name,p);}
+// 정해진 시각들(사건)을 지날 때 소리: list=[[시각,소리,설정],…] (같은 el · id 안에서)
+function evt(el,id,t,list){if(!el)return;const m=el.__sfxe||(el.__sfxe={}),lt=m[id];m[id]=t;if(lt==null||t<lt-.05||t-lt>.5)return;
+ list.forEach(([at,name,p])=>{if(at!=null&&at>lt&&at<=t)emit(name,p);});}
+// 미니게임 상태 변화(명중 · 빗나감 · 성공 · 실패)를 소리로
+function game(el,g,t){if(!el||!g)return;const m=el.__sfxg||(el.__sfxg={});
+ const h=+g.hits||0,mi=+g.misses||0,dn=g.done||null;
+ if(m.ref===g.ref){if(h>m.h)emit('splash',{k:.35});if(mi>m.mi)emit('clank',{k:.6});if(dn&&dn!==m.dn)emit(dn==='ok'||dn===true||dn==='win'?'groan':'crash',dn==='ok'||dn===true||dn==='win'?{dur:2.2,f:46,k:.7}:{dur:1.6,k:.6});}
+ m.ref=g.ref;m.h=h;m.mi=mi;m.dn=dn;}
 function tick(el,key,t,o){
  if(!el)return;const st=el.__sfx||(el.__sfx={key:null,lt:0});
  if(st.key!==key){st.key=key;st.lt=t-.0001;return;}
  let lt=st.lt;st.lt=t;
- if(!on||document.hidden)return;
+ if(!on&&!LOG)return;
  if(t<lt-.05)lt=-.001;                        // 반복: 처음부터
  if(t-lt>.5)return;                           // 오래 멈췄다 이어진 경우(되감기 등)는 건너뜀
- cuesFor(key,o).forEach(([at,name,p])=>{if(at>lt&&at<=t)play(name,p);});
+ cuesFor(key,o).forEach(([at,name,p])=>{if(at>lt&&at<=t)emit(name,p);});
 }
 function setOn(v){on=!!v;try{localStorage.setItem('calSfx',on?'1':'0');}catch(e){}if(on){const c=ensure();if(c&&c.state==='suspended')c.resume();}
  document.querySelectorAll('.cal-sfx-btn').forEach(b=>{b.textContent=on?'소리 끄기':'소리 켜기';b.setAttribute('aria-pressed',on?'true':'false');});}
@@ -172,6 +193,6 @@ async function offline(key,from,dur,o){
  for(let i=0;i<n;i++){v.setInt16(44+i*4,Math.max(-1,Math.min(1,L[i]))*32767,true);v.setInt16(46+i*4,Math.max(-1,Math.min(1,Rc[i]))*32767,true);}
  let s='';const u8=new Uint8Array(ab);for(let i=0;i<u8.length;i+=32768)s+=String.fromCharCode.apply(null,u8.subarray(i,i+32768));return btoa(s);
 }
-window.CalSFX={tick,play,ui,offline,cues:cuesFor,get on(){return on;},enable:()=>setOn(true),disable:()=>setOn(false),toggle:()=>setOn(!on)};
+window.CalSFX={tick,evt,game,emit,play,ui,offline,cues:cuesFor,startLog:()=>{LOG=[];},takeLog:()=>{const l=LOG||[];LOG=null;return l;},get on(){return on;},enable:()=>setOn(true),disable:()=>setOn(false),toggle:()=>setOn(!on)};
 if(window.CAL_SFX_UI)document.addEventListener('DOMContentLoaded',()=>ui());
 })();
