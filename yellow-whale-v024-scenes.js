@@ -502,6 +502,7 @@ function frame(now){
    if(el.dataset.seek!=null)tr=+el.dataset.seek;
    const t=S.loop?tr%S.loop:Math.min(tr,S.dur||tr);
    try{S.paint(el,t,tr);}catch(e){if(!el._ywErr){el._ywErr=1;console.warn('노란 고래 이펙트',e);}}
+   if(window.CalSFX)window.CalSFX.tick(el,S.title,t);   // 효과음(켜 둔 경우만)
   }
  }
  requestAnimationFrame(frame);

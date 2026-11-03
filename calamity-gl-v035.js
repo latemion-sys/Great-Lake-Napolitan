@@ -40,7 +40,7 @@ void main(){vP=uBB.xy+aP*uBB.zw;gl_Position=vec4(aP.x*2.-1.,1.-aP.y*2.,0.,1.);}`
 const F_PALLID=`#version 300 es
 precision highp float;
 in vec2 vP;out vec4 o;
-uniform float uT,uRun,uPx;uniform float uTop[64];uniform vec3 uLamp;
+uniform float uT,uRun,uPx;uniform float uTop[64];uniform vec3 uLamp;uniform vec4 uHp[8];
 ${NOISE}
 float topY(float x){float f=clamp((x-520.)/8.,0.,62.99);int i=int(f);return mix(uTop[i],uTop[i+1],fract(f));}
 vec3 rakeSet(vec2 p,vec2 o0,float ang,float len,float base,inout float dark){
@@ -75,7 +75,16 @@ void main(){
  vec2 w=vec2(fbm(p*.012+vec2(1.,5.)),fbm(p*.012+vec2(8.,2.)))*30.;
  float vr=ridge((p+w)*.014),vein=smoothstep(.955,.995,vr)*(.4+.6*smoothstep(.1,.6,v))*(1.-rear*.5);
  float vr2=ridge((p+w*.6)*.04+3.),vein2=smoothstep(.97,.998,vr2)*.5;
- col=mix(col,col*vec3(.66,.8,1.04),vein*.45);col=mix(col,col*vec3(.85,.9,1.),vein2*.4);
+ col=mix(col,col*vec3(.66,.8,1.04),vein*.45);
+ col=mix(col,min(col*1.22+.05,vec3(1.)),vein2*.5);                 // 하얀 핏줄(살 아래로 희게 비침)
+ // 작살이 박힌 자리: 찢긴 테 · 아래로 흘러내린 녹물과 핏물 자국
+ for(int i=0;i<8;i++){vec2 h=uHp[i].xy;float len=uHp[i].z;vec2 d=p-h;
+  float ring=exp(-pow(length(d*vec2(1.,1.4))-6.,2.)/5.);col=mix(col,vec3(.62,.42,.4),ring*.35);
+  float sx=d.x+sin(d.y*.15+float(i))*1.6;float run=exp(-sx*sx/(5.+d.y*.08))*smoothstep(2.,8.,d.y)*exp(-d.y/len);
+  run*=.55+.45*vn(vec2(p.x*.3,p.y*.06+float(i)));
+  col=mix(col,vec3(.36,.17,.1),run*.42);}
+ // 텅 빈 새까만 눈: 둘레가 움푹 꺼지고 빛이 빨려 드는 듯 어둡게
+ {vec2 e=(p-vec2(748.,298.))*vec2(1.,1.35);float r=length(e);col*=1.-.5*exp(-r*r/600.);col=mix(col,col*.6,smoothstep(26.,12.,r)*smoothstep(4.,12.,r)*.4);}
  // 오징어 빨판 흉터: 이마에 드문드문 둥근 테
  float zone=smoothstep(550.,600.,p.x)*(1.-smoothstep(760.,820.,p.x))*smoothstep(170.,190.,p.y)*(1.-smoothstep(290.,315.,p.y));
  vec4 vo=vor(p/24.);float rr=.12+.2*vo.z,ring=exp(-pow((vo.x-rr)/.035,2.))*step(vo.w,.3)*zone;
@@ -184,6 +193,8 @@ function pallidTop(){
  return PTOP=out;
 }
 const PB=[516,136,500,232];
+// 머리에 박힌 작살 자리(고래 좌표) · 흘러내린 자국 길이
+const HP=new Float32Array([588,180,60,0, 634,162,40,0, 684,154,70,0, 560,238,34,0, 736,154,44,0, 612,212,52,0, 806,166,50,0, 930,186,30,0]);
 // g: .w3-whale(행렬로 움직이는 묶음) · o: {t, run(물줄기 0~1), lamp:[세계 x,y,k], mat:[a,b,c,d,e,f]}
 function pallid(g,o){
  if(!init()||!g){drop(g);return false;}
@@ -192,7 +203,7 @@ function pallid(g,o){
   const S=surface(g,PB,{clip:'url(#w3WhaleClip)',before:g.querySelector('.w3-svgskin')});
   quad(P,PB);
   gl.uniform1f(P.u.uT,o.t!=null?o.t:now());gl.uniform1f(P.u.uRun,o.run||0);gl.uniform1f(P.u.uPx,S.px);
-  gl.uniform1fv(P.u.uTop,pallidTop());
+  gl.uniform1fv(P.u.uTop,pallidTop());gl.uniform4fv(P.u.uHp,HP);
   let lp=[0,0,0];if(o.lamp&&o.mat){const l=ap(inv(o.mat),o.lamp);lp=[l[0],l[1],o.lamp[2]||0];}
   gl.uniform3f(P.u.uLamp,lp[0],lp[1],lp[2]);
   gl.drawArrays(gl.TRIANGLES,0,6);gl.bindVertexArray(null);
@@ -399,7 +410,7 @@ uniform float uT,uOpen,uBroken,uBase,uSeed;
 ${NOISE}
 void main(){
  vec2 p=vP;float z=uBase-p.y;                 // 꼭대기 위로의 높이
- if(z<-6.){discard;}
+ if(z<-26.){discard;}
  float zz=max(z,0.);
  float sway=sin(zz*.018-uT*1.1+uSeed)*(4.+zz*.08)+sin(zz*.05-uT*2.3)*2.;
  float w=13.+zz*.3;
@@ -419,6 +430,9 @@ void main(){
   // 꼭대기 바로 위의 아지랑이 결(뜨거운 공기)
   float hz=exp(-zz/28.)*exp(-x*x/600.)*(.5+.5*sin(zz*.6-uT*12.+x*.2))*uOpen*.35;
   c+=vec3(1.,.85,.5)*hz;a=max(a,hz*.6);
+  // 열린 중심부의 황금빛(부드럽게 번짐)
+  float gr=length(vec2(p.x,(z+2.)*1.6));float core=exp(-gr*gr/(900.))*uOpen*(.85+.15*sin(uT*13.));
+  c+=vec3(1.,.8,.42)*core*.8;a=max(a,core*.6);
  }
  o=vec4(c*a,a);
 }`;
@@ -465,13 +479,48 @@ function vent(cone,plumeHost,o){
  }catch(e){console.warn('[cal-gl]',e);drop(cone);if(plumeHost){drop(plumeHost);plumeHost.classList.remove('cglp');}return false;}
 }
 
+
+const F_MEM=`#version 300 es
+precision highp float;
+in vec2 vP;in float vU,vV,vK,vKind,vW,vPh;out vec4 o;
+uniform float uT;
+${NOISE}
+void main(){
+ float av=abs(vV);
+ float fib=fbm(vec2(vU*.12+vPh*9.,vV*3.+vPh*2.)),fib2=fbm(vec2(vU*.35-uT*.2,vV*7.+vPh));
+ float body=smoothstep(1.,.35,av)*(.55+.45*fib);
+ float thin=smoothstep(.45,.75,fib2);                      // 막이 얇아져 비치는 구멍
+ float edge=smoothstep(1.,.75,av)*smoothstep(.45,.8,av);
+ vec3 c=mix(vec3(.82,.86,.86),vec3(.98,.98,.95),fib)+vec3(.05,.08,.12)*(1.-fib2);
+ float a=(body*(1.-.6*thin)*.62+edge*.18)*vK;
+ o=vec4(c*a,a);
+}`;
+// 늘어진 막 가닥: [{x,y,len,w,ph}] 고래 좌표. 매 프레임 흔들리는 늘어짐을 계산해 띠로 만든다
+function membrane(g,list,t){
+ if(!init()||!g){drop(g);return false;}
+ const P=prog('mem',V_RIB,F_MEM,[['aP',2],['aA',4],['aB',2]]);if(!P){drop(g);return false;}
+ try{
+  rN=0;const bb=[1e9,1e9,-1e9,-1e9];
+  list.forEach((m,i)=>{const pts=[],ws=[],ks=[],N=14;
+   for(let j=0;j<=N;j++){const u=j/N,sw=Math.sin(t*.9+m.ph*6+u*2.2)*u*u*m.len*.12+Math.sin(t*2.1+m.ph*3)*u*2;
+    pts.push([m.x+sw+(m.dx||0)*u,m.y+m.len*u*(1-.08*Math.sin(t*.7+m.ph))]);ws.push(m.w*(1-.75*u)*(1+.3*Math.sin(u*9+m.ph*4)));ks.push(m.k==null?1:m.k);}
+   ribbonMesh({pts,w:ws,k:ks,kind:3,ph:m.ph,fade:.05},bb);});
+  if(rN<3)return true;
+  const B=[bb[0]-2,bb[1]-2,bb[2]-bb[0]+4,bb[3]-bb[1]+4];
+  const S=surface(g,B,{res:1});
+  gl.useProgram(P.p);gl.bindVertexArray(P.vao);gl.bindBuffer(gl.ARRAY_BUFFER,P.buf);gl.bufferData(gl.ARRAY_BUFFER,ribData.subarray(0,rN*8),gl.DYNAMIC_DRAW);
+  gl.uniform4f(P.u.uBB,B[0],B[1],B[2],B[3]);gl.uniform1f(P.u.uT,t);gl.drawArrays(gl.TRIANGLES,0,rN);gl.bindVertexArray(null);
+  blit(S);return true;
+ }catch(e){console.warn('[cal-gl]',e);drop(g);return false;}
+}
+
 const css='.cgl-fo{overflow:visible;pointer-events:none}'+
  '.w3-whale.cgl .w3-svgskin{display:none}'+
  '.rf-back.cglr .rf-glow,.rf-back.cglr .rf-core,.cglr .rf-wall>*{display:none}'+
  '.bw-tl.cgl>path{display:none}'+
  '.bw-crack.cgl>path{display:none}'+
  '.yv-cone.cgl>:not(.cgl-fo){display:none}'+
- '.yv-pos.cglp>.yv-st,.yv-pos.cglp>.yv-sm{display:none}';
+ '.yv-pos.cglp>.yv-st,.yv-pos.cglp>.yv-sm,.yv-pos.cglp>.yv-glow{display:none}';
 const st=document.createElement('style');st.textContent=css;(document.head||document.documentElement).appendChild(st);
-window.CalGL={pallid,ribbons,rift,vent,supported:()=>init(),drop,_gl:()=>gl,_prog:prog,_surface:surface,_blit:blit,_quad:quad,NOISE,VQ};
+window.CalGL={pallid,ribbons,rift,vent,membrane,supported:()=>init(),drop,_gl:()=>gl,_prog:prog,_surface:surface,_blit:blit,_quad:quad,NOISE,VQ};
 })();

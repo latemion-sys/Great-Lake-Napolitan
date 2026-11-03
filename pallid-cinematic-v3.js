@@ -39,6 +39,83 @@ function wrinkles(){
  return out;
 }
 
+/* ---------- 창백한 막 가닥: 입가 · 상처 · 작살 구멍에서 늘어져 흐느적거림(고래 좌표) ---------- */
+const MEM=[{x:558,y:322,len:46,w:4.2,ph:.1,dx:-6},{x:600,y:334,len:28,w:2.6,ph:.5},{x:668,y:337,len:36,w:3.2,ph:.8,dx:4},{x:744,y:334,len:24,w:2.2,ph:.35},
+ {x:690,y:218,len:30,w:3,ph:.62},{x:606,y:276,len:22,w:2.4,ph:.9},{x:588,y:184,len:26,w:2.2,ph:.27},{x:684,y:158,len:18,w:1.8,ph:.71},{x:560,y:241,len:20,w:2,ph:.44}];
+/* ---------- Canvas 2D: 이마에서 떨어지는 물방울 · 수면 물보라 · 명중 순간의 물보라와 흰 조각 · 떠도는 창백한 부유물 ---------- */
+const SVGNS='http://www.w3.org/2000/svg',XHTML='http://www.w3.org/1999/xhtml';
+function fx2d(el,t,M,run,rise,hit,hold){
+ let s=el.__fx2;
+ if(!s){const root=el.querySelector('.w3-root');if(!root)return;
+  const fo=document.createElementNS(SVGNS,'foreignObject');fo.setAttribute('x','0');fo.setAttribute('y','0');fo.setAttribute('width',W);fo.setAttribute('height',H);fo.setAttribute('class','w3-fx2');fo.style.pointerEvents='none';
+  const c=document.createElementNS(XHTML,'canvas');c.setAttribute('style','display:block;width:100%;height:100%');fo.appendChild(c);root.appendChild(fo);
+  const r=seeded(707);
+  s=el.__fx2={c,ctx:c.getContext('2d'),lt:t,drops:[],rings:[],flakes:[],hitDone:false,px:0,at:0,
+   motes:Array.from({length:40},()=>({x:380+r()*600,y:80+r()*260,r:.5+r()*1.1,vx:-4+r()*8,vy:-3-r()*7,ph:r()*6,fl:r()<.3}))};}
+ const now=performance.now();
+ if(now-s.at>500){const bb=s.c.getBoundingClientRect();s.px=Math.min(2,Math.max(.5,(bb.width||W)/W*Math.min(2,window.devicePixelRatio||1)));s.at=now;}
+ const pw=Math.round(W*s.px),ph=Math.round(H*s.px);if(s.c.width!==pw||s.c.height!==ph){s.c.width=pw;s.c.height=ph;}
+ let dt=t-s.lt;s.lt=t;if(dt<0||dt>.4){s.drops.length=0;s.rings.length=0;s.flakes.length=0;s.hitDone=false;dt=0;}
+ const ctx=s.ctx;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,pw,ph);ctx.setTransform(s.px,0,0,s.px,0,0);
+ const R=Math.random;
+ // 떠오를 때: 이마 앞면에서 물이 줄줄 떨어짐 · 고래 둘레 수면에서 물보라
+ if(run>.05&&dt>0){
+  const n=Math.min(8,Math.round(run*90*dt+R()));
+  for(let k=0;k<n;k++){const lp=[538+R()*14,175+R()*140],w=apply(M,lp);if(w[1]>SEA)continue;s.drops.push({x:w[0],y:w[1],vx:-10-R()*40,vy:R()*20,life:0,sz:.8+R()*1.6,c:0});}
+  const m2=Math.min(6,Math.round(run*60*dt+R()*.6));
+  for(let k=0;k<m2;k++){const w=apply(M,[540+R()*420,0]);s.drops.push({x:w[0],y:SEA-1,vx:(R()-.6)*60,vy:-80-R()*170,life:0,sz:.7+R()*1.4,c:0});}
+ }
+ // 명중: 물보라와 흰 막 조각이 튐
+ if(hit>0&&!s.hitDone){s.hitDone=true;const w=apply(M,IMPACT);
+  for(let k=0;k<46;k++){const a=Math.PI*(.55+R()*.9),v=60+R()*240;s.drops.push({x:w[0],y:w[1],vx:Math.cos(a)*v,vy:-Math.abs(Math.sin(a))*v*.8-30,life:0,sz:.8+R()*2,c:k%5===0?1:0});}
+  for(let k=0;k<14;k++){const a=Math.PI*(.6+R()*.8),v=40+R()*120;s.flakes.push({x:w[0],y:w[1],vx:Math.cos(a)*v,vy:-Math.abs(Math.sin(a))*v,rot:R()*6,vr:(R()-.5)*8,life:0,sz:2+R()*3});}}
+ if(hit<0)s.hitDone=false;
+ // 물방울 · 수면에 닿으면 둥근 물결
+ ctx.lineCap='round';
+ s.drops=s.drops.filter(d=>{d.life+=dt;d.vy+=620*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;
+  if(d.y>=SEA+2&&d.vy>0){if(R()<.35)s.rings.push({x:d.x,y:SEA+2+R()*4,a:0,s:.6+d.sz*.4});return false;}
+  const sp=Math.hypot(d.vx,d.vy)||1,l=Math.min(9,sp*.02+d.sz);
+  ctx.strokeStyle=d.c?'rgba(160,30,40,.75)':'rgba(232,242,242,'+(.75-Math.min(.5,d.life*.3)).toFixed(3)+')';ctx.lineWidth=d.sz;
+  ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-d.vx/sp*l,d.y-d.vy/sp*l);ctx.stroke();return d.life<3;});
+ s.rings=s.rings.filter(g=>{g.a+=dt/1.1;if(g.a>=1)return false;ctx.strokeStyle='rgba(220,232,232,'+(.45*(1-g.a)).toFixed(3)+')';ctx.lineWidth=.8;
+  ctx.beginPath();ctx.ellipse(g.x,g.y,(2+g.a*16)*g.s,(.6+g.a*3)*g.s,0,0,Math.PI*2);ctx.stroke();return true;});
+ // 흰 막 조각: 천천히 팔랑이며 떨어짐
+ s.flakes=s.flakes.filter(f=>{f.life+=dt;f.vy+=140*dt;f.vx*=1-1.5*dt;f.x+=f.vx*dt+Math.sin(f.life*5+f.rot)*12*dt;f.y+=f.vy*dt;f.rot+=f.vr*dt;
+  if(f.y>SEA+4||f.life>4)return false;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.rot);ctx.fillStyle='rgba(236,240,236,'+(.85*(1-f.life/4)).toFixed(3)+')';
+  ctx.beginPath();ctx.moveTo(-f.sz,-f.sz*.3);ctx.quadraticCurveTo(0,-f.sz*.9,f.sz,-f.sz*.2);ctx.quadraticCurveTo(f.sz*.3,f.sz*.6,-f.sz*.8,f.sz*.4);ctx.closePath();ctx.fill();ctx.restore();return true;});
+ // 떠도는 창백한 부유물(고래 둘레 공기 · 아주 옅게)
+ const tt=performance.now()/1000;
+ s.motes.forEach(m=>{const x=((m.x+m.vx*tt+Math.sin(tt*.4+m.ph)*14)%700+700)%700+300,y=((m.y+m.vy*tt)%300+300)%300+60;
+  const a=(.08+.14*(.5+.5*Math.sin(tt*1.3+m.ph)))*(.4+.6*rise);
+  const gr=ctx.createRadialGradient(x,y,0,x,y,m.r*3.2);gr.addColorStop(0,'rgba(240,244,238,'+a.toFixed(3)+')');gr.addColorStop(1,'rgba(240,244,238,0)');
+  ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x,y,m.r*3.2,0,Math.PI*2);ctx.fill();});
+}
+
+/* ---------- 좁은 아래턱 · 비뚤어진 이빨 ----------
+   향유고래처럼 큰 머리 밑에 가늘게 달린 아래턱. 이빨은 크기 · 기울기가 제각각이고 몇은 부러지고 누렇게 삭았다. */
+function pallidJaw(){
+ const r=seeded(523);
+ // 아래턱 윗선(이빨이 박힌 잇몸 선) · 턱 아랫선
+ const top=x=>326+(x-566)*.03+Math.sin((x-566)/60)*1.6,bot=x=>top(x)+4+(x-566)*.07;
+ let jaw='M560,'+(top(566)+2).toFixed(1);for(let x=566;x<=800;x+=13)jaw+=' L'+x+','+top(x).toFixed(1);
+ for(let x=800;x>=566;x-=13)jaw+=' L'+x+','+bot(x).toFixed(1);jaw+=' Q556,334 560,'+(top(566)+2).toFixed(1)+' Z';
+ let teeth='';
+ for(let x=572;x<=780;x+=9+r()*7){
+  const y=top(x)+.6,size=7+r()*10,tilt=(r()-.5)*58,broken=r()<.18,h=(broken?.35+r()*.25:.75+r()*.45)*size,w=size*(.22+r()*.12);
+  const R=Math.PI/180,tx=x+Math.sin(tilt*R)*h,ty=y-Math.cos(tilt*R)*h,mx=x+Math.sin(tilt*R)*h*.55+(r()-.5)*2.4,my=y-Math.cos(tilt*R)*h*.55;
+  const col=['#ddd4b8','#d2c6a2','#c9b88e','#e2dcc8'][Math.floor(r()*4)];
+  teeth+='<path d="M'+(x-w).toFixed(1)+','+y.toFixed(1)+' Q'+(mx-w*.7).toFixed(1)+','+my.toFixed(1)+' '+tx.toFixed(1)+','+ty.toFixed(1)+(broken?' L'+(tx+w*.8).toFixed(1)+','+(ty+1.5).toFixed(1):'')+' Q'+(mx+w*.6).toFixed(1)+','+(my+1).toFixed(1)+' '+(x+w).toFixed(1)+','+y.toFixed(1)+' Z" fill="'+col+'" stroke="#1a1712" stroke-width=".8"/>'+
+   '<path d="M'+(x-w*.2).toFixed(1)+','+(y-1).toFixed(1)+' Q'+(mx-w*.2).toFixed(1)+','+my.toFixed(1)+' '+((tx+mx)/2).toFixed(1)+','+((ty+my)/2).toFixed(1)+'" fill="none" stroke="#fffdf2" stroke-opacity=".4" stroke-width=".7"/>'+
+   '<path d="M'+(x-w).toFixed(1)+','+(y-1.2).toFixed(1)+' L'+(x+w).toFixed(1)+','+(y-1.2).toFixed(1)+'" stroke="#6a5a3a" stroke-opacity=".55" stroke-width="1.6"/>';   // 잇몸 쪽 누런 얼룩
+ }
+ return '<g class="w3-jaw">'+
+  '<path d="M556,318 C610,330 690,333 800,326 L800,334 C690,341 610,338 556,326 Z" fill="#05080a" opacity=".92"/>'+   // 벌어진 입 안의 어둠
+  '<path d="'+jaw+'" fill="#56605c"/>'+
+  '<path d="'+jaw+'" fill="url(#w3JawShade)"/>'+
+  teeth+
+  '<path d="M556,318 C610,329 690,332 800,325" fill="none" stroke="#141a1c" stroke-opacity=".8" stroke-width="2.2"/></g>';
+}
+
 /* ---------- 검은 쪽배 (호수 이펙트와 같은 실루엣) ---------- */
 const BOAT=
  '<circle cx="51" cy="-18.5" r="30" class="w3-lampglow" fill="url(#w3Lamp)"/>'+
@@ -74,6 +151,7 @@ function harpoonHtml(){
   '<filter id="w3Run" x="-50%" y="-5%" width="200%" height="110%"><feGaussianBlur stdDeviation="2.6 5"/></filter>'+
   '<filter id="w3Rim" x="-5%" y="-20%" width="110%" height="140%"><feGaussianBlur stdDeviation="1.6"/></filter>'+
   '<filter id="w3Skinfx" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9 .55" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .12  0 0 0 0 .12  0 0 0 -1.6 1.15"/></filter>'+
+  '<linearGradient id="w3JawShade" gradientUnits="userSpaceOnUse" x1="0" y1="324" x2="0" y2="350"><stop stop-color="#c9ccc2" stop-opacity=".55"/><stop offset=".3" stop-color="#7d8783" stop-opacity="0"/><stop offset="1" stop-color="#0e1416" stop-opacity=".9"/></linearGradient>'+
   '<path id="w3WhaleShape" d="'+WHALE+'"/>'+
   '<clipPath id="w3WhaleClip"><use href="#w3WhaleShape"/></clipPath>'+
   '<clipPath id="w3AboveSea"><rect width="'+W+'" height="'+(SEA+2)+'"/></clipPath>'+
@@ -107,11 +185,11 @@ function harpoonHtml(){
     '</g>'+
     '</g>'+   // w3-svgskin 끝(셰이더가 되면 숨김)
     // 턱 주름과 눈
-    (window.WhaleMarks?window.WhaleMarks.pallidTeeth():'')+
-    '<path d="M560,318 C620,332 690,334 752,322" fill="none" stroke="#1d2529" stroke-opacity=".7" stroke-width="3"/>'+
+    pallidJaw()+
     '<g class="w3-eye"><ellipse cx="748" cy="298" rx="11" ry="7.5" fill="#2b3538" opacity=".7"/>'+
      (window.WhaleMarks?window.WhaleMarks.pallidEye(748,298):'<ellipse cx="748" cy="298" rx="6.5" ry="4.6" fill="#040607"/>')+
-     '<path class="w3-lid" d="M736,298 Q748,288 760,298" fill="none" stroke="#c9cfc6" stroke-opacity=".55" stroke-width="1.8"/></g>'+
+     '<ellipse cx="748" cy="298" rx="9.5" ry="6.6" fill="#000"/>'+   // 텅 빈 새까만 눈: 빛을 하나도 받지 않음
+     '<path class="w3-lid" d="M736,298 Q748,288 760,298" fill="none" stroke="#3a4446" stroke-opacity=".8" stroke-width="2.2"/></g>'+
     '<path d="M566,160 q9,-7 19,-1" fill="none" stroke="#283236" stroke-width="3" stroke-linecap="round"/>'+
     // 떠오를 때 이마에서 흘러내리는 물줄기
     '<g class="w3-runoff w3-svgskin" fill="none" stroke="#eef4f2" stroke-linecap="round" filter="url(#w3Run)">'+
@@ -119,6 +197,7 @@ function harpoonHtml(){
     '<g class="w3-wound" opacity="0"><ellipse cx="'+IMPACT[0]+'" cy="'+IMPACT[1]+'" rx="6" ry="4.5" fill="#14070a"/>'+
      [[0,90,2.6],[6,52,1.6],[-5,34,1.3]].map(([o,len,w])=>'<path class="w3-bleed" data-len="'+len+'" d="M'+(IMPACT[0]+o)+','+(IMPACT[1]+3)+' c'+(-1.5)+','+(len*.35).toFixed(0)+' 1.5,'+(len*.7).toFixed(0)+' -0.5,'+len+'" stroke="#2c0b11" stroke-width="'+w+'" stroke-linecap="round" fill="none" stroke-dasharray="'+len+'" stroke-dashoffset="'+len+'"/>').join('')+'</g>'+
    '</g>'+
+   '<g class="w3-mem"></g>'+   // 창백한 막 가닥(셰이더)
    '<path d="'+WHALE_TOP+'" fill="none" stroke="#f4f5ec" stroke-opacity=".55" stroke-width="2.6" filter="url(#w3Rim)"/>'+
    // 미니게임: 아물지 않은 상처(명중 구간)와 움직이는 조준점 — 고래와 함께 움직임
    (window.WhaleMarks?window.WhaleMarks.pallidHarpoons():'')+
@@ -280,7 +359,11 @@ function paint(el,t,hold){
  const br=broll*Math.PI/180,toWorld=p=>[bx+BOAT_S*(p[0]*Math.cos(br)-p[1]*Math.sin(br)),by+BOAT_S*(p[0]*Math.sin(br)+p[1]*Math.cos(br))];
  const lampW=toWorld([51,-18.5]);
  const lg=q('.w3-lampglint');lg.setAttribute('cx',lampW[0].toFixed(1));lg.style.opacity=(0.4*lampK).toFixed(3);
- if(window.CalGL){const ro=parseFloat(run.style.opacity)||0;window.CalGL.pallid(q('.w3-whale'),{run:ro/.42,lamp:[lampW[0],lampW[1],lampK],mat:M});}   // 셰이더 살갗(안 되면 SVG 그대로)
+ const ro=parseFloat(run.style.opacity)||0;
+ if(window.CalGL){window.CalGL.pallid(q('.w3-whale'),{run:ro/.42,lamp:[lampW[0],lampW[1],lampK],mat:M});   // 셰이더 살갗(안 되면 SVG 그대로)
+  window.CalGL.membrane(q('.w3-mem'),MEM,performance.now()/1000);}
+ fx2d(el,t,M,ro/.42,rise,hit,hold);
+ if(window.CalSFX)window.CalSFX.tick(el,'pallid-harpoon',t,{hold,hit,throwAt:thrownAt,loop:LOOP});
  const aimP=own?HL.smoothAim(el,'pl',HL.aimAt(toWorld,apply(M,targetLocal)),t):undefined;   // 상처 쪽으로 발사대를 돌려 겨눔
  const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:!thrown,aim:aimP}),30,-14):toWorld(armEnd);
  const PC=HL?HL.pierce():{deep:0,pass:false,n:0};let hitAng=null;

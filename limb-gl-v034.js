@@ -151,9 +151,9 @@ void main(){
   vec3 gl=uLitC*lk*pow(1.-vH,2.6)*.85;
   // 별을 삼킴: 둘레의 작은 별빛이 날개 쪽으로 길게 끌려 들어가다 가장자리에서 꺼진다
   vec2 sg=vec2(vU*90.,vH*3.+uT*.55);vec2 ci=floor(sg),cf=fract(sg);float hs=h21(ci+7.3);
-  if(hs<.16){vec2 sp=vec2(.2+.6*h21(ci+1.1),.5);vec2 d=(cf-sp)*vec2(1.,.22);
+  if(hs<.22){vec2 sp=vec2(.2+.6*h21(ci+1.1),.5);vec2 d=(cf-sp)*vec2(1.,.22);
    float st=exp(-dot(d,d)*900.)*smoothstep(.02,.35,vH)*(1.-vH)*(.6+.4*sin(uT*3.+hs*40.));
-   gl+=vec3(.82,.88,1.)*st*(1.-uFog*.6)*.9;a=max(a*(1.-st),0.);}
+   gl+=vec3(.82,.88,1.)*st*(1.-uFog*.6)*1.3;a=max(a*(1.-st),0.);}
   o=vec4(gl,a);return;
  }
  float ed=min(vDL,max(vW-vDL,0.));
