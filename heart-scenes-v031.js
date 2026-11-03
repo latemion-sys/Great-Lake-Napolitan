@@ -491,7 +491,7 @@ function shinGL(o){
  const R0=Math.min(innerWidth,innerHeight)*.34;
  let ws='';words.forEach((w,i)=>{const a=-Math.PI/2+(i-(words.length-1)/2)*.62+(R(i)-.5)*.2,x=Math.cos(a)*R0*1.25,y=Math.sin(a)*R0*.85;
   ws+='<span class="hv-word" style="left:calc(50% + '+x.toFixed(0)+'px);top:calc(40% + '+y.toFixed(0)+'px);--tx:'+(-x).toFixed(0)+'px;--ty:'+(-y).toFixed(0)+'px;--d:'+(.35+i*.22).toFixed(2)+'s">'+esc(w)+'</span>';});
- o.innerHTML='<div class="hv-words" aria-hidden="true">'+ws+'</div><div class="hv-title shin"><div class="hv-big">'+[...name].map((ch,i)=>'<span style="--i:'+i+'">'+esc(ch)+'</span>').join('')+'</div><div class="hv-rule"></div><div class="hv-sub">신(心) 발현</div></div>';
+ o.innerHTML='<div class="hv-words" aria-hidden="true">'+ws+'</div><div class="hv-title shin"><div class="hv-big">'+[...'신(心)'].map((ch,i)=>'<span style="--i:'+i+'">'+esc(ch)+'</span>').join('')+'</div><div class="hv-rule"></div><div class="hv-sub">발현</div></div>';
  if(!glLayer(o,'shin',{a:2.6,b:3.0,seed:7}))return false;
  at(2600,()=>shake(o,'hv-thump',380));at(3020,()=>shake(o,'hv-thump',380));at(3000,()=>shake(o,'hv-shake',420));
  let done=false;const finish=()=>{if(done)return;done=true;o.classList.add('out');at(700,()=>{delete state.shinFx031;persist();clearOv();});};
@@ -603,7 +603,7 @@ function mountShin(o){
    '<g class="hv-motes" filter="url(#hvSoftDot)">'+motes+'</g>'+
    '<g class="hv-sparks">'+sparks+'</g>'+
   '</g><g class="hv-frags">'+frag+'</g></svg>'+
-  '<div class="hv-title shin"><div class="hv-big">'+[...name].map((ch,i)=>'<span style="--i:'+i+'">'+esc(ch)+'</span>').join('')+'</div><div class="hv-rule"></div><div class="hv-sub">신(心) 발현</div></div>';
+  '<div class="hv-title shin"><div class="hv-big">'+[...'신(心)'].map((ch,i)=>'<span style="--i:'+i+'">'+esc(ch)+'</span>').join('')+'</div><div class="hv-rule"></div><div class="hv-sub">발현</div></div>';
  const q=s=>o.querySelector(s),qa=s=>[...o.querySelectorAll(s)];
  const fl=qa('.hv-flame'),motesE=qa('.hv-motes circle'),sparkE=qa('.hv-sparks circle'),beats=qa('.hv-beat');
  const figGlow=q('.hv-figglow'),pool=q('.hv-pool'),heat=q('.hv-heatn'),ember=q('.hv-ember');
