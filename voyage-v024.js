@@ -6,7 +6,7 @@
    - 업적 달성 횟수: 같은 생애에서는 한 번, 사망 후 다시 달성하면 +1 (대호수 주파는 건널 때마다 +1) */
 (function(){
 'use strict';
-const MERMAID_P=.10,WHALE_P=.05,RARE_SHARE=.3,CALAMITY_P=.01,CROSS_P=.15,CROSS_LAKES=15,CROSS_SEC=30,HULL_STEP=10,HULL_CAP=50;
+const MERMAID_P=.10,WHALE_P=.05,RARE_SHARE=.3,CALAMITY_P=.01,CROSS_P=0,CROSS_LAKES=15,CROSS_SEC=30,HULL_STEP=10,HULL_CAP=50;
 // 위험도는 호수 입장 시 단 한 번 파도성 재해가 발생하는 확률을 뜻합니다.
 const WAVE_RISK_028=[0,.06,.12,.20,.30],WAVE_WHALE_SHARE_028=.30,WAVE_MERMAID_SHARE_028=.50;
 const waveProbability028=risk=>WAVE_RISK_028[Math.max(1,Math.min(4,Math.round(Number(risk)||1)))];
@@ -75,7 +75,7 @@ enterNextLake0131=function(id){
  if(state.scene!=='route'||!state.offered.includes(id)||state.visited.includes(id))return baseEnter.apply(this,arguments);
  const lake=LAKE_BY_ID157.get(id);
  const risk=Math.max(1,Math.min(4,Math.round(Number(lake?.risk)||1)));
- const wave=Math.random()<waveProbability028(risk);
+ const wave=Math.random()<(window.GREAT_LAKE_CROSSING_039?.waveProbability?.(risk)??waveProbability028(risk));
  const waveTypeRoll=wave?Math.random():1;
  const waveKind=wave?(waveTypeRoll<WAVE_WHALE_SHARE_028?'whale':
    waveTypeRoll<WAVE_WHALE_SHARE_028+WAVE_MERMAID_SHARE_028?'mermaid':'wave'):null;
@@ -190,7 +190,7 @@ buyRumor=function(cost){
 };
 
 /* ---------- [대호수 주파] ---------- */
-function crossing(){return state.crossing024||null;}
+function crossing(){return null;} /* 기존 시간제한형 주파는 사용하지 않습니다. */
 const baseReturnPortCheck=completeLake;
 completeLake=function(success,msg){
  const c=crossing(),wasSea=state.sea;
@@ -298,7 +298,7 @@ renderPlay=function(){
  let page=basePlay.apply(this,arguments);
  if(state.scene==='route'){
   page=page.replace(/위험도 ([1-4])(?=<\/span>)/g,(_,grade)=>
-   '파도 위험 '+grade+'단계 · '+Math.round(waveProbability028(Number(grade))*100)+'%');
+   '파도 위험 '+grade+'단계 · '+Math.round((window.GREAT_LAKE_CROSSING_039?.waveProbability?.(Number(grade))??waveProbability028(Number(grade)))*100)+'%');
   page=page.replace('<h2>이번 출항의 호수</h2>',
    '<h2>이번 출항의 호수</h2><p class="muted">위험도는 호수 진입 시 파도성 재해가 발생할 확률입니다. 파도에 고래와 인어가 동반될 수 있습니다. 호수의 법을 어겼을 때의 판정과는 별개입니다.</p>');
  }
