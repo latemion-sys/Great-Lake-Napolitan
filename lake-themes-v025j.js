@@ -25,21 +25,29 @@
   lamp:'#ffc055',lampCore:'#fff0c0',bob:.35,drift:.3
  };
  // 노(배 기준 좌표에서 손잡이가 원점, +x 방향으로 뻗음): 흰 천 감긴 손잡이 · 자루 · 끝이 갈라진 노깃
- const OAR=(cloth,split,dark)=>'<rect x="-1" y="-1.15" width="44" height="2.3" rx="1" fill="'+(dark?'#3e2c1a':'#8a6440')+'"/><rect x="-1" y="-1.15" width="44" height=".7" fill="#9a7448" opacity=".7"/>'+
-  (cloth?'<rect x="0" y="-1.7" width="8" height="3.4" rx="1.2" fill="#e8e4da"/><path d="M1.5,-1.7 L3,1.7 M4,-1.7 L5.5,1.7 M6.5,-1.7 L7.8,1.7" stroke="#b8b2a4" stroke-width=".35"/>':'<rect x="0" y="-1.4" width="6" height="2.8" rx="1.1" fill="#3a2614"/>')+
-  '<path d="M42,-1.2 L48,-3.6 L60,-3.6 Q63,-2 63,0 Q63,2 60,3.6 L48,3.6 L42,1.2 Z" fill="'+(dark?'#4a3420':'#9a7044')+'"/>'+
-  (split?'<path d="M63,0 L55,-.4 L52.5,0 L55,.4 Z" fill="#141414"/><path d="M48,-3.6 L60,-3.6" stroke="#b08860" stroke-width=".4"/>':'<path d="M48,-3.6 L60,-3.6" stroke="#b08860" stroke-width=".4"/>');
+ // 빠뜨린 노: 이번 항해에서 정해진 {끝}(갈라진 · 깨진 · 둥글게 닳은 · 멀쩡한)과 {천}(검은 · 붉은 · 흰 · 푸른)대로 그린다
+ const CLOTHC={'검은':['#1e1e22','#4a4a52'],'붉은':['#b8323a','#7a1c22'],'흰':['#e8e4da','#b8b2a4'],'푸른':['#2d5fc0','#1c3a7a']};
+ const myOar=()=>{let v=null;try{v=typeof state!=='undefined'&&state.lakeStory&&state.lakeStory.vars;}catch(e){}
+  const end=v&&v['끝']||'갈라진',cl=v&&CLOTHC[v['천']]?v['천']:'흰';return {end,cloth:cl};};
+ const OAR=(o,dark)=>{const cc=o&&o.cloth?CLOTHC[o.cloth]:null,end=o&&o.end;
+  const bl=end==='둥글게 닳은'?'<path d="M42,-1.2 L48,-3.6 L57,-3.6 Q63,-3.2 63,0 Q63,3.2 57,3.6 L48,3.6 L42,1.2 Z" fill="'+(dark?'#4a3420':'#9a7044')+'"/>'
+   :end==='깨진'?'<path d="M42,-1.2 L48,-3.6 L60,-3.6 L61.4,-1.6 L59,-.6 L61.6,.8 L58.4,1.6 L59.4,3.6 L48,3.6 L42,1.2 Z" fill="'+(dark?'#4a3420':'#9a7044')+'"/><path d="M60,-3.6 L61.4,-1.6 L59,-.6 L61.6,.8 L58.4,1.6 L59.4,3.6" fill="none" stroke="#e8d0a8" stroke-width=".35"/>'
+   :'<path d="M42,-1.2 L48,-3.6 L60,-3.6 Q63,-2 63,0 Q63,2 60,3.6 L48,3.6 L42,1.2 Z" fill="'+(dark?'#4a3420':'#9a7044')+'"/>';
+  return '<rect x="-1" y="-1.15" width="44" height="2.3" rx="1" fill="'+(dark?'#3e2c1a':'#8a6440')+'"/><rect x="-1" y="-1.15" width="44" height=".7" fill="#9a7448" opacity=".7"/>'+
+  (cc?'<rect x="0" y="-1.7" width="8" height="3.4" rx="1.2" fill="'+cc[0]+'"/><path d="M1.5,-1.7 L3,1.7 M4,-1.7 L5.5,1.7 M6.5,-1.7 L7.8,1.7" stroke="'+cc[1]+'" stroke-width=".35"/>':'<rect x="0" y="-1.4" width="6" height="2.8" rx="1.1" fill="#3a2614"/>')+
+  bl+(end==='갈라진'?'<path d="M63,0 L55,-.4 L52.5,0 L55,.4 Z" fill="#141414"/>':'')+'<path d="M48,-3.6 L'+(end==='둥글게 닳은'?'57':'60')+',-3.6" stroke="#b08860" stroke-width=".4"/>';};
  const HAND=[31,-22],HOLD=58;   // 쥔 손 · 노 기울기(도)
  const RISE=[[262,30,-64,1.2],[318,46,-72,1.5],[452,38,-58,1.3],[500,22,-70,1.05],[548,50,-62,1.45],[402,58,-76,1.6]];   // [x, 수면 아래 깊이, 각도, 크기]
  LAYERS[41]={
   under(th){
-   let rs='';RISE.forEach((r,i)=>rs+='<g class="rf-rise" data-i="'+i+'"><g class="rf-pos"><g clip-path="url(#rfAbove)"><g class="rf-oar">'+OAR(false,R(i)<.4,true)+'</g></g></g><ellipse class="rf-ring"/></g>');
+   let rs='';RISE.forEach((r,i)=>rs+='<g class="rf-rise" data-i="'+i+'"><g class="rf-pos"><g clip-path="url(#rfAbove)"><g class="rf-oar">'+OAR({end:R(i)<.4?'갈라진':R(i+3)<.5?'둥글게 닳은':'멀쩡한'},true)+'</g></g></g><ellipse class="rf-ring"/></g>');
    return '<defs><clipPath id="rfAbove"><rect x="-120" y="-120" width="240" height="120.5"/></clipPath></defs><g class="rf-rises">'+rs+'</g>';
   },
   surface(th){
+   const o=myOar();
    // 물에 비친 노는 배의 비친 모습보다 위에 그려야 보임(물 아래만)
-   return '<g clip-path="url(#lfxBelow)"><g class="rf-ref" opacity=".85"><g class="rf-ref-oar">'+OAR(true,true)+'</g></g></g><g clip-path="url(#lfxAbove)"><g class="rf-held">'+OAR(true,true)+'</g></g>'+
-    '<g clip-path="url(#lfxBelow)"><g class="rf-sink" opacity=".35">'+OAR(true,true)+'</g></g><ellipse class="rf-slipring"/>';
+   return '<g clip-path="url(#lfxBelow)"><g class="rf-ref" opacity=".85"><g class="rf-ref-oar">'+OAR(o)+'</g></g></g><g clip-path="url(#lfxAbove)"><g class="rf-held">'+OAR(o)+'</g></g>'+
+    '<g clip-path="url(#lfxBelow)"><g class="rf-sink" opacity=".35">'+OAR(o)+'</g></g><ellipse class="rf-slipring"/>';
   },
   paint(el,c){
    const {t,a,surf}=c,ta=arrived(c);
