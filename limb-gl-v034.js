@@ -13,7 +13,7 @@ const ua=navigator.userAgent||'';
 const webkitOnly=(/AppleWebKit/.test(ua)&&!/Chrome\/|Chromium\/|Edg\//.test(ua))||/CriOS|FxiOS|EdgiOS/.test(ua);
 const off=()=>{try{return window.LIMB_GL_OFF||/[?&]limbgl=0/.test(location.search);}catch(e){return false;}};
 const MAXPX=1100;
-let gl=null,cv=null,ok=null,PA=null,PW=null,bufA=null,bufW=null,vaoA=null,vaoW=null,armData=new Float32Array(8192*10);
+let gl=null,cv=null,ok=null,PA=null,PW=null,PV=null,bufA=null,bufW=null,bufQ=null,vaoA=null,vaoW=null,vaoQ=null,armData=new Float32Array(8192*10);
 
 /* ───────── 셰이더 ───────── */
 const NOISE=`
@@ -104,6 +104,33 @@ void main(){
  o=vec4(col*alpha,alpha);
 }`;
 // 날개: 위치 · (u 밑동→끝, v 앞전→뒷전, 앞전에서의 거리, 바깥 띠 0~1)
+const FV=`#version 300 es
+precision highp float;
+in vec2 vP;out vec4 o;
+uniform float uT,uHeat;uniform vec4 uSp[24];uniform int uN;
+${NOISE}
+float sd(vec2 p){float m=1e9;for(int i=0;i<23;i++){if(i>=uN-1)break;vec2 a=uSp[i].xy,b=uSp[i+1].xy;vec2 pa=p-a,ba=b-a;float h=clamp(dot(pa,ba)/dot(ba,ba),0.,1.);
+ float w=mix(uSp[i].z,uSp[i+1].z,h);m=min(m,length(pa-ba*h)-w);}return m;}
+void main(){
+ vec2 p=vP;
+ // 김은 위로 오르므로 아래쪽 점에서 잰 거리도 함께(위로 길게 늘어짐)
+ float d=min(sd(p),min(sd(p+vec2(0.,16.))+6.,sd(p+vec2(0.,34.))+14.));
+ if(d>42.)discard;
+ float out_=max(d,0.);
+ vec2 q=vec2(p.x*.045,p.y*.03+uT*.7);q+=vec2(fbm(q*1.3+uT*.1),0.)*.8;
+ float n=fbm(q),n2=fbm(q*2.3+4.);
+ float dens=smoothstep(.36,.72,n*.7+n2*.4)*exp(-out_/15.)*smoothstep(-2.,3.,d);
+ float k=(.6+.4*uHeat);
+ vec3 c=mix(vec3(.95,.62,.55),vec3(1.,.86,.8),n2)*dens*k*1.5;
+ // 피부 바로 위의 아지랑이 결
+ float hz=exp(-out_/5.)*smoothstep(-1.,2.,d)*(.5+.5*sin(p.y*.5+uT*9.+p.x*.15))*k*.18;
+ c+=vec3(1.,.55,.4)*hz;
+ float a=clamp(max(c.r,max(c.g,c.b)),0.,1.)*.9;
+ o=vec4(c,a);
+}`;
+const VQ=`#version 300 es
+in vec2 aP;uniform vec4 uBB;out vec2 vP;
+void main(){vP=uBB.xy+aP*uBB.zw;gl_Position=vec4(aP.x*2.-1.,1.-aP.y*2.,0.,1.);}`;
 const VW=`#version 300 es
 in vec2 aP;in vec4 aA;in float aW;
 uniform vec4 uBB;
@@ -122,6 +149,11 @@ void main(){
   float aa=1.4/max(30.*uPx,1.);
   float a=mix(1.,.46,smoothstep(0.,aa,vH))*pow(1.-vH,1.7)*(1.-uFog*.55);
   vec3 gl=uLitC*lk*pow(1.-vH,2.6)*.85;
+  // 별을 삼킴: 둘레의 작은 별빛이 날개 쪽으로 길게 끌려 들어가다 가장자리에서 꺼진다
+  vec2 sg=vec2(vU*90.,vH*3.+uT*.55);vec2 ci=floor(sg),cf=fract(sg);float hs=h21(ci+7.3);
+  if(hs<.16){vec2 sp=vec2(.2+.6*h21(ci+1.1),.5);vec2 d=(cf-sp)*vec2(1.,.22);
+   float st=exp(-dot(d,d)*900.)*smoothstep(.02,.35,vH)*(1.-vH)*(.6+.4*sin(uT*3.+hs*40.));
+   gl+=vec3(.82,.88,1.)*st*(1.-uFog*.6)*.9;a=max(a*(1.-st),0.);}
   o=vec4(gl,a);return;
  }
  float ed=min(vDL,max(vW-vDL,0.));
@@ -150,7 +182,7 @@ void main(){
 
 function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn('[limb-gl]',gl.getShaderInfoLog(s));return null;}return s;}
 function prog(vs,fs){const v=sh(gl.VERTEX_SHADER,vs),f=sh(gl.FRAGMENT_SHADER,fs);if(!v||!f)return null;const p=gl.createProgram();gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))return null;
- const u={};['uBB','uT','uSide','uHeat','uPx','uFog','uWet','uLampK','uLampR','uLamp','uLit','uLitK','uLitR','uLitC'].forEach(k=>u[k]=gl.getUniformLocation(p,k));return {p,u};}
+ const u={};['uBB','uT','uSide','uHeat','uPx','uFog','uWet','uLampK','uLampR','uLamp','uLit','uLitK','uLitR','uLitC','uSp','uN'].forEach(k=>u[k]=gl.getUniformLocation(p,k));return {p,u};}
 function init(){
  if(ok!==null)return ok;ok=false;
  if(webkitOnly||off())return false;
@@ -159,6 +191,9 @@ function init(){
   gl=cv.getContext('webgl2',{alpha:true,premultipliedAlpha:true,preserveDrawingBuffer:true,antialias:false,depth:false,stencil:false});
   if(!gl)return false;
   PA=prog(VA,FA);PW=prog(VW,FW);if(!PA||!PW)return false;
+  PV=prog(VQ,FV);   // 팔의 김(없어도 팔은 그림)
+  if(PV){bufQ=gl.createBuffer();vaoQ=gl.createVertexArray();gl.bindVertexArray(vaoQ);gl.bindBuffer(gl.ARRAY_BUFFER,bufQ);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,0,1,0,0,1,0,1,1,0,1,1]),gl.STATIC_DRAW);
+   const l=gl.getAttribLocation(PV.p,'aP');gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,8,0);gl.bindVertexArray(null);}
   bufA=gl.createBuffer();vaoA=gl.createVertexArray();gl.bindVertexArray(vaoA);gl.bindBuffer(gl.ARRAY_BUFFER,bufA);
   const st=10*4;[['aP',2,0],['aA',4,8],['aN',2,24],['aK',2,32]].forEach(([n,c,o])=>{const l=gl.getAttribLocation(PA.p,n);if(l>=0){gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,c,gl.FLOAT,false,st,o);}});
   bufW=gl.createBuffer();vaoW=gl.createVertexArray();gl.bindVertexArray(vaoW);gl.bindBuffer(gl.ARRAY_BUFFER,bufW);
@@ -234,8 +269,13 @@ let T0=performance.now();
 function arm(g,A,o){
  if(!init()||!g||!A||!A.spine){drop(g);return false;}
  try{
-  const bb=armGeom(A,o);if(!(bb[2]>0&&bb[3]>0)||nV<3){return false;}
+  const bb0=armGeom(A,o);if(!(bb0[2]>0&&bb0[3]>0)||nV<3){return false;}
+  const bb=PV?[bb0[0]-24,bb0[1]-60,bb0[2]+48,bb0[3]+66]:bb0;   // 김이 오를 자리까지
   const S=surface(g,bb);
+  let heat0=0;try{heat0=Math.max(0,Math.min(1,(+state.redHeat024||0)/100));}catch(e){}
+  if(PV){const sp=A.spine,n=Math.min(24,sp.length),arr=new Float32Array(96);for(let i=0;i<n;i++){const j=Math.round(i*(sp.length-1)/(n-1));arr[i*4]=sp[j][0];arr[i*4+1]=sp[j][1];arr[i*4+2]=(A.widths&&A.widths[j]?A.widths[j]/2:8);}
+   gl.useProgram(PV.p);gl.bindVertexArray(vaoQ);gl.uniform4f(PV.u.uBB,bb[0],bb[1],bb[2],bb[3]);gl.uniform1f(PV.u.uT,(performance.now()-T0)/1000);gl.uniform1f(PV.u.uHeat,heat0);
+   gl.uniform4fv(PV.u.uSp,arr);gl.uniform1i(PV.u.uN,n);gl.drawArrays(gl.TRIANGLES,0,6);}
   gl.useProgram(PA.p);gl.bindVertexArray(vaoA);gl.bindBuffer(gl.ARRAY_BUFFER,bufA);gl.bufferData(gl.ARRAY_BUFFER,armData.subarray(0,nV*10),gl.DYNAMIC_DRAW);
   gl.uniform4f(PA.u.uBB,bb[0],bb[1],bb[2],bb[3]);gl.uniform1f(PA.u.uT,(performance.now()-T0)/1000);gl.uniform1f(PA.u.uSide,o.side||1);
   let heat=0;try{heat=Math.max(0,Math.min(1,(+state.redHeat024||0)/100));}catch(e){}

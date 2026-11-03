@@ -157,6 +157,7 @@ function paintVent(el,i,t,o){
  // 원뿔 윗부분은 깨지면 사라지고 그루터기만
  g.querySelector('.yv-stump').setAttribute('opacity',br?'1':'0');
  const cn=g.querySelector('.yv-cone');if(cn._br!==br){cn._br=br;cn.style.display=br?'none':'';}
+ if(window.CalGL)window.CalGL.vent(g.querySelector('.yv-cone'),pos,{open:Math.max(open,(o.shiver||0)*.4),rise,broken:br,i});   // 셰이더 열수공(안 되면 SVG 그대로)
  const em=g.querySelector('.yv-ember');if(em)em.setAttribute('opacity',n3(br?.4+.4*Math.sin(t*5+i)*Math.exp(-Math.max(0,since)*.15):0));
  // 물 위: 빛무리 · 물결 · 거품
  const halo=g.querySelector('.yv-halo');halo.setAttribute('cx',n1(v.x));halo.setAttribute('cy',n1(v.y+2));halo.setAttribute('rx',n1(200*s*(.6+.4*open)));halo.setAttribute('ry',n1(26*s));

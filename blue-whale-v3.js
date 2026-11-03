@@ -680,13 +680,14 @@ function paintRift(el,cls,P){
  // 어느 쪽이 먼 벽인가 (평균 깊이)
  const zm=s=>L[s].reduce((m,e)=>m+e.zin,0)/n;
  const farS=zm(0)>=zm(1)?0:1,sides=[[farS,back.querySelector('.rf-far')],[1-farS,front.querySelector('.rf-near')]];
- const T=P.t||0,F=P.flow||0;
- sides.forEach(([s,g])=>{
+ const T=P.t||0,F=P.flow||0,GLD={t:T,flow:F,glow:P.glow==null?1:P.glow};
+ sides.forEach(([s,g],si)=>{
   const E=L[s],e=g._e||(g._e={a:g.querySelector('.rf-a'),b:g.querySelector('.rf-b'),hi:g.querySelector('.rf-hi'),ab:g.querySelector('.rf-abyss'),run:g.querySelector('.rf-run'),mist:g.querySelector('.rf-mist'),crest:g.querySelector('.rf-crest')});
   const IN=E.map(v=>v.in),CR=E.map(v=>v.cr),OUT=E.map(v=>v.out);
   const inner=poly(IN.concat(CR.slice().reverse()))+' Z',outer=poly(CR.concat(OUT.slice().reverse()))+' Z';
   // 카메라를 향한 면만 보임: 안쪽 면이 카메라 쪽이면 안쪽(물이 어둠으로 꺼지는 면), 아니면 바깥 비탈
   const outerBehind=E.reduce((m,v)=>m+(v.zout-v.zin),0)>0;
+  GLD[si?'near':'far']={CR,BASE:outerBehind?IN:OUT,o:E.map(v=>v.o*op),inner:outerBehind};   // 셰이더 물 벽
   e.a.setAttribute('d',outerBehind?inner:outer);e.b.setAttribute('d','M0,0');
   e.a.setAttribute('fill','url(#'+cls+(outerBehind?'-gf)':'-gn)'));
   // 앞면 윗부분의 빛: 마루에서 앞면 바닥 쪽으로 30%
@@ -717,6 +718,8 @@ function paintRift(el,cls,P){
  const gg=back.querySelector('.rf-glow'),gc=back.querySelector('.rf-core');
  gg.setAttribute('d',gl);gc.setAttribute('d',gl);gg.setAttribute('opacity',n3(.7*(P.glow==null?1:P.glow)));gc.setAttribute('opacity',n3(.85*(P.glow==null?1:P.glow)));
  gc.style.strokeDashoffset=n1(T*F);
+ if(window.CalGL){const gk=P.glow==null?1:P.glow;GLD.trail={pts:geo.map(v=>v.fl),k:geo.map(v=>Math.min(1,v.o*1.4)*gk*op),w:geo.map(v=>3+9*v.o/Math.max(.35,v.z))};
+  if(!window.CalGL.rift(back,front,GLD)){back.classList.remove('cglr');front.classList.remove('cglr');}}
  // 마루에서 흩날리는 물방울
  const dr=front._d||(front._d=Array.from(front.querySelectorAll('.rf-drops circle')));
  if(!front._dp){const r=seeded((P.seed||3)+99);front._dp=dr.map(()=>({u:r(),s:r()<.55?farS:1-farS,ph:r(),life:.5+r()*.6,vy:40+r()*80,vx:(r()-.5)*40}));}

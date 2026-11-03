@@ -90,8 +90,9 @@ function harpoonHtml(){
 
   // 창백한 향유고래
   '<g class="w3-whale">'+
-   '<use href="#w3WhaleShape" fill="url(#w3Skin)"/>'+
+   '<g class="w3-svgskin"><use href="#w3WhaleShape" fill="url(#w3Skin)"/></g>'+
    '<g clip-path="url(#w3WhaleClip)">'+
+    '<g class="w3-svgskin">'+
     '<rect x="500" y="130" width="520" height="240" filter="url(#w3Skinfx)" opacity=".55"/>'+
     '<ellipse cx="760" cy="170" rx="210" ry="46" fill="url(#w3Sheen)"/>'+
     '<use href="#w3WhaleShape" fill="url(#w3Face)"/>'+
@@ -104,6 +105,7 @@ function harpoonHtml(){
      '<path d="M650,166 C668,190 684,210 700,230 M668,160 C686,184 700,204 716,222" stroke="#2e383c" stroke-opacity=".5" stroke-width="2.6"/>'+
      '<path d="M838,220 C870,250 892,288 900,330" stroke="#3a4549" stroke-opacity=".45" stroke-width="4"/>'+
     '</g>'+
+    '</g>'+   // w3-svgskin 끝(셰이더가 되면 숨김)
     // 턱 주름과 눈
     (window.WhaleMarks?window.WhaleMarks.pallidTeeth():'')+
     '<path d="M560,318 C620,332 690,334 752,322" fill="none" stroke="#1d2529" stroke-opacity=".7" stroke-width="3"/>'+
@@ -112,7 +114,7 @@ function harpoonHtml(){
      '<path class="w3-lid" d="M736,298 Q748,288 760,298" fill="none" stroke="#c9cfc6" stroke-opacity=".55" stroke-width="1.8"/></g>'+
     '<path d="M566,160 q9,-7 19,-1" fill="none" stroke="#283236" stroke-width="3" stroke-linecap="round"/>'+
     // 떠오를 때 이마에서 흘러내리는 물줄기
-    '<g class="w3-runoff" fill="none" stroke="#eef4f2" stroke-linecap="round" filter="url(#w3Run)">'+
+    '<g class="w3-runoff w3-svgskin" fill="none" stroke="#eef4f2" stroke-linecap="round" filter="url(#w3Run)">'+
      [0,1,2,3,4,5,6,7,8,9,10,11].map(i=>{const r=seeded(40+i),x=552+i*17+r()*8;return '<path d="M'+x.toFixed(0)+','+(158+Math.abs(i-3)*2)+' C'+(x-3).toFixed(0)+',220 '+(x+2).toFixed(0)+',280 '+(x-4).toFixed(0)+','+SEA+'" stroke-width="'+(2.5+r()*4).toFixed(1)+'" stroke-dasharray="'+(40+r()*60).toFixed(0)+' '+(30+r()*50).toFixed(0)+'" stroke-dashoffset="'+(r()*60).toFixed(0)+'"/>';}).join('')+'</g>'+
     '<g class="w3-wound" opacity="0"><ellipse cx="'+IMPACT[0]+'" cy="'+IMPACT[1]+'" rx="6" ry="4.5" fill="#14070a"/>'+
      [[0,90,2.6],[6,52,1.6],[-5,34,1.3]].map(([o,len,w])=>'<path class="w3-bleed" data-len="'+len+'" d="M'+(IMPACT[0]+o)+','+(IMPACT[1]+3)+' c'+(-1.5)+','+(len*.35).toFixed(0)+' 1.5,'+(len*.7).toFixed(0)+' -0.5,'+len+'" stroke="#2c0b11" stroke-width="'+w+'" stroke-linecap="round" fill="none" stroke-dasharray="'+len+'" stroke-dashoffset="'+len+'"/>').join('')+'</g>'+
@@ -233,6 +235,7 @@ function paint(el,t,hold){
  const M=whaleMatrix(dx,dy,deg),mat='matrix('+M.map(v=>v.toFixed(4)).join(' ')+')';
  q('.w3-whale').setAttribute('transform',mat);
  q('.w3-maskwhale').setAttribute('transform',mat);
+ el.__w3mat=M;
  // 물줄기: 떠오를 때 진하고 점점 사라짐
  const run=q('.w3-runoff');
  run.style.opacity=hold?'0':(0.42*(1-clamp((t-1.0)/2.4))).toFixed(3);
@@ -277,6 +280,7 @@ function paint(el,t,hold){
  const br=broll*Math.PI/180,toWorld=p=>[bx+BOAT_S*(p[0]*Math.cos(br)-p[1]*Math.sin(br)),by+BOAT_S*(p[0]*Math.sin(br)+p[1]*Math.cos(br))];
  const lampW=toWorld([51,-18.5]);
  const lg=q('.w3-lampglint');lg.setAttribute('cx',lampW[0].toFixed(1));lg.style.opacity=(0.4*lampK).toFixed(3);
+ if(window.CalGL){const ro=parseFloat(run.style.opacity)||0;window.CalGL.pallid(q('.w3-whale'),{run:ro/.42,lamp:[lampW[0],lampW[1],lampK],mat:M});}   // 셰이더 살갗(안 되면 SVG 그대로)
  const aimP=own?HL.smoothAim(el,'pl',HL.aimAt(toWorld,apply(M,targetLocal)),t):undefined;   // 상처 쪽으로 발사대를 돌려 겨눔
  const hand=own?HL.handFor(HL.launch(el,toWorld,{loaded:!thrown,aim:aimP}),30,-14):toWorld(armEnd);
  const PC=HL?HL.pierce():{deep:0,pass:false,n:0};let hitAng=null;

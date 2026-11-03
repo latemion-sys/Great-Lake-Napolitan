@@ -264,7 +264,8 @@ const S2={title:'푸른 항로 추적',loop:8,seamless:true,
    H:i=>{const x=path[i][0];return [66+8*Math.sin((x+P)/43)+4*Math.sin((x+P*1.3)/17)+7*Math.sin((x+P*.6)/97),10+3*Math.sin((x+P)/31+1)+2*Math.sin((x+P*1.2)/13)];}});
   // 주둥이 앞의 금: 수면이 먼저 갈라져 수평선 쪽으로 뻗어 감
   const cx0=tx+50,flick=.75+.25*Math.sin(tr*13)*Math.sin(tr*7.7+1);
-  let cr='';for(let x=cx0,i=0;x<=W+20;x+=16,i++){const j=((Math.sin(i*12.9898+Math.floor(tr*9)*.7)*43758.5453)%1+1)%1;cr+=(i?' L':'M')+n1(x)+','+n1(SEA+1.2+(j-.5)*1.6*(1-(x-cx0)/600));}
+  let cr='';const crp=[];for(let x=cx0,i=0;x<=W+20;x+=16,i++){const j=((Math.sin(i*12.9898+Math.floor(tr*9)*.7)*43758.5453)%1+1)%1,yy=SEA+1.2+(j-.5)*1.6*(1-(x-cx0)/600);cr+=(i?' L':'M')+n1(x)+','+n1(yy);crp.push([x,yy]);}
+  if(window.CalGL&&crp.length>1){const ck=q('.bw-crack');if(window.CalGL.ribbons(ck,[{pts:crp,w:crp.map((p,i)=>4.5*(1-i/crp.length)+1.2),k:crp.map((p,i)=>1-i/(crp.length-1)),kind:1,ph:.6,fade:.02}],{t:tr}))ck.classList.add('cgl');}
   ['.bw-crack-g','.bw-crack-d','.bw-crack-c'].forEach(c=>q(c).setAttribute('d',cr||'M0,0'));
   const cg=el.querySelector('#bwCrackG');if(cg){cg.setAttribute('x1',n1(cx0));cg.setAttribute('x2',n1(cx0+520));}
   q('.bw-crack').setAttribute('opacity',n3((1-under*.6)*flick));
@@ -429,7 +430,10 @@ function paintChart(el,t,n,out){
   if(blind){const a=TRAIL_ANG[i]*RAD,o=(i%2?-1:1)*(70+30*i)+6*Math.sin(t*1.7+i);l.setAttribute('transform','translate('+n1(-Math.sin(a)*o)+' '+n1(Math.cos(a)*o)+') rotate('+n1(3*Math.sin(t*.9+i*2))+' '+CHART_P[0]+' '+CHART_P[1]+')');}
   else if(l.hasAttribute('transform'))l.removeAttribute('transform');
   l.setAttribute('opacity',n3(have?seg(t,.15+i*.18,.55+i*.18):.1));
-  const c=l._c||(l._c=l.querySelector('.bw-tlc'));c.setAttribute('stroke-dasharray',have?'16 9':'3 16');c.style.strokeDashoffset=n1(-t*30);});
+  const c=l._c||(l._c=l.querySelector('.bw-tlc'));c.setAttribute('stroke-dasharray',have?'16 9':'3 16');c.style.strokeDashoffset=n1(-t*30);
+  // 셰이더 빛 띠(되면 점선 대신): 읽어 낸 궤적은 또렷하게 흐르고, 모자란 궤적은 군데군데 끊긴 채 희미하게
+  if(window.CalGL){const a=TRAIL_ANG[i]*RAD,cc=Math.cos(a),dd=Math.sin(a),pts=[];for(let j=0;j<=24;j++){const s2=-900+1800*j/24;pts.push([CHART_P[0]+cc*s2,CHART_P[1]+dd*s2]);}
+   if(window.CalGL.ribbons(l,[{pts,w:have?7:5,k:have?1:.32,kind:2,ph:i*.37,fade:.25}],{t}))l.classList.add('cgl');}});
  const x=q('.bw-tx');if(x)x.setAttribute('opacity',n>=3?n3(seg(t,1,1.4)*(.6+.4*Math.sin(t*5))):'0');
 }
 /* ⑤ 최후의 교차 — 정면충돌.
