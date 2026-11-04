@@ -39,15 +39,20 @@
         '<div class="landing-action-head025"><div class="landing-sectionlabel025">항해 준비</div><h2>당신의 첫 항해</h2></div>'+
         '<div class="landing-action-body025">'+
          '<div class="landing-action-left025">'+
+          '<div class="inset landing-debt025">'+
+           '<div class="landing-sectionlabel025">기본 목표 · 모든 선장 공통</div>'+
+           '<h3>800만 안의 빚을 갚는다.</h3>'+
+           '<p class="muted">당신은 800만 안의 빚을 지고 대호수에 왔습니다. 그중 수중에 남은 70만 안으로 첫 항해를 준비합니다. 빚은 항구에서 자유롭게 상환할 수 있습니다.</p>'+
+          '</div>'+
           '<div class="inset">'+
            '<label for="captainNameInput">선장 이름 · 최대 16글자</label>'+
            '<input id="captainNameInput" maxlength="16" autocomplete="off" placeholder="이름을 입력하십시오" value="'+safeName+'">'+
            '<p class="muted" style="font-size:12px;margin:9px 0 0">이름을 비워 두면 ‘선장’으로 표시됩니다.</p>'+
           '</div>'+
           '<div class="inset landing-purpose025">'+
-           '<label for="captainPurposeInput025">선장의 목적 · 선택 사항 (최대 120글자)</label>'+
+           '<label for="captainPurposeInput025">개인 목표 · 직접 작성 (최대 120글자)</label>'+
            '<textarea id="captainPurposeInput025" rows="3" maxlength="120" autocomplete="off" placeholder="'+esc(DEFAULT_PURPOSE025)+'">'+safePurpose+'</textarea>'+
-           '<p class="muted" style="font-size:12px;margin:9px 0 0">비워 두면 기본 목적 ‘'+esc(DEFAULT_PURPOSE025)+'’가 적용됩니다.</p>'+
+           '<p class="muted" style="font-size:12px;margin:9px 0 0">선장이 원하는 다른 목적을 자유롭게 적을 수 있습니다. 비워 두면 ‘'+esc(DEFAULT_PURPOSE025)+'’가 적용됩니다.</p>'+
           '</div>'+
           '<div class="inset landing-hint025">'+
            '<b>항해 전 유의사항</b><p style="margin:7px 0 0">호수의 법은 구전으로 전해집니다. 사망하면 항해 진행은 초기화되지만, 달성한 업적은 유지됩니다.</p>'+
@@ -88,7 +93,7 @@
   const page=oldPlay();
   if(state.scene==='port'){
    const text=esc(String(state.captainPurpose||DEFAULT_PURPOSE025));
-   return '<div class="inset captain-purpose-record025"><div class="small">선장의 목적</div><p>'+text+'</p></div>'+
+   return '<div class="inset captain-purpose-record025"><div class="small">개인 목표</div><p>'+text+'</p></div>'+
     page.replace(/<div class="inset"><h3>선장 이름<\/h3>[\s\S]*?<\/div>/,'');
   }
   return page;
