@@ -153,7 +153,7 @@
    button('확인','crewLastWordsDismiss100')+'</div>';
   for(const e of latest){
    const who=esc(e.name),kind=e.kind==='mermaid'?'인어로 변함':'사망';
-   h+='<div class="crew-lastwords-entry-v100">'+
+   h+='<div class="crew-lastwords-entry-v100 crew-lastwords-'+(e.kind==='mermaid'?'mermaid':'death')+'-v100">'+
     '<div class="crew-lastwords-name-v100">'+who+' · '+kind+(e.special?' · 특수 선원':'')+'</div>'+
     '<p>“'+esc(e.text)+'”</p></div>';
   }
