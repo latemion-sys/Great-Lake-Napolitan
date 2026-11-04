@@ -90,12 +90,15 @@
   save();render();
  }
  function retiredPanel(){
-  const info=state.retiredCaptain100||{},name=esc(info.captain||'선장');
+  const info=state.retiredCaptain100||{},captain=String(info.captain||'선장');
+  const last=captain.charCodeAt(captain.length-1);
+  const withBatchim=last>=0xAC00&&last<=0xD7A3&&(last-0xAC00)%28!==0;
+  const name=esc(captain+(withBatchim?'은':'는'));
   const voyages=Math.max(0,Number(info.voyages)||0),lakes=Math.max(0,Number(info.lakes)||0);
   return '<section class="death-credit-164 debt-retire-credit-v100" aria-label="뭍에 내린 선장의 이야기">'+
    '<p class="death-credit-kicker-164">대호수 · 뭍에 내린 선장</p>'+
    '<div class="death-credit-text-164">'+
-    '<p>'+name+', 800만 안의 빚을 모두 갚았다.</p>'+
+    '<p>'+name+' 800만 안의 빚을 모두 갚았다.</p>'+
     '<p>이제 대호수에 남아 있을 이유는 없었다. 배를 정박시키고, 선원들과 마지막 인사를 나눴다.</p>'+
     '<p>그렇게 선장은 살아서 뭍에 내렸다.</p>'+
    '</div>'+
