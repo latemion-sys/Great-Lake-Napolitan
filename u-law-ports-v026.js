@@ -56,34 +56,36 @@
   if(!truth)return falseLore[id][0];
   return choose(original.rumors?.length?original.rumors:(original.hints||[]));
  }
- // 선택한 정보의 정답 확률: 무료 28%, 선원 술집 60%, 작살잡이 고급 술집 90%.
+ // v.1.1.1 · 같은 생애에 들은 호수의 정보는 다시 알려주지 않습니다.
  const choices={
   0:{kind:'흘려들은 소문',count:3,chance:.28},
   10:{kind:'뱃노래 노랫말',count:2,chance:.60},
-  20:{kind:'구전으로 전해지는 법',count:1,chance:.90}
+  30:{kind:'구전으로 전해지는 법',count:2,chance:1}
  };
+ function candidatesFor(cost){
+  const known=new Set(Array.isArray(state.loreSeen111)?state.loreSeen111:[]);
+  const assigned=[...new Set(state.offered||[])].filter(id=>byId.has(id)&&!known.has(id));
+  if(cost!==0)return assigned;
+  return assigned.concat(sources.map(d=>d.id).filter(id=>!known.has(id)&&!assigned.includes(id)));
+ }
  buyRumor=function(cost){
   if(state.scene!=='prep'||state.rumorBought||!Object.prototype.hasOwnProperty.call(choices,cost)||state.gold<cost)return;
-  const spec=choices[cost];
-  const candidates=shuffle([...new Set((state.offered||[]).filter(id=>byId.has(id)))]);
-  if(candidates.length<spec.count)return;
-  const ids=candidates.slice(0,spec.count);
-  // 무료 3개는 소문이 대부분 틀리고, 중간 가격의 노랫말 2개는 참·거짓이 섞이도록.
-  // 고급 술집의 법 1개는 높은 확률로 참이지만 반드시 진짜라는 보장은 없습니다.
-  const verified=ids.map(()=>Math.random()<spec.chance);
+  const spec=choices[cost],pool=candidatesFor(cost);
+  if(pool.length<spec.count)return;
+  const included=new Set(state.offered||[]);
+  const ids=shuffle(pool.filter(id=>included.has(id)))
+   .concat(shuffle(pool.filter(id=>!included.has(id)))).slice(0,spec.count);
+  const truth=ids.map(()=>cost===30||Math.random()<spec.chance);
   if(cost===0){
-   if(verified.every(Boolean))verified[rng(verified.length)]=false;
-   if(!verified.some(Boolean))verified[rng(verified.length)]=true;
-  }else if(cost===10&&verified.every(Boolean)){
-   verified[rng(verified.length)]=false;
-  }
+   if(truth.every(Boolean))truth[rng(truth.length)]=false;
+   if(!truth.some(Boolean))truth[rng(truth.length)]=true;
+  }else if(cost===10&&truth.every(Boolean))truth[rng(truth.length)]=false;
   const stories=ids.map((id,i)=>{
-   const sourceType=cost===0?'rumor':cost===10?'lyric':'law';
-   const content=sourceText(id,sourceType,verified[i]);
-   return {lake:id,kind:spec.kind,text:content};
+   const type=cost===0?'rumor':cost===10?'lyric':'law';
+   return {lake:id,kind:spec.kind,text:cost===30?byId.get(id).law:sourceText(id,type,truth[i]),
+    ...(cost===30?{confirmed:true}:{})};
   });
-  // 목격담은 아주 드물게만 들리며, 추가 전언을 만들지 않아 고급 술집은 항상 1개입니다.
-  if(cost===20&&Math.random()<.025){
+  if(cost===30&&Math.random()<.025){
    const whales=WHALES.map((whale,i)=>({whale,i})).filter(x=>!huntedWhaleIndices143().includes(x.i));
    if(whales.length){
     const w=choose(whales);
@@ -92,11 +94,18 @@
    }
   }
   state.gold-=cost;
+  if(!Array.isArray(state.loreSeen111))state.loreSeen111=[];
+  if(!state.loreArchive111||typeof state.loreArchive111!=='object')state.loreArchive111={};
+  for(const entry of stories){
+   if(!state.loreSeen111.includes(entry.lake))state.loreSeen111.push(entry.lake);
+   state.loreArchive111[entry.lake]={id:entry.lake,kind:entry.kind,
+    text:cost===30?byId.get(entry.lake).law:entry.text,confirmed:cost===30};
+  }
   state.rumors=stories;
   state.rumorBought=true;
   state.count.rumors++;
-  log((state.dockedPortName026||'정박 항구')+'에서 '+spec.kind+' '+stories.length+'개를 들었습니다. 진위는 밝혀지지 않았습니다.');
-  // 기존 구매 관련 업적 이벤트는 동일하게 발생합니다.
+  log((state.dockedPortName026||'정박 항구')+'에서 '+spec.kind+' '+stories.length+'개를 들었습니다.'+
+   (cost===30?' 모두 진실된 법입니다.':' 진위는 알려지지 않았습니다.'));
   dispatchAchievement142('rumor',{price:cost,grade:state.grade});
   sync();
  };
