@@ -95,11 +95,12 @@
   return '<section class="death-credit-164 debt-retire-credit-v100" aria-label="뭍에 내린 선장의 이야기">'+
    '<p class="death-credit-kicker-164">대호수 · 뭍에 내린 선장</p>'+
    '<div class="death-credit-text-164">'+
-    '<p>'+name+'은(는) 800만 안의 빚을 모두 갚았다.</p>'+
+    '<p>'+name+', 800만 안의 빚을 모두 갚았다.</p>'+
     '<p>이제 대호수에 남아 있을 이유는 없었다. 배를 정박시키고, 선원들과 마지막 인사를 나눴다.</p>'+
     '<p>그렇게 선장은 살아서 뭍에 내렸다.</p>'+
    '</div>'+
    '<p class="debt-retire-stats-v100">출항 '+voyages+'회 · 호수 통과 '+lakes+'회</p>'+
+   '<p class="debt-retire-earned-v100">전설 업적 달성 · 뭍에 내린 자</p>'+
    '<p class="debt-retire-notice-v100">이 선장의 항해는 끝났습니다. 달성한 업적과 보관한 일대기는 남습니다.</p>'+
    '<div class="death-credit-actions-164">'+
     button('새 선장으로 시작','restart','','primary')+
