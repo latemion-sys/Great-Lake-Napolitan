@@ -1,0 +1,42 @@
+/* 한 생애에 오재앙 다섯을 모두 쓰러뜨린 선장의 전용 최종 엔딩 */
+body.calamity-ending-open-v100{overflow:hidden}
+.calamity-ending-v100[hidden]{display:none!important}
+.calamity-ending-v100{position:fixed;inset:0;z-index:9600;display:flex;justify-content:center;align-items:center;overflow-y:auto;background:#060a12;color:#eef1f2;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;isolation:isolate}
+.calamity-sea-v100{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 67% 23% at 50% 104%,#315a686b 0%,transparent 85%),radial-gradient(ellipse 50% 35% at 15% 10%,#243c5550 0%,transparent 95%),linear-gradient(173deg,#03070f 0%,#07101b 52%,#101c2a 100%)}
+.calamity-sea-v100::before{content:"";position:absolute;bottom:5%;left:-20%;width:140%;height:15%;border-top:1px solid #83b3cc37;box-shadow:0 -15px 48px #436d8020;border-radius:50%;transform:rotate(-3deg)}
+.calamity-sea-v100::after{content:"";position:absolute;top:8%;left:50%;width:min(270px,50vw);height:75%;transform:translateX(-50%);background:linear-gradient(90deg,transparent,#415b7550 50%,transparent);filter:blur(35px);opacity:.38}
+.calamity-end-inner-v100{position:relative;z-index:1;max-width:840px;width:100%;margin:auto;padding:clamp(24px,5vw,70px) clamp(22px,5vw,70px);text-align:center;word-break:keep-all}
+.calamity-end-kicker-v100{color:#9db5be;font-size:11px;letter-spacing:.24em;margin:0 0 21px}
+.calamity-five-lights-v100{display:flex;gap:17px;justify-content:center;align-items:center;margin:0 0 38px}
+.calamity-five-lights-v100 i{width:7px;height:7px;display:block;border:1px solid #a5bfd0;border-radius:50%;background:#83b7c6;box-shadow:0 0 11px #73bccf80}
+.calamity-end-story-v100{font-size:clamp(15px,2vw,20px);line-height:1.85;color:#dbe4e8;max-width:700px;margin:auto}
+.calamity-end-story-v100 p{margin:0 0 18px}
+.calamity-end-story-v100 p:nth-child(4){margin-top:28px}
+.calamity-end-story-v100 p:nth-child(5){font-weight:650;color:#f1e5ce}
+.calamity-end-story-v100 .calamity-end-quote-v100{font-weight:700;color:#b9d7e8;font-size:1.12em;margin:27px 0}
+.calamity-end-title-v100{display:flex;align-items:center;flex-direction:column;gap:12px;margin-top:35px}
+.calamity-end-title-v100 span{font-size:12px;letter-spacing:.18em;color:#c2d5df}
+.calamity-end-title-v100 h2{color:#d5e8e7;font-size:clamp(23px,4.5vw,39px);font-weight:650;letter-spacing:.05em;margin:0;text-shadow:0 0 28px #4f889c6a}
+.calamity-end-captain-v100{font-size:12px;color:#a8b8c1;margin:3px 0 17px}
+.calamity-end-title-v100 button{min-width:190px;background:#244968;border-color:#64879c}
+.calamity-ending-play-v100 .calamity-end-kicker-v100{animation:calamityLine100 1.2s .2s both}
+.calamity-ending-play-v100 .calamity-five-lights-v100{animation:calamityLine100 1.3s .5s both}
+.calamity-ending-play-v100 .calamity-five-lights-v100 i{animation:calamityLight100 1.3s both}
+.calamity-ending-play-v100 .calamity-five-lights-v100 i:nth-child(1){animation-delay:.65s}
+.calamity-ending-play-v100 .calamity-five-lights-v100 i:nth-child(2){animation-delay:.95s}
+.calamity-ending-play-v100 .calamity-five-lights-v100 i:nth-child(3){animation-delay:1.25s}
+.calamity-ending-play-v100 .calamity-five-lights-v100 i:nth-child(4){animation-delay:1.55s}
+.calamity-ending-play-v100 .calamity-five-lights-v100 i:nth-child(5){animation-delay:1.85s}
+.calamity-ending-play-v100 .calamity-end-story-v100 p:nth-child(1){animation:calamityLine100 1.4s 2.1s both}
+.calamity-ending-play-v100 .calamity-end-story-v100 p:nth-child(2){animation:calamityLine100 1.4s 3.5s both}
+.calamity-ending-play-v100 .calamity-end-story-v100 p:nth-child(3){animation:calamityLine100 1.4s 5s both}
+.calamity-ending-play-v100 .calamity-end-story-v100 p:nth-child(4){animation:calamityLine100 1.4s 6.5s both}
+.calamity-ending-play-v100 .calamity-end-story-v100 p:nth-child(5){animation:calamityLine100 1.4s 7.9s both}
+.calamity-ending-play-v100 .calamity-end-story-v100 p:nth-child(6){animation:calamityLine100 1.4s 9.5s both}
+.calamity-ending-play-v100 .calamity-end-story-v100 p:nth-child(7){animation:calamityLine100 1.6s 11s both}
+.calamity-ending-play-v100 .calamity-end-story-v100 p:nth-child(8){animation:calamityLine100 1.5s 12.8s both}
+.calamity-ending-play-v100 .calamity-end-title-v100{animation:calamityLine100 1.9s 15s both}
+@keyframes calamityLine100{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
+@keyframes calamityLight100{0%{opacity:1;box-shadow:0 0 15px #78ceef}100%{opacity:.18;background:#1e2c3a;box-shadow:none}}
+@media(max-width:600px){.calamity-end-inner-v100{padding-top:48px;padding-bottom:70px}.calamity-end-story-v100{line-height:1.78;font-size:15px}.calamity-end-story-v100 p{margin-bottom:14px}.calamity-end-story-v100 p:nth-child(4){margin-top:22px}}
+@media(prefers-reduced-motion:reduce){.calamity-ending-play-v100 *{animation:none!important;transition:none!important}}
