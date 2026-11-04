@@ -112,7 +112,7 @@
  // 기존 20/50만 안 업적은 식별자·달성 이력을 그대로 두고, 변경된 정박료에 맞춰 조건만 갱신.
  for(const [id,price,desc] of [
   ['fresh_rumor_paid20',10,'청새치 항구선 술집에 정박료 10만 안을 지불하고 노랫말을 듣는다.'],
-  ['fresh_rumor_paid50',20,'향유고래 항구선 고급 술집에 정박료 20만 안을 지불하고 법을 듣는다.']
+  ['fresh_rumor_paid50',30,'향유고래 항구선 고급 술집에 정박료 30만 안을 지불하고 진짜 법 2개를 듣는다.']
  ]){
   const ach=ACH.find(x=>x.id===id);
   if(ach){ach.desc=desc;if(ach.challenge&&ach.challenge.event==='rumor')ach.challenge.price=price;}
@@ -121,19 +121,19 @@
   const name=esc(portName());
   return '<div class="small">U사 · '+name+' · 출항 전</div>'+
    '<h2>U사 대호수의 법</h2>'+
-   '<p><b>2번째 선택지</b>는 값이 싸지만 은유뿐이라 애매하고, <b>3번째 선택지</b>는 비싸지만 호수의 규칙을 조금 더 자세하게 들려줍니다. 정박한 항구에서 뱃사람들의 전언을 어디에서 들을지 고를 수 있습니다. 비싸게 들을수록 진실된 법을 들을 가능성이 증가합니다. 법의 참과 거짓은 표시되지 않으니 직접 알아내야 합니다. 다섯 재앙 고래의 목격담은 고급 술집에서 아주 드물게 들을 수 있습니다.</p>'+
+   '<p>청새치 항구선에서는 노랫말 2개를, 향유고래 항구선 고급 술집에서는 <b>선장이 배정한 항로 중 서로 다른 호수 두 곳의 진짜 법</b>을 전해줍니다. 이미 정보를 들었던 호수는 다시 등장하지 않습니다. 고급 술집에서는 재앙 고래의 목격담도 매우 드물게 들립니다.</p>'+
    '<p class="muted">법과 노랫말은 이번 출항 중에만 제공됩니다. 들은 이야기를 탐험 일지에 남기지 않습니다.</p>';
  }
  function selectCards(){
   const items=[
    {cost:0,title:'흘려들은 소문',desc:'누군가 흘리듯 이야기한 소문들을 듣습니다. 거짓일 가능성이 높습니다.',count:3,label:'무료로 소문 듣기 · 3개'},
    {cost:10,title:'청새치 항구선 술집',desc:'정박료를 내고 선원에게 술을 사주며 배를 타면서 들었던 노랫말을 듣습니다. 거짓일 가능성은 중간입니다.',count:2,label:'정박료 10만 안 · 노랫말 2개'},
-   {cost:20,title:'향유고래 항구선 고급 술집',desc:'정박료를 내고 작살잡이 출신에게 술을 사주며 선장에게 직접 배운 법을 듣습니다. 거짓일 가능성이 낮습니다.',count:1,label:'정박료 20만 안 · 구전 법 1개'}
+   {cost:30,title:'향유고래 항구선 고급 술집',desc:'이번 항로에 배정된 호수 중 아직 정보를 듣지 않은 두 곳의 진짜 법을 정확하게 알려줍니다.',count:2,label:'정박료 30만 안 · 진짜 법 2개'}
   ];
   return '<div class="stack">'+items.map(x=>'<div class="inset">'+
    '<div class="between"><b>'+x.title+'</b>'+tag(x.count+'개')+'</div>'+
    '<p class="muted">'+x.desc+'</p>'+
-   button(x.label,'rumor',String(x.cost),x.cost===20?'primary':'',state.gold<x.cost)+
+   button(x.label,'rumor',String(x.cost),x.cost===30?'primary':'',state.gold<x.cost||candidatesFor(x.cost).length<x.count)+
    '</div>').join('')+'</div>';
  }
  function readCards(){
@@ -141,7 +141,7 @@
    const lake=code(r.lake);
    const label=lake?' · '+esc(lake):'';
    return '<div class="rumor"><div class="small">'+esc(r.kind||'전언')+label+'</div>'+
-    '<p style="white-space:pre-line">“'+esc(sailorStoryNumbered(r.lake,r.text))+'”</p></div>';
+    '<p style="white-space:pre-line">“'+esc(sailorStoryNumbered(r.lake,r.text))+'”</p>'+(r.confirmed?'<div class="small">확인된 진짜 법</div>':'')+'</div>';
   }).join('')+'</div>';
  }
  function lawPage(){
@@ -173,14 +173,14 @@
   const start='<p>출항 전 구전으로 세 가지 이야기를 들을 수 있으며, 최소 하나는 사실입니다.';
   const at=html.indexOf(start),end=html.indexOf('</p>',at);
   if(at<0||end<0)return html;
-  const replacement='<p>U사 대호수의 법은 정박 항구에서 세 종류의 전언으로 들을 수 있습니다. 흘려들은 소문은 무료로 3개, 청새치 항구선의 노랫말은 10만 안에 2개, 향유고래 항구선의 구전 법은 20만 안에 1개를 들을 수 있습니다. 값이 비쌀수록 법이 사실일 가능성이 높으며, 참과 거짓을 구별해 주지는 않습니다. 고급 술집에서는 재앙 고래의 목격담을 아주 드물게 들을 수 있습니다. 구체적인 호수 규칙은 도움말에 공개하지 않습니다.</p>';
+  const replacement='<p>흘려들은 소문은 무료로 3개, 청새치 항구선의 노랫말은 10만 안에 2개를 듣습니다. 향유고래 항구선 고급 술집에서는 정박료 30만 안에 이번 항로에서 처음 듣는 서로 다른 호수의 진짜 법 2개를 전해줍니다. 한 번 들은 호수는 다시 정보 대상으로 선택되지 않습니다. 재앙 고래 목격담은 고급 술집에서 아주 드물게 등장합니다.</p>';
   return html.slice(0,at)+replacement+html.slice(end+4);
  };
  if(['port','prep'].includes(state.scene)&&!state.dockedPortName026){portName();save();}
  render();
  window.GREAT_LAKE_PORT_LAWS_026={
-  counts:{free:3,marlin:2,spermWhale:1},
-  prices:{free:0,marlin:10,spermWhale:20},
+  counts:{free:3,marlin:2,spermWhale:2},
+  prices:{free:0,marlin:10,spermWhale:30},
   portNames:portAnimals.length
  };
 })();
