@@ -1,0 +1,20 @@
+/* v.1.1.1 항구 항로 선택 · 기존 색상·버튼 스타일을 유지합니다. */
+.route-plan111{border-color:#556779}
+.route-plan111 h2{margin-top:5px}
+.route-fixed-law111{background:#172f36;border:1px solid #64898a55;padding:10px 12px;border-radius:10px;margin:7px 0}
+.route-fixed-law111 b{color:#b4d4d3}
+.route-fixed-law111 p{white-space:pre-line;margin:8px 0 1px;font-size:14px;line-height:1.65}
+.route-plan-actions111{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0}
+.route-list111{margin:11px 0;border:1px solid #536579;border-radius:10px;padding:11px}
+.route-list111>summary,.route-intel111>summary{cursor:pointer;font-weight:600;min-height:24px}
+.route-choice-grid111{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:7px;margin-top:12px;max-height:360px;overflow:auto;padding:3px}
+.route-choice111{font-size:12px;padding:10px 5px!important;border:1px solid #5a6775;border-radius:8px}
+.route-choice111.chosen{background:#28576a;border-color:#8babb2;color:#eef6f6}
+.route-choice111.locked{color:#e3d5a9;opacity:.9}
+.route-prep111 p{line-height:1.7}
+.route-intel111{margin:12px 0}
+.route-intel-card111{border-top:1px solid #4d606d;padding:10px 2px}
+.route-intel-card111 b{margin-right:10px}
+.route-intel-card111 span{font-size:12px;color:#9db8be}
+.route-intel-card111 p{white-space:pre-line;margin:6px 0 0;line-height:1.65;font-size:14px}
+@media(max-width:600px){.route-choice-grid111{grid-template-columns:repeat(3,minmax(0,1fr))}.route-plan-actions111 button{flex:1 1 130px}.route-choice111{font-size:11px}}
