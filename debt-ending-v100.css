@@ -34,3 +34,17 @@ body.debt-ending-open-v100{overflow:hidden}
 @keyframes debtAppear100{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:600px){.debt-pay-options-v100{grid-template-columns:1fr 1fr}.debt-ending-content-v100{padding-top:48px;padding-bottom:48px}.debt-ending-lines-v100{line-height:1.95}.debt-ending-lines-v100 p:nth-child(3){margin-bottom:34px}}
 @media(prefers-reduced-motion:reduce){.debt-ending-playing-v100 *{animation:none!important;transition:none!important}}
+
+/* 빚 상환 후의 두 갈래 선택. 작은 화면에서도 버튼을 나란히 표시합니다. */
+.debt-ending-choices-v100{display:flex;justify-content:center;align-items:stretch;gap:12px;flex-wrap:wrap}
+.debt-ending-choices-v100 button{min-width:175px;flex:0 1 205px}
+.debt-ending-choices-v100 .debt-retire-button-v100{background:#2a3138;border-color:#78818b;color:#eee8dc}
+.debt-ending-choices-v100 .debt-retire-button-v100:hover:not(:disabled){background:#3c4650}
+.debt-retire-credit-v100{border-color:#a18d6c;background:radial-gradient(ellipse at 50% 100%,#a08b4535 0,transparent 60%),linear-gradient(160deg,#1d262a,#11191c);box-shadow:inset 0 0 65px #0004}
+.debt-retire-credit-v100::before{border-color:#c5b18a70;box-shadow:0 -8px 30px #a6984a25}
+.debt-retire-credit-v100 .death-credit-kicker-164{color:#e2cfad}
+.debt-retire-credit-v100 .death-credit-text-164 p:first-child{color:#f5e5ca}
+.debt-retire-stats-v100{text-align:center;color:#a5b7bc;font-size:13px;margin:18px auto}
+.debt-retire-notice-v100{text-align:center;color:#d9d3c3;font-size:14px;margin:15px auto 0}
+.debt-retire-earned-v100{font-size:13px;text-align:center;color:#e7c877;letter-spacing:.04em;margin:24px auto 0}
+@media(max-width:420px){.debt-ending-choices-v100{gap:7px}.debt-ending-choices-v100 button{flex:1 1 0;min-width:0;padding:11px 8px;font-size:12px}}
