@@ -1,0 +1,10 @@
+/* 선원 사망·인어화 마지막 말. 항해 선택지 시간 제한을 멈추지 않는 인라인 알림 */
+.crew-lastwords-v100{border:1px solid #72635c;background:linear-gradient(140deg,#29262a,#1e252d);box-shadow:inset 3px 0 0 #bb967c;margin-bottom:16px}
+.crew-lastwords-v100 h3{margin:3px 0 4px;color:#e6ddd5}
+.crew-lastwords-v100 .between{align-items:flex-start;margin-bottom:7px}
+.crew-lastwords-v100 .between button{font-size:12px;padding:6px 13px;background:#303743}
+.crew-lastwords-entry-v100{padding:10px 0;border-bottom:1px solid #665a5557}
+.crew-lastwords-entry-v100:last-child{border-bottom:0}
+.crew-lastwords-name-v100{color:#b9b5b7;font-size:12px}
+.crew-lastwords-entry-v100 p{color:#f2e8dd;margin:5px 0 3px;line-height:1.65;font-size:clamp(14px,1.9vw,16px);word-break:keep-all}
+@media(max-width:600px){.crew-lastwords-v100{padding:11px}.crew-lastwords-entry-v100{padding:8px 0}}
