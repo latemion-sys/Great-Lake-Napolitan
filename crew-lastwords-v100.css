@@ -8,3 +8,9 @@
 .crew-lastwords-name-v100{color:#b9b5b7;font-size:12px}
 .crew-lastwords-entry-v100 p{color:#f2e8dd;margin:5px 0 3px;line-height:1.65;font-size:clamp(14px,1.9vw,16px);word-break:keep-all}
 @media(max-width:600px){.crew-lastwords-v100{padding:11px}.crew-lastwords-entry-v100{padding:8px 0}}
+
+/* 죽음은 빛이 사그라드는 황갈색, 인어화는 고래에 잠식되는 차가운 청색으로 구분합니다. */
+.crew-lastwords-entry-v100.crew-lastwords-death-v100{border-left:3px solid #ad7768;padding-left:11px}
+.crew-lastwords-entry-v100.crew-lastwords-mermaid-v100{border-left:3px solid #6894a9;padding-left:11px;background:linear-gradient(90deg,#5082a310,transparent 72%)}
+.crew-lastwords-death-v100 .crew-lastwords-name-v100{color:#d3ac98}
+.crew-lastwords-mermaid-v100 .crew-lastwords-name-v100{color:#9fbecf}
