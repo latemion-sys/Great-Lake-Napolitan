@@ -11,7 +11,7 @@ const FISH_SAVE_KEY='great-lake-napolitan-species-v034';
 let ownedNames=[];
 try{const data=JSON.parse(localStorage.getItem(FISH_SAVE_KEY)||'[]');if(Array.isArray(data))ownedNames=data.filter(x=>typeof x==='string'&&FISH_BY_NAME.has(x));}catch(e){}
 const discovered=new Set(ownedNames);
-const RARITIES=[['흔함',70],['드묾',25],['매우 희귀',5]];
+const RARITIES=[['흔함',65],['드묾',25],['매우 희귀',10]];
 const FISH_PRICE_035={'흔함':1.5,'드묾':3,'매우 희귀':5};
 function stock035(){
  const n=Math.max(0,Math.floor(Number(state.fish)||0));
