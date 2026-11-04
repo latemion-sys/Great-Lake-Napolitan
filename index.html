@@ -258,7 +258,7 @@ footer{font-size:12px;color:#8593a1;text-align:center;margin-top:18px}
 <link rel="stylesheet" href="./yellow-whale-v024.css?v=v0251">
 <link rel="stylesheet" href="./mobile-v024.css?v=refreshfx1201101">
 <link rel="stylesheet" href="./start-screen-v025.css?v=purpose1103">
-<link rel="stylesheet" href="./debt-ending-v100.css?v=debt-800-1104a">
+<link rel="stylesheet" href="./debt-ending-v100.css?v=retire-legend-1104b">
 <link rel="stylesheet" href="./mobile-lake-fold-preview.css?v=preview1101">
 <link rel="stylesheet" href="./mobile-lakefx-alignment-preview.css?v=align1101">
 <link rel="stylesheet" href="./heart-awakening-v030.css?v=heart1102b">
@@ -436,6 +436,7 @@ const OLD_PLAY_RESET_MARKER_100='great-lake-napolitan-save-reset-fish-rarity-100
 })();
 
 ACH.push({id:'fish_100_unique_v034',tier:'legend',name:'나는 100개의 물고기를 안다',desc:'서로 다른 물고기 100종류를 낚아 본다.'});
+ACH.push({id:'debt_retire_land_100',tier:'legend',name:'뭍에 내린 자',desc:'800만 안의 빚을 모두 갚고 항해를 그만둔다.'});
 const ACH_SAVE_KEY='great-lake-napolitan-permanent-achievements';
 const ACH_RESET_KEY_153='great-lake-napolitan-achievements-reset-revision';
 const ACH_RESET_REVISION_153='v0.1.5.3';
@@ -2232,7 +2233,7 @@ renderAch=function(){
    const show=earned||tier==='common'||tier==='rare';
    h+='<div class="achievement '+tier+(earned?'':' unearned')+'">'+
     '<div class="tier">'+TIER[tier]+' · '+(earned?'달성':'미달성')+'</div>'+
-    '<b>'+esc(a.name)+'</b>';
+    '<b>'+esc(!earned&&(tier==='legend'||tier==='myth')?'???':a.name)+'</b>';
    if(show){
     const base=baseMedalCondition153(a),additional=earned?extraMedalCondition153(a):'';
     if(base)h+='<p class="muted">'+esc(base)+'</p>';
@@ -3397,6 +3398,6 @@ renderPlay=function(){
  save();render();
 })();
 </script>
-<script src="./debt-ending-v100.js?v=debt-800-1104a"></script>
+<script src="./debt-ending-v100.js?v=retire-legend-1104b"></script>
 </body>
 </html>
