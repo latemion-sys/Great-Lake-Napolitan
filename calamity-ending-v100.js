@@ -140,8 +140,10 @@
  function newCaptain(){
   if(state.scene!==END_SCENE||!state.calamityEnding100)return;
   const earned=[...new Set([...permanentAchievements,...(state.achievements||[])])];
+  const worn=state.equippedTitle;
   state=fresh();
   state.achievements=earned;
+  if(worn&&earned.includes(worn))state.equippedTitle=worn;
   tab='play';
   save();render();
   try{window.scrollTo({top:0,behavior:'auto'});}catch(e){}
