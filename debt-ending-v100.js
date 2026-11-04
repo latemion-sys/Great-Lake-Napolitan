@@ -42,7 +42,10 @@
    '</div>'+
    '<div class="debt-ending-footer-v100">'+
     '<span>대호수: The Great Lake</span>'+
-    '<button type="button" class="primary" data-act="debtContinue100">항해를 계속한다</button>'+
+    '<div class="debt-ending-choices-v100">'+
+     '<button type="button" class="primary" data-act="debtContinue100">항해를 계속한다</button>'+
+     '<button type="button" class="debt-retire-button-v100" data-act="debtRetire100">항해를 그만둔다</button>'+
+    '</div>'+
    '</div>'+
   '</div>';
  document.body.appendChild(overlay);
@@ -56,6 +59,51 @@
  function closeEnding(){
   const d=debt();d.endingPending=false;d.endingSeen=true;
   save();render();
+ }
+ // 은퇴는 사망과 같이 선장 한 명의 진행을 끝내되, 사망 사건을 호출하지 않습니다.
+ // 일대기에는 별도의 종료 사유를 기록하고 영구 업적을 보존합니다.
+ function retireVoyage(){
+  const d=debt();
+  if(state.scene!=='port'||state.sea||busy||d.remaining!==0||!d.endingPending)return;
+  const former=state;
+  const captain=String(former.captainName||former.playerName||'').trim()||'선장';
+  const purpose=String(former.captainPurpose||'').trim();
+  const summary={
+   captain,purpose,
+   voyages:Math.max(0,Number(former.voyage)||0),
+   lakes:Math.max(0,Number(former.count?.lake)||0)
+  };
+  award('debt_retire_land_100');
+  try{
+   if(window.Chronicle027){
+    window.Chronicle027.add('800만 안의 빚을 모두 갚았다. 대호수에서 항해를 끝내기로 했다.',true);
+    window.Chronicle027.add('배에서 내려 뭍에 내렸다. 항구를 떠나 자신이 돌아갈 곳으로 향했다.',true);
+    window.Chronicle027.finish('뭍에 내렸다');
+   }
+  }catch(e){console.warn('은퇴 일대기 종료 실패:',e);}
+  const earned=[...new Set([...permanentAchievements,...(former.achievements||[])])];
+  state=fresh();
+  state.achievements=earned;
+  state.retiredCaptain100=summary;
+  state.scene='retired';
+  tab='play';
+  save();render();
+ }
+ function retiredPanel(){
+  const info=state.retiredCaptain100||{},name=esc(info.captain||'선장');
+  const voyages=Math.max(0,Number(info.voyages)||0),lakes=Math.max(0,Number(info.lakes)||0);
+  return '<section class="death-credit-164 debt-retire-credit-v100" aria-label="뭍에 내린 선장의 이야기">'+
+   '<p class="death-credit-kicker-164">대호수 · 뭍에 내린 선장</p>'+
+   '<div class="death-credit-text-164">'+
+    '<p>'+name+'은(는) 800만 안의 빚을 모두 갚았다.</p>'+
+    '<p>이제 대호수에 남아 있을 이유는 없었다. 배를 정박시키고, 선원들과 마지막 인사를 나눴다.</p>'+
+    '<p>그렇게 선장은 살아서 뭍에 내렸다.</p>'+
+   '</div>'+
+   '<p class="debt-retire-stats-v100">출항 '+voyages+'회 · 호수 통과 '+lakes+'회</p>'+
+   '<p class="debt-retire-notice-v100">이 선장의 항해는 끝났습니다. 달성한 업적과 보관한 일대기는 남습니다.</p>'+
+   '<div class="death-credit-actions-164">'+
+    button('새 선장으로 시작','restart','','primary')+
+   '</div></section>';
  }
  function repay(amount){
   if(state.scene!=='port'||state.sea||busy||debt().endingPending)return;
@@ -101,6 +149,7 @@
  }
  const priorPlay=renderPlay;
  renderPlay=function(){
+  if(state.scene==='retired')return retiredPanel();
   const page=priorPlay.apply(this,arguments);
   if(state.scene!=='port'||state.sea)return page;
   return paymentPanel()+page;
@@ -128,6 +177,7 @@
   if(!b||b.disabled)return;
   const action=b.dataset.act;
   if(action==='debtContinue100'){closeEnding();return;}
+  if(action==='debtRetire100'){retireVoyage();return;}
   if(action==='debtReplay100'){openEnding();return;}
   if(action==='debtPay100'){repay(Number(b.dataset.value));return;}
   if(action==='debtPayCustom100'){
@@ -135,6 +185,6 @@
    if(field)repay(field.value);
   }
  });
- window.GREAT_LAKE_DEBT_100={total:DEBT_TOTAL,remaining:()=>debt().remaining,repay,openEnding,closeEnding};
+ window.GREAT_LAKE_DEBT_100={total:DEBT_TOTAL,remaining:()=>debt().remaining,repay,openEnding,closeEnding,retireVoyage};
  save();render();
 })();
