@@ -62,7 +62,7 @@
   const captain=String(state.captainName||state.playerName||'').trim();
   // 선장 이름이 있으면 때때로 직접 부릅니다. 문장 끝의 말투 자체는 유지합니다.
   if(captain&&captain!=='선장'&&Math.random()<.4){
-   line=line.replace(/선장님|선장/g,captain+(line.includes('선장님')?' 님':''));
+   line=line.replace(/선장님|선장/g,word=>/선장/.test(captain)?captain:captain+(word==='선장님'?' 선장님':' 선장'));
   }
   return line;
  }
@@ -102,7 +102,7 @@
   return priorDie.apply(this,arguments);
  };
  function notice(){
-  const latest=(state.crewLastWords100||[]).filter(e=>e.unread).slice(0,5);
+  const latest=(state.crewLastWords100||[]).filter(e=>e.unread).slice(0,10);
   if(!latest.length)return '';
   let h='<section class="inset crew-lastwords-v100" aria-label="선원의 마지막 말">'+
    '<div class="between"><div><div class="small">대호수 · 마지막 한마디</div><h3>남겨진 말</h3></div>'+
