@@ -90,7 +90,7 @@
   if(p.locked.length){
    // 첫 항해는 별도의 수동 선택 없이 21-01, 21-02를 고정하고 두 곳을 무작위 배정합니다.
    return '<section class="inset route-plan111" aria-label="첫 항해의 호수 배정">'+
-    '<div class="small">v.1.1.1 · 첫 출항 항로</div><h2>첫 항해의 호수 4곳</h2>'+
+    '<div class="small">v.1.5.1 · 첫 출항 항로</div><h2>첫 항해의 호수 4곳</h2>'+
     '<p class="muted">21-01과 21-02는 반드시 등장합니다. 나머지 2곳은 출항 준비를 누르면 다른 48곳에서 중복 없이 무작위로 배정됩니다. 고정된 두 호수의 진짜 법은 처음부터 알고 있습니다.</p>'+
     locked+
     '<p class="muted">첫 항해에서는 호수를 직접 선택하지 않습니다. 이후 출항에서는 기존처럼 항로를 직접 정할 수 있습니다.</p>'+
@@ -104,7 +104,7 @@
     '" '+(isLocked||!isChosen&&p.picks.length>=p.need?'disabled':'')+'>'+label(id)+suffix+'</button>';
   }).join('');
   return '<section class="inset route-plan111" aria-label="항해할 호수 미리 선택">'+
-   '<div class="small">v.1.1.1 · 출항 전 항로 계획</div><h2>이번 항해의 호수를 정합니다</h2>'+
+   '<div class="small">v.1.5.1 · 출항 전 항로 계획</div><h2>이번 항해의 호수를 정합니다</h2>'+
    '<p class="muted">총 '+p.limit+'곳 가운데 '+(p.limit-1)+'곳을 미리 정하고, 마지막 1곳만 무작위로 배정합니다.'+
    (p.locked.length?' 처음 출항하는 선장은 '+p.locked.map(label).join(', ')+'의 법을 이미 알고 있습니다.':'')+'</p>'+
    locked+
@@ -185,7 +185,7 @@
  };
  const beforeHelp=renderHelp;
  renderHelp=function(){
-  return beforeHelp.apply(this,arguments).replace('항해 안내 · v.1.0.0','항해 안내 · v.1.1.1')+
+  return beforeHelp.apply(this,arguments).replace('항해 안내 · v.1.0.0','항해 안내 · v.1.5.1')+
    '<div class="inset"><h3>v.1.1.1 · 출항 전 항로 선택과 U사 대호수의 법</h3>'+
    '<p>첫 출항의 4곳은 21-01과 21-02가 고정되고 나머지 2곳이 중복 없이 무작위로 정해집니다. 고정된 두 호수의 진짜 법을 처음부터 알고 있습니다. 이후 일반 항해는 4 / 8 / 12 / 16 / 20곳 중 마지막 1곳만 무작위로 정합니다. 술집에서 한 번 정보를 들었던 호수는 이후 중복되지 않습니다. 고급 술집의 비용은 30만 안이며 현재 배정된 호수 두 곳의 진짜 법을 알려줍니다. 별도 대호수 주파는 기존 방식입니다.</p></div>';
  };
