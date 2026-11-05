@@ -83,7 +83,8 @@ function ready(){
 function countTrait(type,id){return state.crew.filter(c=>c.persona151?.[type]===id).length;}
 function traceRate(extra){
  const base=BASE_TRACE+(mode()==='defensive'?-0.10:mode()==='seeking'?0.18:0);
- return clamp(base+countTrait('gift',2)*.02-countTrait('flaw',2)*.02+(extra||0),0,.75);
+ return clamp(base+countTrait('gift',2)*.02-countTrait('flaw',2)*.02+
+  state.crew.filter(c=>c.persona151?.temper===5).length*.01+(extra||0),0,.75);
 }
 function fishRate(){
  return clamp(BASE_CATCH+(mode()==='defensive'?-0.10:mode()==='fishing'?.25:0)+
@@ -135,6 +136,7 @@ function fear(type){
   if(t===6)p.calmVoyage=state.voyage;
  }
  if((t===4&&type==='wave')||(t===5&&type==='whale'))gain++;
+ if(t===8&&gain&&chance(.25))gain--;
  if(p.gift===5&&gain&&chance(.20))gain--;
  if(p.flaw===5&&chance(.20))gain++;
  p.stress+=gain;
@@ -142,6 +144,16 @@ function fear(type){
  if(p.stress>=threshold){
   p.stress-=threshold;
   worsen(c,1,'두려운 장면을 반복해 목격했습니다.');
+ }
+}
+function mindFromOthers(c,reason){
+ if(!c?.persona151)return;
+ const p=c.persona151;
+ p.stress++;
+ const threshold=p.temper===9?4:3;
+ if(p.stress>=threshold){
+  p.stress-=threshold;
+  worsen(c,1,reason);
  }
 }
 function waveCrewDamage(choice){
@@ -158,8 +170,12 @@ function waveCrewDamage(choice){
  steps=Math.max(0,steps);
  worsen(c,steps,'파도에 휩쓸렸습니다.');
  if(steps&&state.crew.length>1){
-  const d=state.crew.find(x=>x!==c&&x.persona151?.temper===7);
-  if(d&&chance(.25))d.persona151.stress++;
+  for(const d of state.crew){
+   if(d===c||!d.persona151)continue;
+   const t=d.persona151.temper;
+   if(t===2&&chance(.12))mindFromOthers(d,'동료의 상처를 지켜보았습니다.');
+   if(t===7&&chance(.25))mindFromOthers(d,'동료를 지키지 못했다는 부담이 쌓였습니다.');
+  }
  }
 }
 function exposureStep(){return Math.max(1,Math.ceil(2*.72*Math.sqrt(4/(LAKE_CAP[state.grade]||4))));}
@@ -309,6 +325,20 @@ enterNextLake0131=function(id){
  try{out=oldEnter.apply(this,arguments);}finally{takeDamage=originalDamage;}
  if(state!==ref||state.scene==='dead'||state.current!==id)return out;
  if(mode()==='seeking'&&!state.normalMermaidDraw&&chance(1/9))state.normalMermaidDraw=true; // 10% → 20%
+ const track=state.traceHunt151;
+ if(track&&!track.attempted&&track.lake===id&&!ref.crossing039){
+  track.attempted=true;
+  if(!ref.encounter&&ref.scene==='event'&&!hunted(track.target)&&chance(TRACK_CHANCE)){
+   ref.encounter=track.target;
+   ref.scene='encounter';
+   if(!Array.isArray(ref.whaleSeen))ref.whaleSeen=[];
+   if(!ref.whaleSeen.includes(track.target))ref.whaleSeen.push(track.target);
+   applyWhale(track.target);
+   track.encountered=true;
+   log('추적해 온 물길에서 '+WHALES[track.target].name+'와 마주쳤습니다.');
+   if(!safeCheck())return out;
+  }else log('재앙의 흔적을 쫓아왔으나 모습을 찾지 못했습니다.');
+ }
  const wave=state.waveHazard028;
  if(wave&&wave.lake===id){
   let w=pick(WAVES);
@@ -335,6 +365,18 @@ enterNextLake0131=function(id){
  // 파도가 없어도 일반 고래와 인어의 목격은 선원의 불안 누적을 유발할 수 있습니다.
  if(state.scene==='rareWhale')fear('whale');
  return out;
+};
+const oldWhaleEffect151=applyWhale;
+applyWhale=function(k){
+ const crewBefore=new Map((state.crew||[]).map(c=>[c.id,Number(c.condition)||0]));
+ const result=oldWhaleEffect151.apply(this,arguments);
+ if(mode()==='seeking'){
+  for(const c of state.crew||[]){
+   const previous=crewBefore.get(c.id);
+   if(previous!==undefined&&c.condition>previous)worsen(c,1,'고래 탐색적 항해의 위험이 더해졌습니다.');
+  }
+ }
+ return result;
 };
 const oldBegin=beginBattle;
 beginBattle=function(b){
