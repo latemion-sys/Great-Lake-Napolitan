@@ -79,6 +79,15 @@ function ready(){
  state.clues151=state.clues151.map(n=>clamp(Math.floor(Number(n)||0),0,MAX_CLUE));
  if(!Array.isArray(state.crew))state.crew=[];
  state.crew.forEach(applyCrew);
+ // 기존 저장에서는 실제 조우·목격담·추적 대상으로 확인한 고래와,
+ // 충분한 단서를 모아 추적 가능했던 고래만 식별된 것으로 이어받습니다.
+ if(!Array.isArray(state.traceKnown151)){
+  const seen=new Set([...(state.whaleSeen||[]),
+   state.whaleHint024,state.traceTarget151,state.traceHunt151?.target]);
+  (state.clues151||[]).forEach((n,k)=>{if(n>=3)seen.add(k);});
+  state.traceKnown151=[...seen].filter(k=>Number.isInteger(k)&&k>=0&&k<WHALES.length);
+ }
+ if(!Number.isInteger(state.traceResearchDock151))state.traceResearchDock151=-1;
 }
 function countTrait(type,id){return state.crew.filter(c=>c.persona151?.[type]===id).length;}
 function traceRate(extra){
@@ -99,12 +108,39 @@ function chooseCalamity(){
  if(Number.isInteger(hint)&&pool.includes(hint)&&chance(.35))return hint;
  return pick(pool);
 }
+function isKnown(k){
+ return Array.isArray(state.traceKnown151)&&state.traceKnown151.includes(k);
+}
+function reveal(k,reason){
+ ready();
+ if(!Number.isInteger(k)||k<0||k>=WHALES.length||isKnown(k))return false;
+ state.traceKnown151.push(k);
+ log('재앙의 정체를 확인했습니다: '+WHALES[k].name+'. '+(reason||''));
+ return true;
+}
 function addClue(k,why){
  if(k===null||k===undefined||hunted(k))return false;
  ready();
  if(state.clues151[k]>=MAX_CLUE)return false;
  state.clues151[k]++;
- log('재앙의 흔적 발견: '+WHALES[k].name+' · 단서 '+state.clues151[k]+'개. '+(why||''));
+ if(isKnown(k))log('재앙의 흔적 발견: '+WHALES[k].name+' · 단서 '+state.clues151[k]+'개. '+(why||''));
+ else log('정체를 알 수 없는 재앙의 흔적을 발견했습니다. 아직 확인하지 못한 단서가 쌓였습니다.');
+ return true;
+}
+function researchAvailable(){
+ ready();
+ const dock=Math.max(0,Number(state.count?.return)||0);
+ return state.scene==='port'&&!state.sea&&state.traceResearchDock151!==dock&&
+  state.clues151.some((n,k)=>n>0&&!isKnown(k));
+}
+function researchClue(){
+ if(!researchAvailable())return false;
+ const pool=state.clues151.map((n,k)=>({n,k})).filter(x=>x.n>0&&!isKnown(x.k));
+ const most=Math.max(...pool.map(x=>x.n));
+ const subject=pick(pool.filter(x=>x.n===most)).k;
+ state.traceResearchDock151=Math.max(0,Number(state.count?.return)||0);
+ reveal(subject,'항구에서 모은 흔적을 대조했습니다.');
+ sync();
  return true;
 }
 function findClue(extra,why){
@@ -220,16 +256,29 @@ function trackingAvailable(k){
   state.calamityHarpoon&&!state.calamityHarpoon.damaged&&state.gold>=TRACK_FEE&&state.clues151[k]>=3;
 }
 function trackingPanel(){
- const list=WHALES.map((w,k)=>{
-  const n=state.clues151[k],done=hunted(k),can=trackingAvailable(k);
+ ready();
+ const known=state.traceKnown151.filter(k=>Number.isInteger(k)&&k>=0&&k<WHALES.length);
+ const list=known.map(k=>{
+  const w=WHALES[k],n=state.clues151[k],done=hunted(k),can=trackingAvailable(k);
   return '<div class="between" style="gap:8px;flex-wrap:wrap;margin:6px 0">'+
    '<span>'+esc(w.name)+' · 흔적 '+n+' / 3'+(done?' · 토벌 완료':'')+'</span>'+
    button(state.traceTarget151===k?'추적 항해 지정됨':'추적 대상으로 지정','traceSelect151',String(k),
     state.traceTarget151===k?'primary':'',!can)+'</div>';
  }).join('');
+ const unknown=state.clues151.reduce((sum,n,k)=>sum+(!isKnown(k)?n:0),0);
+ const undisclosed=state.clues151.filter((n,k)=>n>0&&!isKnown(k)).length;
+ const available=researchAvailable();
+ const investigated=state.traceResearchDock151===Math.max(0,Number(state.count?.return)||0);
  return '<div class="inset"><h3>재앙의 고래 추적</h3>'+
-  '<p class="muted">같은 재앙의 흔적 3개 이상과 선장 5등급, 선원 3명, 정비된 특수 작살이 필요합니다. 출항 때 추가 보급비 35만 안을 사용합니다. 추적 대상과 마주칠 확률은 올라가지만 확정되지 않습니다. 실패해도 찾아낸 흔적은 남습니다.</p>'+
-  list+'</div>';
+  '<p class="muted">아직 확인하지 못한 재앙의 이름과 종류는 표시하지 않습니다. 항해 중 모은 단서를 항구에서 대조하면 정체를 한 마리씩 알아낼 수 있습니다. 조사 기회는 정박마다 한 번이며, 조사해도 모은 흔적은 사라지지 않습니다.</p>'+
+  (known.length?'<h4>정체를 확인한 재앙 · '+known.length+'종</h4>'+list:
+   '<p class="muted">정체를 확인한 재앙이 아직 없습니다.</p>')+
+  '<div class="inset"><b>미확인 흔적 · '+unknown+'개</b>'+
+  '<p class="muted">'+(undisclosed?'정체를 알 수 없는 흔적 '+undisclosed+'종을 조사할 수 있습니다.':'조사할 수 있는 미확인 흔적이 없습니다.')+
+  (investigated?' 이번 정박의 조사는 마쳤습니다.':'')+'</p>'+
+  button('흔적의 정체를 조사한다 · 1마리 공개','traceResearch151','','primary',!available)+
+  '</div>'+
+  '<p class="muted">확인한 재앙의 흔적 3개 이상, 선장 5등급, 선원 3명, 정비된 특수 작살이 필요합니다. 출항 시 추가 보급비 35만 안이 소모됩니다. 추적해도 조우는 확정되지 않습니다.</p></div>';
 }
 function modePanel(){
  const selected=mode(),atPort=state.scene==='port'&&!state.sea;
@@ -257,6 +306,7 @@ const oldFresh=fresh;
 fresh=function(){
  const s=oldFresh.apply(this,arguments);
  s.mode151='defensive';s.clues151=Array(WHALES.length).fill(0);
+ s.traceKnown151=[];s.traceResearchDock151=-1;
  for(const c of s.crew||[])applyCrew(c);
  return s;
 };
@@ -368,6 +418,7 @@ enterNextLake0131=function(id){
 };
 const oldWhaleEffect151=applyWhale;
 applyWhale=function(k){
+ reveal(k,'실제로 조우해 정체를 확인했습니다.');
  const crewBefore=new Map((state.crew||[]).map(c=>[c.id,Number(c.condition)||0]));
  const result=oldWhaleEffect151.apply(this,arguments);
  if(mode()==='seeking'){
@@ -482,12 +533,14 @@ document.addEventListener('click',function(e){
   state.mode151=b.dataset.value;log('다음 항해 방침을 '+MODES[mode()].name+'(으)로 정했습니다.');sync();
  }else if(act==='traceSelect151'&&state.scene==='port'){
   const k=Number(b.dataset.value);
-  if(trackingAvailable(k)){state.traceTarget151=k;log(WHALES[k].name+' 추적 출항을 준비합니다.');sync();}
+  if(isKnown(k)&&trackingAvailable(k)){state.traceTarget151=k;log(WHALES[k].name+' 추적 출항을 준비합니다.');sync();}
+ }else if(act==='traceResearch151'){
+  researchClue();
  }else if(act==='waveAnswer151'){
   finishWave(b.dataset.value);
  }
 });
 ready();save();render();
 window.GREAT_LAKE_151={version:VERSION,modes:MODES,temper:TEMPER,gifts:GIFTS,flaws:FLAWS,waves:WAVES,
- traceRate,fishRate,ready,finishWave,trackingAvailable};
+ traceRate,fishRate,ready,finishWave,trackingAvailable,researchAvailable,researchClue,isKnown};
 })();
