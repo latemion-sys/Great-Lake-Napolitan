@@ -1,0 +1,45 @@
+/* v.1.6.0 · 선원 영입 대사 및 성격/이득/결점 소개 화면 */
+.recruit-interview160[hidden]{display:none!important}
+.recruit-interview160{
+ position:fixed;z-index:100500;inset:0;display:flex;align-items:center;justify-content:center;
+ padding:20px;background:rgba(5,9,13,.88);overflow:auto;overscroll-behavior:contain;
+}
+.recruit-card160{
+ width:min(610px,100%);max-height:min(90vh,800px);overflow-y:auto;
+ background:linear-gradient(145deg,#1d2a35,#19232d);color:#eef2f5;
+ border:1px solid #566d7d;border-radius:16px;padding:clamp(20px,4vw,29px);
+ box-shadow:0 24px 70px #000b;line-height:1.7;word-break:keep-all;
+}
+.recruit-overline160{font-size:12px;color:#a9c7e5;letter-spacing:.07em;font-weight:700}
+.recruit-card160 h2{font-size:clamp(22px,3.5vw,29px);margin:6px 0 3px;line-height:1.35}
+.recruit-role160{font-size:14px;color:#c4d1dc;margin:0 0 18px}
+.recruit-role160 b{color:#f2d7a1}
+.recruit-speech160{
+ position:relative;background:#141f29;border:1px solid #3e576b;border-left:4px solid #90b8d6;
+ border-radius:10px;padding:15px 18px;margin:14px 0 19px;
+}
+.recruit-speech160 p{margin:0 0 10px!important;color:#f0f4f8;font-size:15px;line-height:1.82}
+.recruit-speech160 p:last-child{margin-bottom:0!important}
+.recruit-traits160{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 15px}
+.recruit-traits160>div{border-radius:10px;padding:13px 14px;border:1px solid #465a69;min-width:0}
+.recruit-traits160 span{display:block;font-size:12px;font-weight:700;margin-bottom:4px}
+.recruit-traits160 b{display:block;font-size:16px;line-height:1.45}
+.recruit-traits160 p{margin:6px 0 0;font-size:13px;color:#d7e0e8;line-height:1.65}
+.recruit-gift160{background:#1d342d;border-color:#3c755f!important}
+.recruit-gift160 span{color:#a8dfbf}
+.recruit-flaw160{background:#3b292d;border-color:#91626b!important}
+.recruit-flaw160 span{color:#ffc7c7}
+.recruit-hint160{color:#bdcad5;font-size:13px;margin:12px 0 18px;line-height:1.6}
+.recruit-close160{
+ display:block;width:100%;min-height:49px;border-radius:10px;border:1px solid #72a7de;
+ background:#23588d;color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+}
+.recruit-close160:hover{background:#326da9}
+.recruit-close160:focus-visible{outline:3px solid #d7e8fb;outline-offset:3px}
+@media(max-width:520px){
+ .recruit-interview160{padding:12px;align-items:center}
+ .recruit-card160{max-height:calc(100dvh - 24px);padding:17px}
+ .recruit-traits160{grid-template-columns:1fr}
+ .recruit-speech160{padding:12px 14px}
+}
+@media(prefers-reduced-motion:reduce){.recruit-interview160 *{scroll-behavior:auto}}
