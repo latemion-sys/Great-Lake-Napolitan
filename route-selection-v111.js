@@ -1,208 +1,144 @@
-/* v.1.1.1 · 첫 출항 고정 2곳/무작위 2곳, 이후 항해는 직접 선택 + 마지막 무작위 1곳. */
+/* v.1.6.0 · 모든 일반 출항의 호수는 자동 배정.
+   첫 출항은 21-01 → 21-02 → 나머지 48곳 중 서로 다른 무작위 2곳.
+   기존 호수 법, 선택지, 체류 턴, 업적 등은 수정하지 않습니다. */
 (function(){
  'use strict';
- if(typeof state==='undefined'||typeof prepareVoyage!=='function'||typeof renderPlay!=='function')return;
- const SOURCES=window.GREAT_LAKE_SCRIPT_DATA_024;
- if(!Array.isArray(SOURCES)||SOURCES.length!==50)throw Error('v.1.1.1 항로에 사용할 호수 50곳을 찾지 못했습니다.');
- const BY_ID=new Map(SOURCES.map(l=>[l.id,l]));
- const IDS=SOURCES.map(l=>l.id).sort((a,b)=>a-b);
- const FIRST=[1,2]; // 21-01, 21-02: 첫 출항에서 고정하며 법을 알고 시작.
- const label=id=>'21-'+String(id).padStart(2,'0');
- const safe=s=>esc(String(s||''));
- const cap=()=>Math.min(IDS.length,LAKE_CAP[state.grade]||4);
- const fixed=()=>state.voyage===0?FIRST:[];
- const randomCount=()=>state.voyage===0?2:1; // 첫 출항은 고정 2곳 + 무작위 2곳.
+ if(typeof state==='undefined'||typeof prepareVoyage!=='function'||typeof autoLake0131!=='function')return;
+ const data=window.GREAT_LAKE_SCRIPT_DATA_024;
+ if(!Array.isArray(data)||data.length!==50)throw Error('21-01~21-50 호수 자료가 없습니다.');
+ const byId=new Map(data.map(x=>[x.id,x]));
+ const IDs=data.map(x=>x.id).sort((a,b)=>a-b);
+ const FIXED=[1,2];
+ const idName=id=>'21-'+String(id).padStart(2,'0');
+ const show=s=>esc(String(s??''));
+ const first=()=>state.voyage===0;
+ const cap=()=>Math.min(50,LAKE_CAP[state.grade]||4);
  function init(){
   if(!Array.isArray(state.loreSeen111))state.loreSeen111=[];
   if(!state.loreArchive111||typeof state.loreArchive111!=='object')state.loreArchive111={};
-  // 이미 진행 중인 저장 데이터의 전언도 다시 판매하지 않습니다.
   if(!state.loreImported111){
    for(const r of state.rumors||[]){
-    if(!BY_ID.has(r.lake))continue;
+    if(!byId.has(r.lake))continue;
     if(!state.loreSeen111.includes(r.lake))state.loreSeen111.push(r.lake);
     if(!state.loreArchive111[r.lake])
      state.loreArchive111[r.lake]={id:r.lake,kind:r.kind||'전언',text:r.text||'',confirmed:!!r.confirmed};
    }
    state.loreImported111=true;
   }
-  if(state.voyage===0){
-   for(const id of FIRST){
+  if(first()){
+   for(const id of FIXED){
     if(!state.loreSeen111.includes(id))state.loreSeen111.push(id);
-    state.loreArchive111[id]={id,kind:'첫 출항 전부터 알고 있는 법',text:BY_ID.get(id).law,confirmed:true};
+    state.loreArchive111[id]={id,kind:'첫 출항부터 알고 있는 법',text:byId.get(id).law,confirmed:true};
    }
   }
-  if(!state.routeSelection111||state.routeSelection111.version!==1||!Array.isArray(state.routeSelection111.ids))
-   state.routeSelection111={version:1,ids:[]};
-  const locked=new Set(fixed());
-  const max=Math.max(0,cap()-randomCount()-locked.size);
-  state.routeSelection111.ids=[...new Set(state.routeSelection111.ids)]
-   .filter(id=>BY_ID.has(id)&&!locked.has(id)).slice(0,max);
- }
- function pickState(){
-  init();
-  const locked=fixed(),picks=state.routeSelection111.ids;
-  const need=Math.max(0,cap()-randomCount()-locked.length);
-  return {locked,picks,need,ready:picks.length===need,limit:cap(),randomCount:randomCount()};
- }
- function chosen(p){return [...p.locked,...p.picks];}
- function toggle(id){
-  if(state.scene!=='port'||state.sea||!BY_ID.has(id))return;
-  const p=pickState();
-  if(p.locked.includes(id))return;
-  const at=state.routeSelection111.ids.indexOf(id);
-  if(at>=0)state.routeSelection111.ids.splice(at,1);
-  else if(state.routeSelection111.ids.length<p.need)state.routeSelection111.ids.push(id);
-  save();render();
- }
- function fill(){
-  if(state.scene!=='port'||state.sea)return;
-  const p=pickState(),exclude=new Set(chosen(p));
-  const missing=p.need-p.picks.length;
-  const unseen=shuffle(IDS.filter(id=>!exclude.has(id)&&!state.loreSeen111.includes(id)));
-  const others=shuffle(IDS.filter(id=>!exclude.has(id)&&state.loreSeen111.includes(id)));
-  state.routeSelection111.ids.push(...unseen.concat(others).slice(0,missing));
-  save();render();
- }
- function clear(){
-  if(state.scene!=='port'||state.sea)return;
-  state.routeSelection111.ids=[];
-  save();render();
+  // 구형 수동 선택 데이터는 다음 출항 경로에 반영하지 않습니다.
+  state.routeSelection111={version:2,ids:[]};
  }
  function archiveCard(id){
-  const r=state.loreArchive111[id];if(!r)return '';
-  const truth=r.confirmed?'확인된 진짜 법':'전언 · 진위 미확인';
-  return '<div class="route-intel-card111"><b>'+label(id)+'</b><span>'+safe(truth)+'</span>'+
-   '<p>'+safe(r.text)+'</p></div>';
+  const d=state.loreArchive111?.[id];
+  if(!d)return '';
+  return '<div class="route-intel-card111"><b>'+idName(id)+'</b><span>'+
+   (d.confirmed?'확인된 진짜 법':'전언 · 진위 미확인')+'</span><p>'+show(d.text)+'</p></div>';
  }
  function knownPanel(ids){
   init();
-  const unique=[...new Set(ids)].filter(id=>state.loreArchive111[id]);
-  if(!unique.length)return '';
-  return '<details class="inset route-intel111"'+(state.voyage===0?' open':'')+'>'+
-   '<summary>이미 들었던 호수의 정보 · '+unique.length+'곳</summary>'+
-   '<p class="muted">법은 확인된 사실만 표기하며, 다른 전언의 진위는 따로 보증하지 않습니다.</p>'+
-   unique.map(archiveCard).join('')+'</details>';
+  const known=[...new Set(ids)].filter(id=>state.loreArchive111[id]);
+  if(!known.length)return '';
+  return '<details class="inset route-intel111"'+(first()?' open':'')+'>'+
+   '<summary>이미 알고 있는 호수의 법과 전언 · '+known.length+'곳</summary>'+
+   '<p class="muted">진짜 법으로 확인된 항목과 진위 미확인 전언을 구분해서 표시합니다.</p>'+
+   known.map(archiveCard).join('')+'</details>';
  }
- function portPanel(){
-  const p=pickState(),selected=chosen(p),need=p.need-p.picks.length;
-  const locked=p.locked.map(id=>'<div class="route-fixed-law111"><b>'+label(id)+' · 고정 호수 · 법 확인</b>'+
-   '<p>'+safe(BY_ID.get(id).law)+'</p></div>').join('');
-  if(p.locked.length){
-   // 첫 항해는 별도의 수동 선택 없이 21-01, 21-02를 고정하고 두 곳을 무작위 배정합니다.
-   return '<section class="inset route-plan111" aria-label="첫 항해의 호수 배정">'+
-    '<div class="small">v.1.5.7 · 첫 출항 항로</div><h2>첫 항해의 호수 4곳</h2>'+
-    '<p class="muted">21-01과 21-02는 반드시 등장합니다. 나머지 2곳은 출항 준비를 누르면 다른 48곳에서 중복 없이 무작위로 배정됩니다. 고정된 두 호수의 진짜 법은 처음부터 알고 있습니다.</p>'+
-    locked+
-    '<p class="muted">첫 항해에서는 호수를 직접 선택하지 않습니다. 이후 출항에서는 기존처럼 항로를 직접 정할 수 있습니다.</p>'+
-    '</section>';
-  }
-  const buttons=IDS.map(id=>{
-   const isLocked=p.locked.includes(id),isChosen=p.picks.includes(id),known=state.loreSeen111.includes(id);
-   const suffix=isLocked?' · 고정':isChosen?' · 선택됨':known?' · 정보 보유':'';
-   return '<button type="button" class="route-choice111'+(isChosen?' chosen':'')+(isLocked?' locked':'')+
-    '" data-act="routeToggle111" data-value="'+id+'" aria-pressed="'+(isChosen||isLocked)+
-    '" '+(isLocked||!isChosen&&p.picks.length>=p.need?'disabled':'')+'>'+label(id)+suffix+'</button>';
-  }).join('');
-  return '<section class="inset route-plan111" aria-label="항해할 호수 미리 선택">'+
-   '<div class="small">v.1.5.7 · 출항 전 항로 계획</div><h2>이번 항해의 호수를 정합니다</h2>'+
-   '<p class="muted">총 '+p.limit+'곳 가운데 '+(p.limit-1)+'곳을 미리 정하고, 마지막 1곳만 무작위로 배정합니다.'+
-   (p.locked.length?' 처음 출항하는 선장은 '+p.locked.map(label).join(', ')+'의 법을 이미 알고 있습니다.':'')+'</p>'+
-   locked+
-   '<div class="between"><strong>직접 선택 '+p.picks.length+' / '+p.need+'</strong>'+
-    '<span>'+(p.ready?'항로 선택 완료':'아직 '+need+'곳 선택 필요')+'</span></div>'+
-   '<div class="route-plan-actions111">'+
-    button('남은 곳 자동 선택','routeFill111')+
-    button('직접 선택 초기화','routeClear111')+'</div>'+
-   '<details class="route-list111"><summary>호수 50곳 중 선택하기</summary>'+
-    '<div class="route-choice-grid111">'+buttons+'</div></details>'+
-   '<p class="muted">'+(p.ready?'준비되었습니다. 마지막 무작위 호수는 출항 준비를 누를 때 결정됩니다.':
-    '원하는 호수 '+need+'곳을 더 선택해야 출항 준비를 시작할 수 있습니다.')+'</p>'+
-   '</section>';
+ function distribute(tutorial){
+  const pool=tutorial?IDs.filter(id=>!FIXED.includes(id)):IDs.slice();
+  const count=tutorial?2:cap();
+  const picks=shuffle(pool).slice(0,count);
+  if(picks.length!==count||new Set(picks).size!==count)throw Error('중복 없는 무작위 호수 배정 실패');
+  const route=tutorial?[...FIXED,...picks]:picks;
+  state.offered=route.slice();
+  state.preparedRoute160={version:1,tutorial,route:route.slice(),drawnAt:state.voyage+1};
+  // 기존 기능의 저장 정보는 보존하되 구형 수동 선택 결과는 무시합니다.
+  state.preparedRoute111=null;
+  state.routeSelection111={version:2,ids:[]};
  }
- const beforePrepare=prepareVoyage;
+ const previousPrepare=prepareVoyage;
  prepareVoyage=function(){
-  const wasPort=state.scene==='port'&&!state.sea;
-  const p=wasPort?pickState():null;
-  if(wasPort&&!p.ready)return;
-  const lockedChoice=p?.ready?chosen(p):null;
-  const result=beforePrepare.apply(this,arguments);
-  if(wasPort&&lockedChoice&&state.scene==='prep'){
-   const eligible=IDS.filter(id=>!lockedChoice.includes(id));
-   const unseen=eligible.filter(id=>!state.loreSeen111.includes(id));
-   // 첫 출항: 고정된 두 호수 이외의 48곳 중에서 서로 다른 두 곳.
-   // 이후 출항: 기존처럼 아직 전언을 듣지 않은 호수부터 마지막 한 곳.
-   const pool=p.locked.length?shuffle(eligible):
-    shuffle(unseen).concat(shuffle(eligible.filter(id=>state.loreSeen111.includes(id))));
-   const randomIds=pool.slice(0,p.randomCount);
-   if(randomIds.length!==p.randomCount)throw Error('무작위 호수를 모두 배정할 수 없습니다.');
-   state.offered=lockedChoice.concat(randomIds);
-   state.preparedRoute111={version:1,chosen:lockedChoice,fixed:p.locked,
-    randomId:randomIds[0],randomIds,ids:[...state.offered]};
-   state.routeSelection111.ids=[];
+  const fromPort=state.scene==='port'&&!state.sea,firstVoyage=first();
+  const result=previousPrepare.apply(this,arguments);
+  if(fromPort&&state.scene==='prep'&&!state.sea){
+   init();
+   if(!state.crossing039)distribute(firstVoyage);
    save();render();
   }
   return result;
  };
- const beforePlay=renderPlay;
- renderPlay=function(){
-  const html=beforePlay.apply(this,arguments);
-  init();
-  if(state.scene==='port'&&!state.sea){
-   const p=pickState();
-   let page=html.replace('선장 등급에 따라 이번 항해에서 접근할 수 있는 구역이 무작위로 정해집니다.',
-     '선장 등급별로 항해할 호수를 직접 정하고 마지막 1곳만 무작위로 배정합니다.');
-   if(!p.ready){
-    page=page.replace(/(<button\b[^>]*data-act="prepare"[^>]*)(>)/,function(full,attrs,closing){
-     return attrs.includes('disabled')?full:attrs+' disabled'+closing;
-    });
+ // 구버전에서 출항 준비까지 마친 저장을 불러와도 첫 항해 순서를 바로잡습니다.
+ const previousLaunch=launch;
+ launch=function(){
+  if(state.scene==='prep'&&!state.sea&&first()&&!state.crossing039){
+   const p=state.preparedRoute160;
+   if(!p?.tutorial||p.route?.length!==4||p.route[0]!==1||p.route[1]!==2){
+    init();distribute(true);save();
    }
-   return portPanel()+page+knownPanel(IDS.filter(id=>state.loreArchive111[id]&&!p.locked.includes(id)));
+  }
+  return previousLaunch.apply(this,arguments);
+ };
+ const previousAuto=autoLake0131;
+ autoLake0131=function(){
+  const p=state.preparedRoute160;
+  if(!(state.sea&&state.scene==='route'&&p?.tutorial&&p.drawnAt===state.voyage&&!state.crossing039))
+   return previousAuto.apply(this,arguments);
+  const seen=new Set(state.visited||[]);
+  // 고정된 21-01과 21-02를 무조건 먼저 통과합니다.
+  const target=!seen.has(1)?1:!seen.has(2)?2:
+   shuffle(p.route.slice(2).filter(id=>!seen.has(id)))[0];
+  if(target===undefined)return;
+  return enterNextLake0131(target);
+ };
+ const previousPlay=renderPlay;
+ renderPlay=function(){
+  init();
+  let html=previousPlay.apply(this,arguments);
+  if(state.scene==='port'&&!state.sea){
+   html=html.replace('선장 등급별로 항해할 호수를 직접 정하고 마지막 1곳만 무작위로 배정합니다.',
+    '호수는 자동으로 정해집니다. 출항 전에 직접 선택할 필요가 없습니다.');
+   return html+(first()?knownPanel(FIXED):'');
   }
   if(state.scene==='prep'){
-   const pr=state.preparedRoute111;
-   const randomN=Array.isArray(pr?.randomIds)?pr.randomIds.length:(pr?.randomId!==undefined?1:0);
-   const valid=pr?.version===1&&pr.ids?.length===state.offered.length&&
-    Array.isArray(pr.chosen)&&pr.chosen.length+randomN===state.offered.length&&
-    pr.ids.every(id=>state.offered.includes(id));
-   const summary=valid?'<p class="muted">고정·직접 선택 '+pr.chosen.length+'곳 · 무작위 배정 '+randomN+'곳. 해당 호수의 전언을 듣고 출항할 수 있습니다.</p>':
-    '<p class="muted">별도로 준비한 항로입니다. 기존 항해 규칙이 적용됩니다.</p>';
-   return '<div class="inset route-prep111"><h3>이번 출항의 항로</h3>'+summary+
-    '<p>'+state.offered.map(label).join(' · ')+'</p></div>'+
-    knownPanel(state.offered)+html;
+   const p=state.preparedRoute160;
+   if(p?.tutorial){
+    return '<section class="inset route-prep111"><div class="small">v.1.6.0 · 첫 출항 항로</div>'+
+     '<h3>첫 두 호수는 정해져 있습니다</h3>'+
+     '<p>21-01 → 21-02를 차례로 건넌 다음, 나머지 48곳 중 무작위로 배정된 두 호수를 지나게 됩니다.</p>'+
+     '<p class="muted">뒤의 두 호수는 통과할 때 나타납니다. 직접 선택할 수 없습니다.</p></section>'+
+     knownPanel(FIXED)+html;
+   }
+   return '<div class="inset"><div class="small">v.1.6.0 · 자동 항로</div>'+
+    '<p>이번 항해의 호수 '+(state.offered||[]).length+'곳이 중복 없이 무작위로 배정되었습니다. 항로는 직접 선택할 수 없습니다.</p></div>'+
+    html;
   }
   if(state.scene==='route'){
-   const firstRoute=state.preparedRoute111?.randomIds?.length===2;
-   return knownPanel(state.offered)+html.replace(
-    /50개 중 무작위로 배정했습니다\. 모든 호수가 연속 항해로 이어질 수 있습니다\./,
-    firstRoute?'첫 출항은 2곳 고정, 나머지 2곳 무작위 배정입니다. 모든 호수는 연속 항해로 이어질 수 있습니다.':
-    '마지막 1곳만 무작위로 배정했습니다. 모든 호수는 연속 항해로 이어질 수 있습니다.');
+   const p=state.preparedRoute160;
+   if(p?.tutorial&&p.drawnAt===state.voyage&&(state.visited||[]).length<2){
+    return html.replace(/<div class="lakegrid">[\s\S]*?<\/div>(?=<\/div>|$)/,'')+
+     '<p class="muted">21-01과 21-02를 지나면 다음 두 호수가 나타납니다.</p>';
+   }
+   return html;
   }
-  if(state.scene==='event'){
-   if(!state.current||!state.loreArchive111[state.current])return html;
+  if(state.scene==='event'&&state.current!=null&&state.loreArchive111[state.current])
    return knownPanel([state.current])+html;
-  }
   return html;
  };
- const beforeHelp=renderHelp;
+ const previousHelp=renderHelp;
  renderHelp=function(){
-  return beforeHelp.apply(this,arguments).replace('항해 안내 · v.1.0.0','항해 안내 · v.1.5.7')+
-   '<div class="inset"><h3>v.1.1.1 · 출항 전 항로 선택과 U사 대호수의 법</h3>'+
-   '<p>첫 출항의 4곳은 21-01과 21-02가 고정되고 나머지 2곳이 중복 없이 무작위로 정해집니다. 고정된 두 호수의 진짜 법을 처음부터 알고 있습니다. 이후 일반 항해는 4 / 8 / 12 / 16 / 20곳 중 마지막 1곳만 무작위로 정합니다. 술집에서 한 번 정보를 들었던 호수는 이후 중복되지 않습니다. 고급 술집의 비용은 30만 안이며 현재 배정된 호수 두 곳의 진짜 법을 알려줍니다. 별도 대호수 주파는 기존 방식입니다.</p></div>';
+  return previousHelp.apply(this,arguments)+
+   '<div class="inset"><h3>v.1.6.0 · 호수 자동 배정</h3>'+
+   '<p>호수를 선택하는 화면을 제거했습니다. 첫 항해는 21-01과 21-02의 법을 알고 시작하며, '+
+   '반드시 21-01 → 21-02를 통과한 다음 다른 48곳에서 중복 없이 무작위 배정된 두 호수를 건넙니다. '+
+   '두 호수의 정체는 항해 중에 나타납니다. 두 번째 출항부터는 선장 등급에 따라 '+
+   '4 / 8 / 12 / 16 / 20곳을 중복 없이 자동 배정합니다. 법과 체류 턴은 변경하지 않았습니다.</p></div>';
  };
- document.addEventListener('click',function(e){
-  const b=e.target?.closest?.('button[data-act="prepare"]');
-  if(b&&state.scene==='port'&&!pickState().ready){
-   e.preventDefault();e.stopImmediatePropagation();
-  }
- },true);
- document.addEventListener('click',function(e){
-  const b=e.target?.closest?.('button[data-act]');
-  if(!b||b.disabled)return;
-  const a=b.dataset.act;
-  if(a==='routeToggle111')toggle(Number(b.dataset.value));
-  else if(a==='routeFill111')fill();
-  else if(a==='routeClear111')clear();
- });
- window.GREAT_LAKE_ROUTE_111={fixed:FIRST,plan:pickState,fill,clear,toggle,archive:()=>state.loreArchive111};
+ window.GREAT_LAKE_ROUTE_111={fixed:FIXED,plan:()=>({locked:first()?FIXED:[],picks:[],need:0,ready:true,limit:first()?4:cap(),randomCount:first()?2:cap()}),archive:()=>state.loreArchive111};
+ window.GREAT_LAKE_ROUTE_160={version:'1.6.0',distribute,auto:true};
  init();save();render();
 })();
