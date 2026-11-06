@@ -1,0 +1,92 @@
+/* v.1.6.1 · 항구 정보 분리, PC 우측 보조 영역 / 모바일 최근 사건 아래 */
+.port-utility-rail161[hidden]{display:none!important}
+.port-utility-rail161{
+ min-width:0;align-self:start;
+ border-color:#43576a;
+ background:#18232e;
+ padding:16px!important;
+}
+.port-utility-heading161{margin-bottom:12px}
+.port-utility-heading161 h3{font-size:17px;margin:0 0 4px;line-height:1.45}
+.port-utility-heading161 p{font-size:12px;color:#c2ced9;margin:0;line-height:1.6}
+.port-utility-group161{
+ margin:9px 0;border:1px solid #465b6e;background:#202c38;border-radius:11px;
+ overflow:hidden;min-width:0
+}
+.port-utility-group161>summary{
+ padding:13px 14px;cursor:pointer;user-select:none;font-size:14px;font-weight:650;
+ color:#e8eef5;line-height:1.5;list-style:none;
+ display:flex;gap:9px;align-items:center;justify-content:space-between;
+}
+.port-utility-group161>summary::after{
+ content:"＋";display:inline-grid;place-items:center;width:23px;height:23px;
+ flex:0 0 23px;border-radius:7px;border:1px solid #63758a;color:#b9cce0;
+ font-size:17px;font-weight:400
+}
+.port-utility-group161[open]>summary{background:#2b3d4f}
+.port-utility-group161[open]>summary::after{content:"−"}
+.port-utility-group161>summary::-webkit-details-marker{display:none}
+.port-utility-group161>summary:focus-visible{outline:3px solid #a7caee;outline-offset:-3px}
+.port-utility-body161{padding:12px 10px 10px;border-top:1px solid #415469;min-width:0}
+.port-utility-body161>.inset{
+ margin:0!important;padding:10px!important;background:#1b2834!important;
+ border-color:#405366!important;min-width:0
+}
+.port-utility-body161 :where(h2,h3){font-size:16px!important;line-height:1.45}
+.port-utility-body161 :where(p,.muted){font-size:13px!important;line-height:1.75!important}
+.port-utility-body161 :where(button,select,input){font-size:13px!important;max-width:100%;min-width:0}
+.port-utility-body161 button{white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+.port-utility-body161 :where(.between,.row){align-items:flex-start;gap:8px;overflow-wrap:anywhere}
+.port-utility-body161 .debt-pay-options-v100{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.port-utility-body161 .debt-pay-options-v100 button{width:100%;padding:9px 7px}
+.port-utility-body161 .debt-pay-custom-v100{display:flex;flex-direction:column;gap:7px}
+.port-utility-body161 .debt-pay-custom-v100 input{width:100%;box-sizing:border-box}
+.port-utility-body161 .debt-pay-custom-v100 button{width:100%}
+.port-utility-body161 .stack{gap:8px}
+.port-utility-body161 .stack button{padding:10px!important}
+.port-utility-body161 .route-intel-card111{max-width:100%}
+.goal-stat161{grid-column:1/-1;min-width:0}
+.goal-stat161 small{display:block;font-size:12px;line-height:1.45;color:#bfcfe0}
+.goal-detail161{min-width:0}
+.goal-detail161>summary{
+ display:block;cursor:pointer;font-size:13px;line-height:1.55;font-weight:650;
+ color:#f1e4c3;overflow:hidden;display:-webkit-box;
+ -webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow-wrap:anywhere;
+ padding-right:15px;position:relative
+}
+.goal-detail161>summary::after{content:"⌄";position:absolute;right:1px;top:0;color:#a5c5e2}
+.goal-detail161[open]>summary{-webkit-line-clamp:unset;line-clamp:unset}
+.goal-detail161[open]>summary::after{content:"⌃"}
+.goal-detail161 p{margin:8px 0 0;color:#cbd7e2;font-size:12px;line-height:1.65;overflow-wrap:anywhere}
+@media(min-width:1100px){
+ .shell{max-width:1460px}
+ .layout.port-rail-open161{
+  display:grid;grid-template-columns:minmax(205px,228px) minmax(0,1fr) minmax(270px,310px);
+  gap:14px;align-items:start
+ }
+ .layout.port-rail-open161>main{min-width:0}
+ .layout.port-rail-open161>.side{min-width:0}
+ .layout.port-rail-open161>.port-utility-rail161{
+  position:sticky;top:14px;max-height:calc(100vh - 28px);overflow-y:auto;
+  overscroll-behavior:contain;scrollbar-width:thin
+ }
+}
+@media(min-width:781px) and (max-width:1099px){
+ .layout>.side{position:static}
+ .side>.port-utility-rail161{
+  margin-top:14px;box-shadow:none;padding:12px!important
+ }
+}
+@media(max-width:780px){
+ .side>.port-utility-rail161{
+  margin:13px 0 0;padding:12px!important;position:static;width:100%;
+  box-shadow:none;border-color:#445768
+ }
+ .side>.port-utility-rail161 .port-utility-group161>summary{min-height:47px}
+}
+@media(max-width:450px){
+ .port-utility-body161{padding:10px 7px}
+ .port-utility-body161>.inset{padding:9px!important}
+ .port-utility-body161 .debt-pay-options-v100{gap:6px}
+ .port-utility-body161 .debt-pay-options-v100 button{font-size:12px!important;padding:8px 4px}
+}
