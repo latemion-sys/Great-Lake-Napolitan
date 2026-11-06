@@ -67,7 +67,8 @@
   // 항구의 '이번 출항: 항구' 상태값을 개인 목표로 교체합니다.
   previous.classList.add('goal-stat161');
   previous.innerHTML='<small>개인 목표</small>'+
-   '<strong title="'+esc(purpose).replace(/"/g,'&quot;')+'">'+esc(purpose)+'</strong>';
+   '<details class="goal-detail161"><summary title="눌러서 개인 목표 전체 보기">'+esc(purpose)+
+   '</summary><p>'+esc(purpose)+'</p></details>';
  }
  function hideDuplicatedFacility(content){
   const facility=locate('항구 시설',content);
@@ -85,7 +86,7 @@
   inside.appendChild(card);
   outer.append(summary,inside);
   outer.addEventListener('toggle',()=>{
-   if(relocating)return;
+   if(relocating||!outer.isConnected)return;
    expanded[key]=outer.open;
    if(!state.optionalPanels161||typeof state.optionalPanels161!=='object')state.optionalPanels161={};
    state.optionalPanels161[key]=outer.open;
