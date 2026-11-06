@@ -8,9 +8,7 @@ const SAFE_SCENES=new Set(['route','event','wave151']);
 const fmt=n=>typeof unitMoney==='function'?unitMoney(n):n+'만 안';
 const money=n=>Math.max(0,Math.ceil(Number(n)||0));
 function initialize(){
- if(!Number.isFinite(state.shipWear157))state.shipWear157=0;
- state.shipWear157=Math.max(0,Math.min(90,Math.ceil(state.shipWear157)));
- if(!state.returnPenalty157||typeof state.returnPenalty157!=='object')
+if(!state.returnPenalty157||typeof state.returnPenalty157!=='object')
   state.returnPenalty157={active:false,voyage:-1};
 }
 function penalty(){
@@ -26,16 +24,16 @@ function canTurn(){
 function repairCost(item){return money(item.cost*(penalty()?REPAIR_SURCHARGE:1));}
 function activeRepairs(){return typeof SHOP_REPAIRS_132!=='undefined'&&Array.isArray(SHOP_REPAIRS_132)?SHOP_REPAIRS_132:[];}
 function doRepair(id){
- if(!inShop132()||!penalty()&&state.scene!=='port')return false;
- const item=activeRepairs().find(x=>x.id===id),wear=state.shipWear157;
+ if(!inShop132()||state.scene!=='port')return false;
+ const item=activeRepairs().find(x=>x.id===id),wear=Math.max(0,Number(state.exposure)||0);
  if(!item||!wear||!Number.isFinite(item.amount)||item.amount<=0)return false;
  const cost=repairCost(item);
  if(state.gold<cost)return false;
  const restored=Math.min(wear,item.amount);
  state.gold-=cost;
- state.shipWear157=Math.max(0,wear-restored);
+ state.exposure=Math.max(0,wear-restored);
  if(typeof dispatchAchievement142==='function')dispatchAchievement142('repair',{id});
- log('선박 수리: 회항 손상 '+restored+' 회복. '+fmt(cost)+' 지불.'+
+ log('선박 수리: 침식도 '+restored+' 감소. '+fmt(cost)+' 지불.'+
   (penalty()?' 회항으로 수리비 25%가 가산되었습니다.':''));
  sync();
  return true;
@@ -44,41 +42,68 @@ const previousReturn=returnPort;
 returnPort=function(){
  initialize();
  const ref=state,wasAtSea=!!ref.sea,remaining=(ref.offered||[]).length-(ref.visited||[]).length;
- const exposure=Math.max(0,Number(ref.exposure)||0),oldWear=ref.shipWear157;
+ const exposure=Math.max(0,Number(ref.exposure)||0);
  const result=previousReturn.apply(this,arguments);
- if(state!==ref||!wasAtSea||ref.sea||ref.scene!=='port'||remaining<=0)return result;
- // 돌아오지 못한 호수를 건너뛰지 않고 해당 항해를 포기합니다.
- // 구형 침식도는 항구에서 가라앉으므로, 그 일부만 별도의 선박 손상으로 이관합니다.
- ref.shipWear157=Math.max(oldWear,Math.min(90,Math.ceil(exposure*.35)));
- ref.returnPenalty157={active:true,voyage:ref.voyage};
- log('중도 회항: 이번 정박의 모든 선박 수리비 +25%, 모든 선원 고용비 +5만 안.'+
-  (ref.shipWear157?' 회항 선박 손상 '+ref.shipWear157+'이 남았습니다.':''));
+ if(state!==ref||!wasAtSea||ref.sea||ref.scene!=='port')return result;
+ // 중도 회항 이전의 침식도를 그대로 보존하여 선박 손상으로 사용합니다.
+ ref.exposure=exposure;
+ if(remaining>0){
+  ref.returnPenalty157={active:true,voyage:ref.voyage};
+  log('중도 회항: 이번 정박의 모든 선박 수리비 +25%, 모든 선원 고용비 +5만 안.'+
+   (exposure?' 현재 선박 손상(침식도) '+exposure+'.':''));
+ }else ref.returnPenalty157={active:false,voyage:-1};
  sync();
+ return result;
+};
+// 출항 준비 과정의 구형 침식도 초기화 코드를 덮어쓰고, 실제 수리 상태를 보존합니다.
+const previousPrepare=prepareVoyage;
+prepareVoyage=function(){
+ initialize();
+ const ref=state,wear=Math.max(0,Number(ref.exposure)||0);
+ const result=previousPrepare.apply(this,arguments);
+ if(state===ref&&ref.scene==='prep'&&!ref.sea){
+  ref.exposure=wear;
+  save();
+  render();
+ }
  return result;
 };
 const previousLaunch=launch;
 launch=function(){
  initialize();
- const ref=state,wear=ref.shipWear157;
+ const ref=state;
  const result=previousLaunch.apply(this,arguments);
  if(state===ref&&ref.sea){
   ref.returnPenalty157={active:false,voyage:-1};
-  if(wear>0){
-   ref.exposure=Math.min(99,(Number(ref.exposure)||0)+wear);
-   log('수리하지 않은 회항 손상 '+wear+'이 새 항해의 초기 침식도에 반영되었습니다.');
-  }
   sync();
  }
+ return result;
+};
+// 완주 정산에서 침식도가 초기화되더라도 마지막 호수에서 받은 피해까지 보존합니다.
+const previousCompleteDamage=takeDamage;
+let completionRef=null,completionExposure=0;
+takeDamage=function(){
+ const result=previousCompleteDamage.apply(this,arguments);
+ if(completionRef===state)completionExposure=Math.max(completionExposure,Number(state.exposure)||0);
  return result;
 };
 const previousComplete=completeLake;
 completeLake=function(){
  const ref=state,wasAtSea=ref.sea,all=(ref.offered||[]).length;
- const result=previousComplete.apply(this,arguments);
+ completionRef=ref;
+ completionExposure=Math.max(0,Number(ref.exposure)||0);
+ let result,finalExposure;
+ try{
+  result=previousComplete.apply(this,arguments);
+  finalExposure=completionExposure;
+ }finally{
+  completionRef=null;
+  completionExposure=0;
+ }
  if(state===ref&&wasAtSea&&!ref.sea&&ref.scene==='port'&&all>0){
-  initialize();
+  ref.exposure=finalExposure;
   ref.returnPenalty157={active:false,voyage:-1};
-  save();
+  sync();
  }
  return result;
 };
@@ -117,15 +142,15 @@ const previousShop=renderShop132;
 renderShop132=function(){
  initialize();
  const html=previousShop.apply(this,arguments);
- const wear=state.shipWear157,extra=penalty(),ready=inShop132();
+ const wear=Math.max(0,Number(state.exposure)||0),extra=penalty(),ready=inShop132();
  const list=activeRepairs().map(item=>{
   const cost=repairCost(item),can=ready&&wear>0&&state.gold>=cost;
   return button(item.name+' · 손상 '+Math.min(wear,item.amount)+' 회복 · '+fmt(cost)+
    (extra?' (회항 가산 25%)':''),'shipRepair157',item.id,'',!can);
  }).join('');
  const panel='<section class="inset ship-repair157"><h3>선박 수리</h3>'+
-  '<p>선박에 남은 회항 손상 <strong>'+wear+'</strong> / 90. 수리하지 않고 출항하면 '+
-  '남은 손상만큼 초기 침식도가 증가합니다.</p>'+
+  '<p>현재 선박 손상도(침식도) <strong>'+wear+'</strong> / 100. '+
+  '수리하지 않고 출항하면 이 침식도를 그대로 안고 항해합니다.</p>'+
   (extra?'<p class="return-fee157">중도 회항으로 이번 정박의 선박 수리비가 <strong>25% 증가</strong>합니다. '+
    '수리 횟수 제한은 없습니다.</p>':
    '<p class="muted">정상 귀항에는 회항 가산 요금이 붙지 않습니다.</p>')+
@@ -140,7 +165,8 @@ renderPlay=function(){
   '<section class="inset log-update"><h3>업데이트 내역 · v.'+VERSION+'</h3>'+
   '<ul><li>항해 중 호수 화면 상단에 붉은색 「회항한다」 버튼을 추가했습니다.</li>'+
   '<li>중도 회항한 정박에서 선박 수리비가 25%, 선원 고용비가 인원마다 5만 안 증가합니다.</li>'+
-  '<li>중도 회항할 때마다 같은 규칙을 새로 적용하며 정상적인 귀항에는 가산하지 않습니다.</li>'+
+  '<li>침식도를 선박 손상도로 사용하며 귀항 후 수리할 수 있습니다. 회항 가산은 그때마다 적용됩니다.</li>'+
+  '<li>정상적으로 항해를 마치면 수리와 고용에 추가 비용이 붙지 않습니다.</li>'+
   '<li>항해 화면, 버튼, 사건 설명과 정비소의 글자 크기와 간격을 정돈했습니다.</li></ul></section>';
  if(state.scene==='port'&&penalty()){
   return '<div class="inset return-notice157"><h3>중도 회항 · 항구 정비 비용</h3>'+
@@ -161,9 +187,9 @@ renderHelp=function(){
   '<section class="inset"><h3>v.'+VERSION+' · 중도 회항과 정비 요금</h3>'+
   '<p>항해 중 호수 위의 붉은색 「회항한다」 버튼으로 남은 호수를 포기하고 항구로 돌아갈 수 있습니다. '+
   '회항은 항해 완주로 인정되지 않습니다. 재앙 전투, 전투 판정 또는 고래 조우 중에는 이용할 수 없습니다.</p>'+
-  '<p>중도 회항 시 침식도의 35%가 선박 손상으로 남을 수 있습니다. 이번 정박에서는 수리할 때마다 '+
-  '수리비가 25% 올라가며, 선원을 고용할 때마다 5만 안이 추가됩니다. 다음 출항부터 가산 요금이 해제됩니다. '+
-  '이후 다시 중도 회항하면 그때마다 같은 가산 요금이 적용됩니다. 정상 귀항에는 적용되지 않습니다.</p></section>';
+  '<p>침식도는 선박 손상도입니다. 회항하거나 정상 귀항하더라도 침식도는 남으며 항구에서 수리하면 감소합니다. '+
+  '중도 회항한 경우에만 이번 정박에서 수리할 때마다 비용이 25% 올라가고, 선원을 고용할 때마다 5만 안이 추가됩니다. '+
+  '다음 출항부터 가산 요금이 해제되며 재차 중도 회항하면 다시 적용됩니다. 정상 귀항에는 가산되지 않습니다.</p></section>';
 };
 document.addEventListener('click',function(e){
  const b=e.target?.closest?.('button[data-act]');
