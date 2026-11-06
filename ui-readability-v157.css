@@ -1,0 +1,71 @@
+/* v.1.5.7 · 전체 항해 UI의 문장 가독성, 회항 행동 구분 */
+:root{
+ --read-text:#ecf1f5;
+ --read-muted:#c1cbd5;
+ --read-line:#41515f;
+}
+body:not(.landing025-active) .panel{line-height:1.78}
+body:not(.landing025-active) #content{color:var(--read-text);font-size:15px;overflow-wrap:break-word;word-break:keep-all}
+body:not(.landing025-active) #content p,
+body:not(.landing025-active) #content li{line-height:1.82;letter-spacing:.007em}
+body:not(.landing025-active) #content p{margin:10px 0 14px}
+body:not(.landing025-active) #content .muted,
+body:not(.landing025-active) #content .small{color:var(--read-muted);font-size:14px;line-height:1.65}
+body:not(.landing025-active) #content h2{font-size:clamp(20px,2.4vw,25px);line-height:1.35;letter-spacing:-.018em;margin-bottom:13px}
+body:not(.landing025-active) #content h3{font-size:17px;line-height:1.45;letter-spacing:-.01em;margin-bottom:10px}
+body:not(.landing025-active) #content h4{font-size:15px;line-height:1.5;margin:12px 0 9px}
+body:not(.landing025-active) #content :where(.inset,.rumor,.event){border-color:var(--read-line);padding:clamp(14px,2vw,18px);margin-bottom:13px}
+body:not(.landing025-active) #content .inset .inset{padding:13px 14px;margin:12px 0;background:#1d2731}
+body:not(.landing025-active) #content .result{line-height:1.75;letter-spacing:.005em;padding:15px 17px}
+body:not(.landing025-active) #content .stack{gap:10px}
+body:not(.landing025-active) #content :where(button,select){font-size:14px;line-height:1.48;min-height:43px;white-space:normal;overflow-wrap:anywhere}
+body:not(.landing025-active) #content .stack button{text-align:left;padding:12px 15px}
+body:not(.landing025-active) #content button:focus-visible{outline:3px solid #a9d0f5;outline-offset:3px}
+body:not(.landing025-active) #content .between{gap:12px}
+body:not(.landing025-active) #content .lake{padding:15px;line-height:1.72}
+body:not(.landing025-active) #content .lake .tag{font-size:13px}
+body:not(.landing025-active) #content details>summary{cursor:pointer;font-size:15px;line-height:1.7;padding:5px 2px}
+body:not(.landing025-active) #content .meter{margin-top:7px;margin-bottom:15px}
+body:not(.landing025-active) .side :where(.stat,.inset){border-color:#40505d}
+body:not(.landing025-active) .side .stat small{font-size:12px;line-height:1.45;color:var(--read-muted)}
+body:not(.landing025-active) .side .stat strong{font-variant-numeric:tabular-nums}
+.return-bar157{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+ padding:14px 16px;margin-bottom:17px;border:1px solid #9e4248;
+ border-radius:13px;background:linear-gradient(120deg,#2f1c23,#281b23 80%);
+}
+.return-bar-copy157{display:flex;flex-direction:column;gap:3px;min-width:0}
+.return-bar-copy157 b{font-size:15px;color:#ffe8e9}
+.return-bar-copy157 span{font-size:13px;line-height:1.55;color:#efc4c7}
+body:not(.landing025-active) #content button.return-button157{
+ background:#b3232d!important;color:#fff!important;border:1px solid #de6970!important;
+ padding:12px 21px;font-size:15px;font-weight:750;letter-spacing:.02em;
+ border-radius:9px;min-height:45px;box-shadow:0 3px 10px #100b0e66;
+}
+body:not(.landing025-active) #content button.return-button157:hover:not(:disabled){
+ background:#d12c36!important;color:#fff!important;border-color:#ff8c93!important
+}
+body:not(.landing025-active) #content button.return-button157:focus-visible{outline:3px solid #f7bdc0;outline-offset:3px}
+body:not(.landing025-active) #content .return-notice157{
+ border:1px solid #9b5952;background:#2d2426;color:#f8e1da
+}
+body:not(.landing025-active) #content .return-notice157 p{margin-bottom:0}
+body:not(.landing025-active) #content .return-fee157{
+ border:1px solid #9b5952;border-radius:9px;padding:12px 14px;
+ background:#302426;color:#f6d7d4
+}
+body:not(.landing025-active) #content .return-fee157 h3{color:#ffd8d1}
+body:not(.landing025-active) #content .ship-repair157 .stack{margin-top:13px}
+body:not(.landing025-active) #content .ship-repair157 button:disabled{opacity:.55}
+@media(max-width:680px){
+ body:not(.landing025-active) #content{font-size:15px}
+ body:not(.landing025-active) #content :where(.inset,.rumor,.event){padding:14px}
+ body:not(.landing025-active) #content h2{font-size:21px}
+ body:not(.landing025-active) #content .lakegrid{grid-template-columns:1fr}
+ body:not(.landing025-active) #content .return-bar157{align-items:stretch}
+ body:not(.landing025-active) #content button.return-button157{width:100%;min-height:48px}
+ body:not(.landing025-active) #content .between{align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+ body:not(.landing025-active) #content button{transition:none}
+}
