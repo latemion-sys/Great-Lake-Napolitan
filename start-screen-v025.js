@@ -21,7 +21,7 @@
   const safePurpose=esc(draft.slice(0,MAX_PURPOSE025));
   return '<section class="landing025" aria-label="대호수 시작 화면">'+
     '<header class="landing-top025">'+
-      '<div class="landing-kicker025">대호수 항해 시뮬레이션 · v.1.5.7</div>'+
+      '<div class="landing-kicker025">대호수 항해 시뮬레이션 · v.1.6.0</div>'+
       '<h1>대호수: The Great Lake</h1>'+
       '<p class="landing-subtitle025">도시 남부에 펼쳐진 거대한 호수. 그곳에는 \'고래잡이\'라 불리는, 고래 사냥을 전문적으로 도맡는 해결사들이 존재하며, 이들은 이름처럼 고래와 인어를 사냥하고 고래 기름 등의 부산물을 채취해 판매하고 있습니다. 그곳에 오늘 선장으로 이름을 올린 자가 또 하나 늘어났습니다.</p>'+
     '</header>'+
